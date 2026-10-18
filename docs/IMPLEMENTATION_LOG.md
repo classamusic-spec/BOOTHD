@@ -3,6 +3,113 @@
 Newest milestone first. Each entry: scope, plan, changes, commands and exit
 codes, platform results, spec issues raised, risks, next step.
 
+## M02: Porcelain design system and adaptive Studio shell
+
+- Date: 2026-10-18 (UTC)
+- Authorised by: owner ("approved, start M02"), which also approved
+  continuing with the M01 device subgates BLOCKED (MASTER_PROMPT §D).
+- Quality bar: CR-001 (exceed the concept board; AC-0207..AC-0211).
+- Host: the same Linux cloud session as M00 and M01.
+
+### Plan (as executed)
+
+1. Licensed type and icons with recorded provenance: Cormorant Garamond
+   and Inter (SIL OFL 1.1), Material Symbols Rounded (Apache 2.0).
+2. Semantic tokens as a `ThemeExtension`: three profiles (Porcelain
+   Studio, Light Oak, Darkroom Walnut), each with a high-contrast variant;
+   palettes tuned against CR-001 and checked by an automated pair test.
+3. Component kit with every interaction state: tactile surface painter,
+   shared `Pressable` behaviour, buttons, icon buttons, cards, switches,
+   stepper, segmented control, text field, sheet, toast, navigation,
+   responsive grid, template thumbnail, empty and loading states, status
+   badges and tiles, wordmark, device-frame miniature, original botanical
+   line art.
+4. Adaptive Studio shell: stateful shell route with six sections; sidebar
+   or compact rail chosen from the window width; Dashboard, Events,
+   Templates, Gallery, Settings (master-detail, live Appearance) and
+   Diagnostics (developer tools in non-release builds only).
+5. Guest layout skeleton (portrait and landscape chosen from constraints)
+   with the welcome screen and an operator preview route.
+6. Tests: contrast pairs, design-system rules, components, every screen at
+   six tablet sizes and 200% text, accessibility guidelines in both
+   orientations and all themes, a dead-control audit, guest isolation,
+   navigation, licences and provenance; goldens for every screen.
+7. ADR-0008; format, analyze, tests, Android builds; evidence.
+
+### Changes
+
+- Design system: `lib/core/design_system/` (tokens, palettes, typography,
+  metrics, motion, depth, theme extension and `ThemeData`, page
+  transitions, appearance state, icon names, licence registration).
+- Components: `lib/shared/widgets/` (24 files); guest skeleton:
+  `lib/shared/guest/`.
+- Screens: `lib/features/studio_shell/`, `dashboard/dashboard_screen.dart`
+  (replaces the baseline screen), `events/`, `template_library/`,
+  `gallery/`, `settings/` (6 files), `diagnostics/diagnostics_screen.dart`,
+  `diagnostics/component_gallery_screen.dart`, `booth/guest_preview_screen.dart`.
+- App: `app.dart` (theme from appearance, platform contrast and motion),
+  `router.dart` (shell routes, guest preview, developer routes),
+  `bootstrap.dart` (font licences), restyled `route_not_found_screen.dart`;
+  `core/routing/route_paths.dart`, `core/platform/app_info.dart`.
+- Assets: `assets/fonts/` (5 TTFs, 2 licence texts); `pubspec.yaml` fonts
+  and assets; dependency `material_symbols_icons` ^4.2960.0.
+- Architecture rule: `core` may import `material_symbols_icons`
+  (`test/architecture/layer_rules.dart`, ADR-0008).
+- Tests: `test/design_system/` (2 files), `test/core/`,
+  `test/widgets/{components,screens,guest_isolation}_test.dart`,
+  `test/app/router_test.dart` (rewritten), `test/goldens/` (103 images),
+  `test/flutter_test_config.dart` (loads the real fonts),
+  `test/support/app_harness.dart`, `dart_test.yaml` (golden tag);
+  `integration_test/app_launch_test.dart` now expects the dashboard.
+  Removed: `baseline_home_screen.dart` and its test.
+- Docs: ADR-0008, `docs/ASSET_PROVENANCE.md`, licence report, README.
+- Migrations: none.
+
+### Problems met and how they were handled
+
+- A token field named `type` silently overrode `ThemeExtension.type`, the
+  key Flutter uses to look extensions up; renamed to `text` before any
+  screen depended on it.
+- Flutter's text-contrast guideline samples a 1x render around each label.
+  It failed thin 13 px muted labels (3.1–3.4:1 measured against 5.6–6.1:1
+  tokens), a sidebar label whose sampled box touched the item's edge, and
+  captions sitting inside a device frame's shadow. Fixed in the design
+  (14 px minimum, full-ink navigation labels, padding, smaller shadow);
+  the guideline and thresholds are unchanged.
+- At 200% text, list rows with a status badge overflowed on the smallest
+  portrait tablet; trailing widgets may now shrink and wrap.
+- First review renders showed corner sprigs crossing the guest title,
+  steps wrapping awkwardly and a lone fourth format card; fixed (smaller
+  corner art, shorter step copy and a vertical step list in landscape, a
+  balanced grid option).
+- Golden size: 103 images at 1x take about 16 MB, mostly smooth gradients
+  that PNG compresses poorly. Kept, and noted in ADR-0008 (Git LFS is an
+  option for the owner).
+
+### Spec issues raised
+
+1. UX-01 palette values were adjusted where they fail CR-001 (secondary
+   text, white-on-gold primary, gold icons); table in ADR-0008. Owner to
+   confirm.
+2. UX-04 lists "Settings/Diagnostics" as one area; M02's prompt lists them
+   separately, so Diagnostics is its own section.
+3. S02 asks for a "last active event summary"; no events exist until M03,
+   so the dashboard shows the empty state and readiness tiles instead.
+4. Still pending from M00/M01: confirmation of ADR-0004, the concept-board
+   image at `reference/15_screen_concept_reference.png`, and the device
+   models (and whether a Mac is available).
+
+### Risks carried forward
+
+- Appearance choices reset on restart until booth storage (M03).
+- Golden comparison is exact and Linux-only; on-device legibility under
+  venue lighting and frame rate are M11 checks.
+- AC-0209 needs the owner's "exceeds the board" sign-off.
+
+### Next
+
+Owner review of M02 (goldens and the live build), then M03 when approved.
+
 ## M01: cross-platform render and camera feasibility spike
 
 - Date: 2026-10-18 (UTC)

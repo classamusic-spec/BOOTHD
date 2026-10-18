@@ -7,7 +7,7 @@ Licence names come from a text heuristic over each package's LICENSE file and
 are a starting point for the release audit (AC-1204), not a legal opinion.
 SDK packages report version 0.0.0 and are pinned by the Flutter SDK version.
 
-## Runtime dependency graph: treat as shipped (69)
+## Runtime dependency graph: treat as shipped (70)
 
 Everything reachable from the app's non-dev dependencies. Deliberately
 conservative: release compilation drops unused code, but the licence audit
@@ -52,6 +52,7 @@ covers this whole set.
 | logging | 1.3.0 | hosted |  | BSD-3-Clause |
 | matcher | 0.12.20 | hosted |  | BSD-3-Clause |
 | material_color_utilities | 0.13.0 | hosted |  | Apache-2.0 |
+| material_symbols_icons | 4.2960.0 | hosted | yes | Apache-2.0 |
 | material_ui | 1.7.0 | hosted |  | BSD-3-Clause |
 | meta | 1.18.3 | hosted |  | BSD-3-Clause |
 | objective_c | 9.5.0 | hosted |  | BSD-3-Clause |

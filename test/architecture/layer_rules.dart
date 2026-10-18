@@ -31,7 +31,9 @@ const _uiPackages = {
 /// Widening a set is an architecture decision that needs an ADR.
 const Map<Layer, Set<String>> allowedPackages = {
   Layer.entrypoint: {},
-  Layer.core: _uiPackages,
+  // The icon font is wrapped by core/design_system/porcelain_icons.dart so
+  // features and shared widgets use semantic icon names only (ADR-0008).
+  Layer.core: {..._uiPackages, 'material_symbols_icons'},
   Layer.domain: {'meta', 'collection'},
   Layer.features: _uiPackages,
   Layer.shared: _uiPackages,

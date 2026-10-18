@@ -16,9 +16,15 @@ enum TabletViewport {
   final Size logicalSize;
 }
 
-/// Sizes the test view to [viewport] at 2x density until the test ends.
-void useViewport(WidgetTester tester, TabletViewport viewport) {
-  tester.view.devicePixelRatio = 2;
-  tester.view.physicalSize = viewport.logicalSize * 2;
+/// Sizes the test view to [viewport] (or [size]) at [pixelRatio] until the
+/// test ends.
+void useViewport(
+  WidgetTester tester,
+  TabletViewport viewport, {
+  double pixelRatio = 2,
+  Size? size,
+}) {
+  tester.view.devicePixelRatio = pixelRatio;
+  tester.view.physicalSize = (size ?? viewport.logicalSize) * pixelRatio;
   addTearDown(tester.view.reset);
 }
