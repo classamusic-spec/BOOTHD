@@ -1,6 +1,8 @@
 # ADR-0003: Shared scene graph and offscreen export renderer
 
-- Status: Accepted as direction; proved in M01, built for production in M04
+- Status: Accepted as direction; proved in M01, built for production in M04.
+  ADR-0010 records the production design (the painter now lives in
+  `lib/core/composition/` so previews can use it without infrastructure).
 - Related: ARCHITECTURE A-06, A-07; ADR-008 (owner-locked clipping rule)
 
 ## Context

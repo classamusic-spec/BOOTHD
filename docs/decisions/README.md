@@ -8,13 +8,14 @@ decisions taken while executing milestones, plus owner change requests (CR).
 | --- | --- | --- | --- |
 | [ADR-0001](ADR-0001-flutter-cross-platform-baseline.md) | Flutter single codebase, toolchain pin and project identity | Accepted | M00 |
 | [ADR-0002](ADR-0002-camera-service-boundary.md) | CameraService boundary over the `camera` plugin | Accepted (draft contract) | M00, revisited M01/M06 |
-| [ADR-0003](ADR-0003-scene-graph-and-renderer.md) | Shared scene graph and offscreen export renderer | Accepted (direction) | M00, proved M01, built M04 |
+| [ADR-0003](ADR-0003-scene-graph-and-renderer.md) | Shared scene graph and offscreen export renderer | Accepted (direction; detail in ADR-0010) | M00, proved M01, built M04 |
 | [ADR-0004](ADR-0004-adaptive-orientation.md) | Adaptive orientation on iPadOS 26+/27 and Android 16/17 | Accepted | M00 |
 | [ADR-0005](ADR-0005-architecture-di-routing-data-ownership.md) | Layers, DI, routing and data ownership | Accepted | M00 |
 | [ADR-0006](ADR-0006-test-and-ci-strategy.md) | Test layers, CI and evidence rules | Accepted | M00 |
 | [ADR-0007](ADR-0007-m01-feasibility-findings.md) | M01 feasibility spike: findings, limits and refactor plan | Accepted | M01 |
 | [ADR-0008](ADR-0008-porcelain-design-system.md) | Porcelain design system, theme profiles and adaptive Studio shell | Accepted (owner approved M02) | M02 |
 | [ADR-0009](ADR-0009-offline-storage-operator-access-booth-mode.md) | Offline storage, operator access, Booth Mode isolation and launch checks | Accepted | M03 |
+| [ADR-0010](ADR-0010-template-model-and-production-renderer.md) | Template document model, production renderer and template store | Accepted | M04 |
 | [CR-001](CR-001-premium-ux-quality-bar.md) | Premium UX quality bar: exceed the 15-screen board | Approved by owner 2026-10-17 | Binding from M02 |
 
 Template: context, decision, consequences, verification, open questions.

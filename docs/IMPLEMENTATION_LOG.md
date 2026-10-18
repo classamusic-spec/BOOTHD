@@ -3,6 +3,166 @@
 Newest milestone first. Each entry: scope, plan, changes, commands and exit
 codes, platform results, spec issues raised, risks, next step.
 
+## M04: production template model, renderer and template store
+
+- Date: 2026-10-18 (UTC)
+- Authorised by: owner ("approved, start M04"). The M03 report's questions
+  (recovery protocol, three-second exit hold, goldens in Git or LFS, the
+  reading that "approved, start M03" approved M02, ADR-0004, the concept
+  board image, device models and a Mac) are still unanswered; their
+  defaults are kept and they are asked again in the report.
+- Quality bar: CR-001 for every changed screen (Diagnostics, launch
+  checks, Templates).
+- Host: the same Linux cloud session as M00 to M03.
+
+### Plan (as executed)
+
+1. Pure-Dart document model v1: page in physical units and DPI with
+   presets, normalised geometry with a documented pivot, five layer types,
+   global z-order, opacity, visibility, clips and masks, content-addressed
+   asset table; validation with codes and paths; strict JSON reading,
+   canonical writing, checksums and a migration framework.
+2. Scene compiled in page pixels, and the M01 painter promoted to
+   `core/composition` so previews, the editor workspace and exports share
+   it; text with bundled and imported fonts and a deterministic fallback.
+3. Renderer: exact-size offscreen exports from originals with bounded
+   decoding, PNG with print resolution and alpha, an in-house baseline JPEG
+   encoder on an isolate with intentional flattening, typed failures and
+   warnings, one export at a time.
+4. Atomic export: stage, flush, read back, decode, rename, never replace;
+   fault injection; startup discard of interrupted writes.
+5. Drift schema v2 (assets, revision asset links), v1 to v2 migration with
+   seeded fixtures; content-addressed asset store with header, limit and
+   decode checks; template repository with immutable checksummed
+   manifests.
+6. Strict ZIP reader and writer (no new dependency) and the
+   `.porcelain-template` package; import creates a new template and stores
+   nothing unless everything checks out.
+7. Real launch checks for the renderer and template assets.
+8. Render lab (replacing the render spike), fixtures FIX-01 to FIX-06 plus
+   clip, gradient and halo cases, goldens, preview parity with a documented
+   tolerance, determinism, host benchmarks, device test and procedure.
+9. ADR-0010, docs, checks, Android builds, evidence.
+
+### Changes
+
+- Domain (`lib/domain/template/`): `geometry.dart`, `page_spec.dart`,
+  `template_assets.dart`, `template_layers.dart`, `document_issues.dart`,
+  `template_document.dart`, `template_json.dart`,
+  `template_migrations.dart`, `asset_formats.dart` (header sniffing),
+  `document_scene.dart` (rewritten). Services: `composition_renderer.dart`
+  (rewritten: `TemplateRender`, `RenderSource`, artifacts, failures,
+  warnings, stats), `export_service.dart`. Repositories:
+  `template_store.dart` (asset and template repositories, packages,
+  `TEMPLATE_*` errors). `crypto` allowed in the domain for content ids.
+- Core (`lib/core/composition/`): `scene_painter.dart` (moved from
+  infrastructure and extended), `scene_images.dart`, `scene_loader.dart`,
+  `scene_preparation.dart`, `template_fonts.dart`; DI providers for the
+  asset and template repositories, packages and the export service.
+- Infrastructure: `codecs/` (CRC-32, PNG print metadata, JPEG encoder),
+  `composition/dart_ui_composition_renderer.dart` (rewritten),
+  `file_store/atomic_file_writer.dart`, `file_store/file_export_service.dart`,
+  `managed_storage.dart` (startup discard, writer), `templates/` (asset
+  and template repositories, ZIP, packages, store render source),
+  `database/` (schema v2, generated steps, shared summary mapping),
+  `device/device_capability_probe.dart` (real renderer and asset checks).
+- Features: `diagnostics/render_lab/` (moved from `spikes/render/`:
+  fixtures, runner, checks, preview parity, screen), Diagnostics row
+  "Render lab", launch-check copy for the new results, Templates
+  placeholders now name M05.
+- Shared: `widgets/scene_preview.dart`.
+- Tests: `test/domain/template/` (document, JSON, scene),
+  `test/rendering/` (render lab, goldens, preview parity, text, output
+  formats, benchmark, device comparison), `test/infrastructure/` (JPEG
+  encoder, export service, launch checks, `templates/` asset and template
+  repositories, ZIP, packages), migration test and `seed_v2.sql`, updated
+  router, spike-screen, events-flow and launch-check tests; fixtures
+  `test_assets/templates/v1/everything.json` and four new render goldens;
+  Diagnostics and launch-check widget goldens regenerated (text changes).
+- Device: `integration_test/render_lab_test.dart` (was
+  `render_spike_test.dart`), driver saving under `build/device_renders/`.
+- Docs: ADR-0010; ADR-0003 and ADR-0007 status notes; ADR index; README;
+  `test_assets/README.md`; `docs/device_tests/M04_DEVICE_PROCEDURE.md`;
+  M01 procedure points to it.
+- Migrations: schema version 2 adds `assets` and
+  `template_revision_assets`; tested from seeded v1 and v2 databases.
+
+### Problems met and how they were handled
+
+- Preview parity found a pale seam: where a slot edge fell between pixels,
+  the slot clip and the image's own anti-aliased edge each covered the
+  pixel (25% instead of 50%). It showed in quarter-size previews and would
+  have shown in exports of templates whose slots are not on whole pixels.
+  Photos now fill their slot shape through an image shader (one edge);
+  masks scale that edge without cutting it again. All goldens, which have
+  whole-pixel slots, still match exactly.
+- Text cannot be compared pixel for pixel between a quarter-size preview
+  and a reduced export (glyphs are rasterised at each size), so text is
+  compared by geometry; the documented tolerance applies to everything
+  else (ADR-0010 section 6).
+- JPEG exports raised resident memory by about 21 MB over the first 200
+  renders and then stayed flat; PNG exports and previews showed no growth.
+  That is the allocator keeping memory for the encoder isolate, not a
+  leak; the benchmark records the curve and asserts a bound.
+- The engine already writes `sRGB` and `sBIT` into PNGs; the metadata step
+  only adds `pHYs`, and the test now parses chunks instead of assuming
+  offsets.
+- The JSON reader at first reported missing fields twice; absent keys now
+  return defaults and are reported once.
+- The design-system rule caught literal colours in a render fixture;
+  fixtures use their named colours.
+- The longer "Render lab" subtitle wrapped on Android portrait; shortened.
+- Building FIX-01 (pure-Dart PNG encoding) in every test made the package
+  tests take 69 s; built once per file, 5 s.
+- `drift_dev make-migrations` regenerated `schema_v1.dart` with data
+  classes now that two versions exist; expected, and checked by
+  `tool/check.sh`.
+
+### Spec issues raised
+
+1. A-06 lists a font "license ID" for text. Schema v1 names a bundled
+   family (licences in `docs/ASSET_PROVENANCE.md`) or an imported font
+   asset, with no licence field. Proposal: M05's import screen records the
+   operator's licence note against the asset (a database column, no
+   document change).
+2. A-06 allows an optional bleed or safe area. Not in schema v1: release 1
+   is export-only and no paper profile is chosen; adding it later is a
+   schema step. Exports clip to the page.
+3. A-06 allows the background as a page property or a layer; v1 uses a
+   layer only (at most one, lowest), which avoids competing backgrounds.
+4. Only source-over blending; no blend modes in v1.
+5. JPEG output is untagged sRGB; ICC embedding waits for a chosen printer
+   (A-13).
+6. "Asset copying" works through the template store and packages; there
+   is no file picker until the library screen (M05), so a device cannot
+   import a template yet.
+7. AC-0407 asks for parity "on target platforms": the host passes; iPad
+   and Android runs are BLOCKED without devices.
+8. RenderedOutput rows need sessions (M06); M04 saves and verifies the
+   file and returns its facts.
+
+### Risks carried forward
+
+- Device behaviour is unmeasured: render time and memory with 12 MP
+  camera JPEGs, JPEG encode time on tablet CPUs, text rasterisation and
+  the real pixel difference against the host goldens (which decides the
+  final tolerance).
+- A PNG decodes at full size before resizing; the 50 MP limit bounds that
+  at about 200 MB, which may be too much for some tablets. Revisit after
+  device runs.
+- Imported fonts stay registered for the life of the process (the engine
+  cannot unload them); bounded by the number of distinct font files.
+- A crash between writing a file and recording it leaves an unrecorded
+  manifest or asset: harmless, never read, but it takes space until the
+  M10 clean-up.
+- Goldens: 177 widget images (30 MB) plus 6 render goldens; Git LFS is
+  still the owner's call.
+
+### Next
+
+Owner review of M04, then M05 (template library and layered editor) when
+approved.
+
 ## M03: offline storage, event configurations and operator access
 
 - Date: 2026-10-18 (UTC)

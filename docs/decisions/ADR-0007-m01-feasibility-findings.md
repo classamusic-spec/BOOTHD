@@ -1,7 +1,9 @@
 # ADR-0007: M01 feasibility spike: findings, limits and refactor plan
 
 - Status: Accepted (M01, 2026-10-18). Answers several open questions in
-  ADR-0002 and ADR-0003; physical-device questions remain open.
+  ADR-0002 and ADR-0003; physical-device questions remain open. The M04
+  items of the refactor plan are done (ADR-0010); the spike UI became the
+  render lab.
 - Covers: AC-0101..AC-0108. Evidence: `docs/ACCEPTANCE_EVIDENCE.md` (M01).
 
 ## What was built, and where

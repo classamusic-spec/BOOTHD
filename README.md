@@ -4,17 +4,19 @@ Offline-first photo booth for iPadOS and Android tablets, built as one
 Flutter/Dart app. Operators design layered print templates in Studio Mode;
 guests use a locked, simple Booth Mode with the tablet's built-in camera.
 
-**Status: M03 (offline events, settings, operator PIN and Booth Mode
-isolation) complete on the host, awaiting owner review.** A fresh install
-runs first-run setup (operator PIN, a one-time recovery code, booth name and
-look). Every later start opens on the PIN screen, or back in Booth Mode if
-it was running. Events are created, edited, duplicated, archived and
-reopened offline and persist in SQLite; launch checks say plainly what is
-not available until later milestones (camera, renderer), so Booth Mode
-cannot start yet with real guests. Physical-device checks remain BLOCKED
-until an iPad and an Android tablet are available. See
-`docs/IMPLEMENTATION_LOG.md`, `docs/ACCEPTANCE_EVIDENCE.md`, ADR-0008 and
-ADR-0009.
+**Status: M04 (production template model, renderer and template store)
+complete on the host, awaiting owner review.** Templates are versioned JSON
+documents with photo slots, transparent artwork, text, shapes and
+backgrounds; one painter renders previews and 300 dpi print files (2x6,
+4x6 portrait or landscape, 4x4) as PNG with transparency or JPEG flattened
+on purpose, saved atomically. Templates and their assets are stored by
+content, revisions never change, and `.porcelain-template` packages are
+checked strictly before anything is stored. Launch checks now render every
+template of an event for real. The template library screen, editor and
+file picker come in M05; the camera and sessions in M06. Physical-device
+checks remain BLOCKED until an iPad and an Android tablet are available.
+See `docs/IMPLEMENTATION_LOG.md`, `docs/ACCEPTANCE_EVIDENCE.md` and
+ADR-0010.
 
 ## Start here
 
@@ -42,6 +44,8 @@ tool/build_ios.sh release        # unsigned iPadOS build; macOS only, else BLOCK
 tool/toolchain_inventory.sh      # host and toolchain inventory
 dart run tool/dependency_licenses.dart   # refresh docs/DEPENDENCY_LICENSES.md
 flutter test integration_test/app_launch_test.dart -d <device>  # launch smoke test
+flutter drive --profile -d <device> --driver=test_driver/integration_test.dart \
+  --target=integration_test/render_lab_test.dart   # render lab on a device (M04 procedure)
 flutter test --update-goldens test/rendering/   # only after an intentional render change
 flutter test --update-goldens test/goldens/     # only after an intentional UI change (Linux)
 ```
@@ -55,12 +59,13 @@ smoke build; the iPadOS build runs on demand on a macOS runner.
 lib/
   main.dart            entry point
   app/                 composition root: bootstrap, app, router, providers
-  core/                cross-cutting code: design system tokens and themes, platform info, routing paths
-  domain/              pure Dart: value objects, service contracts, later documents and state machines
+  core/                cross-cutting code: design system, routing, access, the composition painter
+  domain/              pure Dart: value objects, service contracts, template documents and scenes
   features/<name>/     screens and controllers, one folder per feature
-  infrastructure/      plugin, database (Drift), secure storage and file adapters
+  infrastructure/      plugin, database (Drift), secure storage, files, codecs, renderer and template store
   shared/              Porcelain component kit and the guest layout skeleton
-test/                  architecture, design system, domain, persistence, migration, widget, golden and app tests
+test/                  architecture, design system, domain, rendering, persistence, migration, widget, golden and app tests
+test_assets/           committed render goldens, template fixtures and input photos
 drift_schemas/         one JSON dump per database schema version (migration tests)
 integration_test/      device/simulator tests
 tool/                  scripts used locally and by CI

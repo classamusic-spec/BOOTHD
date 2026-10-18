@@ -16,6 +16,12 @@ with the device model, OS version, app commit, build mode and date.
 
 ## 1. Render spike (AC-0104, AC-0105), each device
 
+> Superseded for the renderer by `M04_DEVICE_PROCEDURE.md`: the render
+> spike became the render lab (`integration_test/render_lab_test.dart`),
+> which runs FIX-01 and every M04 fixture and saves results under
+> `build/device_renders/`. The commands below are kept as M01 recorded
+> them; run the M04 procedure instead.
+
 1. `flutter drive --profile -d <device-id> --driver=test_driver/integration_test.dart --target=integration_test/render_spike_test.dart`
    - Expect "All tests passed". Results land in `build/m01_device/<platform>-<time>/`.
 2. `flutter test test/rendering/device_render_comparison_test.dart`

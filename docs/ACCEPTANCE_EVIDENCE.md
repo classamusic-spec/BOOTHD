@@ -333,3 +333,126 @@ on `46a6170`, GitHub-hosted `ubuntu-24.04` runners:
   guests after 45 s untouched.
 - No guest photos or personal data exist yet; event notes and names are
   operator data kept on the device.
+
+## M04: production template model, renderer and template store
+
+```text
+Milestone: M04 | code commit bbdf29948686b07d6e2e4116dc31d81216e5db35 | build 0.1.0+1
+Host: same Linux cloud VM as M00 to M03 (4 cores, no KVM, no macOS, no attached devices)
+Flutter 3.47.7 / Dart 3.13.5; no new packages (crypto, already present, now also
+  used by the domain for content ids; ZIP and JPEG code written in the project)
+iPad: BLOCKED (no physical iPad, no Mac)
+Android: builds PASS; no physical tablet
+Owner approval requested: YES
+Owner review page (private): https://claude.ai/artifact/Dh8GvRUHGmbpqUujo62GSi
+```
+
+### Commands and exit codes (2026-10-18 UTC)
+
+Rows 1 to 6 ran on `bbdf299`; the working tree differed only in
+documentation.
+
+| # | Command | Exit | Result |
+| --- | --- | --- | --- |
+| 1 | `tool/check.sh` | 0 | Generated code current (build_runner and `drift_dev make-migrations` changed nothing, including the schema v2 dump and steps). Format: 0 changed. Analyze: no issues. Tests: 1,378 passed, 1 skipped (device comparison, no device results). Licence report current |
+| 2 | Test breakdown (`flutter test --reporter json` at `bbdf299`) | 0 | 1,378 passed, 1 skipped: architecture 189; domain 110 (template documents 19, JSON 13, scenes 15, event rules 15, event service 9, auth service 11, PIN and code policy 10, launch checks 10, orientation 8); persistence 14; migrations 6; infrastructure 124 (ZIP reader 24, packages 24, assets 13, revisions 6, export service 10, launch-check probe 5, JPEG encoder 6, security 9, managed storage 4, camera 14, originals 6, EXIF 3); rendering 46 + 1 skip (render lab 13, preview parity 11, text 8, goldens 7, output formats 6, benchmark 1; the skip is the device comparison, which has no device results); core 12; design system 18; app flows 42 (access 16, events 10, router 16); widgets 640; widget goldens 177 |
+| 3 | `tool/build_android.sh release` | 0 | `app-release.apk`, 66,236,312 bytes, SHA-256 `cd7d7b812882f75cc92f918d4ee83e84c311a010816f13cf82cc22b77784fc36`. `aapt2`: targetSdk 36; permissions unchanged from M03 (`CAMERA`, `ACCESS_NETWORK_STATE`, the AndroidX internal receiver permission); `allowBackup=false`, `fullBackupContent=false`, `dataExtractionRules` present |
+| 4 | `tool/build_android.sh debug` | 0 | `app-debug.apk`, 240,182,449 bytes, SHA-256 `0c43d0cc447075694f141183112f5b5ba3863e385120a40d53e63137fbf0f0e6`; adds only `INTERNET` (Flutter debug tooling), as before |
+| 5 | `tool/build_ios.sh release` | 3 | BLOCKED: Linux host |
+| 6 | `flutter drive --profile … integration_test/render_lab_test.dart` (M04 procedure) | not run | BLOCKED: no device. The render lab, goldens, parity, text probes and repeat timings run on the host in row 1; the device run saves every render for `device_render_comparison_test.dart` |
+
+### Measurements on the host (informative; tablets will differ)
+
+Render goldens (inside row 1), threshold 8: all six match exactly (max
+delta 0): `fix01_export_1200x1800` and `fix01_workspace_1440x2160` (the M01
+goldens, still reproduced by the production renderer), `fix02_export_600x1800`,
+`fix03_export_1800x1200`, `fix05_export_1200x1800`, `clip_export_1200x1200`.
+
+Preview at 1/4 against the export box-filtered to the same size
+(`preview_parity_test.dart`; tolerance outside text: threshold 16, at most
+0.5% over, mean at most 1.0):
+
+| Fixture | Max | Mean | Over 16 | Text (lines; ink bounds preview vs export) |
+| --- | --- | --- | --- | --- |
+| FIX-01 | 53 | 0.508 | 0.137% | none |
+| FIX-01b | 53 | 0.505 | 0.081% | none |
+| FIX-02 | 1 | 0.012 | 0.000% | title: 1 line both; 24,399..127,421 vs 24,400..127,422 |
+| FIX-03 | 8 | 0.034 | 0.000% | none |
+| CLIP | 36 | 0.107 | 0.121% | none |
+| GRADIENT | 1 | 0.219 | 0.000% | none |
+| FIX-05 | 0 | 0.000 | 0.000% | 1, 1, 4 and 3 lines both; every edge within 1 px |
+
+Every scaled export check where the reduced export is uniform also passes
+(at least half of each fixture's checks apply). The `ScenePreview` widget
+matches the renderer's preview with max delta 0 (FIX-01, FIX-03, CLIP,
+FIX-05). Negative controls: a preview moved by one pixel fails the
+tolerance (FIX-01, FIX-03, CLIP); text moved by two pixels fails.
+
+Render cost (`render_metrics_test.dart`, `build/m04/host_render_benchmark.json`,
+4-core VM):
+
+| Case | Runs | Total p50 / p95 (ms) | Decode p50 | Raster p50 | Encode p50 |
+| --- | --- | --- | --- | --- | --- |
+| FIX-01 JPEG 1200x1800 (1600x1200 PNG photos) | 20 | 316 / 342 | 91 | 110 | 108 |
+| FIX-01 PNG 1200x1800 | 10 | 311 / 371 | 96 | 95 | 112 |
+| FIX-01 JPEG with 12 MP JPEG originals | 20 | 372 / 413 | 123 | 122 | 123 |
+| FIX-01 preview 300x450 with 12 MP originals | 10 | 67 / 86 | 53 | 6 | 8 |
+
+The 12 MP photos decode at 0.238 and 0.317 of full size (the size their
+slots draw them). Resident memory over 100 more 12 MP JPEG exports, every
+ten: −0.2, 1.1, 2.4, 2.3, 4.1, 7.9, 7.8, 9.1, 10.5, 10.3 MB. A longer
+probe (300 exports) levelled at 20.9 MB after 200; PNG exports and
+previews showed no growth (allocator caching for the encoder isolate, not
+a leak). JPEG encoder PSNR on its synthetic test image: q50 37.4, q80
+40.0, q92 42.5, q100 51.0 dB.
+
+### Acceptance items
+
+| AC | Status | Evidence |
+| --- | --- | --- |
+| AC-0401 Versioned JSON validates and round-trips, including out-of-page bounds and rotation | PASS | `template_json_test.dart`: every layer type, fill, clip, fit and font round-trips to equal documents and identical canonical bytes, including off-page frames (a slot starting at x -0.05; an image from y -0.1 reaching past the right edge), rotations (-7.5° about a corner pivot, 135°) and Unicode text; unknown fields, unknown layer types, wrong types and newer or invented versions are refused with codes and paths; the frozen `test_assets/templates/v1/everything.json` still reads and re-encodes byte for byte. `template_document_test.dart`: every validation rule. Stored revisions round-trip through the store (`template_repository_test.dart`) and packages (`template_packages_test.dart`) |
+| AC-0402 Deterministic render order with z-order, visibility and opacity | PASS | Render lab: FIX-01 and FIX-01b (flower above, then below both slots), CLIP hidden layer and group opacity (the line hides the fill under it). Same bytes on repeated renders, JPEG and PNG (`preview_parity_test.dart`). `template_document_test.dart`: paint order is ascending z with ties in document order, for every layer type; `document_scene_test.dart`: the scene keeps that order |
+| AC-0403 CRITICAL: transparent PNG crosses two slot boundaries unclipped | PASS (host); device BLOCKED | FIX-01 checks: flower centre in the gap, translucent petals over the page and over slot A's photo, disc above slot A by z-order; still exact against the M01 golden. Device run: M04 procedure |
+| AC-0404 Photo clipped to its own slot; masking and crop correct | PASS (host) | FIX-01 cover crops and rounded corner; FIX-03 focal points and rotated slots; CLIP ellipse, ring mask, contain fit with border, mirrored photo. Single anti-aliased slot edge (no seam) shown by parity on fractional edges |
+| AC-0405 2x6 600x1800, 4x6 1200x1800 / 1800x1200, 4x4 1200x1200 at 300 dpi | PASS | `render_lab_test.dart` export sizes; PNG `pHYs` and JPEG JFIF both say 300 dpi (`output_formats_test.dart`); `FileExportService` verifies the saved file decodes at the page size |
+| AC-0406 PNG alpha preserved; JPEG flattened intentionally; no alpha fringe | PASS | `output_formats_test.dart`: transparent page stays transparent with translucent petals at their alpha; edges keep their colour (no dark or light fringe); JPEG flattened onto white by default or any colour, and a template background wins. FIX-04 halo probes pass |
+| AC-0407 Preview and export geometry equivalent; golden/pixel tests within documented tolerance | PASS on the host; target platforms BLOCKED | Measurements above; tolerance in ADR-0010 section 6. Device comparison tooling ready (`device_render_comparison_test.dart` compares all six goldens) |
+| AC-0408 Asset import validates MIME/header, dimensions, path safety, missing sources, unsupported schema | PASS | `asset_repository_test.dart` (13): content not names, unknown and unsupported formats, truncated and cut-off PNGs, over-limit sizes refused before decoding, rotated JPEG recorded at display size, names reduced, reads verified. `zip_archive_test.dart` (24): traversal, absolute, backslash, drive and control-character paths, links, duplicates, disagreeing headers, overlapping entries, bombs, over-declared inflation, size and count limits, encryption, ZIP64, split archives, CRC and size damage, trailing data, non-UTF-8 names. `template_packages_test.dart` (24, FIX-06): corrupt PNG, oversized image, unknown layer type, newer document and package versions, invented version, missing asset, wrong content or type, oversized page, escaping and absolute paths, bomb, encryption, unexpected or unused files, missing or broken manifest, not a package: each refused with its own code, storing nothing; macOS extras ignored |
+| AC-0409 Export failure or low storage leaves originals and previous output untouched; memory bounded in repeats | PASS (host); device memory BLOCKED | `file_export_service_test.dart` (10): full disk mid-write, silently short write, corrupted bytes, failed rename and a render failure each save nothing, leave no staged file and leave every original and earlier output byte-identical; a crash leaves a staged file that the next start discards; a file is never replaced; 30 repeated exports stay within the memory bound. Benchmark above |
+
+### M04 exit gate
+
+| Gate | Status |
+| --- | --- |
+| Renderer reproducible | PASS (host): same bytes on repeat; M01 goldens matched exactly |
+| Print quality | PASS (host): exact page sizes at 300 dpi, PNG with alpha, JPEG 4:4:4 q92 default, no seams or fringes; device output BLOCKED |
+| Correct alpha, order and clipping | PASS (host), AC-0402 to AC-0404, AC-0406 |
+| Output dimensions and validated save | PASS (host), AC-0405, AC-0409 |
+
+### CI (GitHub Actions)
+
+[Run 39136784713](https://github.com/classamusic-spec/BOOTHD/actions/runs/39136784713)
+(#11) on `bbdf299`, GitHub-hosted `ubuntu-24.04` runners (4 cores). Run
+#10 on the first M04 commit, `7a7e609`, also passed.
+
+| Job | Conclusion | Notes |
+| --- | --- | --- |
+| Format, analyze, test, licences | success | Generated code current; 1,378 passed, 1 skipped, as locally. All six render goldens match exactly on a second machine (max delta 0); preview parity and widget-preview figures identical to the host's. Benchmark on the runner: FIX-01 JPEG p50 111 ms (p95 120), PNG 125 (157), with 12 MP originals 133 (148), preview 22 (24); memory over 100 exports +7.8 MB |
+| Android release smoke build | success | 66,236,312 bytes, the same size as locally; SHA-256 `e0e7e959e70f62b09ad0e3f32460bd8cca9e13109e597ac51d12b0400272a90e` differs only because each machine signs with its own debug key |
+| iPadOS unsigned build | skipped | Manual dispatch only, by design |
+
+### Security and privacy notes (M04)
+
+- No new permissions or packages, no network use. Release permissions are
+  as in M03 (row 3).
+- Template files are judged by their bytes, never by names or claimed
+  types; limits apply before any pixel is decoded; packages are read in
+  memory under hard limits and never extracted to a path, so traversal
+  and link entries cannot write anywhere.
+- Assets are content-addressed and checked against their id on every
+  read; manifests against their checksum on every load. A changed file
+  stops a render (`RENDER_MISSING_ASSET`) instead of printing something
+  else.
+- Diagnostics carry codes, asset ids and entry names only; never device
+  paths or file contents. No guest photos exist yet; outputs are written
+  only under managed `outputs/`.
