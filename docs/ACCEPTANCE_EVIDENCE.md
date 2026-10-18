@@ -456,3 +456,124 @@ a leak). JPEG encoder PSNR on its synthetic test image: q50 37.4, q80
 - Diagnostics carry codes, asset ids and entry names only; never device
   paths or file contents. No guest photos exist yet; outputs are written
   only under managed `outputs/`.
+
+## M05: full layered Template Studio and template library
+
+```text
+Milestone: M05 | code commit fa34247 (checks also on cfadbda) | build 0.1.0+1
+Host: same Linux cloud VM as M00 to M04 (4 cores, no KVM, no macOS, no attached devices)
+Flutter 3.47.7 / Dart 3.13.5; new packages: file_selector 1.1.0, share_plus 13.3.x
+  (and their platform packages), behind the OperatorFiles interface
+iPad: BLOCKED (no physical iPad, no Mac)
+Android: builds PASS; no physical tablet
+Tablet layouts tested on the host at iPad 1180x820 / 820x1180, Android
+  1280x800 / 800x1280 and compact 960x600 / 600x960 logical pixels
+Owner approval requested: YES
+```
+
+### Commands and exit codes (2026-10-18 UTC)
+
+| # | Command | Exit | Result |
+| --- | --- | --- | --- |
+| 1 | `tool/check.sh` on `cfadbda` | 0 | Generated code current (build_runner and `drift_dev make-migrations` changed nothing, including the schema v3 dump and steps). Format: 0 changed. Analyze: no issues. Tests: 1,633 passed, 1 skipped (device comparison, no device results). Licence report matches `pubspec.lock` |
+| 2 | `fa34247` (UI fix and four tests after row 1): `dart format --output=none --set-exit-if-changed .`, `flutter analyze`, `flutter test --reporter json` | 0, 0, 0 | Format: 0 changed. Analyze: no issues. Tests: 1,635 passed, 1 skipped, 0 failed: architecture 218; domain 133 (editing 23); persistence 14; migrations 7; infrastructure 128 (asset store 17); rendering 67 + 1 skip (editor parity 21, preview parity 11); core 33 (starter designs 12, template library 9); design system 18; app flows 42; features 12 (editor controller); assets 2; widgets 760 (screen checks 689, Template Studio 13, library flows 9, stress 3); widget goldens 201 |
+| 3 | `tool/build_android.sh release` on `fa34247` | 0 | `app-release.apk`, 71,087,057 bytes, SHA-256 `641b197762b11d8ba7e3459233c0b1313f2aa6fa3e2a4c712299898d0248aa5e`. `aapt2`: targetSdk 36; permissions unchanged from M04 (`CAMERA`, `ACCESS_NETWORK_STATE`, the AndroidX receiver permission); `allowBackup=false`, `fullBackupContent=false`, `dataExtractionRules` present; new, not exported: `ShareFileProvider` and the `SharePlusPendingIntent` receiver (`share_plus`) |
+| 4 | `tool/build_android.sh debug` on `fa34247` | 0 | `app-debug.apk`, 240,723,927 bytes, SHA-256 `55ce6833bff5d4d7b77ca8274f3422b5051249d151c03fb62164adb3cf672b18`; adds only `INTERNET` (Flutter debug tooling), as before |
+| 5 | `tool/build_ios.sh release` | 3 | BLOCKED: Linux host |
+| 6 | M05 device procedure (`docs/device_tests/M05_DEVICE_PROCEDURE.md`) | not run | BLOCKED: no iPad, no Android tablet |
+
+### Measurements on the host (informative; tablets will differ)
+
+Template Studio canvas against the renderer (`editor_parity_test.dart`;
+ADR-0011 section 5). The live canvas is captured with grid, print-safe
+margin and selection off; only the slot numbers and the page's edge line
+are masked. Canvas against the renderer's preview at the same size: max
+delta 0 (classic, retro, gold, blanks) or 1 (floral, modern) at 1/2 and at
+1/4. Canvas against the 300 dpi export box-filtered down, outside text
+(ADR-0010 tolerance: threshold 16, at most 0.5% over, mean at most 1.0):
+
+| Design (page) | 1/2: over 16, mean | 1/4: over 16, mean (recorded) |
+| --- | --- | --- |
+| Classic Strip (600x1800) | 0.000%, 0.096 | 0.173%, 0.319 |
+| Floral Elegance (600x1800) | 0.377%, 0.374 | 1.374%, 0.880 |
+| Modern Minimal (1200x1800) | 0.000%, 0.217 | 0.000%, 0.240 |
+| Retro Film (600x1800) | 0.156%, 0.304 | 0.306%, 0.550 |
+| Gold Celebration (1200x1800) | 0.002%, 0.303 | 0.025%, 0.516 |
+| Blank 2x6, 4x6, 6x4, 4x4 | 0.000%, 0.000 | 0.000%, 0.000 |
+
+Text: every text layer has the same number of lines and ink bounds within
+1 pixel of the export's at 1/2. Floral Elegance's vine (it starts beyond
+the left edge and crosses all three photo spaces): where it lies over the
+photos 21.1% of the pixels differ by more than 16 from the page without
+it, beside them 17.2% (it is drawn, not clipped). Negative control: the
+vine moved by 2 canvas pixels gives max delta 209 and 1.81% over, failing.
+The spray beyond the page shows faded in the margin (847 of 12,554 margin
+pixels change when it is hidden); the export is exactly the page. The
+same figures came from the CI runner (run #17).
+
+M04 lab fixtures (`preview_parity_test.dart`, 1/4) after the preview
+decoding change, over 16 and mean: FIX-01 0.030%, 0.546; FIX-01b 0.025%,
+0.563; FIX-02 0.000%, 0.012; FIX-03 0.083%, 0.043; CLIP 0.214%, 0.150;
+GRADIENT 0.000%, 0.219; FIX-05 0.000%, 0.000. All inside the tolerance;
+all six export goldens still match exactly (exports are unchanged).
+
+Stress (`template_stress_test.dart`): a 4x6 template with 30 layers (6
+photo spaces, 8 texts, 7 shapes, 8 transparent PNG decorations, background)
+took 150 random edits through the editor; 148 applied, 2 refused (locked
+or already at the top), 35 layers at the end; the document was valid
+after every edit. Undo walked back the 100 kept steps, each equal to the
+recorded state, then stopped; redo walked forward to the end exactly.
+Saved and reopened equal and editable. Its 300 dpi PNG export: 1200x1800,
+paint 14 ms, PNG encode 345 ms, no warnings (CI runner: 7 ms, 205 ms).
+The Template Studio opened it with all 29 reorderable rows plus the
+background listed.
+
+### Acceptance items
+
+| AC | Status | Evidence |
+| --- | --- | --- |
+| AC-0501 New template from blank and preset; correct canvas/page metadata | PASS (host); device BLOCKED | `starter_designs_test.dart` (9): the five designs and four blank pages build valid documents with the right page (2x6 600x1800, 4x6 1200x1800 portrait and 1800x1200 landscape, 4x4 1200x1200, all 300 dpi, inches), photo counts and stored decorations. `template_library_flows_test.dart`: "Choose your style" > Retro Film > name "Film night" > Continue creates the template (600x1800, 300 dpi, four photos) and opens it in the Studio, on iPad landscape and Android portrait. The inspector's page summary reads "2 × 6 in · 600 × 1800 px at 300 dpi" |
+| AC-0502 Add/edit/delete photo slots, PNG images, text, backgrounds and shapes | PASS (host) | `template_studio_test.dart`: the Text and Photo tools add layers, undo and redo, in both iPad orientations. `editor_controller_test.dart`: background colour, gradient and removal, one undo step each. `template_library_flows_test.dart`: a PNG picked from the document picker is stored and placed as an image layer. `template_stress_test.dart`: all five kinds added, then edited, duplicated and deleted 150 times. `editing_test.dart`: add, remove, duplicate, update and renumbering rules |
+| AC-0503 Select, drag, resize, rotate and exact numeric transform in both orientations | PASS (host, iPad landscape and portrait layouts); device BLOCKED | `template_studio_test.dart`, each orientation: tap selects; a drag moves the layer as one undo step with snapping; the bottom-right handle resizes with the top-left corner fixed; the rotation handle turns a quarter turn to exactly 90° (15° snapping); the inspector sets X 50 px, width 480 px and rotation 12.5° exactly, three undo steps. `editing_test.dart`: resize keeps the opposite corner for every handle and rotation, minimum sizes, pivot changes keep the layer in place |
+| AC-0504 Layers reorder, rename, lock/unlock, show/hide, duplicate and front/back persist | PASS (host) | `template_studio_test.dart`: in the Layers panel, Title dragged below Rule, Subtitle hidden, Rule locked; in the inspector, Photo 1 brought to the front, duplicated (the copy becomes photo 4) and the copy renamed; after Save the stored revision has every change and equals the editor's document. `editing_test.dart` and the stress run cover the operations and refusals |
+| AC-0505 Snap to guides, grid and centre; pan, zoom, fit; selection handles; coordinate transforms | PASS (host) | `editing_test.dart`: snapping to page edges and centres, other layers and the grid with guides; handle positions and hit tests on rotated frames. `template_studio_test.dart`, each orientation: Zoom in (×1.25, the percentage updates), a two-finger pinch keeps the point between the fingers in place, the Pan tool drags the view even over a layer, Fit the page restores the fitted view, page and screen coordinates convert both ways, and none of it changes the document or the undo history |
+| AC-0506 Undo/redo for create, move, rotate, delete, reorder, with drag coalescing | PASS | `editing_test.dart` (history, gestures, saved marker). `editor_controller_test.dart`: a 30-step drag is one step; a rotation and an opacity slider are one step each; a step that breaks the rules is skipped and the drag goes on. `template_studio_test.dart`: tools, drags, handles and inspector entries. Stress: 100 undo steps exact, then redo exact, across moves, rotations, reorders, duplicates and deletions |
+| AC-0507 Autosave, explicit save and reopening restore editable geometry and assets and a history-safe last saved revision | PASS (host); force-quit on a device BLOCKED | `editor_controller_test.dart`: a draft 1.2 s after a change; none in the middle of a drag; removed when undo returns to the saved design; a refused draft says so and the next change retries; leaving keeps unsaved work at once; save stores revision 2, removes the draft, keeps history (undo goes past the save) and leaves revision 1 unchanged; a refused save keeps the work in memory and in the draft; a draft reopens editable and Discard returns to the save. `template_studio_test.dart`: Save gives "Saved as revision 2."; a draft equal to its revision is discarded unseen. Migration tests: v1 and v2 databases open as v3 with the drafts table. Stress: saved and reopened equal and editable |
+| AC-0508 PNG from the file picker copied into managed storage; works after the picker's temporary file is gone | PASS (host, by construction); device BLOCKED | `PlatformOperatorFiles` checks the size, reads the bytes once and keeps no path. `template_library_flows_test.dart`: the picked PNG is stored under its content id, read back byte-identical and placed; a non-image named `.png` is refused and nothing is stored; an oversized file is refused before reading; renaming works, and removal is refused while a template uses the image. On a device the original is deleted in step 11 of the procedure |
+| AC-0509 Package export/import round trip; corrupt or unknown files safely rejected | PASS | `template_library_flows_test.dart`: Export package hands the share sheet `Garden-party-r1.porcelain-template` as `application/zip`; it imports on another booth as the same document; a dismissed share sheet claims nothing; Import refuses a file that is not a package ("Nothing was imported.", nothing stored), one over 100 MB, and does nothing when cancelled. `template_library_test.dart` and M04's `template_packages_test.dart` (24) cover the real package format |
+| AC-0510 Preview matches final renderer, including artwork outside photo slots | PASS (host, at 1/2: the target tablets' range); 1/4 recorded; device BLOCKED | Measurements above: the canvas is the renderer's preview pixel for pixel, inside ADR-0010's tolerance of the 300 dpi export at 1/2, with the floral vine across all three photo spaces and the spray off the page; a 2-pixel misplacement fails |
+
+### M05 exit gate
+
+| Gate | Status |
+| --- | --- |
+| On either tablet, an operator creates and reopens a fully editable floral photo template with a matching 300 dpi export | PASS on the host at tablet sizes in both orientations (flows, editor and parity tests); BLOCKED on physical tablets (procedure section 1) |
+
+### CI (GitHub Actions)
+
+Runs on GitHub-hosted `ubuntu-24.04` runners (4 cores). Every M05 push
+passed: #13 `10776ba`, #14 `8c35aae`, #15 `9ce9d4c`, #16 `30abcb2`, #17
+`cfadbda` and
+[#18](https://github.com/classamusic-spec/BOOTHD/actions/runs/39165416286)
+on `fa34247`.
+
+| Job (#18) | Conclusion | Notes |
+| --- | --- | --- |
+| Format, analyze, test, licences | success | Generated code current; 1,635 passed, 1 skipped, as locally. The editor parity, preview parity and stress figures above were reproduced exactly on the runner in #17; its stress export took 7 ms to paint and 205 ms to encode |
+| Android release smoke build | success | Built from `fa34247` |
+| iPadOS unsigned build | skipped | Manual dispatch only, by design |
+
+### Security and privacy notes (M05)
+
+- New packages `file_selector` and `share_plus` are used only through the
+  `OperatorFiles` interface in infrastructure. Release permissions are
+  unchanged (`CAMERA`, `ACCESS_NETWORK_STATE`, the AndroidX receiver
+  permission). New manifest components come from `share_plus` and are not
+  exported: `ShareFileProvider` and the `SharePlusPendingIntent` receiver.
+- Picked files are judged by their bytes (PNG or JPEG for images, the
+  package reader for packages); their names are display text only. Size
+  limits apply before reading. Nothing keeps a picker path or URI.
+- Exported packages contain the template and its assets only; the share
+  sheet receives bytes, a file name and a type. No guest photos exist yet.
+- Drafts live in the booth database like revisions and are deleted with
+  their template; nothing is sent anywhere.

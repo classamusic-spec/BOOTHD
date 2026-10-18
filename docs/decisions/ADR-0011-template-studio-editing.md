@@ -79,6 +79,11 @@ only behind domain interfaces.
 - Editor aids are painted in screen space over it: grid, print-safe
   margin (an eighth of an inch), slot numbers, selection outlines, eight
   resize handles and a rotation handle (48 dp hit areas), snap guides.
+- Gestures start from each finger's touch-down point, not from where they
+  cleared the touch slop: a dragged layer stays under the finger, a handle
+  is grabbed where it was touched, a pinch keeps the point between the
+  fingers in place. One finger moves the selection or pans empty space
+  (always pans with the Pan tool); two fingers zoom and pan.
 - Photo spaces show the generated placeholder (`slot_placeholder.dart`:
   a soft card with a camera mark, no people), as do thumbnails and
   previews.

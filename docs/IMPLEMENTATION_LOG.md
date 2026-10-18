@@ -97,6 +97,15 @@ codes, platform results, spec issues raised, risks, next step.
   to the content columns.
 - Rename sheets disposed their controller while closing (found by the
   new flow tests): the sheet now owns it.
+- Canvas gestures started where they cleared the touch slop, so a dragged
+  layer lagged the finger and a quarter turn on the rotation handle could
+  miss it (found by the new handle tests): gestures now start from each
+  finger's touch-down point.
+- On a 600 dp portrait screen the Layers and Inspector buttons were
+  scrolled off the tool shelf, and the screen checks there had run
+  without the Layers sheet open (a tap warning in CI): the two panel
+  buttons are pinned at the shelf's end and the catalog asserts the panel
+  opened. Long tool names shrink to stay whole.
 - At 200% text a narrowed guest title overflowed because intrinsic
   measuring under-reported it: guest layouts no longer measure
   intrinsically.
