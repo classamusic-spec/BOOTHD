@@ -32,13 +32,22 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Porcelain Photo Booth'), findsOneWidget);
-    expect(find.text('Engineering baseline · M00'), findsOneWidget);
+    expect(find.text('Engineering baseline · M01'), findsOneWidget);
     expect(find.text('iPadOS'), findsOneWidget);
     expect(find.text('release'), findsOneWidget);
   });
 
-  testWidgets('offers no controls, so none can be dead', (tester) async {
-    await tester.pumpWidget(_app());
+  testWidgets('release builds offer no controls, so none can be dead', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _app(
+        environment: const AppEnvironment(
+          platform: TargetPlatform.android,
+          buildMode: BuildMode.release,
+        ),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(
@@ -50,6 +59,18 @@ void main() {
       ),
       findsNothing,
     );
+  });
+
+  testWidgets('debug builds link to both developer spikes', (tester) async {
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Developer spikes'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Render spike'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Camera spike'), findsOneWidget);
+    await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
   });
 
   testWidgets('meets text contrast guideline', (tester) async {

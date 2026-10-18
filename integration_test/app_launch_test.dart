@@ -9,11 +9,11 @@ import 'package:porcelain_photo_booth/main.dart' as app;
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('cold start shows the M00 baseline screen', (tester) async {
+  testWidgets('cold start shows the baseline screen', (tester) async {
     app.main();
     await tester.pumpAndSettle();
 
     expect(find.text('Porcelain Photo Booth'), findsOneWidget);
-    expect(find.text('Engineering baseline · M00'), findsOneWidget);
+    expect(find.text('Engineering baseline · M01'), findsOneWidget);
   });
 }

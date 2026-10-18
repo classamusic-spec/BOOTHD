@@ -1,9 +1,11 @@
-/// DRAFT camera boundary (ADR-0002). Placeholder contract only.
+/// DRAFT camera boundary (ADR-0002, ADR-0007).
 ///
-/// Nothing implements or reads this interface in M00. The M01 spike
-/// implements it with the `camera` plugin and may revise it; M06 hardens and
-/// finalises it. Guest UI never calls a camera plugin directly.
+/// Implemented by the M01 spike's `ManagedCameraService` over the `camera`
+/// plugin; M06 hardens and finalises it. Guest UI never calls a camera
+/// plugin directly.
 library;
+
+import 'dart:typed_data';
 
 /// A physical camera position as reported by the platform.
 enum CameraLens { front, back, external }
@@ -97,21 +99,58 @@ final class CameraRequest {
 /// [CapturedStill], never an overwrite.
 final class CapturedStill {
   const CapturedStill({
+    required this.id,
     required this.relativePath,
     required this.widthPx,
     required this.heightPx,
+    required this.byteLength,
+    required this.sha256,
     required this.lens,
-    required this.mirrorApplied,
+    required this.sensorOrientationDegrees,
+    required this.mirrorPreviewRequested,
+    required this.mirrorOutputRequested,
     required this.capturedAtUtc,
+    this.exifOrientation,
   });
 
-  /// Path relative to the managed originals directory; never absolute.
+  final String id;
+
+  /// Path relative to the managed app storage root; never absolute.
   final String relativePath;
+
+  /// Size as decoded, with the file's EXIF orientation already applied by
+  /// the platform decoder (ADR-0007).
   final int widthPx;
   final int heightPx;
+
+  final int byteLength;
+
+  /// Lowercase hex SHA-256 of the stored bytes.
+  final String sha256;
+
   final CameraLens lens;
-  final bool mirrorApplied;
+  final int sensorOrientationDegrees;
+
+  /// The booth's mirroring settings at capture time. The stored pixels are
+  /// exactly what the camera produced; mirroring is applied once, at render
+  /// time (ARCHITECTURE A-07).
+  final bool mirrorPreviewRequested;
+  final bool mirrorOutputRequested;
+
   final DateTime capturedAtUtc;
+
+  /// EXIF orientation tag (1–8) if the file has one.
+  final int? exifOrientation;
+}
+
+/// Read access to committed originals, which survive app restarts.
+abstract interface class CapturedStillStore {
+  /// Every committed original whose bytes still match its checksum, oldest
+  /// first.
+  Future<List<CapturedStill>> listCommitted();
+
+  /// The stored bytes of [still], verified against its checksum.
+  Future<Uint8List> read(CapturedStill still);
 }
 
 /// The only route from the app to built-in tablet cameras.

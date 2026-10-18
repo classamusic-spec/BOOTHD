@@ -7,7 +7,7 @@ Licence names come from a text heuristic over each package's LICENSE file and
 are a starting point for the release audit (AC-1204), not a legal opinion.
 SDK packages report version 0.0.0 and are pinned by the Flutter SDK version.
 
-## Runtime dependency graph: treat as shipped (39)
+## Runtime dependency graph: treat as shipped (69)
 
 Everything reachable from the app's non-dev dependencies. Deliberately
 conservative: release compilation drops unused code, but the licence audit
@@ -15,22 +15,36 @@ covers this whole set.
 
 | Package | Version | Source | Direct | Licence (detected) |
 | --- | --- | --- | --- | --- |
+| args | 2.7.0 | hosted |  | BSD-3-Clause |
 | async | 2.13.1 | hosted |  | BSD-3-Clause |
 | boolean_selector | 2.1.2 | hosted |  | BSD-3-Clause |
+| camera | 0.12.1 | hosted | yes | BSD-3-Clause |
+| camera_android_camerax | 0.7.5+1 | hosted |  | BSD-3-Clause |
+| camera_avfoundation | 0.10.3+1 | hosted |  | BSD-3-Clause |
+| camera_platform_interface | 2.15.0 | hosted |  | BSD-3-Clause |
+| camera_web | 0.3.5+6 | hosted |  | BSD-3-Clause |
 | characters | 1.4.1 | hosted |  | BSD-3-Clause |
 | clock | 1.1.3 | hosted |  | Apache-2.0 |
+| code_assets | 1.2.1 | hosted |  | BSD-3-Clause |
 | collection | 1.19.1 | hosted |  | BSD-3-Clause |
-| crypto | 3.0.7 | hosted |  | BSD-3-Clause |
+| cross_file | 0.3.5+5 | hosted |  | BSD-3-Clause |
+| crypto | 3.0.7 | hosted | yes | BSD-3-Clause |
 | cupertino_ui | 1.1.3 | hosted |  | BSD-3-Clause |
 | fake_async | 1.3.3 | hosted |  | Apache-2.0 |
+| ffi | 2.2.0 | hosted |  | BSD-3-Clause |
 | fixnum | 1.1.1 | hosted |  | BSD-3-Clause |
 | flutter | 0.0.0 | sdk | yes | BSD-3-Clause |
 | flutter_localizations | 0.0.0 | sdk |  | BSD-3-Clause |
+| flutter_plugin_android_lifecycle | 2.0.35 | hosted |  | BSD-3-Clause |
 | flutter_riverpod | 3.4.3 | hosted | yes | MIT |
 | flutter_test | 0.0.0 | sdk | yes | BSD-3-Clause |
 | flutter_web_plugins | 0.0.0 | sdk |  | BSD-3-Clause |
 | go_router | 18.1.0 | hosted | yes | BSD-3-Clause |
+| hooks | 2.0.2 | hosted |  | BSD-3-Clause |
 | intl | 0.20.3 | hosted |  | BSD-3-Clause |
+| jni | 1.1.0 | hosted |  | BSD-3-Clause |
+| jni_flutter | 1.0.4+1 | hosted |  | BSD-3-Clause |
+| jni_util | 1.0.0 | hosted |  | BSD-3-Clause |
 | leak_tracker | 11.0.2 | hosted |  | BSD-3-Clause |
 | leak_tracker_flutter_testing | 3.0.10 | hosted |  | BSD-3-Clause |
 | leak_tracker_testing | 3.0.2 | hosted |  | BSD-3-Clause |
@@ -40,13 +54,26 @@ covers this whole set.
 | material_color_utilities | 0.13.0 | hosted |  | Apache-2.0 |
 | material_ui | 1.7.0 | hosted |  | BSD-3-Clause |
 | meta | 1.18.3 | hosted |  | BSD-3-Clause |
+| objective_c | 9.5.0 | hosted |  | BSD-3-Clause |
+| package_config | 3.0.0 | hosted |  | BSD-3-Clause |
 | path | 1.9.1 | hosted |  | BSD-3-Clause |
+| path_provider | 2.1.6 | hosted | yes | BSD-3-Clause |
+| path_provider_android | 2.3.1 | hosted |  | BSD-3-Clause |
+| path_provider_foundation | 2.6.0 | hosted |  | BSD-3-Clause |
+| path_provider_linux | 2.2.2 | hosted |  | BSD-3-Clause |
+| path_provider_platform_interface | 2.1.3 | hosted |  | BSD-3-Clause |
+| path_provider_windows | 2.3.0 | hosted |  | BSD-3-Clause |
+| platform | 3.2.0 | hosted |  | BSD-3-Clause |
+| plugin_platform_interface | 2.1.8 | hosted |  | BSD-3-Clause |
+| pub_semver | 2.2.1 | hosted |  | BSD-3-Clause |
+| record_use | 0.6.0 | hosted |  | BSD-3-Clause |
 | riverpod | 3.4.3 | hosted |  | MIT |
 | sky_engine | 0.0.0 | sdk |  | Multiple (Flutter engine with bundled third-party notices) |
 | source_span | 1.10.2 | hosted |  | BSD-3-Clause |
 | stack_trace | 1.12.2 | hosted |  | BSD-3-Clause |
 | state_notifier | 1.0.0 | hosted |  | MIT |
 | stream_channel | 2.1.4 | hosted |  | BSD-3-Clause |
+| stream_transform | 2.1.2 | hosted |  | BSD-3-Clause |
 | string_scanner | 1.4.1 | hosted |  | BSD-3-Clause |
 | term_glyph | 1.2.2 | hosted |  | BSD-3-Clause |
 | test_api | 0.7.12 | hosted |  | BSD-3-Clause |
@@ -54,8 +81,11 @@ covers this whole set.
 | uuid | 4.6.0 | hosted |  | MIT |
 | vector_math | 2.4.0 | hosted |  | BSD-3-Clause |
 | vm_service | 15.4.0 | hosted |  | BSD-3-Clause |
+| web | 1.1.1 | hosted |  | BSD-3-Clause |
+| xdg_directories | 1.1.0 | hosted |  | BSD-3-Clause |
+| yaml | 3.1.4 | hosted |  | MIT |
 
-## Development and test tooling only (11)
+## Development and test tooling only (9)
 
 | Package | Version | Source | Direct | Licence (detected) |
 | --- | --- | --- | --- | --- |
@@ -65,10 +95,8 @@ covers this whole set.
 | fuchsia_remote_debug_protocol | 0.0.0 | sdk |  | BSD-3-Clause |
 | integration_test | 0.0.0 | sdk | yes | BSD-3-Clause |
 | lints | 6.1.0 | hosted |  | BSD-3-Clause |
-| platform | 3.2.0 | hosted |  | BSD-3-Clause |
 | process | 5.0.6 | hosted |  | BSD-3-Clause |
 | sync_http | 0.3.1 | hosted |  | BSD-3-Clause |
-| web | 1.1.1 | hosted |  | BSD-3-Clause |
 | webdriver | 3.2.0 | hosted |  | Apache-2.0 |
 
 ## Needs manual review (0)
