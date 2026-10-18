@@ -1,4 +1,5 @@
--- Porcelain Photo Booth database schema (ADR-0009). Version 1 (M03).
+-- Porcelain Photo Booth database schema (ADR-0009). Version 1 (M03);
+-- version 2 (M04) adds template assets and the assets each revision uses.
 --
 -- Rules enforced here as well as in the domain, so a defect elsewhere can
 -- never store an invalid event: foreign keys with explicit actions, CHECK
@@ -8,7 +9,9 @@
 -- (tool/check.sh and test/drift enforce this).
 
 import '../../domain/models/booth_event.dart';
+import '../../domain/repositories/template_store.dart';
 import '../../domain/services/camera_service.dart';
+import '../../domain/template/template_assets.dart';
 import '../../domain/value_objects/appearance.dart';
 import '../../domain/value_objects/orientation.dart';
 import 'converters.dart';
@@ -103,6 +106,51 @@ CREATE TRIGGER template_revisions_are_immutable
 BEGIN
   SELECT RAISE(ABORT, 'template revisions are immutable');
 END;
+
+-- Template assets (A-05 Asset, ADR-0010), version 2. Content-addressed: the
+-- id is the lowercase hex SHA-256 of the file, which is stored once at
+-- assets/<id>.<extension>, so a changed file can never pass for the old one.
+-- Kind and MIME type follow from the media type. Image sizes are as decoded,
+-- with any EXIF orientation applied. Limits mirror AssetLimits.
+CREATE TABLE assets (
+  id TEXT NOT NULL PRIMARY KEY
+    CHECK (length(id) = 64 AND id NOT GLOB '*[^0-9a-f]*'),
+  media_type ENUMNAME(AssetMediaType) NOT NULL
+    CHECK (media_type IN ('png', 'jpeg', 'ttf', 'otf')),
+  relative_path TEXT NOT NULL UNIQUE
+    CHECK (relative_path = 'assets/' || id || '.' || CASE media_type
+      WHEN 'png' THEN 'png' WHEN 'jpeg' THEN 'jpg'
+      WHEN 'ttf' THEN 'ttf' WHEN 'otf' THEN 'otf' END),
+  byte_length INTEGER NOT NULL CHECK (byte_length BETWEEN 1 AND 52428800),
+  width_px INTEGER CHECK (width_px IS NULL OR width_px BETWEEN 1 AND 12000),
+  height_px INTEGER CHECK (height_px IS NULL OR height_px BETWEEN 1 AND 12000),
+  display_name TEXT
+    CHECK (display_name IS NULL OR length(display_name) BETWEEN 1 AND 120),
+  origin ENUMNAME(AssetOrigin) NOT NULL
+    CHECK (origin IN ('imported', 'package')),
+  created_at DATETIME NOT NULL,
+  CHECK ((media_type IN ('png', 'jpeg'))
+    = (width_px IS NOT NULL AND height_px IS NOT NULL)),
+  CHECK (media_type IN ('png', 'jpeg') OR byte_length <= 20971520)
+) AS AssetRow;
+
+CREATE TRIGGER assets_are_immutable
+  BEFORE UPDATE ON assets
+BEGIN
+  SELECT RAISE(ABORT, 'assets are immutable');
+END;
+
+-- The assets each template revision uses (version 2). Deleting a revision
+-- removes its rows; an asset cannot be deleted while a revision uses it.
+CREATE TABLE template_revision_assets (
+  template_revision_id TEXT NOT NULL
+    REFERENCES template_revisions (id) ON DELETE CASCADE,
+  asset_id TEXT NOT NULL REFERENCES assets (id) ON DELETE RESTRICT,
+  PRIMARY KEY (template_revision_id, asset_id)
+) AS TemplateRevisionAssetRow;
+
+CREATE INDEX template_revision_assets_by_asset
+  ON template_revision_assets (asset_id);
 
 -- Events (P-05, A-05). Limits mirror EventLimits.
 CREATE TABLE events (

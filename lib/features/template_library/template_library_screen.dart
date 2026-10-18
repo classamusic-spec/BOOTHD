@@ -84,12 +84,14 @@ const pageFormats = [
 
 /// Template library (S06). Shows the print formats templates are designed
 /// for; designing and importing templates are disabled with their reasons
-/// until the renderer (M04) and the template editor (M05) exist.
+/// until the library and editor screens (M05) exist. Packages can already
+/// be imported by the template store (M04); choosing a file is M05's.
 class TemplateLibraryScreen extends StatelessWidget {
   const TemplateLibraryScreen({super.key});
 
   static const newTemplateReason = 'The template editor arrives in M05.';
-  static const importReason = 'Template import arrives in M04.';
+  static const importReason =
+      'Importing a template file arrives with the template library in M05.';
 
   @override
   Widget build(BuildContext context) {
@@ -142,7 +144,9 @@ class TemplateLibraryScreen extends StatelessWidget {
               message:
                   'Templates you design or import appear here with their page '
                   'size and the events that use them.',
-              footnote: '$importReason $newTemplateReason',
+              footnote:
+                  'Importing template files and designing templates arrive '
+                  'in M05.',
             ),
           ],
         ),

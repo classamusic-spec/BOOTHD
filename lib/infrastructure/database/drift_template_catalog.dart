@@ -4,9 +4,9 @@ import '../../domain/models/template_revision_summary.dart';
 import '../../domain/repositories/template_catalog.dart';
 import 'booth_database.dart';
 
-/// Template revision summaries from the booth database. Nothing in M03
-/// writes templates, so in a real booth this is empty until the template
-/// library arrives (M04, M05).
+/// Template revision summaries from the booth database. Revisions are
+/// written by the template repository (M04): package imports now, the
+/// library and editor in M05.
 final class DriftTemplateCatalog implements TemplateCatalog {
   DriftTemplateCatalog(this._db);
 
@@ -57,18 +57,24 @@ final class DriftTemplateCatalog implements TemplateCatalog {
     };
   }
 
-  TemplateRevisionSummary _toDomain(TypedResult row) {
-    final revision = row.readTable(_db.templateRevisions);
-    final template = row.readTable(_db.templates);
-    return TemplateRevisionSummary(
-      revisionId: revision.id,
-      templateId: template.id,
-      templateName: template.displayName,
-      revisionNumber: revision.revisionNumber,
-      pageWidthPx: revision.pageWidthPx,
-      pageHeightPx: revision.pageHeightPx,
-      photoSlotCount: revision.photoSlotCount,
-      templateArchived: template.archivedAt != null,
-    );
-  }
+  TemplateRevisionSummary _toDomain(TypedResult row) =>
+      templateRevisionSummaryOf(
+        row.readTable(_db.templateRevisions),
+        row.readTable(_db.templates),
+      );
 }
+
+/// The summary events use for a stored revision of [template].
+TemplateRevisionSummary templateRevisionSummaryOf(
+  TemplateRevisionRow revision,
+  TemplateRow template,
+) => TemplateRevisionSummary(
+  revisionId: revision.id,
+  templateId: template.id,
+  templateName: template.displayName,
+  revisionNumber: revision.revisionNumber,
+  pageWidthPx: revision.pageWidthPx,
+  pageHeightPx: revision.pageHeightPx,
+  photoSlotCount: revision.photoSlotCount,
+  templateArchived: template.archivedAt != null,
+);

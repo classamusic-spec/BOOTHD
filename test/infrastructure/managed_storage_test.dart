@@ -3,12 +3,8 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:porcelain_photo_booth/domain/models/booth_event.dart';
 import 'package:porcelain_photo_booth/domain/repositories/storage_errors.dart';
 import 'package:porcelain_photo_booth/domain/services/booth_capabilities.dart';
-import 'package:porcelain_photo_booth/domain/services/camera_service.dart';
-import 'package:porcelain_photo_booth/domain/value_objects/orientation.dart';
-import 'package:porcelain_photo_booth/infrastructure/device/device_capability_probe.dart';
 import 'package:porcelain_photo_booth/infrastructure/file_store/managed_storage.dart';
 
 void main() {
@@ -92,30 +88,4 @@ void main() {
       ),
     );
   });
-
-  test(
-    'the M03 probe checks storage and names the milestone for the rest',
-    () async {
-      final storage = FileManagedStorage(root: () async => root);
-      await storage.prepare();
-      final probe = DeviceCapabilityProbe(storage);
-      const capture = CaptureSettings(
-        lens: CameraLens.front,
-        mirrorPreview: true,
-        mirrorOutput: false,
-        orientation: GuestOrientationPreference.portrait,
-      );
-      expect(await probe.storageWrite(), isA<CapabilityReady>());
-      String? milestone(CapabilityStatus status) =>
-          (status as CapabilityNotYetAvailable).milestone;
-      expect(milestone(await probe.camera(capture)), 'M06');
-      expect(milestone(await probe.freeSpace()), 'M06');
-      expect(
-        milestone(await probe.renderer(const OutputProfile(), const [])),
-        'M04',
-      );
-      expect(milestone(await probe.templateAssets(const [])), 'M04');
-      expect(milestone(await probe.kioskLock()), 'M10');
-    },
-  );
 }

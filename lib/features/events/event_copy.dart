@@ -228,9 +228,18 @@ abstract final class EventCopy {
       PreflightCheckId.eventStatus ||
       PreflightCheckId.eventSettings ||
       PreflightCheckId.templates => issues,
-      PreflightCheckId.templateAssets when notYet => [
-        "Checking each template's images and fonts arrives with the "
-            'production template model ($milestone).',
+      PreflightCheckId.templateAssets
+          when check.status == PreflightStatus.pass =>
+        [
+          if (event.templates.revisionIds.isEmpty)
+            'No templates to check yet.'
+          else
+            "Every image and font the event's templates use is present and "
+                'unchanged.',
+        ],
+      PreflightCheckId.templateAssets when !notYet => [
+        "A template's files are missing or damaged "
+            '(${check.problemCode}). Import the template again.',
       ],
       PreflightCheckId.camera when notYet => [
         'Camera permission and the ${lens(event.capture.lens).toLowerCase()} '
@@ -240,9 +249,14 @@ abstract final class EventCopy {
       PreflightCheckId.freeSpace when notYet => [
         'Measuring free space arrives with device diagnostics ($milestone).',
       ],
-      PreflightCheckId.renderer when notYet => [
-        'Producing print-ready files arrives with the production renderer '
-            '($milestone).',
+      PreflightCheckId.renderer when check.status == PreflightStatus.pass => [
+        '${event.templates.revisionIds.isEmpty ? 'A test page' : 'Each template'}'
+            ' rendered at full print size as '
+            '${event.output.format == OutputFormat.jpeg ? 'JPEG' : 'PNG'}; '
+            'nothing was saved.',
+      ],
+      PreflightCheckId.renderer when !notYet => [
+        "A template couldn't be rendered (${check.problemCode}).",
       ],
       PreflightCheckId.kioskLock => [
         'Not checked by the app yet${milestone == null ? '' : ' ($milestone)'}. '

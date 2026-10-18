@@ -5,10 +5,12 @@ import '../../domain/repositories/booth_settings_repository.dart';
 import '../../domain/repositories/event_repository.dart';
 import '../../domain/repositories/operator_access_repository.dart';
 import '../../domain/repositories/template_catalog.dart';
+import '../../domain/repositories/template_store.dart';
 import '../../domain/services/booth_capabilities.dart';
 import '../../domain/services/camera_service.dart';
 import '../../domain/services/composition_renderer.dart';
 import '../../domain/services/event_service.dart';
+import '../../domain/services/export_service.dart';
 import '../../domain/services/managed_storage.dart';
 import '../../domain/services/operator_auth_service.dart';
 import '../../domain/services/operator_secrets.dart';
@@ -63,6 +65,24 @@ final boothSettingsRepositoryProvider = Provider<BoothSettingsRepository>(
 
 final templateCatalogProvider = Provider<TemplateCatalog>(
   (ref) => _unbound('templateCatalogProvider'),
+);
+
+// Templates and exports (M04, ADR-0010).
+
+final assetRepositoryProvider = Provider<AssetRepository>(
+  (ref) => _unbound('assetRepositoryProvider'),
+);
+
+final templateRepositoryProvider = Provider<TemplateRepository>(
+  (ref) => _unbound('templateRepositoryProvider'),
+);
+
+final templatePackagesProvider = Provider<TemplatePackages>(
+  (ref) => _unbound('templatePackagesProvider'),
+);
+
+final exportServiceProvider = Provider<ExportService>(
+  (ref) => _unbound('exportServiceProvider'),
 );
 
 final operatorAccessRepositoryProvider = Provider<OperatorAccessRepository>(

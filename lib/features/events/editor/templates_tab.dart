@@ -332,8 +332,8 @@ class _LibraryTemplate extends StatelessWidget {
   }
 }
 
-/// The template's page shape above its photo-slot count; the full preview
-/// arrives with the production template model (M04).
+/// The template's page shape above its photo-slot count; the rendered
+/// preview arrives with the template library (M05).
 class _PageShape extends StatelessWidget {
   const _PageShape({required this.template});
 

@@ -96,15 +96,16 @@ final class FastTestHasher implements PinHasher {
   bool needsRehash(String verifier) => false;
 }
 
-/// Device checks with chosen answers; by default the same as the M03
-/// production probe except that storage is writable.
+/// Device checks with chosen answers; by default what the M04 production
+/// probe reports on a working tablet with intact templates: storage, the
+/// renderer and template assets pass, the rest are not yet available.
 final class FakeCapabilityProbe implements BoothCapabilityProbe {
   FakeCapabilityProbe({
     this.cameraStatus = const CapabilityNotYetAvailable('M06'),
     this.storageStatus = const CapabilityReady(),
     this.freeSpaceStatus = const CapabilityNotYetAvailable('M06'),
-    this.rendererStatus = const CapabilityNotYetAvailable('M04'),
-    this.assetsStatus = const CapabilityNotYetAvailable('M04'),
+    this.rendererStatus = const CapabilityReady(),
+    this.assetsStatus = const CapabilityReady(),
     this.kioskStatus = const CapabilityNotYetAvailable('M10'),
   });
 

@@ -9,7 +9,9 @@ import 'package:drift_dev/api/migrations_native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:porcelain_photo_booth/domain/models/booth_event.dart';
 import 'package:porcelain_photo_booth/domain/repositories/storage_errors.dart';
+import 'package:porcelain_photo_booth/domain/repositories/template_store.dart';
 import 'package:porcelain_photo_booth/domain/services/camera_service.dart';
+import 'package:porcelain_photo_booth/domain/template/template_assets.dart';
 import 'package:porcelain_photo_booth/domain/value_objects/appearance.dart';
 import 'package:porcelain_photo_booth/domain/value_objects/calendar_date.dart';
 import 'package:porcelain_photo_booth/domain/value_objects/orientation.dart';
@@ -210,8 +212,79 @@ void main() {
         DateTime.utc(2026, 10, 17, 18, 30),
       );
       expect(access.recoveryAttempts.failures, 0);
+
+      if (from >= 2) {
+        final assets = await db.select(db.assets).get();
+        expect(assets, hasLength(3));
+        final flower = assets.firstWhere((a) => a.displayName == 'flower.png');
+        expect(flower.mediaType, AssetMediaType.png);
+        expect((flower.widthPx, flower.heightPx), (800, 800));
+        expect(flower.byteLength, 48213);
+        expect(flower.origin, AssetOrigin.package);
+        expect(flower.relativePath, 'assets/${flower.id}.png');
+        final font = assets.firstWhere(
+          (a) => a.mediaType == AssetMediaType.ttf,
+        );
+        expect((font.widthPx, font.heightPx), (null, null));
+        final links = await db.select(db.templateRevisionAssets).get();
+        expect(
+          links.where((l) => l.templateRevisionId == _revisionA2),
+          hasLength(3),
+        );
+      } else {
+        // Version 1 had no assets: the upgrade adds empty tables.
+        expect(await db.select(db.assets).get(), isEmpty);
+        expect(await db.select(db.templateRevisionAssets).get(), isEmpty);
+      }
     });
   }
+
+  test('asset rows cannot be changed, mislabelled or orphaned', () async {
+    final schema = await verifier.schemaAt(BoothDatabase.currentSchemaVersion);
+    // seed_v2's rows, opened by the current code.
+    final raw = schema.rawDatabase..execute(seedFor(2));
+    final seeded = currentCode(schema.newConnection());
+    addTearDown(seeded.close);
+    await seeded.customSelect('SELECT 1').get();
+    expect(raw.select('SELECT count(*) FROM assets').single.values.single, 3);
+
+    Future<void> rejects(String sql) => expectLater(
+      seeded.customStatement(sql),
+      throwsA(anything),
+      reason: sql,
+    );
+    const flower =
+        'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+    await rejects("UPDATE assets SET display_name = 'x' WHERE id = '$flower'");
+    await rejects(
+      "INSERT INTO assets VALUES ('${'d' * 64}', 'png', "
+      "'assets/../evil.png', 10, 1, 1, NULL, 'imported', "
+      "'2026-10-03T10:00:00.000Z')",
+    );
+    await rejects(
+      "INSERT INTO assets VALUES ('${'D' * 64}', 'png', "
+      "'assets/${'D' * 64}.png', 10, 1, 1, NULL, 'imported', "
+      "'2026-10-03T10:00:00.000Z')",
+    );
+    await rejects(
+      "INSERT INTO assets VALUES ('${'e' * 64}', 'png', "
+      "'assets/${'e' * 64}.png', 10, NULL, NULL, NULL, 'imported', "
+      "'2026-10-03T10:00:00.000Z')",
+    );
+    await rejects("DELETE FROM assets WHERE id = '$flower'");
+    await rejects(
+      'INSERT INTO template_revision_assets VALUES '
+      "('a1000000-0000-4000-8000-0000000000a1', '${'f' * 64}')",
+    );
+    expect(
+      raw
+          .select('SELECT count(*) FROM template_revision_assets')
+          .single
+          .values
+          .single,
+      4,
+    );
+  });
 
   test('data from a newer app version is refused and left untouched', () async {
     final schema = await verifier.schemaAt(BoothDatabase.currentSchemaVersion);
@@ -227,8 +300,16 @@ void main() {
       db.customSelect('SELECT 1').get(),
       throwsA(
         isA<StoredDataTooNewException>()
-            .having((e) => e.foundVersion, 'found', 2)
-            .having((e) => e.supportedVersion, 'supported', 1),
+            .having(
+              (e) => e.foundVersion,
+              'found',
+              BoothDatabase.currentSchemaVersion + 1,
+            )
+            .having(
+              (e) => e.supportedVersion,
+              'supported',
+              BoothDatabase.currentSchemaVersion,
+            ),
       ),
     );
 

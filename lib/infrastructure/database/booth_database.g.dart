@@ -4376,6 +4376,846 @@ class TemplateRevisionsCompanion extends UpdateCompanion<TemplateRevisionRow> {
   }
 }
 
+class Assets extends Table with TableInfo<Assets, AssetRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  Assets(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL PRIMARY KEY CHECK (length(id) = 64 AND id NOT GLOB \'*[^0-9a-f]*\')',
+  );
+  late final GeneratedColumnWithTypeConverter<AssetMediaType, String>
+  mediaType = GeneratedColumn<String>(
+    'media_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'NOT NULL CHECK (media_type IN (\'png\', \'jpeg\', \'ttf\', \'otf\'))',
+  ).withConverter<AssetMediaType>(Assets.$convertermediaType);
+  static const VerificationMeta _relativePathMeta = const VerificationMeta(
+    'relativePath',
+  );
+  late final GeneratedColumn<String> relativePath = GeneratedColumn<String>(
+    'relative_path',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL UNIQUE CHECK (relative_path = \'assets/\' || id || \'.\' || CASE media_type WHEN \'png\' THEN \'png\' WHEN \'jpeg\' THEN \'jpg\' WHEN \'ttf\' THEN \'ttf\' WHEN \'otf\' THEN \'otf\' END)',
+  );
+  static const VerificationMeta _byteLengthMeta = const VerificationMeta(
+    'byteLength',
+  );
+  late final GeneratedColumn<int> byteLength = GeneratedColumn<int>(
+    'byte_length',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (byte_length BETWEEN 1 AND 52428800)',
+  );
+  static const VerificationMeta _widthPxMeta = const VerificationMeta(
+    'widthPx',
+  );
+  late final GeneratedColumn<int> widthPx = GeneratedColumn<int>(
+    'width_px',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints:
+        'CHECK (width_px IS NULL OR width_px BETWEEN 1 AND 12000)',
+  );
+  static const VerificationMeta _heightPxMeta = const VerificationMeta(
+    'heightPx',
+  );
+  late final GeneratedColumn<int> heightPx = GeneratedColumn<int>(
+    'height_px',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints:
+        'CHECK (height_px IS NULL OR height_px BETWEEN 1 AND 12000)',
+  );
+  static const VerificationMeta _displayNameMeta = const VerificationMeta(
+    'displayName',
+  );
+  late final GeneratedColumn<String> displayName = GeneratedColumn<String>(
+    'display_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'CHECK (display_name IS NULL OR length(display_name) BETWEEN 1 AND 120)',
+  );
+  late final GeneratedColumnWithTypeConverter<AssetOrigin, String> origin =
+      GeneratedColumn<String>(
+        'origin',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+        $customConstraints:
+            'NOT NULL CHECK (origin IN (\'imported\', \'package\'))',
+      ).withConverter<AssetOrigin>(Assets.$converterorigin);
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    mediaType,
+    relativePath,
+    byteLength,
+    widthPx,
+    heightPx,
+    displayName,
+    origin,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'assets';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AssetRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('relative_path')) {
+      context.handle(
+        _relativePathMeta,
+        relativePath.isAcceptableOrUnknown(
+          data['relative_path']!,
+          _relativePathMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_relativePathMeta);
+    }
+    if (data.containsKey('byte_length')) {
+      context.handle(
+        _byteLengthMeta,
+        byteLength.isAcceptableOrUnknown(data['byte_length']!, _byteLengthMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_byteLengthMeta);
+    }
+    if (data.containsKey('width_px')) {
+      context.handle(
+        _widthPxMeta,
+        widthPx.isAcceptableOrUnknown(data['width_px']!, _widthPxMeta),
+      );
+    }
+    if (data.containsKey('height_px')) {
+      context.handle(
+        _heightPxMeta,
+        heightPx.isAcceptableOrUnknown(data['height_px']!, _heightPxMeta),
+      );
+    }
+    if (data.containsKey('display_name')) {
+      context.handle(
+        _displayNameMeta,
+        displayName.isAcceptableOrUnknown(
+          data['display_name']!,
+          _displayNameMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AssetRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AssetRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      mediaType: Assets.$convertermediaType.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}media_type'],
+        )!,
+      ),
+      relativePath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}relative_path'],
+      )!,
+      byteLength: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}byte_length'],
+      )!,
+      widthPx: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}width_px'],
+      ),
+      heightPx: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}height_px'],
+      ),
+      displayName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}display_name'],
+      ),
+      origin: Assets.$converterorigin.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}origin'],
+        )!,
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  Assets createAlias(String alias) {
+    return Assets(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<AssetMediaType, String, String>
+  $convertermediaType = const EnumNameConverter<AssetMediaType>(
+    AssetMediaType.values,
+  );
+  static JsonTypeConverter2<AssetOrigin, String, String> $converterorigin =
+      const EnumNameConverter<AssetOrigin>(AssetOrigin.values);
+  @override
+  List<String> get customConstraints => const [
+    'CHECK((media_type IN (\'png\', \'jpeg\'))=(width_px IS NOT NULL AND height_px IS NOT NULL))',
+    'CHECK(media_type IN (\'png\', \'jpeg\') OR byte_length <= 20971520)',
+  ];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class AssetRow extends DataClass implements Insertable<AssetRow> {
+  final String id;
+  final AssetMediaType mediaType;
+  final String relativePath;
+  final int byteLength;
+  final int? widthPx;
+  final int? heightPx;
+  final String? displayName;
+  final AssetOrigin origin;
+  final DateTime createdAt;
+  const AssetRow({
+    required this.id,
+    required this.mediaType,
+    required this.relativePath,
+    required this.byteLength,
+    this.widthPx,
+    this.heightPx,
+    this.displayName,
+    required this.origin,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    {
+      map['media_type'] = Variable<String>(
+        Assets.$convertermediaType.toSql(mediaType),
+      );
+    }
+    map['relative_path'] = Variable<String>(relativePath);
+    map['byte_length'] = Variable<int>(byteLength);
+    if (!nullToAbsent || widthPx != null) {
+      map['width_px'] = Variable<int>(widthPx);
+    }
+    if (!nullToAbsent || heightPx != null) {
+      map['height_px'] = Variable<int>(heightPx);
+    }
+    if (!nullToAbsent || displayName != null) {
+      map['display_name'] = Variable<String>(displayName);
+    }
+    {
+      map['origin'] = Variable<String>(Assets.$converterorigin.toSql(origin));
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  AssetsCompanion toCompanion(bool nullToAbsent) {
+    return AssetsCompanion(
+      id: Value(id),
+      mediaType: Value(mediaType),
+      relativePath: Value(relativePath),
+      byteLength: Value(byteLength),
+      widthPx: widthPx == null && nullToAbsent
+          ? const Value.absent()
+          : Value(widthPx),
+      heightPx: heightPx == null && nullToAbsent
+          ? const Value.absent()
+          : Value(heightPx),
+      displayName: displayName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(displayName),
+      origin: Value(origin),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory AssetRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AssetRow(
+      id: serializer.fromJson<String>(json['id']),
+      mediaType: Assets.$convertermediaType.fromJson(
+        serializer.fromJson<String>(json['media_type']),
+      ),
+      relativePath: serializer.fromJson<String>(json['relative_path']),
+      byteLength: serializer.fromJson<int>(json['byte_length']),
+      widthPx: serializer.fromJson<int?>(json['width_px']),
+      heightPx: serializer.fromJson<int?>(json['height_px']),
+      displayName: serializer.fromJson<String?>(json['display_name']),
+      origin: Assets.$converterorigin.fromJson(
+        serializer.fromJson<String>(json['origin']),
+      ),
+      createdAt: serializer.fromJson<DateTime>(json['created_at']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'media_type': serializer.toJson<String>(
+        Assets.$convertermediaType.toJson(mediaType),
+      ),
+      'relative_path': serializer.toJson<String>(relativePath),
+      'byte_length': serializer.toJson<int>(byteLength),
+      'width_px': serializer.toJson<int?>(widthPx),
+      'height_px': serializer.toJson<int?>(heightPx),
+      'display_name': serializer.toJson<String?>(displayName),
+      'origin': serializer.toJson<String>(
+        Assets.$converterorigin.toJson(origin),
+      ),
+      'created_at': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  AssetRow copyWith({
+    String? id,
+    AssetMediaType? mediaType,
+    String? relativePath,
+    int? byteLength,
+    Value<int?> widthPx = const Value.absent(),
+    Value<int?> heightPx = const Value.absent(),
+    Value<String?> displayName = const Value.absent(),
+    AssetOrigin? origin,
+    DateTime? createdAt,
+  }) => AssetRow(
+    id: id ?? this.id,
+    mediaType: mediaType ?? this.mediaType,
+    relativePath: relativePath ?? this.relativePath,
+    byteLength: byteLength ?? this.byteLength,
+    widthPx: widthPx.present ? widthPx.value : this.widthPx,
+    heightPx: heightPx.present ? heightPx.value : this.heightPx,
+    displayName: displayName.present ? displayName.value : this.displayName,
+    origin: origin ?? this.origin,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  AssetRow copyWithCompanion(AssetsCompanion data) {
+    return AssetRow(
+      id: data.id.present ? data.id.value : this.id,
+      mediaType: data.mediaType.present ? data.mediaType.value : this.mediaType,
+      relativePath: data.relativePath.present
+          ? data.relativePath.value
+          : this.relativePath,
+      byteLength: data.byteLength.present
+          ? data.byteLength.value
+          : this.byteLength,
+      widthPx: data.widthPx.present ? data.widthPx.value : this.widthPx,
+      heightPx: data.heightPx.present ? data.heightPx.value : this.heightPx,
+      displayName: data.displayName.present
+          ? data.displayName.value
+          : this.displayName,
+      origin: data.origin.present ? data.origin.value : this.origin,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AssetRow(')
+          ..write('id: $id, ')
+          ..write('mediaType: $mediaType, ')
+          ..write('relativePath: $relativePath, ')
+          ..write('byteLength: $byteLength, ')
+          ..write('widthPx: $widthPx, ')
+          ..write('heightPx: $heightPx, ')
+          ..write('displayName: $displayName, ')
+          ..write('origin: $origin, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    mediaType,
+    relativePath,
+    byteLength,
+    widthPx,
+    heightPx,
+    displayName,
+    origin,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AssetRow &&
+          other.id == this.id &&
+          other.mediaType == this.mediaType &&
+          other.relativePath == this.relativePath &&
+          other.byteLength == this.byteLength &&
+          other.widthPx == this.widthPx &&
+          other.heightPx == this.heightPx &&
+          other.displayName == this.displayName &&
+          other.origin == this.origin &&
+          other.createdAt == this.createdAt);
+}
+
+class AssetsCompanion extends UpdateCompanion<AssetRow> {
+  final Value<String> id;
+  final Value<AssetMediaType> mediaType;
+  final Value<String> relativePath;
+  final Value<int> byteLength;
+  final Value<int?> widthPx;
+  final Value<int?> heightPx;
+  final Value<String?> displayName;
+  final Value<AssetOrigin> origin;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const AssetsCompanion({
+    this.id = const Value.absent(),
+    this.mediaType = const Value.absent(),
+    this.relativePath = const Value.absent(),
+    this.byteLength = const Value.absent(),
+    this.widthPx = const Value.absent(),
+    this.heightPx = const Value.absent(),
+    this.displayName = const Value.absent(),
+    this.origin = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AssetsCompanion.insert({
+    required String id,
+    required AssetMediaType mediaType,
+    required String relativePath,
+    required int byteLength,
+    this.widthPx = const Value.absent(),
+    this.heightPx = const Value.absent(),
+    this.displayName = const Value.absent(),
+    required AssetOrigin origin,
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       mediaType = Value(mediaType),
+       relativePath = Value(relativePath),
+       byteLength = Value(byteLength),
+       origin = Value(origin),
+       createdAt = Value(createdAt);
+  static Insertable<AssetRow> custom({
+    Expression<String>? id,
+    Expression<String>? mediaType,
+    Expression<String>? relativePath,
+    Expression<int>? byteLength,
+    Expression<int>? widthPx,
+    Expression<int>? heightPx,
+    Expression<String>? displayName,
+    Expression<String>? origin,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (mediaType != null) 'media_type': mediaType,
+      if (relativePath != null) 'relative_path': relativePath,
+      if (byteLength != null) 'byte_length': byteLength,
+      if (widthPx != null) 'width_px': widthPx,
+      if (heightPx != null) 'height_px': heightPx,
+      if (displayName != null) 'display_name': displayName,
+      if (origin != null) 'origin': origin,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AssetsCompanion copyWith({
+    Value<String>? id,
+    Value<AssetMediaType>? mediaType,
+    Value<String>? relativePath,
+    Value<int>? byteLength,
+    Value<int?>? widthPx,
+    Value<int?>? heightPx,
+    Value<String?>? displayName,
+    Value<AssetOrigin>? origin,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return AssetsCompanion(
+      id: id ?? this.id,
+      mediaType: mediaType ?? this.mediaType,
+      relativePath: relativePath ?? this.relativePath,
+      byteLength: byteLength ?? this.byteLength,
+      widthPx: widthPx ?? this.widthPx,
+      heightPx: heightPx ?? this.heightPx,
+      displayName: displayName ?? this.displayName,
+      origin: origin ?? this.origin,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (mediaType.present) {
+      map['media_type'] = Variable<String>(
+        Assets.$convertermediaType.toSql(mediaType.value),
+      );
+    }
+    if (relativePath.present) {
+      map['relative_path'] = Variable<String>(relativePath.value);
+    }
+    if (byteLength.present) {
+      map['byte_length'] = Variable<int>(byteLength.value);
+    }
+    if (widthPx.present) {
+      map['width_px'] = Variable<int>(widthPx.value);
+    }
+    if (heightPx.present) {
+      map['height_px'] = Variable<int>(heightPx.value);
+    }
+    if (displayName.present) {
+      map['display_name'] = Variable<String>(displayName.value);
+    }
+    if (origin.present) {
+      map['origin'] = Variable<String>(
+        Assets.$converterorigin.toSql(origin.value),
+      );
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AssetsCompanion(')
+          ..write('id: $id, ')
+          ..write('mediaType: $mediaType, ')
+          ..write('relativePath: $relativePath, ')
+          ..write('byteLength: $byteLength, ')
+          ..write('widthPx: $widthPx, ')
+          ..write('heightPx: $heightPx, ')
+          ..write('displayName: $displayName, ')
+          ..write('origin: $origin, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class TemplateRevisionAssets extends Table
+    with TableInfo<TemplateRevisionAssets, TemplateRevisionAssetRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  TemplateRevisionAssets(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _templateRevisionIdMeta =
+      const VerificationMeta('templateRevisionId');
+  late final GeneratedColumn<String> templateRevisionId =
+      GeneratedColumn<String>(
+        'template_revision_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+        $customConstraints:
+            'NOT NULL REFERENCES template_revisions(id)ON DELETE CASCADE',
+      );
+  static const VerificationMeta _assetIdMeta = const VerificationMeta(
+    'assetId',
+  );
+  late final GeneratedColumn<String> assetId = GeneratedColumn<String>(
+    'asset_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL REFERENCES assets(id)ON DELETE RESTRICT',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [templateRevisionId, assetId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'template_revision_assets';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TemplateRevisionAssetRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('template_revision_id')) {
+      context.handle(
+        _templateRevisionIdMeta,
+        templateRevisionId.isAcceptableOrUnknown(
+          data['template_revision_id']!,
+          _templateRevisionIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_templateRevisionIdMeta);
+    }
+    if (data.containsKey('asset_id')) {
+      context.handle(
+        _assetIdMeta,
+        assetId.isAcceptableOrUnknown(data['asset_id']!, _assetIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_assetIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {templateRevisionId, assetId};
+  @override
+  TemplateRevisionAssetRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TemplateRevisionAssetRow(
+      templateRevisionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}template_revision_id'],
+      )!,
+      assetId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}asset_id'],
+      )!,
+    );
+  }
+
+  @override
+  TemplateRevisionAssets createAlias(String alias) {
+    return TemplateRevisionAssets(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const [
+    'PRIMARY KEY(template_revision_id, asset_id)',
+  ];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class TemplateRevisionAssetRow extends DataClass
+    implements Insertable<TemplateRevisionAssetRow> {
+  final String templateRevisionId;
+  final String assetId;
+  const TemplateRevisionAssetRow({
+    required this.templateRevisionId,
+    required this.assetId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['template_revision_id'] = Variable<String>(templateRevisionId);
+    map['asset_id'] = Variable<String>(assetId);
+    return map;
+  }
+
+  TemplateRevisionAssetsCompanion toCompanion(bool nullToAbsent) {
+    return TemplateRevisionAssetsCompanion(
+      templateRevisionId: Value(templateRevisionId),
+      assetId: Value(assetId),
+    );
+  }
+
+  factory TemplateRevisionAssetRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TemplateRevisionAssetRow(
+      templateRevisionId: serializer.fromJson<String>(
+        json['template_revision_id'],
+      ),
+      assetId: serializer.fromJson<String>(json['asset_id']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'template_revision_id': serializer.toJson<String>(templateRevisionId),
+      'asset_id': serializer.toJson<String>(assetId),
+    };
+  }
+
+  TemplateRevisionAssetRow copyWith({
+    String? templateRevisionId,
+    String? assetId,
+  }) => TemplateRevisionAssetRow(
+    templateRevisionId: templateRevisionId ?? this.templateRevisionId,
+    assetId: assetId ?? this.assetId,
+  );
+  TemplateRevisionAssetRow copyWithCompanion(
+    TemplateRevisionAssetsCompanion data,
+  ) {
+    return TemplateRevisionAssetRow(
+      templateRevisionId: data.templateRevisionId.present
+          ? data.templateRevisionId.value
+          : this.templateRevisionId,
+      assetId: data.assetId.present ? data.assetId.value : this.assetId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TemplateRevisionAssetRow(')
+          ..write('templateRevisionId: $templateRevisionId, ')
+          ..write('assetId: $assetId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(templateRevisionId, assetId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TemplateRevisionAssetRow &&
+          other.templateRevisionId == this.templateRevisionId &&
+          other.assetId == this.assetId);
+}
+
+class TemplateRevisionAssetsCompanion
+    extends UpdateCompanion<TemplateRevisionAssetRow> {
+  final Value<String> templateRevisionId;
+  final Value<String> assetId;
+  final Value<int> rowid;
+  const TemplateRevisionAssetsCompanion({
+    this.templateRevisionId = const Value.absent(),
+    this.assetId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TemplateRevisionAssetsCompanion.insert({
+    required String templateRevisionId,
+    required String assetId,
+    this.rowid = const Value.absent(),
+  }) : templateRevisionId = Value(templateRevisionId),
+       assetId = Value(assetId);
+  static Insertable<TemplateRevisionAssetRow> custom({
+    Expression<String>? templateRevisionId,
+    Expression<String>? assetId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (templateRevisionId != null)
+        'template_revision_id': templateRevisionId,
+      if (assetId != null) 'asset_id': assetId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TemplateRevisionAssetsCompanion copyWith({
+    Value<String>? templateRevisionId,
+    Value<String>? assetId,
+    Value<int>? rowid,
+  }) {
+    return TemplateRevisionAssetsCompanion(
+      templateRevisionId: templateRevisionId ?? this.templateRevisionId,
+      assetId: assetId ?? this.assetId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (templateRevisionId.present) {
+      map['template_revision_id'] = Variable<String>(templateRevisionId.value);
+    }
+    if (assetId.present) {
+      map['asset_id'] = Variable<String>(assetId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TemplateRevisionAssetsCompanion(')
+          ..write('templateRevisionId: $templateRevisionId, ')
+          ..write('assetId: $assetId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class EventTemplates extends Table
     with TableInfo<EventTemplates, EventTemplateRow> {
   @override
@@ -4732,6 +5572,17 @@ abstract class _$BoothDatabase extends GeneratedDatabase {
     'CREATE TRIGGER template_revisions_are_immutable BEFORE UPDATE ON template_revisions BEGIN SELECT RAISE (ABORT, \'template revisions are immutable\');END',
     'template_revisions_are_immutable',
   );
+  late final Assets assets = Assets(this);
+  late final Trigger assetsAreImmutable = Trigger(
+    'CREATE TRIGGER assets_are_immutable BEFORE UPDATE ON assets BEGIN SELECT RAISE (ABORT, \'assets are immutable\');END',
+    'assets_are_immutable',
+  );
+  late final TemplateRevisionAssets templateRevisionAssets =
+      TemplateRevisionAssets(this);
+  late final Index templateRevisionAssetsByAsset = Index(
+    'template_revision_assets_by_asset',
+    'CREATE INDEX template_revision_assets_by_asset ON template_revision_assets (asset_id)',
+  );
   late final Index eventsByStatus = Index(
     'events_by_status',
     'CREATE INDEX events_by_status ON events (status, updated_at)',
@@ -4757,6 +5608,10 @@ abstract class _$BoothDatabase extends GeneratedDatabase {
     templates,
     templateRevisions,
     templateRevisionsAreImmutable,
+    assets,
+    assetsAreImmutable,
+    templateRevisionAssets,
+    templateRevisionAssetsByAsset,
     eventsByStatus,
     eventTemplates,
     eventTemplatesOneDefault,
@@ -4777,6 +5632,22 @@ abstract class _$BoothDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.update,
       ),
       result: [],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'assets',
+        limitUpdateKind: UpdateKind.update,
+      ),
+      result: [],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'template_revisions',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [
+        TableUpdate('template_revision_assets', kind: UpdateKind.delete),
+      ],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
@@ -7383,6 +8254,33 @@ final class $TemplateRevisionsReferences
     );
   }
 
+  static MultiTypedResultKey<
+    TemplateRevisionAssets,
+    List<TemplateRevisionAssetRow>
+  >
+  _templateRevisionAssetsRefsTable(_$BoothDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.templateRevisionAssets,
+        aliasName: 'template_revisions__id__template_revision_assets__template_revision_id',
+      );
+
+  $TemplateRevisionAssetsProcessedTableManager get templateRevisionAssetsRefs {
+    final manager =
+        $TemplateRevisionAssetsTableManager(
+          $_db,
+          $_db.templateRevisionAssets,
+        ).filter(
+          (f) => f.templateRevisionId.id.sqlEquals($_itemColumn<String>('id')!),
+        );
+
+    final cache = $_typedResult.readTableOrNull(
+      _templateRevisionAssetsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
   static MultiTypedResultKey<EventTemplates, List<EventTemplateRow>>
   _eventTemplatesRefsTable(_$BoothDatabase db) => MultiTypedResultKey.fromTable(
     db.eventTemplates,
@@ -7477,6 +8375,31 @@ class $TemplateRevisionsFilterComposer
           ),
     );
     return composer;
+  }
+
+  Expression<bool> templateRevisionAssetsRefs(
+    Expression<bool> Function($TemplateRevisionAssetsFilterComposer f) f,
+  ) {
+    final $TemplateRevisionAssetsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.templateRevisionAssets,
+      getReferencedColumn: (t) => t.templateRevisionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $TemplateRevisionAssetsFilterComposer(
+            $db: $db,
+            $table: $db.templateRevisionAssets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
   }
 
   Expression<bool> eventTemplatesRefs(
@@ -7654,6 +8577,31 @@ class $TemplateRevisionsAnnotationComposer
     return composer;
   }
 
+  Expression<T> templateRevisionAssetsRefs<T extends Object>(
+    Expression<T> Function($TemplateRevisionAssetsAnnotationComposer a) f,
+  ) {
+    final $TemplateRevisionAssetsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.templateRevisionAssets,
+      getReferencedColumn: (t) => t.templateRevisionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $TemplateRevisionAssetsAnnotationComposer(
+            $db: $db,
+            $table: $db.templateRevisionAssets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
   Expression<T> eventTemplatesRefs<T extends Object>(
     Expression<T> Function($EventTemplatesAnnotationComposer a) f,
   ) {
@@ -7693,7 +8641,11 @@ class $TemplateRevisionsTableManager
           $TemplateRevisionsUpdateCompanionBuilder,
           (TemplateRevisionRow, $TemplateRevisionsReferences),
           TemplateRevisionRow,
-          PrefetchHooks Function({bool templateId, bool eventTemplatesRefs})
+          PrefetchHooks Function({
+            bool templateId,
+            bool templateRevisionAssetsRefs,
+            bool eventTemplatesRefs,
+          })
         > {
   $TemplateRevisionsTableManager(_$BoothDatabase db, TemplateRevisions table)
     : super(
@@ -7767,10 +8719,15 @@ class $TemplateRevisionsTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({templateId = false, eventTemplatesRefs = false}) {
+              ({
+                templateId = false,
+                templateRevisionAssetsRefs = false,
+                eventTemplatesRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
+                    if (templateRevisionAssetsRefs) db.templateRevisionAssets,
                     if (eventTemplatesRefs) db.eventTemplates,
                   ],
                   addJoins:
@@ -7805,6 +8762,27 @@ class $TemplateRevisionsTableManager
                       },
                   getPrefetchedDataCallback: (items) async {
                     return [
+                      if (templateRevisionAssetsRefs)
+                        await $_getPrefetchedData<
+                          TemplateRevisionRow,
+                          TemplateRevisions,
+                          TemplateRevisionAssetRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $TemplateRevisionsReferences
+                              ._templateRevisionAssetsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $TemplateRevisionsReferences(
+                                db,
+                                table,
+                                p0,
+                              ).templateRevisionAssetsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.templateRevisionId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                       if (eventTemplatesRefs)
                         await $_getPrefetchedData<
                           TemplateRevisionRow,
@@ -7846,7 +8824,757 @@ typedef $TemplateRevisionsProcessedTableManager =
       $TemplateRevisionsUpdateCompanionBuilder,
       (TemplateRevisionRow, $TemplateRevisionsReferences),
       TemplateRevisionRow,
-      PrefetchHooks Function({bool templateId, bool eventTemplatesRefs})
+      PrefetchHooks Function({
+        bool templateId,
+        bool templateRevisionAssetsRefs,
+        bool eventTemplatesRefs,
+      })
+    >;
+typedef $AssetsCreateCompanionBuilder = AssetsCompanion Function({
+  required String id,
+  required AssetMediaType mediaType,
+  required String relativePath,
+  required int byteLength,
+  Value<int?> widthPx,
+  Value<int?> heightPx,
+  Value<String?> displayName,
+  required AssetOrigin origin,
+  required DateTime createdAt,
+  Value<int> rowid,
+});
+typedef $AssetsUpdateCompanionBuilder = AssetsCompanion Function({
+  Value<String> id,
+  Value<AssetMediaType> mediaType,
+  Value<String> relativePath,
+  Value<int> byteLength,
+  Value<int?> widthPx,
+  Value<int?> heightPx,
+  Value<String?> displayName,
+  Value<AssetOrigin> origin,
+  Value<DateTime> createdAt,
+  Value<int> rowid,
+});
+
+final class $AssetsReferences
+    extends BaseReferences<_$BoothDatabase, Assets, AssetRow> {
+  $AssetsReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<
+    TemplateRevisionAssets,
+    List<TemplateRevisionAssetRow>
+  >
+  _templateRevisionAssetsRefsTable(_$BoothDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.templateRevisionAssets,
+        aliasName: 'assets__id__template_revision_assets__asset_id',
+      );
+
+  $TemplateRevisionAssetsProcessedTableManager get templateRevisionAssetsRefs {
+    final manager = $TemplateRevisionAssetsTableManager(
+      $_db,
+      $_db.templateRevisionAssets,
+    ).filter((f) => f.assetId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _templateRevisionAssetsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $AssetsFilterComposer extends Composer<_$BoothDatabase, Assets> {
+  $AssetsFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<AssetMediaType, AssetMediaType, String>
+  get mediaType => $composableBuilder(
+    column: $table.mediaType,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get relativePath => $composableBuilder(
+    column: $table.relativePath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get byteLength => $composableBuilder(
+    column: $table.byteLength,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get widthPx => $composableBuilder(
+    column: $table.widthPx,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get heightPx => $composableBuilder(
+    column: $table.heightPx,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get displayName => $composableBuilder(
+    column: $table.displayName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<AssetOrigin, AssetOrigin, String> get origin =>
+      $composableBuilder(
+        column: $table.origin,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> templateRevisionAssetsRefs(
+    Expression<bool> Function($TemplateRevisionAssetsFilterComposer f) f,
+  ) {
+    final $TemplateRevisionAssetsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.templateRevisionAssets,
+      getReferencedColumn: (t) => t.assetId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $TemplateRevisionAssetsFilterComposer(
+            $db: $db,
+            $table: $db.templateRevisionAssets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $AssetsOrderingComposer extends Composer<_$BoothDatabase, Assets> {
+  $AssetsOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mediaType => $composableBuilder(
+    column: $table.mediaType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get relativePath => $composableBuilder(
+    column: $table.relativePath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get byteLength => $composableBuilder(
+    column: $table.byteLength,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get widthPx => $composableBuilder(
+    column: $table.widthPx,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get heightPx => $composableBuilder(
+    column: $table.heightPx,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get displayName => $composableBuilder(
+    column: $table.displayName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get origin => $composableBuilder(
+    column: $table.origin,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $AssetsAnnotationComposer extends Composer<_$BoothDatabase, Assets> {
+  $AssetsAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<AssetMediaType, String> get mediaType =>
+      $composableBuilder(column: $table.mediaType, builder: (column) => column);
+
+  GeneratedColumn<String> get relativePath => $composableBuilder(
+    column: $table.relativePath,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get byteLength => $composableBuilder(
+    column: $table.byteLength,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get widthPx =>
+      $composableBuilder(column: $table.widthPx, builder: (column) => column);
+
+  GeneratedColumn<int> get heightPx =>
+      $composableBuilder(column: $table.heightPx, builder: (column) => column);
+
+  GeneratedColumn<String> get displayName => $composableBuilder(
+    column: $table.displayName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<AssetOrigin, String> get origin =>
+      $composableBuilder(column: $table.origin, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  Expression<T> templateRevisionAssetsRefs<T extends Object>(
+    Expression<T> Function($TemplateRevisionAssetsAnnotationComposer a) f,
+  ) {
+    final $TemplateRevisionAssetsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.templateRevisionAssets,
+      getReferencedColumn: (t) => t.assetId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $TemplateRevisionAssetsAnnotationComposer(
+            $db: $db,
+            $table: $db.templateRevisionAssets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $AssetsTableManager
+    extends
+        RootTableManager<
+          _$BoothDatabase,
+          Assets,
+          AssetRow,
+          $AssetsFilterComposer,
+          $AssetsOrderingComposer,
+          $AssetsAnnotationComposer,
+          $AssetsCreateCompanionBuilder,
+          $AssetsUpdateCompanionBuilder,
+          (AssetRow, $AssetsReferences),
+          AssetRow,
+          PrefetchHooks Function({bool templateRevisionAssetsRefs})
+        > {
+  $AssetsTableManager(_$BoothDatabase db, Assets table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $AssetsFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $AssetsOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $AssetsAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<AssetMediaType> mediaType = const Value.absent(),
+                Value<String> relativePath = const Value.absent(),
+                Value<int> byteLength = const Value.absent(),
+                Value<int?> widthPx = const Value.absent(),
+                Value<int?> heightPx = const Value.absent(),
+                Value<String?> displayName = const Value.absent(),
+                Value<AssetOrigin> origin = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AssetsCompanion(
+                id: id,
+                mediaType: mediaType,
+                relativePath: relativePath,
+                byteLength: byteLength,
+                widthPx: widthPx,
+                heightPx: heightPx,
+                displayName: displayName,
+                origin: origin,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required AssetMediaType mediaType,
+                required String relativePath,
+                required int byteLength,
+                Value<int?> widthPx = const Value.absent(),
+                Value<int?> heightPx = const Value.absent(),
+                Value<String?> displayName = const Value.absent(),
+                required AssetOrigin origin,
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => AssetsCompanion.insert(
+                id: id,
+                mediaType: mediaType,
+                relativePath: relativePath,
+                byteLength: byteLength,
+                widthPx: widthPx,
+                heightPx: heightPx,
+                displayName: displayName,
+                origin: origin,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<Assets, AssetRow>(table),
+                  $AssetsReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({templateRevisionAssetsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (templateRevisionAssetsRefs) db.templateRevisionAssets,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (templateRevisionAssetsRefs)
+                    await $_getPrefetchedData<
+                      AssetRow,
+                      Assets,
+                      TemplateRevisionAssetRow
+                    >(
+                      currentTable: table,
+                      referencedTable: $AssetsReferences
+                          ._templateRevisionAssetsRefsTable(db),
+                      managerFromTypedResult: (p0) => $AssetsReferences(
+                        db,
+                        table,
+                        p0,
+                      ).templateRevisionAssetsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.assetId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $AssetsProcessedTableManager =
+    ProcessedTableManager<
+      _$BoothDatabase,
+      Assets,
+      AssetRow,
+      $AssetsFilterComposer,
+      $AssetsOrderingComposer,
+      $AssetsAnnotationComposer,
+      $AssetsCreateCompanionBuilder,
+      $AssetsUpdateCompanionBuilder,
+      (AssetRow, $AssetsReferences),
+      AssetRow,
+      PrefetchHooks Function({bool templateRevisionAssetsRefs})
+    >;
+typedef $TemplateRevisionAssetsCreateCompanionBuilder =
+    TemplateRevisionAssetsCompanion Function({
+      required String templateRevisionId,
+      required String assetId,
+      Value<int> rowid,
+    });
+typedef $TemplateRevisionAssetsUpdateCompanionBuilder =
+    TemplateRevisionAssetsCompanion Function({
+      Value<String> templateRevisionId,
+      Value<String> assetId,
+      Value<int> rowid,
+    });
+
+final class $TemplateRevisionAssetsReferences
+    extends
+        BaseReferences<
+          _$BoothDatabase,
+          TemplateRevisionAssets,
+          TemplateRevisionAssetRow
+        > {
+  $TemplateRevisionAssetsReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static TemplateRevisions _templateRevisionIdTable(
+    _$BoothDatabase db,
+  ) => db.templateRevisions.createAlias(
+    'template_revision_assets__template_revision_id__template_revisions__id',
+  );
+
+  $TemplateRevisionsProcessedTableManager get templateRevisionId {
+    final $_column = $_itemColumn<String>('template_revision_id')!;
+
+    final manager = $TemplateRevisionsTableManager(
+      $_db,
+      $_db.templateRevisions,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_templateRevisionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static Assets _assetIdTable(_$BoothDatabase db) =>
+      db.assets.createAlias('template_revision_assets__asset_id__assets__id');
+
+  $AssetsProcessedTableManager get assetId {
+    final $_column = $_itemColumn<String>('asset_id')!;
+
+    final manager = $AssetsTableManager(
+      $_db,
+      $_db.assets,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_assetIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $TemplateRevisionAssetsFilterComposer
+    extends Composer<_$BoothDatabase, TemplateRevisionAssets> {
+  $TemplateRevisionAssetsFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  $TemplateRevisionsFilterComposer get templateRevisionId {
+    final $TemplateRevisionsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.templateRevisionId,
+      referencedTable: $db.templateRevisions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $TemplateRevisionsFilterComposer(
+            $db: $db,
+            $table: $db.templateRevisions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $AssetsFilterComposer get assetId {
+    final $AssetsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.assetId,
+      referencedTable: $db.assets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $AssetsFilterComposer(
+            $db: $db,
+            $table: $db.assets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $TemplateRevisionAssetsOrderingComposer
+    extends Composer<_$BoothDatabase, TemplateRevisionAssets> {
+  $TemplateRevisionAssetsOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  $TemplateRevisionsOrderingComposer get templateRevisionId {
+    final $TemplateRevisionsOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.templateRevisionId,
+      referencedTable: $db.templateRevisions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $TemplateRevisionsOrderingComposer(
+            $db: $db,
+            $table: $db.templateRevisions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $AssetsOrderingComposer get assetId {
+    final $AssetsOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.assetId,
+      referencedTable: $db.assets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $AssetsOrderingComposer(
+            $db: $db,
+            $table: $db.assets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $TemplateRevisionAssetsAnnotationComposer
+    extends Composer<_$BoothDatabase, TemplateRevisionAssets> {
+  $TemplateRevisionAssetsAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  $TemplateRevisionsAnnotationComposer get templateRevisionId {
+    final $TemplateRevisionsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.templateRevisionId,
+      referencedTable: $db.templateRevisions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $TemplateRevisionsAnnotationComposer(
+            $db: $db,
+            $table: $db.templateRevisions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $AssetsAnnotationComposer get assetId {
+    final $AssetsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.assetId,
+      referencedTable: $db.assets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $AssetsAnnotationComposer(
+            $db: $db,
+            $table: $db.assets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $TemplateRevisionAssetsTableManager
+    extends
+        RootTableManager<
+          _$BoothDatabase,
+          TemplateRevisionAssets,
+          TemplateRevisionAssetRow,
+          $TemplateRevisionAssetsFilterComposer,
+          $TemplateRevisionAssetsOrderingComposer,
+          $TemplateRevisionAssetsAnnotationComposer,
+          $TemplateRevisionAssetsCreateCompanionBuilder,
+          $TemplateRevisionAssetsUpdateCompanionBuilder,
+          (TemplateRevisionAssetRow, $TemplateRevisionAssetsReferences),
+          TemplateRevisionAssetRow,
+          PrefetchHooks Function({bool templateRevisionId, bool assetId})
+        > {
+  $TemplateRevisionAssetsTableManager(
+    _$BoothDatabase db,
+    TemplateRevisionAssets table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $TemplateRevisionAssetsFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $TemplateRevisionAssetsOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $TemplateRevisionAssetsAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> templateRevisionId = const Value.absent(),
+                Value<String> assetId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TemplateRevisionAssetsCompanion(
+                templateRevisionId: templateRevisionId,
+                assetId: assetId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String templateRevisionId,
+                required String assetId,
+                Value<int> rowid = const Value.absent(),
+              }) => TemplateRevisionAssetsCompanion.insert(
+                templateRevisionId: templateRevisionId,
+                assetId: assetId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<TemplateRevisionAssets, TemplateRevisionAssetRow>(
+                    table,
+                  ),
+                  $TemplateRevisionAssetsReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({templateRevisionId = false, assetId = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (templateRevisionId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.templateRevisionId,
+                            referencedTable: $TemplateRevisionAssetsReferences
+                                ._templateRevisionIdTable(db),
+                            referencedColumn: $TemplateRevisionAssetsReferences
+                                ._templateRevisionIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+                        if (assetId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.assetId,
+                            referencedTable: $TemplateRevisionAssetsReferences
+                                ._assetIdTable(db),
+                            referencedColumn: $TemplateRevisionAssetsReferences
+                                ._assetIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $TemplateRevisionAssetsProcessedTableManager =
+    ProcessedTableManager<
+      _$BoothDatabase,
+      TemplateRevisionAssets,
+      TemplateRevisionAssetRow,
+      $TemplateRevisionAssetsFilterComposer,
+      $TemplateRevisionAssetsOrderingComposer,
+      $TemplateRevisionAssetsAnnotationComposer,
+      $TemplateRevisionAssetsCreateCompanionBuilder,
+      $TemplateRevisionAssetsUpdateCompanionBuilder,
+      (TemplateRevisionAssetRow, $TemplateRevisionAssetsReferences),
+      TemplateRevisionAssetRow,
+      PrefetchHooks Function({bool templateRevisionId, bool assetId})
     >;
 typedef $EventTemplatesCreateCompanionBuilder =
     EventTemplatesCompanion Function({
@@ -8246,6 +9974,9 @@ class $BoothDatabaseManager {
       $TemplatesTableManager(_db, _db.templates);
   $TemplateRevisionsTableManager get templateRevisions =>
       $TemplateRevisionsTableManager(_db, _db.templateRevisions);
+  $AssetsTableManager get assets => $AssetsTableManager(_db, _db.assets);
+  $TemplateRevisionAssetsTableManager get templateRevisionAssets =>
+      $TemplateRevisionAssetsTableManager(_db, _db.templateRevisionAssets);
   $EventTemplatesTableManager get eventTemplates =>
       $EventTemplatesTableManager(_db, _db.eventTemplates);
 }

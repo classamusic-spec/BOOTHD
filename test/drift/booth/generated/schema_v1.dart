@@ -4,7 +4,8 @@
 //
 import 'package:drift/drift.dart';
 
-class BoothProfiles extends Table with TableInfo {
+class BoothProfiles extends Table
+    with TableInfo<BoothProfiles, BoothProfilesData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -145,8 +146,62 @@ class BoothProfiles extends Table with TableInfo {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  Never map(Map<String, dynamic> data, {String? tablePrefix}) {
-    throw UnsupportedError('TableInfo.map in schema verification code');
+  BoothProfilesData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return BoothProfilesData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      themeProfile: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}theme_profile'],
+      )!,
+      contrastPreference: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}contrast_preference'],
+      )!,
+      motionPreference: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}motion_preference'],
+      )!,
+      defaultLens: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}default_lens'],
+      )!,
+      defaultMirrorPreview: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}default_mirror_preview'],
+      )!,
+      defaultMirrorOutput: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}default_mirror_output'],
+      )!,
+      defaultOrientation: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}default_orientation'],
+      )!,
+      defaultOutputFormat: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}default_output_format'],
+      )!,
+      defaultJpegQuality: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}default_jpeg_quality'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
   }
 
   @override
@@ -158,7 +213,448 @@ class BoothProfiles extends Table with TableInfo {
   bool get dontWriteConstraints => true;
 }
 
-class Events extends Table with TableInfo {
+class BoothProfilesData extends DataClass
+    implements Insertable<BoothProfilesData> {
+  final String id;
+  final String name;
+  final String themeProfile;
+  final String contrastPreference;
+  final String motionPreference;
+  final String defaultLens;
+  final int defaultMirrorPreview;
+  final int defaultMirrorOutput;
+  final String defaultOrientation;
+  final String defaultOutputFormat;
+  final int defaultJpegQuality;
+  final String createdAt;
+  final String updatedAt;
+  const BoothProfilesData({
+    required this.id,
+    required this.name,
+    required this.themeProfile,
+    required this.contrastPreference,
+    required this.motionPreference,
+    required this.defaultLens,
+    required this.defaultMirrorPreview,
+    required this.defaultMirrorOutput,
+    required this.defaultOrientation,
+    required this.defaultOutputFormat,
+    required this.defaultJpegQuality,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    map['theme_profile'] = Variable<String>(themeProfile);
+    map['contrast_preference'] = Variable<String>(contrastPreference);
+    map['motion_preference'] = Variable<String>(motionPreference);
+    map['default_lens'] = Variable<String>(defaultLens);
+    map['default_mirror_preview'] = Variable<int>(defaultMirrorPreview);
+    map['default_mirror_output'] = Variable<int>(defaultMirrorOutput);
+    map['default_orientation'] = Variable<String>(defaultOrientation);
+    map['default_output_format'] = Variable<String>(defaultOutputFormat);
+    map['default_jpeg_quality'] = Variable<int>(defaultJpegQuality);
+    map['created_at'] = Variable<String>(createdAt);
+    map['updated_at'] = Variable<String>(updatedAt);
+    return map;
+  }
+
+  BoothProfilesCompanion toCompanion(bool nullToAbsent) {
+    return BoothProfilesCompanion(
+      id: Value(id),
+      name: Value(name),
+      themeProfile: Value(themeProfile),
+      contrastPreference: Value(contrastPreference),
+      motionPreference: Value(motionPreference),
+      defaultLens: Value(defaultLens),
+      defaultMirrorPreview: Value(defaultMirrorPreview),
+      defaultMirrorOutput: Value(defaultMirrorOutput),
+      defaultOrientation: Value(defaultOrientation),
+      defaultOutputFormat: Value(defaultOutputFormat),
+      defaultJpegQuality: Value(defaultJpegQuality),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory BoothProfilesData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return BoothProfilesData(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      themeProfile: serializer.fromJson<String>(json['themeProfile']),
+      contrastPreference: serializer.fromJson<String>(
+        json['contrastPreference'],
+      ),
+      motionPreference: serializer.fromJson<String>(json['motionPreference']),
+      defaultLens: serializer.fromJson<String>(json['defaultLens']),
+      defaultMirrorPreview: serializer.fromJson<int>(
+        json['defaultMirrorPreview'],
+      ),
+      defaultMirrorOutput: serializer.fromJson<int>(
+        json['defaultMirrorOutput'],
+      ),
+      defaultOrientation: serializer.fromJson<String>(
+        json['defaultOrientation'],
+      ),
+      defaultOutputFormat: serializer.fromJson<String>(
+        json['defaultOutputFormat'],
+      ),
+      defaultJpegQuality: serializer.fromJson<int>(json['defaultJpegQuality']),
+      createdAt: serializer.fromJson<String>(json['createdAt']),
+      updatedAt: serializer.fromJson<String>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'themeProfile': serializer.toJson<String>(themeProfile),
+      'contrastPreference': serializer.toJson<String>(contrastPreference),
+      'motionPreference': serializer.toJson<String>(motionPreference),
+      'defaultLens': serializer.toJson<String>(defaultLens),
+      'defaultMirrorPreview': serializer.toJson<int>(defaultMirrorPreview),
+      'defaultMirrorOutput': serializer.toJson<int>(defaultMirrorOutput),
+      'defaultOrientation': serializer.toJson<String>(defaultOrientation),
+      'defaultOutputFormat': serializer.toJson<String>(defaultOutputFormat),
+      'defaultJpegQuality': serializer.toJson<int>(defaultJpegQuality),
+      'createdAt': serializer.toJson<String>(createdAt),
+      'updatedAt': serializer.toJson<String>(updatedAt),
+    };
+  }
+
+  BoothProfilesData copyWith({
+    String? id,
+    String? name,
+    String? themeProfile,
+    String? contrastPreference,
+    String? motionPreference,
+    String? defaultLens,
+    int? defaultMirrorPreview,
+    int? defaultMirrorOutput,
+    String? defaultOrientation,
+    String? defaultOutputFormat,
+    int? defaultJpegQuality,
+    String? createdAt,
+    String? updatedAt,
+  }) => BoothProfilesData(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    themeProfile: themeProfile ?? this.themeProfile,
+    contrastPreference: contrastPreference ?? this.contrastPreference,
+    motionPreference: motionPreference ?? this.motionPreference,
+    defaultLens: defaultLens ?? this.defaultLens,
+    defaultMirrorPreview: defaultMirrorPreview ?? this.defaultMirrorPreview,
+    defaultMirrorOutput: defaultMirrorOutput ?? this.defaultMirrorOutput,
+    defaultOrientation: defaultOrientation ?? this.defaultOrientation,
+    defaultOutputFormat: defaultOutputFormat ?? this.defaultOutputFormat,
+    defaultJpegQuality: defaultJpegQuality ?? this.defaultJpegQuality,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  BoothProfilesData copyWithCompanion(BoothProfilesCompanion data) {
+    return BoothProfilesData(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      themeProfile: data.themeProfile.present
+          ? data.themeProfile.value
+          : this.themeProfile,
+      contrastPreference: data.contrastPreference.present
+          ? data.contrastPreference.value
+          : this.contrastPreference,
+      motionPreference: data.motionPreference.present
+          ? data.motionPreference.value
+          : this.motionPreference,
+      defaultLens: data.defaultLens.present
+          ? data.defaultLens.value
+          : this.defaultLens,
+      defaultMirrorPreview: data.defaultMirrorPreview.present
+          ? data.defaultMirrorPreview.value
+          : this.defaultMirrorPreview,
+      defaultMirrorOutput: data.defaultMirrorOutput.present
+          ? data.defaultMirrorOutput.value
+          : this.defaultMirrorOutput,
+      defaultOrientation: data.defaultOrientation.present
+          ? data.defaultOrientation.value
+          : this.defaultOrientation,
+      defaultOutputFormat: data.defaultOutputFormat.present
+          ? data.defaultOutputFormat.value
+          : this.defaultOutputFormat,
+      defaultJpegQuality: data.defaultJpegQuality.present
+          ? data.defaultJpegQuality.value
+          : this.defaultJpegQuality,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BoothProfilesData(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('themeProfile: $themeProfile, ')
+          ..write('contrastPreference: $contrastPreference, ')
+          ..write('motionPreference: $motionPreference, ')
+          ..write('defaultLens: $defaultLens, ')
+          ..write('defaultMirrorPreview: $defaultMirrorPreview, ')
+          ..write('defaultMirrorOutput: $defaultMirrorOutput, ')
+          ..write('defaultOrientation: $defaultOrientation, ')
+          ..write('defaultOutputFormat: $defaultOutputFormat, ')
+          ..write('defaultJpegQuality: $defaultJpegQuality, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    name,
+    themeProfile,
+    contrastPreference,
+    motionPreference,
+    defaultLens,
+    defaultMirrorPreview,
+    defaultMirrorOutput,
+    defaultOrientation,
+    defaultOutputFormat,
+    defaultJpegQuality,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is BoothProfilesData &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.themeProfile == this.themeProfile &&
+          other.contrastPreference == this.contrastPreference &&
+          other.motionPreference == this.motionPreference &&
+          other.defaultLens == this.defaultLens &&
+          other.defaultMirrorPreview == this.defaultMirrorPreview &&
+          other.defaultMirrorOutput == this.defaultMirrorOutput &&
+          other.defaultOrientation == this.defaultOrientation &&
+          other.defaultOutputFormat == this.defaultOutputFormat &&
+          other.defaultJpegQuality == this.defaultJpegQuality &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class BoothProfilesCompanion extends UpdateCompanion<BoothProfilesData> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<String> themeProfile;
+  final Value<String> contrastPreference;
+  final Value<String> motionPreference;
+  final Value<String> defaultLens;
+  final Value<int> defaultMirrorPreview;
+  final Value<int> defaultMirrorOutput;
+  final Value<String> defaultOrientation;
+  final Value<String> defaultOutputFormat;
+  final Value<int> defaultJpegQuality;
+  final Value<String> createdAt;
+  final Value<String> updatedAt;
+  final Value<int> rowid;
+  const BoothProfilesCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.themeProfile = const Value.absent(),
+    this.contrastPreference = const Value.absent(),
+    this.motionPreference = const Value.absent(),
+    this.defaultLens = const Value.absent(),
+    this.defaultMirrorPreview = const Value.absent(),
+    this.defaultMirrorOutput = const Value.absent(),
+    this.defaultOrientation = const Value.absent(),
+    this.defaultOutputFormat = const Value.absent(),
+    this.defaultJpegQuality = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  BoothProfilesCompanion.insert({
+    required String id,
+    required String name,
+    required String themeProfile,
+    required String contrastPreference,
+    required String motionPreference,
+    required String defaultLens,
+    required int defaultMirrorPreview,
+    required int defaultMirrorOutput,
+    required String defaultOrientation,
+    required String defaultOutputFormat,
+    required int defaultJpegQuality,
+    required String createdAt,
+    required String updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       name = Value(name),
+       themeProfile = Value(themeProfile),
+       contrastPreference = Value(contrastPreference),
+       motionPreference = Value(motionPreference),
+       defaultLens = Value(defaultLens),
+       defaultMirrorPreview = Value(defaultMirrorPreview),
+       defaultMirrorOutput = Value(defaultMirrorOutput),
+       defaultOrientation = Value(defaultOrientation),
+       defaultOutputFormat = Value(defaultOutputFormat),
+       defaultJpegQuality = Value(defaultJpegQuality),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<BoothProfilesData> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<String>? themeProfile,
+    Expression<String>? contrastPreference,
+    Expression<String>? motionPreference,
+    Expression<String>? defaultLens,
+    Expression<int>? defaultMirrorPreview,
+    Expression<int>? defaultMirrorOutput,
+    Expression<String>? defaultOrientation,
+    Expression<String>? defaultOutputFormat,
+    Expression<int>? defaultJpegQuality,
+    Expression<String>? createdAt,
+    Expression<String>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (themeProfile != null) 'theme_profile': themeProfile,
+      if (contrastPreference != null) 'contrast_preference': contrastPreference,
+      if (motionPreference != null) 'motion_preference': motionPreference,
+      if (defaultLens != null) 'default_lens': defaultLens,
+      if (defaultMirrorPreview != null)
+        'default_mirror_preview': defaultMirrorPreview,
+      if (defaultMirrorOutput != null)
+        'default_mirror_output': defaultMirrorOutput,
+      if (defaultOrientation != null) 'default_orientation': defaultOrientation,
+      if (defaultOutputFormat != null)
+        'default_output_format': defaultOutputFormat,
+      if (defaultJpegQuality != null)
+        'default_jpeg_quality': defaultJpegQuality,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  BoothProfilesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? name,
+    Value<String>? themeProfile,
+    Value<String>? contrastPreference,
+    Value<String>? motionPreference,
+    Value<String>? defaultLens,
+    Value<int>? defaultMirrorPreview,
+    Value<int>? defaultMirrorOutput,
+    Value<String>? defaultOrientation,
+    Value<String>? defaultOutputFormat,
+    Value<int>? defaultJpegQuality,
+    Value<String>? createdAt,
+    Value<String>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return BoothProfilesCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      themeProfile: themeProfile ?? this.themeProfile,
+      contrastPreference: contrastPreference ?? this.contrastPreference,
+      motionPreference: motionPreference ?? this.motionPreference,
+      defaultLens: defaultLens ?? this.defaultLens,
+      defaultMirrorPreview: defaultMirrorPreview ?? this.defaultMirrorPreview,
+      defaultMirrorOutput: defaultMirrorOutput ?? this.defaultMirrorOutput,
+      defaultOrientation: defaultOrientation ?? this.defaultOrientation,
+      defaultOutputFormat: defaultOutputFormat ?? this.defaultOutputFormat,
+      defaultJpegQuality: defaultJpegQuality ?? this.defaultJpegQuality,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (themeProfile.present) {
+      map['theme_profile'] = Variable<String>(themeProfile.value);
+    }
+    if (contrastPreference.present) {
+      map['contrast_preference'] = Variable<String>(contrastPreference.value);
+    }
+    if (motionPreference.present) {
+      map['motion_preference'] = Variable<String>(motionPreference.value);
+    }
+    if (defaultLens.present) {
+      map['default_lens'] = Variable<String>(defaultLens.value);
+    }
+    if (defaultMirrorPreview.present) {
+      map['default_mirror_preview'] = Variable<int>(defaultMirrorPreview.value);
+    }
+    if (defaultMirrorOutput.present) {
+      map['default_mirror_output'] = Variable<int>(defaultMirrorOutput.value);
+    }
+    if (defaultOrientation.present) {
+      map['default_orientation'] = Variable<String>(defaultOrientation.value);
+    }
+    if (defaultOutputFormat.present) {
+      map['default_output_format'] = Variable<String>(
+        defaultOutputFormat.value,
+      );
+    }
+    if (defaultJpegQuality.present) {
+      map['default_jpeg_quality'] = Variable<int>(defaultJpegQuality.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<String>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<String>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BoothProfilesCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('themeProfile: $themeProfile, ')
+          ..write('contrastPreference: $contrastPreference, ')
+          ..write('motionPreference: $motionPreference, ')
+          ..write('defaultLens: $defaultLens, ')
+          ..write('defaultMirrorPreview: $defaultMirrorPreview, ')
+          ..write('defaultMirrorOutput: $defaultMirrorOutput, ')
+          ..write('defaultOrientation: $defaultOrientation, ')
+          ..write('defaultOutputFormat: $defaultOutputFormat, ')
+          ..write('defaultJpegQuality: $defaultJpegQuality, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class Events extends Table with TableInfo<Events, EventsData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -444,8 +940,126 @@ class Events extends Table with TableInfo {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  Never map(Map<String, dynamic> data, {String? tablePrefix}) {
-    throw UnsupportedError('TableInfo.map in schema verification code');
+  EventsData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return EventsData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      boothProfileId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}booth_profile_id'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      eventDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}event_date'],
+      ),
+      venue: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}venue'],
+      ),
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      lens: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}lens'],
+      )!,
+      mirrorPreview: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}mirror_preview'],
+      )!,
+      mirrorOutput: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}mirror_output'],
+      )!,
+      guestOrientation: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}guest_orientation'],
+      )!,
+      shotCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}shot_count'],
+      )!,
+      countdownSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}countdown_seconds'],
+      )!,
+      shotIntervalSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}shot_interval_seconds'],
+      )!,
+      retakePolicy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}retake_policy'],
+      )!,
+      retakeLimit: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}retake_limit'],
+      )!,
+      welcomeTitle: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}welcome_title'],
+      ),
+      welcomeMessage: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}welcome_message'],
+      ),
+      consentText: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}consent_text'],
+      ),
+      guestChoosesTemplate: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}guest_chooses_template'],
+      )!,
+      finishTimeoutSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}finish_timeout_seconds'],
+      )!,
+      themeOverride: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}theme_override'],
+      ),
+      outputFormat: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}output_format'],
+      )!,
+      jpegQuality: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}jpeg_quality'],
+      )!,
+      retentionMode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}retention_mode'],
+      )!,
+      retentionDays: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}retention_days'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      archivedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}archived_at'],
+      ),
+    );
   }
 
   @override
@@ -463,7 +1077,877 @@ class Events extends Table with TableInfo {
   bool get dontWriteConstraints => true;
 }
 
-class AppSettings extends Table with TableInfo {
+class EventsData extends DataClass implements Insertable<EventsData> {
+  final String id;
+  final String boothProfileId;
+  final String title;
+  final String? eventDate;
+  final String? venue;
+  final String? notes;
+  final String status;
+  final String lens;
+  final int mirrorPreview;
+  final int mirrorOutput;
+  final String guestOrientation;
+  final int shotCount;
+  final int countdownSeconds;
+  final int shotIntervalSeconds;
+  final String retakePolicy;
+  final int retakeLimit;
+  final String? welcomeTitle;
+  final String? welcomeMessage;
+  final String? consentText;
+  final int guestChoosesTemplate;
+  final int finishTimeoutSeconds;
+  final String? themeOverride;
+  final String outputFormat;
+  final int jpegQuality;
+  final String retentionMode;
+  final int? retentionDays;
+  final String createdAt;
+  final String updatedAt;
+  final String? archivedAt;
+  const EventsData({
+    required this.id,
+    required this.boothProfileId,
+    required this.title,
+    this.eventDate,
+    this.venue,
+    this.notes,
+    required this.status,
+    required this.lens,
+    required this.mirrorPreview,
+    required this.mirrorOutput,
+    required this.guestOrientation,
+    required this.shotCount,
+    required this.countdownSeconds,
+    required this.shotIntervalSeconds,
+    required this.retakePolicy,
+    required this.retakeLimit,
+    this.welcomeTitle,
+    this.welcomeMessage,
+    this.consentText,
+    required this.guestChoosesTemplate,
+    required this.finishTimeoutSeconds,
+    this.themeOverride,
+    required this.outputFormat,
+    required this.jpegQuality,
+    required this.retentionMode,
+    this.retentionDays,
+    required this.createdAt,
+    required this.updatedAt,
+    this.archivedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['booth_profile_id'] = Variable<String>(boothProfileId);
+    map['title'] = Variable<String>(title);
+    if (!nullToAbsent || eventDate != null) {
+      map['event_date'] = Variable<String>(eventDate);
+    }
+    if (!nullToAbsent || venue != null) {
+      map['venue'] = Variable<String>(venue);
+    }
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['status'] = Variable<String>(status);
+    map['lens'] = Variable<String>(lens);
+    map['mirror_preview'] = Variable<int>(mirrorPreview);
+    map['mirror_output'] = Variable<int>(mirrorOutput);
+    map['guest_orientation'] = Variable<String>(guestOrientation);
+    map['shot_count'] = Variable<int>(shotCount);
+    map['countdown_seconds'] = Variable<int>(countdownSeconds);
+    map['shot_interval_seconds'] = Variable<int>(shotIntervalSeconds);
+    map['retake_policy'] = Variable<String>(retakePolicy);
+    map['retake_limit'] = Variable<int>(retakeLimit);
+    if (!nullToAbsent || welcomeTitle != null) {
+      map['welcome_title'] = Variable<String>(welcomeTitle);
+    }
+    if (!nullToAbsent || welcomeMessage != null) {
+      map['welcome_message'] = Variable<String>(welcomeMessage);
+    }
+    if (!nullToAbsent || consentText != null) {
+      map['consent_text'] = Variable<String>(consentText);
+    }
+    map['guest_chooses_template'] = Variable<int>(guestChoosesTemplate);
+    map['finish_timeout_seconds'] = Variable<int>(finishTimeoutSeconds);
+    if (!nullToAbsent || themeOverride != null) {
+      map['theme_override'] = Variable<String>(themeOverride);
+    }
+    map['output_format'] = Variable<String>(outputFormat);
+    map['jpeg_quality'] = Variable<int>(jpegQuality);
+    map['retention_mode'] = Variable<String>(retentionMode);
+    if (!nullToAbsent || retentionDays != null) {
+      map['retention_days'] = Variable<int>(retentionDays);
+    }
+    map['created_at'] = Variable<String>(createdAt);
+    map['updated_at'] = Variable<String>(updatedAt);
+    if (!nullToAbsent || archivedAt != null) {
+      map['archived_at'] = Variable<String>(archivedAt);
+    }
+    return map;
+  }
+
+  EventsCompanion toCompanion(bool nullToAbsent) {
+    return EventsCompanion(
+      id: Value(id),
+      boothProfileId: Value(boothProfileId),
+      title: Value(title),
+      eventDate: eventDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(eventDate),
+      venue: venue == null && nullToAbsent
+          ? const Value.absent()
+          : Value(venue),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      status: Value(status),
+      lens: Value(lens),
+      mirrorPreview: Value(mirrorPreview),
+      mirrorOutput: Value(mirrorOutput),
+      guestOrientation: Value(guestOrientation),
+      shotCount: Value(shotCount),
+      countdownSeconds: Value(countdownSeconds),
+      shotIntervalSeconds: Value(shotIntervalSeconds),
+      retakePolicy: Value(retakePolicy),
+      retakeLimit: Value(retakeLimit),
+      welcomeTitle: welcomeTitle == null && nullToAbsent
+          ? const Value.absent()
+          : Value(welcomeTitle),
+      welcomeMessage: welcomeMessage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(welcomeMessage),
+      consentText: consentText == null && nullToAbsent
+          ? const Value.absent()
+          : Value(consentText),
+      guestChoosesTemplate: Value(guestChoosesTemplate),
+      finishTimeoutSeconds: Value(finishTimeoutSeconds),
+      themeOverride: themeOverride == null && nullToAbsent
+          ? const Value.absent()
+          : Value(themeOverride),
+      outputFormat: Value(outputFormat),
+      jpegQuality: Value(jpegQuality),
+      retentionMode: Value(retentionMode),
+      retentionDays: retentionDays == null && nullToAbsent
+          ? const Value.absent()
+          : Value(retentionDays),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      archivedAt: archivedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(archivedAt),
+    );
+  }
+
+  factory EventsData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return EventsData(
+      id: serializer.fromJson<String>(json['id']),
+      boothProfileId: serializer.fromJson<String>(json['boothProfileId']),
+      title: serializer.fromJson<String>(json['title']),
+      eventDate: serializer.fromJson<String?>(json['eventDate']),
+      venue: serializer.fromJson<String?>(json['venue']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      status: serializer.fromJson<String>(json['status']),
+      lens: serializer.fromJson<String>(json['lens']),
+      mirrorPreview: serializer.fromJson<int>(json['mirrorPreview']),
+      mirrorOutput: serializer.fromJson<int>(json['mirrorOutput']),
+      guestOrientation: serializer.fromJson<String>(json['guestOrientation']),
+      shotCount: serializer.fromJson<int>(json['shotCount']),
+      countdownSeconds: serializer.fromJson<int>(json['countdownSeconds']),
+      shotIntervalSeconds: serializer.fromJson<int>(
+        json['shotIntervalSeconds'],
+      ),
+      retakePolicy: serializer.fromJson<String>(json['retakePolicy']),
+      retakeLimit: serializer.fromJson<int>(json['retakeLimit']),
+      welcomeTitle: serializer.fromJson<String?>(json['welcomeTitle']),
+      welcomeMessage: serializer.fromJson<String?>(json['welcomeMessage']),
+      consentText: serializer.fromJson<String?>(json['consentText']),
+      guestChoosesTemplate: serializer.fromJson<int>(
+        json['guestChoosesTemplate'],
+      ),
+      finishTimeoutSeconds: serializer.fromJson<int>(
+        json['finishTimeoutSeconds'],
+      ),
+      themeOverride: serializer.fromJson<String?>(json['themeOverride']),
+      outputFormat: serializer.fromJson<String>(json['outputFormat']),
+      jpegQuality: serializer.fromJson<int>(json['jpegQuality']),
+      retentionMode: serializer.fromJson<String>(json['retentionMode']),
+      retentionDays: serializer.fromJson<int?>(json['retentionDays']),
+      createdAt: serializer.fromJson<String>(json['createdAt']),
+      updatedAt: serializer.fromJson<String>(json['updatedAt']),
+      archivedAt: serializer.fromJson<String?>(json['archivedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'boothProfileId': serializer.toJson<String>(boothProfileId),
+      'title': serializer.toJson<String>(title),
+      'eventDate': serializer.toJson<String?>(eventDate),
+      'venue': serializer.toJson<String?>(venue),
+      'notes': serializer.toJson<String?>(notes),
+      'status': serializer.toJson<String>(status),
+      'lens': serializer.toJson<String>(lens),
+      'mirrorPreview': serializer.toJson<int>(mirrorPreview),
+      'mirrorOutput': serializer.toJson<int>(mirrorOutput),
+      'guestOrientation': serializer.toJson<String>(guestOrientation),
+      'shotCount': serializer.toJson<int>(shotCount),
+      'countdownSeconds': serializer.toJson<int>(countdownSeconds),
+      'shotIntervalSeconds': serializer.toJson<int>(shotIntervalSeconds),
+      'retakePolicy': serializer.toJson<String>(retakePolicy),
+      'retakeLimit': serializer.toJson<int>(retakeLimit),
+      'welcomeTitle': serializer.toJson<String?>(welcomeTitle),
+      'welcomeMessage': serializer.toJson<String?>(welcomeMessage),
+      'consentText': serializer.toJson<String?>(consentText),
+      'guestChoosesTemplate': serializer.toJson<int>(guestChoosesTemplate),
+      'finishTimeoutSeconds': serializer.toJson<int>(finishTimeoutSeconds),
+      'themeOverride': serializer.toJson<String?>(themeOverride),
+      'outputFormat': serializer.toJson<String>(outputFormat),
+      'jpegQuality': serializer.toJson<int>(jpegQuality),
+      'retentionMode': serializer.toJson<String>(retentionMode),
+      'retentionDays': serializer.toJson<int?>(retentionDays),
+      'createdAt': serializer.toJson<String>(createdAt),
+      'updatedAt': serializer.toJson<String>(updatedAt),
+      'archivedAt': serializer.toJson<String?>(archivedAt),
+    };
+  }
+
+  EventsData copyWith({
+    String? id,
+    String? boothProfileId,
+    String? title,
+    Value<String?> eventDate = const Value.absent(),
+    Value<String?> venue = const Value.absent(),
+    Value<String?> notes = const Value.absent(),
+    String? status,
+    String? lens,
+    int? mirrorPreview,
+    int? mirrorOutput,
+    String? guestOrientation,
+    int? shotCount,
+    int? countdownSeconds,
+    int? shotIntervalSeconds,
+    String? retakePolicy,
+    int? retakeLimit,
+    Value<String?> welcomeTitle = const Value.absent(),
+    Value<String?> welcomeMessage = const Value.absent(),
+    Value<String?> consentText = const Value.absent(),
+    int? guestChoosesTemplate,
+    int? finishTimeoutSeconds,
+    Value<String?> themeOverride = const Value.absent(),
+    String? outputFormat,
+    int? jpegQuality,
+    String? retentionMode,
+    Value<int?> retentionDays = const Value.absent(),
+    String? createdAt,
+    String? updatedAt,
+    Value<String?> archivedAt = const Value.absent(),
+  }) => EventsData(
+    id: id ?? this.id,
+    boothProfileId: boothProfileId ?? this.boothProfileId,
+    title: title ?? this.title,
+    eventDate: eventDate.present ? eventDate.value : this.eventDate,
+    venue: venue.present ? venue.value : this.venue,
+    notes: notes.present ? notes.value : this.notes,
+    status: status ?? this.status,
+    lens: lens ?? this.lens,
+    mirrorPreview: mirrorPreview ?? this.mirrorPreview,
+    mirrorOutput: mirrorOutput ?? this.mirrorOutput,
+    guestOrientation: guestOrientation ?? this.guestOrientation,
+    shotCount: shotCount ?? this.shotCount,
+    countdownSeconds: countdownSeconds ?? this.countdownSeconds,
+    shotIntervalSeconds: shotIntervalSeconds ?? this.shotIntervalSeconds,
+    retakePolicy: retakePolicy ?? this.retakePolicy,
+    retakeLimit: retakeLimit ?? this.retakeLimit,
+    welcomeTitle: welcomeTitle.present ? welcomeTitle.value : this.welcomeTitle,
+    welcomeMessage: welcomeMessage.present
+        ? welcomeMessage.value
+        : this.welcomeMessage,
+    consentText: consentText.present ? consentText.value : this.consentText,
+    guestChoosesTemplate: guestChoosesTemplate ?? this.guestChoosesTemplate,
+    finishTimeoutSeconds: finishTimeoutSeconds ?? this.finishTimeoutSeconds,
+    themeOverride: themeOverride.present
+        ? themeOverride.value
+        : this.themeOverride,
+    outputFormat: outputFormat ?? this.outputFormat,
+    jpegQuality: jpegQuality ?? this.jpegQuality,
+    retentionMode: retentionMode ?? this.retentionMode,
+    retentionDays: retentionDays.present
+        ? retentionDays.value
+        : this.retentionDays,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    archivedAt: archivedAt.present ? archivedAt.value : this.archivedAt,
+  );
+  EventsData copyWithCompanion(EventsCompanion data) {
+    return EventsData(
+      id: data.id.present ? data.id.value : this.id,
+      boothProfileId: data.boothProfileId.present
+          ? data.boothProfileId.value
+          : this.boothProfileId,
+      title: data.title.present ? data.title.value : this.title,
+      eventDate: data.eventDate.present ? data.eventDate.value : this.eventDate,
+      venue: data.venue.present ? data.venue.value : this.venue,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      status: data.status.present ? data.status.value : this.status,
+      lens: data.lens.present ? data.lens.value : this.lens,
+      mirrorPreview: data.mirrorPreview.present
+          ? data.mirrorPreview.value
+          : this.mirrorPreview,
+      mirrorOutput: data.mirrorOutput.present
+          ? data.mirrorOutput.value
+          : this.mirrorOutput,
+      guestOrientation: data.guestOrientation.present
+          ? data.guestOrientation.value
+          : this.guestOrientation,
+      shotCount: data.shotCount.present ? data.shotCount.value : this.shotCount,
+      countdownSeconds: data.countdownSeconds.present
+          ? data.countdownSeconds.value
+          : this.countdownSeconds,
+      shotIntervalSeconds: data.shotIntervalSeconds.present
+          ? data.shotIntervalSeconds.value
+          : this.shotIntervalSeconds,
+      retakePolicy: data.retakePolicy.present
+          ? data.retakePolicy.value
+          : this.retakePolicy,
+      retakeLimit: data.retakeLimit.present
+          ? data.retakeLimit.value
+          : this.retakeLimit,
+      welcomeTitle: data.welcomeTitle.present
+          ? data.welcomeTitle.value
+          : this.welcomeTitle,
+      welcomeMessage: data.welcomeMessage.present
+          ? data.welcomeMessage.value
+          : this.welcomeMessage,
+      consentText: data.consentText.present
+          ? data.consentText.value
+          : this.consentText,
+      guestChoosesTemplate: data.guestChoosesTemplate.present
+          ? data.guestChoosesTemplate.value
+          : this.guestChoosesTemplate,
+      finishTimeoutSeconds: data.finishTimeoutSeconds.present
+          ? data.finishTimeoutSeconds.value
+          : this.finishTimeoutSeconds,
+      themeOverride: data.themeOverride.present
+          ? data.themeOverride.value
+          : this.themeOverride,
+      outputFormat: data.outputFormat.present
+          ? data.outputFormat.value
+          : this.outputFormat,
+      jpegQuality: data.jpegQuality.present
+          ? data.jpegQuality.value
+          : this.jpegQuality,
+      retentionMode: data.retentionMode.present
+          ? data.retentionMode.value
+          : this.retentionMode,
+      retentionDays: data.retentionDays.present
+          ? data.retentionDays.value
+          : this.retentionDays,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      archivedAt: data.archivedAt.present
+          ? data.archivedAt.value
+          : this.archivedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EventsData(')
+          ..write('id: $id, ')
+          ..write('boothProfileId: $boothProfileId, ')
+          ..write('title: $title, ')
+          ..write('eventDate: $eventDate, ')
+          ..write('venue: $venue, ')
+          ..write('notes: $notes, ')
+          ..write('status: $status, ')
+          ..write('lens: $lens, ')
+          ..write('mirrorPreview: $mirrorPreview, ')
+          ..write('mirrorOutput: $mirrorOutput, ')
+          ..write('guestOrientation: $guestOrientation, ')
+          ..write('shotCount: $shotCount, ')
+          ..write('countdownSeconds: $countdownSeconds, ')
+          ..write('shotIntervalSeconds: $shotIntervalSeconds, ')
+          ..write('retakePolicy: $retakePolicy, ')
+          ..write('retakeLimit: $retakeLimit, ')
+          ..write('welcomeTitle: $welcomeTitle, ')
+          ..write('welcomeMessage: $welcomeMessage, ')
+          ..write('consentText: $consentText, ')
+          ..write('guestChoosesTemplate: $guestChoosesTemplate, ')
+          ..write('finishTimeoutSeconds: $finishTimeoutSeconds, ')
+          ..write('themeOverride: $themeOverride, ')
+          ..write('outputFormat: $outputFormat, ')
+          ..write('jpegQuality: $jpegQuality, ')
+          ..write('retentionMode: $retentionMode, ')
+          ..write('retentionDays: $retentionDays, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('archivedAt: $archivedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hashAll([
+    id,
+    boothProfileId,
+    title,
+    eventDate,
+    venue,
+    notes,
+    status,
+    lens,
+    mirrorPreview,
+    mirrorOutput,
+    guestOrientation,
+    shotCount,
+    countdownSeconds,
+    shotIntervalSeconds,
+    retakePolicy,
+    retakeLimit,
+    welcomeTitle,
+    welcomeMessage,
+    consentText,
+    guestChoosesTemplate,
+    finishTimeoutSeconds,
+    themeOverride,
+    outputFormat,
+    jpegQuality,
+    retentionMode,
+    retentionDays,
+    createdAt,
+    updatedAt,
+    archivedAt,
+  ]);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is EventsData &&
+          other.id == this.id &&
+          other.boothProfileId == this.boothProfileId &&
+          other.title == this.title &&
+          other.eventDate == this.eventDate &&
+          other.venue == this.venue &&
+          other.notes == this.notes &&
+          other.status == this.status &&
+          other.lens == this.lens &&
+          other.mirrorPreview == this.mirrorPreview &&
+          other.mirrorOutput == this.mirrorOutput &&
+          other.guestOrientation == this.guestOrientation &&
+          other.shotCount == this.shotCount &&
+          other.countdownSeconds == this.countdownSeconds &&
+          other.shotIntervalSeconds == this.shotIntervalSeconds &&
+          other.retakePolicy == this.retakePolicy &&
+          other.retakeLimit == this.retakeLimit &&
+          other.welcomeTitle == this.welcomeTitle &&
+          other.welcomeMessage == this.welcomeMessage &&
+          other.consentText == this.consentText &&
+          other.guestChoosesTemplate == this.guestChoosesTemplate &&
+          other.finishTimeoutSeconds == this.finishTimeoutSeconds &&
+          other.themeOverride == this.themeOverride &&
+          other.outputFormat == this.outputFormat &&
+          other.jpegQuality == this.jpegQuality &&
+          other.retentionMode == this.retentionMode &&
+          other.retentionDays == this.retentionDays &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.archivedAt == this.archivedAt);
+}
+
+class EventsCompanion extends UpdateCompanion<EventsData> {
+  final Value<String> id;
+  final Value<String> boothProfileId;
+  final Value<String> title;
+  final Value<String?> eventDate;
+  final Value<String?> venue;
+  final Value<String?> notes;
+  final Value<String> status;
+  final Value<String> lens;
+  final Value<int> mirrorPreview;
+  final Value<int> mirrorOutput;
+  final Value<String> guestOrientation;
+  final Value<int> shotCount;
+  final Value<int> countdownSeconds;
+  final Value<int> shotIntervalSeconds;
+  final Value<String> retakePolicy;
+  final Value<int> retakeLimit;
+  final Value<String?> welcomeTitle;
+  final Value<String?> welcomeMessage;
+  final Value<String?> consentText;
+  final Value<int> guestChoosesTemplate;
+  final Value<int> finishTimeoutSeconds;
+  final Value<String?> themeOverride;
+  final Value<String> outputFormat;
+  final Value<int> jpegQuality;
+  final Value<String> retentionMode;
+  final Value<int?> retentionDays;
+  final Value<String> createdAt;
+  final Value<String> updatedAt;
+  final Value<String?> archivedAt;
+  final Value<int> rowid;
+  const EventsCompanion({
+    this.id = const Value.absent(),
+    this.boothProfileId = const Value.absent(),
+    this.title = const Value.absent(),
+    this.eventDate = const Value.absent(),
+    this.venue = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.status = const Value.absent(),
+    this.lens = const Value.absent(),
+    this.mirrorPreview = const Value.absent(),
+    this.mirrorOutput = const Value.absent(),
+    this.guestOrientation = const Value.absent(),
+    this.shotCount = const Value.absent(),
+    this.countdownSeconds = const Value.absent(),
+    this.shotIntervalSeconds = const Value.absent(),
+    this.retakePolicy = const Value.absent(),
+    this.retakeLimit = const Value.absent(),
+    this.welcomeTitle = const Value.absent(),
+    this.welcomeMessage = const Value.absent(),
+    this.consentText = const Value.absent(),
+    this.guestChoosesTemplate = const Value.absent(),
+    this.finishTimeoutSeconds = const Value.absent(),
+    this.themeOverride = const Value.absent(),
+    this.outputFormat = const Value.absent(),
+    this.jpegQuality = const Value.absent(),
+    this.retentionMode = const Value.absent(),
+    this.retentionDays = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.archivedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  EventsCompanion.insert({
+    required String id,
+    required String boothProfileId,
+    required String title,
+    this.eventDate = const Value.absent(),
+    this.venue = const Value.absent(),
+    this.notes = const Value.absent(),
+    required String status,
+    required String lens,
+    required int mirrorPreview,
+    required int mirrorOutput,
+    required String guestOrientation,
+    required int shotCount,
+    required int countdownSeconds,
+    required int shotIntervalSeconds,
+    required String retakePolicy,
+    required int retakeLimit,
+    this.welcomeTitle = const Value.absent(),
+    this.welcomeMessage = const Value.absent(),
+    this.consentText = const Value.absent(),
+    required int guestChoosesTemplate,
+    required int finishTimeoutSeconds,
+    this.themeOverride = const Value.absent(),
+    required String outputFormat,
+    required int jpegQuality,
+    required String retentionMode,
+    this.retentionDays = const Value.absent(),
+    required String createdAt,
+    required String updatedAt,
+    this.archivedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       boothProfileId = Value(boothProfileId),
+       title = Value(title),
+       status = Value(status),
+       lens = Value(lens),
+       mirrorPreview = Value(mirrorPreview),
+       mirrorOutput = Value(mirrorOutput),
+       guestOrientation = Value(guestOrientation),
+       shotCount = Value(shotCount),
+       countdownSeconds = Value(countdownSeconds),
+       shotIntervalSeconds = Value(shotIntervalSeconds),
+       retakePolicy = Value(retakePolicy),
+       retakeLimit = Value(retakeLimit),
+       guestChoosesTemplate = Value(guestChoosesTemplate),
+       finishTimeoutSeconds = Value(finishTimeoutSeconds),
+       outputFormat = Value(outputFormat),
+       jpegQuality = Value(jpegQuality),
+       retentionMode = Value(retentionMode),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<EventsData> custom({
+    Expression<String>? id,
+    Expression<String>? boothProfileId,
+    Expression<String>? title,
+    Expression<String>? eventDate,
+    Expression<String>? venue,
+    Expression<String>? notes,
+    Expression<String>? status,
+    Expression<String>? lens,
+    Expression<int>? mirrorPreview,
+    Expression<int>? mirrorOutput,
+    Expression<String>? guestOrientation,
+    Expression<int>? shotCount,
+    Expression<int>? countdownSeconds,
+    Expression<int>? shotIntervalSeconds,
+    Expression<String>? retakePolicy,
+    Expression<int>? retakeLimit,
+    Expression<String>? welcomeTitle,
+    Expression<String>? welcomeMessage,
+    Expression<String>? consentText,
+    Expression<int>? guestChoosesTemplate,
+    Expression<int>? finishTimeoutSeconds,
+    Expression<String>? themeOverride,
+    Expression<String>? outputFormat,
+    Expression<int>? jpegQuality,
+    Expression<String>? retentionMode,
+    Expression<int>? retentionDays,
+    Expression<String>? createdAt,
+    Expression<String>? updatedAt,
+    Expression<String>? archivedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (boothProfileId != null) 'booth_profile_id': boothProfileId,
+      if (title != null) 'title': title,
+      if (eventDate != null) 'event_date': eventDate,
+      if (venue != null) 'venue': venue,
+      if (notes != null) 'notes': notes,
+      if (status != null) 'status': status,
+      if (lens != null) 'lens': lens,
+      if (mirrorPreview != null) 'mirror_preview': mirrorPreview,
+      if (mirrorOutput != null) 'mirror_output': mirrorOutput,
+      if (guestOrientation != null) 'guest_orientation': guestOrientation,
+      if (shotCount != null) 'shot_count': shotCount,
+      if (countdownSeconds != null) 'countdown_seconds': countdownSeconds,
+      if (shotIntervalSeconds != null)
+        'shot_interval_seconds': shotIntervalSeconds,
+      if (retakePolicy != null) 'retake_policy': retakePolicy,
+      if (retakeLimit != null) 'retake_limit': retakeLimit,
+      if (welcomeTitle != null) 'welcome_title': welcomeTitle,
+      if (welcomeMessage != null) 'welcome_message': welcomeMessage,
+      if (consentText != null) 'consent_text': consentText,
+      if (guestChoosesTemplate != null)
+        'guest_chooses_template': guestChoosesTemplate,
+      if (finishTimeoutSeconds != null)
+        'finish_timeout_seconds': finishTimeoutSeconds,
+      if (themeOverride != null) 'theme_override': themeOverride,
+      if (outputFormat != null) 'output_format': outputFormat,
+      if (jpegQuality != null) 'jpeg_quality': jpegQuality,
+      if (retentionMode != null) 'retention_mode': retentionMode,
+      if (retentionDays != null) 'retention_days': retentionDays,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (archivedAt != null) 'archived_at': archivedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  EventsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? boothProfileId,
+    Value<String>? title,
+    Value<String?>? eventDate,
+    Value<String?>? venue,
+    Value<String?>? notes,
+    Value<String>? status,
+    Value<String>? lens,
+    Value<int>? mirrorPreview,
+    Value<int>? mirrorOutput,
+    Value<String>? guestOrientation,
+    Value<int>? shotCount,
+    Value<int>? countdownSeconds,
+    Value<int>? shotIntervalSeconds,
+    Value<String>? retakePolicy,
+    Value<int>? retakeLimit,
+    Value<String?>? welcomeTitle,
+    Value<String?>? welcomeMessage,
+    Value<String?>? consentText,
+    Value<int>? guestChoosesTemplate,
+    Value<int>? finishTimeoutSeconds,
+    Value<String?>? themeOverride,
+    Value<String>? outputFormat,
+    Value<int>? jpegQuality,
+    Value<String>? retentionMode,
+    Value<int?>? retentionDays,
+    Value<String>? createdAt,
+    Value<String>? updatedAt,
+    Value<String?>? archivedAt,
+    Value<int>? rowid,
+  }) {
+    return EventsCompanion(
+      id: id ?? this.id,
+      boothProfileId: boothProfileId ?? this.boothProfileId,
+      title: title ?? this.title,
+      eventDate: eventDate ?? this.eventDate,
+      venue: venue ?? this.venue,
+      notes: notes ?? this.notes,
+      status: status ?? this.status,
+      lens: lens ?? this.lens,
+      mirrorPreview: mirrorPreview ?? this.mirrorPreview,
+      mirrorOutput: mirrorOutput ?? this.mirrorOutput,
+      guestOrientation: guestOrientation ?? this.guestOrientation,
+      shotCount: shotCount ?? this.shotCount,
+      countdownSeconds: countdownSeconds ?? this.countdownSeconds,
+      shotIntervalSeconds: shotIntervalSeconds ?? this.shotIntervalSeconds,
+      retakePolicy: retakePolicy ?? this.retakePolicy,
+      retakeLimit: retakeLimit ?? this.retakeLimit,
+      welcomeTitle: welcomeTitle ?? this.welcomeTitle,
+      welcomeMessage: welcomeMessage ?? this.welcomeMessage,
+      consentText: consentText ?? this.consentText,
+      guestChoosesTemplate: guestChoosesTemplate ?? this.guestChoosesTemplate,
+      finishTimeoutSeconds: finishTimeoutSeconds ?? this.finishTimeoutSeconds,
+      themeOverride: themeOverride ?? this.themeOverride,
+      outputFormat: outputFormat ?? this.outputFormat,
+      jpegQuality: jpegQuality ?? this.jpegQuality,
+      retentionMode: retentionMode ?? this.retentionMode,
+      retentionDays: retentionDays ?? this.retentionDays,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      archivedAt: archivedAt ?? this.archivedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (boothProfileId.present) {
+      map['booth_profile_id'] = Variable<String>(boothProfileId.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (eventDate.present) {
+      map['event_date'] = Variable<String>(eventDate.value);
+    }
+    if (venue.present) {
+      map['venue'] = Variable<String>(venue.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (lens.present) {
+      map['lens'] = Variable<String>(lens.value);
+    }
+    if (mirrorPreview.present) {
+      map['mirror_preview'] = Variable<int>(mirrorPreview.value);
+    }
+    if (mirrorOutput.present) {
+      map['mirror_output'] = Variable<int>(mirrorOutput.value);
+    }
+    if (guestOrientation.present) {
+      map['guest_orientation'] = Variable<String>(guestOrientation.value);
+    }
+    if (shotCount.present) {
+      map['shot_count'] = Variable<int>(shotCount.value);
+    }
+    if (countdownSeconds.present) {
+      map['countdown_seconds'] = Variable<int>(countdownSeconds.value);
+    }
+    if (shotIntervalSeconds.present) {
+      map['shot_interval_seconds'] = Variable<int>(shotIntervalSeconds.value);
+    }
+    if (retakePolicy.present) {
+      map['retake_policy'] = Variable<String>(retakePolicy.value);
+    }
+    if (retakeLimit.present) {
+      map['retake_limit'] = Variable<int>(retakeLimit.value);
+    }
+    if (welcomeTitle.present) {
+      map['welcome_title'] = Variable<String>(welcomeTitle.value);
+    }
+    if (welcomeMessage.present) {
+      map['welcome_message'] = Variable<String>(welcomeMessage.value);
+    }
+    if (consentText.present) {
+      map['consent_text'] = Variable<String>(consentText.value);
+    }
+    if (guestChoosesTemplate.present) {
+      map['guest_chooses_template'] = Variable<int>(guestChoosesTemplate.value);
+    }
+    if (finishTimeoutSeconds.present) {
+      map['finish_timeout_seconds'] = Variable<int>(finishTimeoutSeconds.value);
+    }
+    if (themeOverride.present) {
+      map['theme_override'] = Variable<String>(themeOverride.value);
+    }
+    if (outputFormat.present) {
+      map['output_format'] = Variable<String>(outputFormat.value);
+    }
+    if (jpegQuality.present) {
+      map['jpeg_quality'] = Variable<int>(jpegQuality.value);
+    }
+    if (retentionMode.present) {
+      map['retention_mode'] = Variable<String>(retentionMode.value);
+    }
+    if (retentionDays.present) {
+      map['retention_days'] = Variable<int>(retentionDays.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<String>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<String>(updatedAt.value);
+    }
+    if (archivedAt.present) {
+      map['archived_at'] = Variable<String>(archivedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EventsCompanion(')
+          ..write('id: $id, ')
+          ..write('boothProfileId: $boothProfileId, ')
+          ..write('title: $title, ')
+          ..write('eventDate: $eventDate, ')
+          ..write('venue: $venue, ')
+          ..write('notes: $notes, ')
+          ..write('status: $status, ')
+          ..write('lens: $lens, ')
+          ..write('mirrorPreview: $mirrorPreview, ')
+          ..write('mirrorOutput: $mirrorOutput, ')
+          ..write('guestOrientation: $guestOrientation, ')
+          ..write('shotCount: $shotCount, ')
+          ..write('countdownSeconds: $countdownSeconds, ')
+          ..write('shotIntervalSeconds: $shotIntervalSeconds, ')
+          ..write('retakePolicy: $retakePolicy, ')
+          ..write('retakeLimit: $retakeLimit, ')
+          ..write('welcomeTitle: $welcomeTitle, ')
+          ..write('welcomeMessage: $welcomeMessage, ')
+          ..write('consentText: $consentText, ')
+          ..write('guestChoosesTemplate: $guestChoosesTemplate, ')
+          ..write('finishTimeoutSeconds: $finishTimeoutSeconds, ')
+          ..write('themeOverride: $themeOverride, ')
+          ..write('outputFormat: $outputFormat, ')
+          ..write('jpegQuality: $jpegQuality, ')
+          ..write('retentionMode: $retentionMode, ')
+          ..write('retentionDays: $retentionDays, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('archivedAt: $archivedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class AppSettings extends Table with TableInfo<AppSettings, AppSettingsData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -516,8 +2000,26 @@ class AppSettings extends Table with TableInfo {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  Never map(Map<String, dynamic> data, {String? tablePrefix}) {
-    throw UnsupportedError('TableInfo.map in schema verification code');
+  AppSettingsData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AppSettingsData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      boothProfileId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}booth_profile_id'],
+      )!,
+      setupCompletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}setup_completed_at'],
+      ),
+      boothEventId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}booth_event_id'],
+      ),
+    );
   }
 
   @override
@@ -529,7 +2031,196 @@ class AppSettings extends Table with TableInfo {
   bool get dontWriteConstraints => true;
 }
 
-class OperatorAccess extends Table with TableInfo {
+class AppSettingsData extends DataClass implements Insertable<AppSettingsData> {
+  final int id;
+  final String boothProfileId;
+  final String? setupCompletedAt;
+  final String? boothEventId;
+  const AppSettingsData({
+    required this.id,
+    required this.boothProfileId,
+    this.setupCompletedAt,
+    this.boothEventId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['booth_profile_id'] = Variable<String>(boothProfileId);
+    if (!nullToAbsent || setupCompletedAt != null) {
+      map['setup_completed_at'] = Variable<String>(setupCompletedAt);
+    }
+    if (!nullToAbsent || boothEventId != null) {
+      map['booth_event_id'] = Variable<String>(boothEventId);
+    }
+    return map;
+  }
+
+  AppSettingsCompanion toCompanion(bool nullToAbsent) {
+    return AppSettingsCompanion(
+      id: Value(id),
+      boothProfileId: Value(boothProfileId),
+      setupCompletedAt: setupCompletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(setupCompletedAt),
+      boothEventId: boothEventId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(boothEventId),
+    );
+  }
+
+  factory AppSettingsData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AppSettingsData(
+      id: serializer.fromJson<int>(json['id']),
+      boothProfileId: serializer.fromJson<String>(json['boothProfileId']),
+      setupCompletedAt: serializer.fromJson<String?>(json['setupCompletedAt']),
+      boothEventId: serializer.fromJson<String?>(json['boothEventId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'boothProfileId': serializer.toJson<String>(boothProfileId),
+      'setupCompletedAt': serializer.toJson<String?>(setupCompletedAt),
+      'boothEventId': serializer.toJson<String?>(boothEventId),
+    };
+  }
+
+  AppSettingsData copyWith({
+    int? id,
+    String? boothProfileId,
+    Value<String?> setupCompletedAt = const Value.absent(),
+    Value<String?> boothEventId = const Value.absent(),
+  }) => AppSettingsData(
+    id: id ?? this.id,
+    boothProfileId: boothProfileId ?? this.boothProfileId,
+    setupCompletedAt: setupCompletedAt.present
+        ? setupCompletedAt.value
+        : this.setupCompletedAt,
+    boothEventId: boothEventId.present ? boothEventId.value : this.boothEventId,
+  );
+  AppSettingsData copyWithCompanion(AppSettingsCompanion data) {
+    return AppSettingsData(
+      id: data.id.present ? data.id.value : this.id,
+      boothProfileId: data.boothProfileId.present
+          ? data.boothProfileId.value
+          : this.boothProfileId,
+      setupCompletedAt: data.setupCompletedAt.present
+          ? data.setupCompletedAt.value
+          : this.setupCompletedAt,
+      boothEventId: data.boothEventId.present
+          ? data.boothEventId.value
+          : this.boothEventId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AppSettingsData(')
+          ..write('id: $id, ')
+          ..write('boothProfileId: $boothProfileId, ')
+          ..write('setupCompletedAt: $setupCompletedAt, ')
+          ..write('boothEventId: $boothEventId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, boothProfileId, setupCompletedAt, boothEventId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AppSettingsData &&
+          other.id == this.id &&
+          other.boothProfileId == this.boothProfileId &&
+          other.setupCompletedAt == this.setupCompletedAt &&
+          other.boothEventId == this.boothEventId);
+}
+
+class AppSettingsCompanion extends UpdateCompanion<AppSettingsData> {
+  final Value<int> id;
+  final Value<String> boothProfileId;
+  final Value<String?> setupCompletedAt;
+  final Value<String?> boothEventId;
+  const AppSettingsCompanion({
+    this.id = const Value.absent(),
+    this.boothProfileId = const Value.absent(),
+    this.setupCompletedAt = const Value.absent(),
+    this.boothEventId = const Value.absent(),
+  });
+  AppSettingsCompanion.insert({
+    this.id = const Value.absent(),
+    required String boothProfileId,
+    this.setupCompletedAt = const Value.absent(),
+    this.boothEventId = const Value.absent(),
+  }) : boothProfileId = Value(boothProfileId);
+  static Insertable<AppSettingsData> custom({
+    Expression<int>? id,
+    Expression<String>? boothProfileId,
+    Expression<String>? setupCompletedAt,
+    Expression<String>? boothEventId,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (boothProfileId != null) 'booth_profile_id': boothProfileId,
+      if (setupCompletedAt != null) 'setup_completed_at': setupCompletedAt,
+      if (boothEventId != null) 'booth_event_id': boothEventId,
+    });
+  }
+
+  AppSettingsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? boothProfileId,
+    Value<String?>? setupCompletedAt,
+    Value<String?>? boothEventId,
+  }) {
+    return AppSettingsCompanion(
+      id: id ?? this.id,
+      boothProfileId: boothProfileId ?? this.boothProfileId,
+      setupCompletedAt: setupCompletedAt ?? this.setupCompletedAt,
+      boothEventId: boothEventId ?? this.boothEventId,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (boothProfileId.present) {
+      map['booth_profile_id'] = Variable<String>(boothProfileId.value);
+    }
+    if (setupCompletedAt.present) {
+      map['setup_completed_at'] = Variable<String>(setupCompletedAt.value);
+    }
+    if (boothEventId.present) {
+      map['booth_event_id'] = Variable<String>(boothEventId.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AppSettingsCompanion(')
+          ..write('id: $id, ')
+          ..write('boothProfileId: $boothProfileId, ')
+          ..write('setupCompletedAt: $setupCompletedAt, ')
+          ..write('boothEventId: $boothEventId')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class OperatorAccess extends Table
+    with TableInfo<OperatorAccess, OperatorAccessData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -602,8 +2293,34 @@ class OperatorAccess extends Table with TableInfo {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  Never map(Map<String, dynamic> data, {String? tablePrefix}) {
-    throw UnsupportedError('TableInfo.map in schema verification code');
+  OperatorAccessData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return OperatorAccessData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      recoveryVerifier: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}recovery_verifier'],
+      ),
+      pinFailures: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}pin_failures'],
+      )!,
+      pinLastFailureAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}pin_last_failure_at'],
+      ),
+      recoveryFailures: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}recovery_failures'],
+      )!,
+      recoveryLastFailureAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}recovery_last_failure_at'],
+      ),
+    );
   }
 
   @override
@@ -615,7 +2332,266 @@ class OperatorAccess extends Table with TableInfo {
   bool get dontWriteConstraints => true;
 }
 
-class Templates extends Table with TableInfo {
+class OperatorAccessData extends DataClass
+    implements Insertable<OperatorAccessData> {
+  final int id;
+  final String? recoveryVerifier;
+  final int pinFailures;
+  final String? pinLastFailureAt;
+  final int recoveryFailures;
+  final String? recoveryLastFailureAt;
+  const OperatorAccessData({
+    required this.id,
+    this.recoveryVerifier,
+    required this.pinFailures,
+    this.pinLastFailureAt,
+    required this.recoveryFailures,
+    this.recoveryLastFailureAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    if (!nullToAbsent || recoveryVerifier != null) {
+      map['recovery_verifier'] = Variable<String>(recoveryVerifier);
+    }
+    map['pin_failures'] = Variable<int>(pinFailures);
+    if (!nullToAbsent || pinLastFailureAt != null) {
+      map['pin_last_failure_at'] = Variable<String>(pinLastFailureAt);
+    }
+    map['recovery_failures'] = Variable<int>(recoveryFailures);
+    if (!nullToAbsent || recoveryLastFailureAt != null) {
+      map['recovery_last_failure_at'] = Variable<String>(recoveryLastFailureAt);
+    }
+    return map;
+  }
+
+  OperatorAccessCompanion toCompanion(bool nullToAbsent) {
+    return OperatorAccessCompanion(
+      id: Value(id),
+      recoveryVerifier: recoveryVerifier == null && nullToAbsent
+          ? const Value.absent()
+          : Value(recoveryVerifier),
+      pinFailures: Value(pinFailures),
+      pinLastFailureAt: pinLastFailureAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(pinLastFailureAt),
+      recoveryFailures: Value(recoveryFailures),
+      recoveryLastFailureAt: recoveryLastFailureAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(recoveryLastFailureAt),
+    );
+  }
+
+  factory OperatorAccessData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return OperatorAccessData(
+      id: serializer.fromJson<int>(json['id']),
+      recoveryVerifier: serializer.fromJson<String?>(json['recoveryVerifier']),
+      pinFailures: serializer.fromJson<int>(json['pinFailures']),
+      pinLastFailureAt: serializer.fromJson<String?>(json['pinLastFailureAt']),
+      recoveryFailures: serializer.fromJson<int>(json['recoveryFailures']),
+      recoveryLastFailureAt: serializer.fromJson<String?>(
+        json['recoveryLastFailureAt'],
+      ),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'recoveryVerifier': serializer.toJson<String?>(recoveryVerifier),
+      'pinFailures': serializer.toJson<int>(pinFailures),
+      'pinLastFailureAt': serializer.toJson<String?>(pinLastFailureAt),
+      'recoveryFailures': serializer.toJson<int>(recoveryFailures),
+      'recoveryLastFailureAt': serializer.toJson<String?>(
+        recoveryLastFailureAt,
+      ),
+    };
+  }
+
+  OperatorAccessData copyWith({
+    int? id,
+    Value<String?> recoveryVerifier = const Value.absent(),
+    int? pinFailures,
+    Value<String?> pinLastFailureAt = const Value.absent(),
+    int? recoveryFailures,
+    Value<String?> recoveryLastFailureAt = const Value.absent(),
+  }) => OperatorAccessData(
+    id: id ?? this.id,
+    recoveryVerifier: recoveryVerifier.present
+        ? recoveryVerifier.value
+        : this.recoveryVerifier,
+    pinFailures: pinFailures ?? this.pinFailures,
+    pinLastFailureAt: pinLastFailureAt.present
+        ? pinLastFailureAt.value
+        : this.pinLastFailureAt,
+    recoveryFailures: recoveryFailures ?? this.recoveryFailures,
+    recoveryLastFailureAt: recoveryLastFailureAt.present
+        ? recoveryLastFailureAt.value
+        : this.recoveryLastFailureAt,
+  );
+  OperatorAccessData copyWithCompanion(OperatorAccessCompanion data) {
+    return OperatorAccessData(
+      id: data.id.present ? data.id.value : this.id,
+      recoveryVerifier: data.recoveryVerifier.present
+          ? data.recoveryVerifier.value
+          : this.recoveryVerifier,
+      pinFailures: data.pinFailures.present
+          ? data.pinFailures.value
+          : this.pinFailures,
+      pinLastFailureAt: data.pinLastFailureAt.present
+          ? data.pinLastFailureAt.value
+          : this.pinLastFailureAt,
+      recoveryFailures: data.recoveryFailures.present
+          ? data.recoveryFailures.value
+          : this.recoveryFailures,
+      recoveryLastFailureAt: data.recoveryLastFailureAt.present
+          ? data.recoveryLastFailureAt.value
+          : this.recoveryLastFailureAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OperatorAccessData(')
+          ..write('id: $id, ')
+          ..write('recoveryVerifier: $recoveryVerifier, ')
+          ..write('pinFailures: $pinFailures, ')
+          ..write('pinLastFailureAt: $pinLastFailureAt, ')
+          ..write('recoveryFailures: $recoveryFailures, ')
+          ..write('recoveryLastFailureAt: $recoveryLastFailureAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    recoveryVerifier,
+    pinFailures,
+    pinLastFailureAt,
+    recoveryFailures,
+    recoveryLastFailureAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is OperatorAccessData &&
+          other.id == this.id &&
+          other.recoveryVerifier == this.recoveryVerifier &&
+          other.pinFailures == this.pinFailures &&
+          other.pinLastFailureAt == this.pinLastFailureAt &&
+          other.recoveryFailures == this.recoveryFailures &&
+          other.recoveryLastFailureAt == this.recoveryLastFailureAt);
+}
+
+class OperatorAccessCompanion extends UpdateCompanion<OperatorAccessData> {
+  final Value<int> id;
+  final Value<String?> recoveryVerifier;
+  final Value<int> pinFailures;
+  final Value<String?> pinLastFailureAt;
+  final Value<int> recoveryFailures;
+  final Value<String?> recoveryLastFailureAt;
+  const OperatorAccessCompanion({
+    this.id = const Value.absent(),
+    this.recoveryVerifier = const Value.absent(),
+    this.pinFailures = const Value.absent(),
+    this.pinLastFailureAt = const Value.absent(),
+    this.recoveryFailures = const Value.absent(),
+    this.recoveryLastFailureAt = const Value.absent(),
+  });
+  OperatorAccessCompanion.insert({
+    this.id = const Value.absent(),
+    this.recoveryVerifier = const Value.absent(),
+    this.pinFailures = const Value.absent(),
+    this.pinLastFailureAt = const Value.absent(),
+    this.recoveryFailures = const Value.absent(),
+    this.recoveryLastFailureAt = const Value.absent(),
+  });
+  static Insertable<OperatorAccessData> custom({
+    Expression<int>? id,
+    Expression<String>? recoveryVerifier,
+    Expression<int>? pinFailures,
+    Expression<String>? pinLastFailureAt,
+    Expression<int>? recoveryFailures,
+    Expression<String>? recoveryLastFailureAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (recoveryVerifier != null) 'recovery_verifier': recoveryVerifier,
+      if (pinFailures != null) 'pin_failures': pinFailures,
+      if (pinLastFailureAt != null) 'pin_last_failure_at': pinLastFailureAt,
+      if (recoveryFailures != null) 'recovery_failures': recoveryFailures,
+      if (recoveryLastFailureAt != null)
+        'recovery_last_failure_at': recoveryLastFailureAt,
+    });
+  }
+
+  OperatorAccessCompanion copyWith({
+    Value<int>? id,
+    Value<String?>? recoveryVerifier,
+    Value<int>? pinFailures,
+    Value<String?>? pinLastFailureAt,
+    Value<int>? recoveryFailures,
+    Value<String?>? recoveryLastFailureAt,
+  }) {
+    return OperatorAccessCompanion(
+      id: id ?? this.id,
+      recoveryVerifier: recoveryVerifier ?? this.recoveryVerifier,
+      pinFailures: pinFailures ?? this.pinFailures,
+      pinLastFailureAt: pinLastFailureAt ?? this.pinLastFailureAt,
+      recoveryFailures: recoveryFailures ?? this.recoveryFailures,
+      recoveryLastFailureAt:
+          recoveryLastFailureAt ?? this.recoveryLastFailureAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (recoveryVerifier.present) {
+      map['recovery_verifier'] = Variable<String>(recoveryVerifier.value);
+    }
+    if (pinFailures.present) {
+      map['pin_failures'] = Variable<int>(pinFailures.value);
+    }
+    if (pinLastFailureAt.present) {
+      map['pin_last_failure_at'] = Variable<String>(pinLastFailureAt.value);
+    }
+    if (recoveryFailures.present) {
+      map['recovery_failures'] = Variable<int>(recoveryFailures.value);
+    }
+    if (recoveryLastFailureAt.present) {
+      map['recovery_last_failure_at'] = Variable<String>(
+        recoveryLastFailureAt.value,
+      );
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OperatorAccessCompanion(')
+          ..write('id: $id, ')
+          ..write('recoveryVerifier: $recoveryVerifier, ')
+          ..write('pinFailures: $pinFailures, ')
+          ..write('pinLastFailureAt: $pinLastFailureAt, ')
+          ..write('recoveryFailures: $recoveryFailures, ')
+          ..write('recoveryLastFailureAt: $recoveryLastFailureAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class Templates extends Table with TableInfo<Templates, TemplatesData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -686,8 +2662,34 @@ class Templates extends Table with TableInfo {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  Never map(Map<String, dynamic> data, {String? tablePrefix}) {
-    throw UnsupportedError('TableInfo.map in schema verification code');
+  TemplatesData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TemplatesData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      displayName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}display_name'],
+      )!,
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      archivedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}archived_at'],
+      ),
+    );
   }
 
   @override
@@ -699,7 +2701,250 @@ class Templates extends Table with TableInfo {
   bool get dontWriteConstraints => true;
 }
 
-class TemplateRevisions extends Table with TableInfo {
+class TemplatesData extends DataClass implements Insertable<TemplatesData> {
+  final String id;
+  final String displayName;
+  final String? category;
+  final String createdAt;
+  final String updatedAt;
+  final String? archivedAt;
+  const TemplatesData({
+    required this.id,
+    required this.displayName,
+    this.category,
+    required this.createdAt,
+    required this.updatedAt,
+    this.archivedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['display_name'] = Variable<String>(displayName);
+    if (!nullToAbsent || category != null) {
+      map['category'] = Variable<String>(category);
+    }
+    map['created_at'] = Variable<String>(createdAt);
+    map['updated_at'] = Variable<String>(updatedAt);
+    if (!nullToAbsent || archivedAt != null) {
+      map['archived_at'] = Variable<String>(archivedAt);
+    }
+    return map;
+  }
+
+  TemplatesCompanion toCompanion(bool nullToAbsent) {
+    return TemplatesCompanion(
+      id: Value(id),
+      displayName: Value(displayName),
+      category: category == null && nullToAbsent
+          ? const Value.absent()
+          : Value(category),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      archivedAt: archivedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(archivedAt),
+    );
+  }
+
+  factory TemplatesData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TemplatesData(
+      id: serializer.fromJson<String>(json['id']),
+      displayName: serializer.fromJson<String>(json['displayName']),
+      category: serializer.fromJson<String?>(json['category']),
+      createdAt: serializer.fromJson<String>(json['createdAt']),
+      updatedAt: serializer.fromJson<String>(json['updatedAt']),
+      archivedAt: serializer.fromJson<String?>(json['archivedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'displayName': serializer.toJson<String>(displayName),
+      'category': serializer.toJson<String?>(category),
+      'createdAt': serializer.toJson<String>(createdAt),
+      'updatedAt': serializer.toJson<String>(updatedAt),
+      'archivedAt': serializer.toJson<String?>(archivedAt),
+    };
+  }
+
+  TemplatesData copyWith({
+    String? id,
+    String? displayName,
+    Value<String?> category = const Value.absent(),
+    String? createdAt,
+    String? updatedAt,
+    Value<String?> archivedAt = const Value.absent(),
+  }) => TemplatesData(
+    id: id ?? this.id,
+    displayName: displayName ?? this.displayName,
+    category: category.present ? category.value : this.category,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    archivedAt: archivedAt.present ? archivedAt.value : this.archivedAt,
+  );
+  TemplatesData copyWithCompanion(TemplatesCompanion data) {
+    return TemplatesData(
+      id: data.id.present ? data.id.value : this.id,
+      displayName: data.displayName.present
+          ? data.displayName.value
+          : this.displayName,
+      category: data.category.present ? data.category.value : this.category,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      archivedAt: data.archivedAt.present
+          ? data.archivedAt.value
+          : this.archivedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TemplatesData(')
+          ..write('id: $id, ')
+          ..write('displayName: $displayName, ')
+          ..write('category: $category, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('archivedAt: $archivedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, displayName, category, createdAt, updatedAt, archivedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TemplatesData &&
+          other.id == this.id &&
+          other.displayName == this.displayName &&
+          other.category == this.category &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.archivedAt == this.archivedAt);
+}
+
+class TemplatesCompanion extends UpdateCompanion<TemplatesData> {
+  final Value<String> id;
+  final Value<String> displayName;
+  final Value<String?> category;
+  final Value<String> createdAt;
+  final Value<String> updatedAt;
+  final Value<String?> archivedAt;
+  final Value<int> rowid;
+  const TemplatesCompanion({
+    this.id = const Value.absent(),
+    this.displayName = const Value.absent(),
+    this.category = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.archivedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TemplatesCompanion.insert({
+    required String id,
+    required String displayName,
+    this.category = const Value.absent(),
+    required String createdAt,
+    required String updatedAt,
+    this.archivedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       displayName = Value(displayName),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<TemplatesData> custom({
+    Expression<String>? id,
+    Expression<String>? displayName,
+    Expression<String>? category,
+    Expression<String>? createdAt,
+    Expression<String>? updatedAt,
+    Expression<String>? archivedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (displayName != null) 'display_name': displayName,
+      if (category != null) 'category': category,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (archivedAt != null) 'archived_at': archivedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TemplatesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? displayName,
+    Value<String?>? category,
+    Value<String>? createdAt,
+    Value<String>? updatedAt,
+    Value<String?>? archivedAt,
+    Value<int>? rowid,
+  }) {
+    return TemplatesCompanion(
+      id: id ?? this.id,
+      displayName: displayName ?? this.displayName,
+      category: category ?? this.category,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      archivedAt: archivedAt ?? this.archivedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (displayName.present) {
+      map['display_name'] = Variable<String>(displayName.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<String>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<String>(updatedAt.value);
+    }
+    if (archivedAt.present) {
+      map['archived_at'] = Variable<String>(archivedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TemplatesCompanion(')
+          ..write('id: $id, ')
+          ..write('displayName: $displayName, ')
+          ..write('category: $category, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('archivedAt: $archivedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class TemplateRevisions extends Table
+    with TableInfo<TemplateRevisions, TemplateRevisionsData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -809,8 +3054,50 @@ class TemplateRevisions extends Table with TableInfo {
     {templateId, revisionNumber},
   ];
   @override
-  Never map(Map<String, dynamic> data, {String? tablePrefix}) {
-    throw UnsupportedError('TableInfo.map in schema verification code');
+  TemplateRevisionsData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TemplateRevisionsData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      templateId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}template_id'],
+      )!,
+      revisionNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}revision_number'],
+      )!,
+      documentSchemaVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}document_schema_version'],
+      )!,
+      manifestPath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}manifest_path'],
+      )!,
+      checksum: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}checksum'],
+      )!,
+      pageWidthPx: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}page_width_px'],
+      )!,
+      pageHeightPx: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}page_height_px'],
+      )!,
+      photoSlotCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}photo_slot_count'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
   }
 
   @override
@@ -826,7 +3113,364 @@ class TemplateRevisions extends Table with TableInfo {
   bool get dontWriteConstraints => true;
 }
 
-class EventTemplates extends Table with TableInfo {
+class TemplateRevisionsData extends DataClass
+    implements Insertable<TemplateRevisionsData> {
+  final String id;
+  final String templateId;
+  final int revisionNumber;
+  final int documentSchemaVersion;
+  final String manifestPath;
+  final String checksum;
+  final int pageWidthPx;
+  final int pageHeightPx;
+  final int photoSlotCount;
+  final String createdAt;
+  const TemplateRevisionsData({
+    required this.id,
+    required this.templateId,
+    required this.revisionNumber,
+    required this.documentSchemaVersion,
+    required this.manifestPath,
+    required this.checksum,
+    required this.pageWidthPx,
+    required this.pageHeightPx,
+    required this.photoSlotCount,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['template_id'] = Variable<String>(templateId);
+    map['revision_number'] = Variable<int>(revisionNumber);
+    map['document_schema_version'] = Variable<int>(documentSchemaVersion);
+    map['manifest_path'] = Variable<String>(manifestPath);
+    map['checksum'] = Variable<String>(checksum);
+    map['page_width_px'] = Variable<int>(pageWidthPx);
+    map['page_height_px'] = Variable<int>(pageHeightPx);
+    map['photo_slot_count'] = Variable<int>(photoSlotCount);
+    map['created_at'] = Variable<String>(createdAt);
+    return map;
+  }
+
+  TemplateRevisionsCompanion toCompanion(bool nullToAbsent) {
+    return TemplateRevisionsCompanion(
+      id: Value(id),
+      templateId: Value(templateId),
+      revisionNumber: Value(revisionNumber),
+      documentSchemaVersion: Value(documentSchemaVersion),
+      manifestPath: Value(manifestPath),
+      checksum: Value(checksum),
+      pageWidthPx: Value(pageWidthPx),
+      pageHeightPx: Value(pageHeightPx),
+      photoSlotCount: Value(photoSlotCount),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory TemplateRevisionsData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TemplateRevisionsData(
+      id: serializer.fromJson<String>(json['id']),
+      templateId: serializer.fromJson<String>(json['templateId']),
+      revisionNumber: serializer.fromJson<int>(json['revisionNumber']),
+      documentSchemaVersion: serializer.fromJson<int>(
+        json['documentSchemaVersion'],
+      ),
+      manifestPath: serializer.fromJson<String>(json['manifestPath']),
+      checksum: serializer.fromJson<String>(json['checksum']),
+      pageWidthPx: serializer.fromJson<int>(json['pageWidthPx']),
+      pageHeightPx: serializer.fromJson<int>(json['pageHeightPx']),
+      photoSlotCount: serializer.fromJson<int>(json['photoSlotCount']),
+      createdAt: serializer.fromJson<String>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'templateId': serializer.toJson<String>(templateId),
+      'revisionNumber': serializer.toJson<int>(revisionNumber),
+      'documentSchemaVersion': serializer.toJson<int>(documentSchemaVersion),
+      'manifestPath': serializer.toJson<String>(manifestPath),
+      'checksum': serializer.toJson<String>(checksum),
+      'pageWidthPx': serializer.toJson<int>(pageWidthPx),
+      'pageHeightPx': serializer.toJson<int>(pageHeightPx),
+      'photoSlotCount': serializer.toJson<int>(photoSlotCount),
+      'createdAt': serializer.toJson<String>(createdAt),
+    };
+  }
+
+  TemplateRevisionsData copyWith({
+    String? id,
+    String? templateId,
+    int? revisionNumber,
+    int? documentSchemaVersion,
+    String? manifestPath,
+    String? checksum,
+    int? pageWidthPx,
+    int? pageHeightPx,
+    int? photoSlotCount,
+    String? createdAt,
+  }) => TemplateRevisionsData(
+    id: id ?? this.id,
+    templateId: templateId ?? this.templateId,
+    revisionNumber: revisionNumber ?? this.revisionNumber,
+    documentSchemaVersion: documentSchemaVersion ?? this.documentSchemaVersion,
+    manifestPath: manifestPath ?? this.manifestPath,
+    checksum: checksum ?? this.checksum,
+    pageWidthPx: pageWidthPx ?? this.pageWidthPx,
+    pageHeightPx: pageHeightPx ?? this.pageHeightPx,
+    photoSlotCount: photoSlotCount ?? this.photoSlotCount,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  TemplateRevisionsData copyWithCompanion(TemplateRevisionsCompanion data) {
+    return TemplateRevisionsData(
+      id: data.id.present ? data.id.value : this.id,
+      templateId: data.templateId.present
+          ? data.templateId.value
+          : this.templateId,
+      revisionNumber: data.revisionNumber.present
+          ? data.revisionNumber.value
+          : this.revisionNumber,
+      documentSchemaVersion: data.documentSchemaVersion.present
+          ? data.documentSchemaVersion.value
+          : this.documentSchemaVersion,
+      manifestPath: data.manifestPath.present
+          ? data.manifestPath.value
+          : this.manifestPath,
+      checksum: data.checksum.present ? data.checksum.value : this.checksum,
+      pageWidthPx: data.pageWidthPx.present
+          ? data.pageWidthPx.value
+          : this.pageWidthPx,
+      pageHeightPx: data.pageHeightPx.present
+          ? data.pageHeightPx.value
+          : this.pageHeightPx,
+      photoSlotCount: data.photoSlotCount.present
+          ? data.photoSlotCount.value
+          : this.photoSlotCount,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TemplateRevisionsData(')
+          ..write('id: $id, ')
+          ..write('templateId: $templateId, ')
+          ..write('revisionNumber: $revisionNumber, ')
+          ..write('documentSchemaVersion: $documentSchemaVersion, ')
+          ..write('manifestPath: $manifestPath, ')
+          ..write('checksum: $checksum, ')
+          ..write('pageWidthPx: $pageWidthPx, ')
+          ..write('pageHeightPx: $pageHeightPx, ')
+          ..write('photoSlotCount: $photoSlotCount, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    templateId,
+    revisionNumber,
+    documentSchemaVersion,
+    manifestPath,
+    checksum,
+    pageWidthPx,
+    pageHeightPx,
+    photoSlotCount,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TemplateRevisionsData &&
+          other.id == this.id &&
+          other.templateId == this.templateId &&
+          other.revisionNumber == this.revisionNumber &&
+          other.documentSchemaVersion == this.documentSchemaVersion &&
+          other.manifestPath == this.manifestPath &&
+          other.checksum == this.checksum &&
+          other.pageWidthPx == this.pageWidthPx &&
+          other.pageHeightPx == this.pageHeightPx &&
+          other.photoSlotCount == this.photoSlotCount &&
+          other.createdAt == this.createdAt);
+}
+
+class TemplateRevisionsCompanion
+    extends UpdateCompanion<TemplateRevisionsData> {
+  final Value<String> id;
+  final Value<String> templateId;
+  final Value<int> revisionNumber;
+  final Value<int> documentSchemaVersion;
+  final Value<String> manifestPath;
+  final Value<String> checksum;
+  final Value<int> pageWidthPx;
+  final Value<int> pageHeightPx;
+  final Value<int> photoSlotCount;
+  final Value<String> createdAt;
+  final Value<int> rowid;
+  const TemplateRevisionsCompanion({
+    this.id = const Value.absent(),
+    this.templateId = const Value.absent(),
+    this.revisionNumber = const Value.absent(),
+    this.documentSchemaVersion = const Value.absent(),
+    this.manifestPath = const Value.absent(),
+    this.checksum = const Value.absent(),
+    this.pageWidthPx = const Value.absent(),
+    this.pageHeightPx = const Value.absent(),
+    this.photoSlotCount = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TemplateRevisionsCompanion.insert({
+    required String id,
+    required String templateId,
+    required int revisionNumber,
+    required int documentSchemaVersion,
+    required String manifestPath,
+    required String checksum,
+    required int pageWidthPx,
+    required int pageHeightPx,
+    required int photoSlotCount,
+    required String createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       templateId = Value(templateId),
+       revisionNumber = Value(revisionNumber),
+       documentSchemaVersion = Value(documentSchemaVersion),
+       manifestPath = Value(manifestPath),
+       checksum = Value(checksum),
+       pageWidthPx = Value(pageWidthPx),
+       pageHeightPx = Value(pageHeightPx),
+       photoSlotCount = Value(photoSlotCount),
+       createdAt = Value(createdAt);
+  static Insertable<TemplateRevisionsData> custom({
+    Expression<String>? id,
+    Expression<String>? templateId,
+    Expression<int>? revisionNumber,
+    Expression<int>? documentSchemaVersion,
+    Expression<String>? manifestPath,
+    Expression<String>? checksum,
+    Expression<int>? pageWidthPx,
+    Expression<int>? pageHeightPx,
+    Expression<int>? photoSlotCount,
+    Expression<String>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (templateId != null) 'template_id': templateId,
+      if (revisionNumber != null) 'revision_number': revisionNumber,
+      if (documentSchemaVersion != null)
+        'document_schema_version': documentSchemaVersion,
+      if (manifestPath != null) 'manifest_path': manifestPath,
+      if (checksum != null) 'checksum': checksum,
+      if (pageWidthPx != null) 'page_width_px': pageWidthPx,
+      if (pageHeightPx != null) 'page_height_px': pageHeightPx,
+      if (photoSlotCount != null) 'photo_slot_count': photoSlotCount,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TemplateRevisionsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? templateId,
+    Value<int>? revisionNumber,
+    Value<int>? documentSchemaVersion,
+    Value<String>? manifestPath,
+    Value<String>? checksum,
+    Value<int>? pageWidthPx,
+    Value<int>? pageHeightPx,
+    Value<int>? photoSlotCount,
+    Value<String>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return TemplateRevisionsCompanion(
+      id: id ?? this.id,
+      templateId: templateId ?? this.templateId,
+      revisionNumber: revisionNumber ?? this.revisionNumber,
+      documentSchemaVersion:
+          documentSchemaVersion ?? this.documentSchemaVersion,
+      manifestPath: manifestPath ?? this.manifestPath,
+      checksum: checksum ?? this.checksum,
+      pageWidthPx: pageWidthPx ?? this.pageWidthPx,
+      pageHeightPx: pageHeightPx ?? this.pageHeightPx,
+      photoSlotCount: photoSlotCount ?? this.photoSlotCount,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (templateId.present) {
+      map['template_id'] = Variable<String>(templateId.value);
+    }
+    if (revisionNumber.present) {
+      map['revision_number'] = Variable<int>(revisionNumber.value);
+    }
+    if (documentSchemaVersion.present) {
+      map['document_schema_version'] = Variable<int>(
+        documentSchemaVersion.value,
+      );
+    }
+    if (manifestPath.present) {
+      map['manifest_path'] = Variable<String>(manifestPath.value);
+    }
+    if (checksum.present) {
+      map['checksum'] = Variable<String>(checksum.value);
+    }
+    if (pageWidthPx.present) {
+      map['page_width_px'] = Variable<int>(pageWidthPx.value);
+    }
+    if (pageHeightPx.present) {
+      map['page_height_px'] = Variable<int>(pageHeightPx.value);
+    }
+    if (photoSlotCount.present) {
+      map['photo_slot_count'] = Variable<int>(photoSlotCount.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<String>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TemplateRevisionsCompanion(')
+          ..write('id: $id, ')
+          ..write('templateId: $templateId, ')
+          ..write('revisionNumber: $revisionNumber, ')
+          ..write('documentSchemaVersion: $documentSchemaVersion, ')
+          ..write('manifestPath: $manifestPath, ')
+          ..write('checksum: $checksum, ')
+          ..write('pageWidthPx: $pageWidthPx, ')
+          ..write('pageHeightPx: $pageHeightPx, ')
+          ..write('photoSlotCount: $photoSlotCount, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class EventTemplates extends Table
+    with TableInfo<EventTemplates, EventTemplatesData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -884,8 +3528,26 @@ class EventTemplates extends Table with TableInfo {
     {eventId, position},
   ];
   @override
-  Never map(Map<String, dynamic> data, {String? tablePrefix}) {
-    throw UnsupportedError('TableInfo.map in schema verification code');
+  EventTemplatesData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return EventTemplatesData(
+      eventId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}event_id'],
+      )!,
+      templateRevisionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}template_revision_id'],
+      )!,
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      isDefault: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}is_default'],
+      )!,
+    );
   }
 
   @override
@@ -900,6 +3562,198 @@ class EventTemplates extends Table with TableInfo {
   ];
   @override
   bool get dontWriteConstraints => true;
+}
+
+class EventTemplatesData extends DataClass
+    implements Insertable<EventTemplatesData> {
+  final String eventId;
+  final String templateRevisionId;
+  final int position;
+  final int isDefault;
+  const EventTemplatesData({
+    required this.eventId,
+    required this.templateRevisionId,
+    required this.position,
+    required this.isDefault,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['event_id'] = Variable<String>(eventId);
+    map['template_revision_id'] = Variable<String>(templateRevisionId);
+    map['position'] = Variable<int>(position);
+    map['is_default'] = Variable<int>(isDefault);
+    return map;
+  }
+
+  EventTemplatesCompanion toCompanion(bool nullToAbsent) {
+    return EventTemplatesCompanion(
+      eventId: Value(eventId),
+      templateRevisionId: Value(templateRevisionId),
+      position: Value(position),
+      isDefault: Value(isDefault),
+    );
+  }
+
+  factory EventTemplatesData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return EventTemplatesData(
+      eventId: serializer.fromJson<String>(json['eventId']),
+      templateRevisionId: serializer.fromJson<String>(
+        json['templateRevisionId'],
+      ),
+      position: serializer.fromJson<int>(json['position']),
+      isDefault: serializer.fromJson<int>(json['isDefault']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'eventId': serializer.toJson<String>(eventId),
+      'templateRevisionId': serializer.toJson<String>(templateRevisionId),
+      'position': serializer.toJson<int>(position),
+      'isDefault': serializer.toJson<int>(isDefault),
+    };
+  }
+
+  EventTemplatesData copyWith({
+    String? eventId,
+    String? templateRevisionId,
+    int? position,
+    int? isDefault,
+  }) => EventTemplatesData(
+    eventId: eventId ?? this.eventId,
+    templateRevisionId: templateRevisionId ?? this.templateRevisionId,
+    position: position ?? this.position,
+    isDefault: isDefault ?? this.isDefault,
+  );
+  EventTemplatesData copyWithCompanion(EventTemplatesCompanion data) {
+    return EventTemplatesData(
+      eventId: data.eventId.present ? data.eventId.value : this.eventId,
+      templateRevisionId: data.templateRevisionId.present
+          ? data.templateRevisionId.value
+          : this.templateRevisionId,
+      position: data.position.present ? data.position.value : this.position,
+      isDefault: data.isDefault.present ? data.isDefault.value : this.isDefault,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EventTemplatesData(')
+          ..write('eventId: $eventId, ')
+          ..write('templateRevisionId: $templateRevisionId, ')
+          ..write('position: $position, ')
+          ..write('isDefault: $isDefault')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(eventId, templateRevisionId, position, isDefault);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is EventTemplatesData &&
+          other.eventId == this.eventId &&
+          other.templateRevisionId == this.templateRevisionId &&
+          other.position == this.position &&
+          other.isDefault == this.isDefault);
+}
+
+class EventTemplatesCompanion extends UpdateCompanion<EventTemplatesData> {
+  final Value<String> eventId;
+  final Value<String> templateRevisionId;
+  final Value<int> position;
+  final Value<int> isDefault;
+  final Value<int> rowid;
+  const EventTemplatesCompanion({
+    this.eventId = const Value.absent(),
+    this.templateRevisionId = const Value.absent(),
+    this.position = const Value.absent(),
+    this.isDefault = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  EventTemplatesCompanion.insert({
+    required String eventId,
+    required String templateRevisionId,
+    required int position,
+    required int isDefault,
+    this.rowid = const Value.absent(),
+  }) : eventId = Value(eventId),
+       templateRevisionId = Value(templateRevisionId),
+       position = Value(position),
+       isDefault = Value(isDefault);
+  static Insertable<EventTemplatesData> custom({
+    Expression<String>? eventId,
+    Expression<String>? templateRevisionId,
+    Expression<int>? position,
+    Expression<int>? isDefault,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (eventId != null) 'event_id': eventId,
+      if (templateRevisionId != null)
+        'template_revision_id': templateRevisionId,
+      if (position != null) 'position': position,
+      if (isDefault != null) 'is_default': isDefault,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  EventTemplatesCompanion copyWith({
+    Value<String>? eventId,
+    Value<String>? templateRevisionId,
+    Value<int>? position,
+    Value<int>? isDefault,
+    Value<int>? rowid,
+  }) {
+    return EventTemplatesCompanion(
+      eventId: eventId ?? this.eventId,
+      templateRevisionId: templateRevisionId ?? this.templateRevisionId,
+      position: position ?? this.position,
+      isDefault: isDefault ?? this.isDefault,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (eventId.present) {
+      map['event_id'] = Variable<String>(eventId.value);
+    }
+    if (templateRevisionId.present) {
+      map['template_revision_id'] = Variable<String>(templateRevisionId.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (isDefault.present) {
+      map['is_default'] = Variable<int>(isDefault.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EventTemplatesCompanion(')
+          ..write('eventId: $eventId, ')
+          ..write('templateRevisionId: $templateRevisionId, ')
+          ..write('position: $position, ')
+          ..write('isDefault: $isDefault, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
 }
 
 class DatabaseAtV1 extends GeneratedDatabase {

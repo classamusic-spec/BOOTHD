@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import '../../domain/repositories/storage_errors.dart';
 import '../../domain/services/booth_capabilities.dart';
 import '../../domain/services/managed_storage.dart';
+import 'atomic_file_writer.dart';
 
 /// Top-level directories of managed storage, under the app's private
 /// support directory (never the user-visible Documents folder).
@@ -50,7 +51,18 @@ final class FileManagedStorage implements ManagedStorage {
     } on FileSystemException {
       throw const ManagedStorageException('STORAGE_UNAVAILABLE');
     }
+    // Startup reconciliation (A-11): nothing writes before startup, so a
+    // staged file now belongs to a write the app never finished.
+    await AtomicFileWriter.discardStaged(await directory(ManagedArea.staging));
   }
+
+  /// A writer that stages in this storage's staging area.
+  Future<AtomicFileWriter> writer({
+    FileOperations operations = const FileOperations(),
+  }) async => AtomicFileWriter(
+    staging: await directory(ManagedArea.staging),
+    operations: operations,
+  );
 
   @override
   Future<CapabilityStatus> probeWrite() async {

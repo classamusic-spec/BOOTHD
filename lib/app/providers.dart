@@ -18,10 +18,14 @@ import '../infrastructure/database/drift_event_repository.dart';
 import '../infrastructure/database/drift_operator_access_repository.dart';
 import '../infrastructure/database/drift_template_catalog.dart';
 import '../infrastructure/device/device_capability_probe.dart';
+import '../infrastructure/file_store/file_export_service.dart';
 import '../infrastructure/file_store/managed_storage.dart';
 import '../infrastructure/file_store/original_store.dart';
 import '../infrastructure/security/pbkdf2_pin_hasher.dart';
 import '../infrastructure/security/secure_pin_verifier_store.dart';
+import '../infrastructure/templates/drift_asset_repository.dart';
+import '../infrastructure/templates/drift_template_repository.dart';
+import '../infrastructure/templates/zip_template_packages.dart';
 import 'router.dart';
 
 /// Where the router starts. Tests override it to open a given screen; the
@@ -109,7 +113,41 @@ List<Override> productionOverrides() => [
   ),
   pinVerifierStoreProvider.overrideWithValue(SecurePinVerifierStore()),
   pinHasherProvider.overrideWithValue(Pbkdf2PinHasher()),
+  assetRepositoryProvider.overrideWith(
+    (ref) => DriftAssetRepository(
+      ref.watch(_boothDatabaseProvider),
+      storage: ref.watch(_managedStorageProvider),
+      clock: ref.watch(clockProvider),
+    ),
+  ),
+  templateRepositoryProvider.overrideWith(
+    (ref) => DriftTemplateRepository(
+      ref.watch(_boothDatabaseProvider),
+      storage: ref.watch(_managedStorageProvider),
+      assets: ref.watch(assetRepositoryProvider),
+      ids: ref.watch(idGeneratorProvider),
+      clock: ref.watch(clockProvider),
+    ),
+  ),
+  templatePackagesProvider.overrideWith(
+    (ref) => ZipTemplatePackages(
+      assets: ref.watch(assetRepositoryProvider),
+      templates: ref.watch(templateRepositoryProvider),
+    ),
+  ),
+  exportServiceProvider.overrideWith(
+    (ref) => FileExportService(
+      renderer: ref.watch(compositionRendererProvider),
+      storage: ref.watch(_managedStorageProvider),
+      ids: ref.watch(idGeneratorProvider),
+    ),
+  ),
   boothCapabilityProbeProvider.overrideWith(
-    (ref) => DeviceCapabilityProbe(ref.watch(_managedStorageProvider)),
+    (ref) => DeviceCapabilityProbe(
+      ref.watch(_managedStorageProvider),
+      renderer: ref.watch(compositionRendererProvider),
+      templates: ref.watch(templateRepositoryProvider),
+      assets: ref.watch(assetRepositoryProvider),
+    ),
   ),
 ];

@@ -47,13 +47,14 @@ BoothEvent _event({
   templates: templates,
 );
 
-/// What the M03 build reports: only storage can really be checked.
-const _m03Device = DeviceFacts(
+/// What the M04 build reports on a working tablet: storage, the renderer
+/// and template assets are checked for real.
+const _m04Device = DeviceFacts(
   camera: CapabilityNotYetAvailable('M06'),
   storageWrite: CapabilityReady(),
   freeSpace: CapabilityNotYetAvailable('M06'),
-  renderer: CapabilityNotYetAvailable('M04'),
-  templateAssets: CapabilityNotYetAvailable('M04'),
+  renderer: CapabilityReady(),
+  templateAssets: CapabilityReady(),
   kioskLock: CapabilityNotYetAvailable('M10'),
   viewport: ViewportOrientation.portrait,
   operatorPinAvailable: true,
@@ -91,23 +92,54 @@ void main() {
 
   test('in this build, unchecked capabilities are "not yet available" and '
       'block launch; none is reported as passed', () {
-    final report = _evaluate(_event(), device: _m03Device);
+    final report = _evaluate(_event(), device: _m04Device);
     expect(report.canLaunch, isFalse);
     for (final (id, milestone) in [
       (PreflightCheckId.camera, 'M06'),
       (PreflightCheckId.freeSpace, 'M06'),
-      (PreflightCheckId.renderer, 'M04'),
-      (PreflightCheckId.templateAssets, 'M04'),
     ]) {
       expect(report[id].status, PreflightStatus.notYetAvailable, reason: '$id');
       expect(report[id].milestone, milestone);
       expect(report[id].blocksLaunch, isTrue);
     }
-    expect(report[PreflightCheckId.storageWrite].status, PreflightStatus.pass);
+    for (final id in [
+      PreflightCheckId.storageWrite,
+      PreflightCheckId.renderer,
+      PreflightCheckId.templateAssets,
+    ]) {
+      expect(report[id].status, PreflightStatus.pass, reason: '$id');
+    }
     expect(
       report[PreflightCheckId.kioskLock].status,
       PreflightStatus.warning,
       reason: 'an unverifiable kiosk lock reminds, never blocks',
+    );
+  });
+
+  test('a template that cannot be rendered or has damaged files blocks, '
+      'with its code', () {
+    final report = _evaluate(
+      _event(),
+      device: const DeviceFacts(
+        camera: CapabilityReady(),
+        storageWrite: CapabilityReady(),
+        freeSpace: CapabilityReady(),
+        renderer: CapabilityProblem('RENDER_MISSING_ASSET'),
+        templateAssets: CapabilityProblem('TEMPLATE_ASSET_MISSING'),
+        kioskLock: CapabilityReady(),
+        viewport: ViewportOrientation.portrait,
+        operatorPinAvailable: true,
+      ),
+    );
+    expect(report.canLaunch, isFalse);
+    expect(report[PreflightCheckId.renderer].status, PreflightStatus.blocked);
+    expect(
+      report[PreflightCheckId.renderer].problemCode,
+      'RENDER_MISSING_ASSET',
+    );
+    expect(
+      report[PreflightCheckId.templateAssets].problemCode,
+      'TEMPLATE_ASSET_MISSING',
     );
   });
 

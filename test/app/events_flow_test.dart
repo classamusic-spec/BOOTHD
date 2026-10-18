@@ -305,7 +305,7 @@ void main() {
 
   group('launch checks', () {
     testWidgets('a draft is blocked; checks this build cannot make say so and '
-        'block', (tester) async {
+        'block; the renderer and template checks run', (tester) async {
       useViewport(tester, TabletViewport.ipadLandscape);
       await pumpApp(
         tester,
@@ -322,8 +322,16 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Choose at least one template.'), findsOneWidget);
-      expect(find.text('Not yet available'), findsNWidgets(4));
+      expect(find.text('Not yet available'), findsNWidgets(2));
       expect(find.text('Passed'), findsWidgets);
+      expect(
+        find.text(
+          'A test page rendered at full print size as JPEG; nothing was '
+          'saved.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('No templates to check yet.'), findsOneWidget);
       expect(button(tester, 'Start Booth Mode').onPressed, isNull);
 
       await tester.tap(find.text('Start Booth Mode'));

@@ -3,12 +3,15 @@ import 'package:drift/drift.dart';
 import '../../domain/models/booth_event.dart';
 import '../../domain/models/booth_profile.dart';
 import '../../domain/repositories/storage_errors.dart';
+import '../../domain/repositories/template_store.dart';
 import '../../domain/services/camera_service.dart';
+import '../../domain/template/template_assets.dart';
 import '../../domain/value_objects/appearance.dart';
 import '../../domain/value_objects/calendar_date.dart';
 import '../../domain/value_objects/clock.dart';
 import '../../domain/value_objects/entity_id.dart';
 import '../../domain/value_objects/orientation.dart';
+import 'booth_database.steps.dart';
 import 'converters.dart';
 
 part 'booth_database.g.dart';
@@ -25,7 +28,7 @@ final class BoothDatabase extends _$BoothDatabase {
 
   /// Bump together with a migration step, a schema dump
   /// (`dart run drift_dev make-migrations`) and a seeded fixture.
-  static const currentSchemaVersion = 1;
+  static const currentSchemaVersion = 2;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -44,13 +47,36 @@ final class BoothDatabase extends _$BoothDatabase {
           supportedVersion: to,
         );
       }
-      // Version 1 is the first schema; later milestones add steps here
-      // (stepByStep from booth_database.steps.dart), run with foreign keys
-      // off and followed by a foreign_key_check.
-      throw StoredDataUnsupportedException(from);
+      if (from < 1) throw StoredDataUnsupportedException(from);
+      // The steps run with foreign keys off (table rebuilds need it) in one
+      // transaction that commits only if every link still holds.
+      await customStatement('PRAGMA foreign_keys = OFF');
+      try {
+        await transaction(() async {
+          await _steps(migrator, from, to);
+          final orphans = await customSelect('PRAGMA foreign_key_check').get();
+          if (orphans.isNotEmpty) {
+            throw StateError('the upgrade left ${orphans.length} broken links');
+          }
+        });
+      } finally {
+        await customStatement('PRAGMA foreign_keys = ON');
+      }
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
+    },
+  );
+
+  /// One step per schema version (generated shapes in
+  /// booth_database.steps.dart, so a step never depends on today's tables).
+  static final _steps = stepByStep(
+    // M04: template assets and the assets each revision uses.
+    from1To2: (migrator, schema) async {
+      await migrator.createTable(schema.assets);
+      await migrator.create(schema.assetsAreImmutable);
+      await migrator.createTable(schema.templateRevisionAssets);
+      await migrator.create(schema.templateRevisionAssetsByAsset);
     },
   );
 
