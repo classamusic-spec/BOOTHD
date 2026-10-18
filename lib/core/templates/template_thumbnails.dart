@@ -42,6 +42,28 @@ final templateThumbnailProvider = FutureProvider.family<Uint8List, String>((
   return artifact.bytes;
 });
 
+/// A larger rendering of a stored revision for showing a whole print on
+/// a guest screen: sharp at about half the screen's height.
+final templateShowcaseProvider = FutureProvider.family<Uint8List, String>((
+  ref,
+  revisionId,
+) async {
+  final revision = await ref
+      .watch(templateRepositoryProvider)
+      .loadRevision(revisionId);
+  final artifact = await ref
+      .watch(compositionRendererProvider)
+      .renderPreview(
+        placeholderRender(
+          revision.document,
+          ref.watch(assetRepositoryProvider),
+        ),
+        maxWidthPx: 1400,
+        maxHeightPx: 1400,
+      );
+  return artifact.bytes;
+});
+
 /// A rendered thumbnail of a starter design, drawn from the bundled
 /// decorations without storing anything.
 final starterThumbnailProvider = FutureProvider.family<Uint8List, String>((

@@ -8,6 +8,7 @@ import '../../core/design_system/porcelain_icons.dart';
 import '../../core/design_system/porcelain_metrics.dart';
 import '../../core/design_system/porcelain_theme.dart';
 import '../../core/routing/route_paths.dart';
+import '../../core/templates/template_thumbnails.dart';
 import '../../domain/models/booth_event.dart';
 import '../../shared/guest/event_welcome_copy.dart';
 import '../../shared/guest/guest_layout.dart';
@@ -61,20 +62,42 @@ class BoothWelcomeScreen extends ConsumerWidget {
   }
 }
 
-class _Welcome extends StatelessWidget {
+class _Welcome extends ConsumerWidget {
   const _Welcome({required this.event});
 
   final BoothEvent event;
 
   @override
-  Widget build(BuildContext context) => GuestWelcome(
-    copy: welcomeCopyFor(event),
-    onStart: () => PorcelainToast.show(
-      context,
-      BoothWelcomeScreen.notReadyMessage,
-      icon: PorcelainIcons.info,
-    ),
-  );
+  Widget build(BuildContext context, WidgetRef ref) {
+    final templates = event.templates;
+    final revisionId =
+        templates.defaultRevisionId ?? templates.revisionIds.firstOrNull;
+    // The event's own print, with sample spaces for the photos: shown once
+    // drawn, and not at all if it cannot be.
+    final print = revisionId == null
+        ? null
+        : ref.watch(templateShowcaseProvider(revisionId)).value;
+    return GuestWelcome(
+      copy: welcomeCopyFor(event),
+      preview: print == null
+          ? null
+          : Semantics(
+              label: 'How your photos will be laid out',
+              image: true,
+              child: Image.memory(
+                print,
+                fit: BoxFit.contain,
+                filterQuality: FilterQuality.medium,
+                excludeFromSemantics: true,
+              ),
+            ),
+      onStart: () => PorcelainToast.show(
+        context,
+        BoothWelcomeScreen.notReadyMessage,
+        icon: PorcelainIcons.info,
+      ),
+    );
+  }
 }
 
 class _GuestWaiting extends StatelessWidget {

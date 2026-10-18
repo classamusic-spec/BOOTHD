@@ -4,27 +4,29 @@ import 'guest_welcome.dart';
 import 'guest_welcome_sample.dart';
 
 /// The guest welcome (S20) for [event]: its own greeting, message and
-/// privacy note where the operator wrote them, warm defaults otherwise.
+/// privacy note where the operator wrote them, the board's warm defaults
+/// otherwise (CR-002). The event's name and date sit above the title.
 /// Never promises a print (CR-001 fix 8).
 GuestWelcomeCopy welcomeCopyFor(BoothEvent event) {
   String? text(String? value) =>
       value == null || value.trim().isEmpty ? null : value.trim();
   final date = event.date;
+  // The date never breaks across lines.
+  final eyebrow = [
+    ?text(event.title),
+    if (date != null) formatCalendarDate(date).replaceAll(' ', '\u00A0'),
+  ].join(' · ');
+  const sample = sampleGuestWelcomeCopy;
   return GuestWelcomeCopy(
-    eyebrow: date == null
-        ? sampleGuestWelcomeCopy.eyebrow
-        : formatCalendarDate(date),
-    title: text(event.guest.welcomeTitle) ?? event.title,
-    subtitle:
-        text(event.guest.welcomeMessage) ?? sampleGuestWelcomeCopy.subtitle,
-    steps: [
-      'Get ready',
-      'Strike a pose',
-      event.capture.shotCount == 1 ? 'See your photo' : 'See your photos',
-    ],
-    startLabel: sampleGuestWelcomeCopy.startLabel,
-    startHint: sampleGuestWelcomeCopy.startHint,
-    privacyNote:
-        text(event.guest.consentText) ?? sampleGuestWelcomeCopy.privacyNote,
+    wordmark: sample.wordmark,
+    wordmarkSubtitle: sample.wordmarkSubtitle,
+    eyebrow: eyebrow.isEmpty ? null : eyebrow,
+    title: text(event.guest.welcomeTitle) ?? sample.title,
+    subtitle: text(event.guest.welcomeMessage),
+    steps: sample.steps,
+    startPrompt: sample.startPrompt,
+    startLabel: sample.startLabel,
+    startHint: sample.startHint,
+    privacyNote: text(event.guest.consentText) ?? sample.privacyNote,
   );
 }

@@ -79,6 +79,11 @@ abstract final class PorcelainIcons {
   static const IconData layers = Symbols.layers_rounded;
   static const IconData components = Symbols.widgets_rounded;
 
+  // The guest welcome's step guide (CR-002).
+  static const IconData pose = Symbols.person_rounded;
+  static const IconData smile = Symbols.sentiment_satisfied_rounded;
+  static const IconData enjoy = Symbols.favorite_rounded;
+
   // Template Studio (S07 to S12).
   static const IconData selectTool = Symbols.arrow_selector_tool_rounded;
   static const IconData panTool = Symbols.pan_tool_rounded;

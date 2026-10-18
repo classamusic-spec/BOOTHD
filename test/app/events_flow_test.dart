@@ -89,7 +89,7 @@ void main() {
     await tester.enterText(find.byType(TextField).first, 'Garden party');
     await tester.pumpAndSettle();
 
-    await tapText(tester, 'Capture');
+    await tapText(tester, 'Camera');
     await tapText(tester, 'Rear camera');
     await tapText(tester, 'Mirror saved photos');
     await tapText(tester, 'Landscape');
@@ -105,14 +105,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Default'), findsOneWidget);
 
-    await tapText(tester, 'Guests');
+    await tapText(tester, 'Experience');
     await tapText(tester, 'Light Oak');
     await tapText(tester, 'Privacy');
     await tapText(tester, 'For a set time');
 
     await tapText(tester, 'Save');
     expect(find.text('Saved.'), findsOneWidget);
-    await tapText(tester, 'General');
+    await tapText(tester, 'Event');
     await tapText(tester, 'Activate event');
     expect(find.text('“Garden party” is active.'), findsOneWidget);
     final id = (await storedEvents(first)).single.id;
@@ -292,7 +292,7 @@ void main() {
       ),
       findsNothing,
     );
-    await tapText(tester, 'Capture');
+    await tapText(tester, 'Camera');
     await tapLabel(tester, 'Fewer photos');
     expect(
       find.text(

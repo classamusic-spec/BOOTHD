@@ -38,10 +38,10 @@ import 'event_copy.dart';
 
 /// The editor's sections (S04).
 enum EventEditorTab {
-  general('General', PorcelainIcons.events),
+  general('Event', PorcelainIcons.events),
+  guest('Experience', PorcelainIcons.appearance),
   templates('Templates', PorcelainIcons.templates),
-  capture('Capture', PorcelainIcons.camera),
-  guest('Guests', PorcelainIcons.preview),
+  capture('Camera', PorcelainIcons.camera),
   output('Output', PorcelainIcons.outputFormat),
   privacy('Privacy', PorcelainIcons.privacy);
 

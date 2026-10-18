@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/design_system/porcelain_icons.dart';
 import '../../../core/design_system/porcelain_metrics.dart';
+import '../../../core/design_system/porcelain_motion.dart';
 import '../../../core/design_system/porcelain_theme.dart';
 import '../../../core/design_system/porcelain_theme_data.dart';
 import '../../../core/design_system/theme_profiles.dart';
@@ -11,9 +12,10 @@ import '../../../shared/formatters/theme_profile_names.dart';
 import '../../../shared/guest/event_welcome_copy.dart';
 import '../../../shared/guest/guest_welcome.dart';
 import '../../../shared/guest/guest_welcome_sample.dart';
-import '../../../shared/widgets/porcelain_segmented_control.dart';
+import '../../../shared/widgets/floral_spray.dart';
 import '../../../shared/widgets/porcelain_stepper.dart';
 import '../../../shared/widgets/porcelain_text_field.dart';
+import '../../../shared/widgets/pressable.dart';
 import '../../../shared/widgets/tablet_frame.dart';
 import '../event_copy.dart';
 import 'editor_parts.dart';
@@ -89,10 +91,10 @@ class _GuestTabState extends State<GuestTab> {
             PorcelainTextField(
               label: 'Welcome title',
               controller: _title,
-              hint: event.title.trim().isEmpty
-                  ? 'The event title'
-                  : event.title,
-              helper: 'The largest words guests see. Defaults to the title.',
+              hint: sampleGuestWelcomeCopy.title,
+              helper:
+                  'The largest words guests see. The event name and date '
+                  'sit above them.',
               enabled: !tab.readOnly,
               disabledReason: reason,
               maxLength: EventLimits.welcomeTitleMaxLength,
@@ -107,7 +109,7 @@ class _GuestTabState extends State<GuestTab> {
             PorcelainTextField(
               label: 'Welcome message',
               controller: _message,
-              hint: sampleGuestWelcomeCopy.subtitle,
+              hint: sampleWelcomeMessage,
               enabled: !tab.readOnly,
               disabledReason: reason,
               maxLength: EventLimits.welcomeMessageMaxLength,
@@ -125,28 +127,35 @@ class _GuestTabState extends State<GuestTab> {
         ),
         const SizedBox(height: PorcelainSpace.xl),
         EditorCard(
-          title: 'Guest theme',
+          title: 'Choose guest experience',
           subtitle:
-              'The Studio keeps the booth theme; only guest screens change.',
+              'The look of every guest screen. The Studio keeps the booth '
+              'theme.',
           children: [
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: PorcelainSegmentedControl<_ThemeChoice>(
-                selected: _ThemeChoice.of(guest.themeOverride),
-                onChanged: tab.edit(
-                  (choice) => event.copyWith(
-                    guest: guest.copyWith(themeOverride: choice.profile),
+            Wrap(
+              spacing: PorcelainSpace.md,
+              runSpacing: PorcelainSpace.md,
+              children: [
+                for (final choice in _ThemeChoice.values)
+                  _ExperienceCard(
+                    profile: choice.profile ?? widget.boothTheme,
+                    title: choice.profile?.title ?? 'Same as the booth',
+                    detail: choice.profile == null
+                        ? widget.boothTheme.title
+                        : null,
+                    selected: _ThemeChoice.of(guest.themeOverride) == choice,
+                    disabledReason: reason,
+                    onPressed: tab.readOnly
+                        ? null
+                        : () => tab.onChanged(
+                            event.copyWith(
+                              guest: guest.copyWith(
+                                themeOverride: choice.profile,
+                              ),
+                            ),
+                          ),
                   ),
-                ),
-                disabledReason: reason,
-                segments: [
-                  for (final choice in _ThemeChoice.values)
-                    PorcelainSegment(
-                      value: choice,
-                      label: choice.profile?.title ?? 'Same as the booth',
-                    ),
-                ],
-              ),
+              ],
             ),
             Center(
               child: SizedBox(
@@ -212,6 +221,186 @@ class _GuestTabState extends State<GuestTab> {
           ],
         ),
       ],
+    );
+  }
+}
+
+/// One guest experience, as the reference board's Event Setup shows it: a
+/// small emblem in that theme's own colours, its name, a gold edge and a
+/// check mark when chosen.
+class _ExperienceCard extends StatelessWidget {
+  const _ExperienceCard({
+    required this.profile,
+    required this.title,
+    required this.selected,
+    required this.onPressed,
+    this.detail,
+    this.disabledReason,
+  });
+
+  final PorcelainThemeProfile profile;
+  final String title;
+  final String? detail;
+  final bool selected;
+  final VoidCallback? onPressed;
+  final String? disabledReason;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.porcelain;
+    final colors = theme.colors;
+    final motion = PorcelainMotion.of(context);
+    return Pressable(
+      onPressed: onPressed,
+      semanticLabel: detail == null ? title : '$title, now $detail',
+      selected: selected,
+      inMutuallyExclusiveGroup: true,
+      disabledReason: disabledReason,
+      builder: (context, state) => AnimatedContainer(
+        duration: motion.press,
+        width: 148,
+        padding: const EdgeInsets.all(PorcelainSpace.sm),
+        decoration: BoxDecoration(
+          color: colors.raised,
+          borderRadius: PorcelainRadius.cardAll,
+          border: Border.all(
+            color: selected
+                ? colors.accentIcon
+                : state.focused
+                ? colors.focusRing
+                : colors.hairline,
+            width: selected || state.focused ? 2.5 : 1,
+          ),
+        ),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Column(
+              children: [
+                Theme(
+                  data: porcelainThemeData(
+                    profile,
+                    highContrast: theme.highContrast,
+                  ),
+                  child: const _ExperienceEmblem(),
+                ),
+                const SizedBox(height: PorcelainSpace.sm),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: theme.text.labelLarge.copyWith(color: colors.ink),
+                ),
+                if (detail != null)
+                  Text(
+                    detail!,
+                    textAlign: TextAlign.center,
+                    style: theme.text.bodySmall.copyWith(
+                      color: colors.inkMuted,
+                    ),
+                  ),
+              ],
+            ),
+            if (selected)
+              Positioned(
+                right: -2,
+                top: -2,
+                child: Container(
+                  width: 26,
+                  height: 26,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [colors.primaryTop, colors.primaryBottom],
+                    ),
+                    border: Border.all(color: colors.primaryEdge),
+                  ),
+                  child: Icon(
+                    PorcelainIcons.check,
+                    size: 16,
+                    color: colors.onPrimary,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A theme in miniature: its guest canvas, a sprig of blossoms and the
+/// pearl start button in its gold rim.
+class _ExperienceEmblem extends StatelessWidget {
+  const _ExperienceEmblem();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.porcelain.colors;
+    return ExcludeSemantics(
+      child: Container(
+        height: 96,
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            radius: 1.1,
+            colors: [colors.surface, colors.canvas],
+          ),
+          borderRadius: PorcelainRadius.controlAll,
+          border: Border.all(color: colors.hairline),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          children: [
+            const Positioned(
+              right: -10,
+              top: -8,
+              child: FloralSpray(
+                kind: FloralSprayKind.corner,
+                width: 64,
+                height: 64,
+                mirrorX: true,
+              ),
+            ),
+            Center(
+              child: Container(
+                width: 56,
+                height: 56,
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: SweepGradient(
+                    colors: [
+                      colors.primaryTop,
+                      colors.primaryEdge,
+                      colors.primaryBottom,
+                      colors.primaryTop,
+                    ],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: colors.shadowKey,
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: colors.surface,
+                  ),
+                  child: Icon(
+                    PorcelainIcons.camera,
+                    size: 20,
+                    color: colors.guestAccentText,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

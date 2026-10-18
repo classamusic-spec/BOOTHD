@@ -193,6 +193,7 @@ final screens = <String, ScreenSpec>{
     RoutePaths.booth,
     startAs: StartAs.booth,
     seeded: true,
+    renders: true,
     boothEventId: SeedIds.active,
   ),
   'booth operator': const ScreenSpec(
