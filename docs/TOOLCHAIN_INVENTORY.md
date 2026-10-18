@@ -24,7 +24,7 @@ Recorded for M00 (AC-0002) on 2026-10-17 UTC. Regenerate the raw data with
 | Gradle | 9.3.1 (wrapper) | Flutter 3.47.7 template |
 | Android Gradle Plugin | 9.1.0 | Flutter 3.47.7 template |
 | Kotlin Gradle Plugin | 2.4.0 | Flutter 3.47.7 template |
-| Android compileSdk / targetSdk / minSdk | 36 / 36 / 24 | Flutter 3.47.7 defaults |
+| Android compileSdk / targetSdk / minSdk | 37 / 36 / 24 (compileSdk was 36 until M06; ADR-0012) | Flutter 3.47.7 defaults, compileSdk raised for `permission_handler_android` 14 |
 | Android build-tools | 36.0.0 | sdkmanager |
 | Android platform | android-36 (r02); android-37.0 (r02) since M06, installed by `tool/build_android.sh` | sdkmanager |
 | Android NDK | 28.2.13676358 (r28c) | sdkmanager (Flutter default `ndkVersion`) |

@@ -577,3 +577,85 @@ on `fa34247`.
   sheet receives bytes, a file name and a type. No guest photos exist yet.
 - Drafts live in the booth database like revisions and are deleted with
   their template; nothing is sent anywhere.
+
+## M06: production camera service and Diagnostics camera test
+
+```text
+Milestone: M06 | code commit 832ce8d, Android build fix a9cee67 | build 0.1.0+1
+Host: same Linux cloud VM as M00 to M05 (4 cores, no KVM, no macOS, no attached devices)
+Flutter 3.47.7 / Dart 3.13.5; new package: permission_handler 13.0.2 (and its five
+  platform packages), behind the CameraPermissions interface; camera 0.12.1 unchanged
+iPad: BLOCKED (no physical iPad, no Mac)
+Android: builds PASS; no physical tablet
+Camera behaviour tested on the host only: the production service over a fake driver
+  with the real originals store, and the screens on a simulated camera. Neither is a
+  camera: every DEVICE item below is BLOCKED.
+Owner approval requested: YES
+```
+
+### Commands and exit codes (2026-10-18 UTC)
+
+| # | Command | Exit | Result |
+| --- | --- | --- | --- |
+| 1 | `tool/check.sh` on the tree committed as `832ce8d` | 0 | Generated code current (build_runner and `drift_dev make-migrations` changed nothing, including the schema v4 dump, steps and test schemas). Format: 292 files, 0 changed. Analyze: no issues. Tests: 1,793 passed, 1 skipped (device comparison, no device results), 0 failed. Licence report matches `pubspec.lock` |
+| 2 | `flutter test --reporter json` on the seven M06 test files | 0 | `managed_camera_service_test.dart` 32, `original_store_test.dart` 15, `camera_test_screen_test.dart` 21, `device_capability_probe_test.dart` 8, `migration_test.dart` 9, `camera_choice_test.dart` 5, `contrast_test.dart` 10; 0 failed. The screen catalog adds 80 checks for the five new screens (overflow at six sizes, 200% text, tap targets, labels, contrast in three themes, no dead controls) and 16 goldens |
+| 3 | `tool/build_android.sh release` on `832ce8d` | 1 | FAIL: `permission_handler_android` 14.1.0 compiles against API 37. AGP 9.1.0 downloaded `platforms;android-37.0` (the only API 37 platform) during the build and then could not find target `android-37`; on the next run it refused an app compiled against 36. Fixed in `a9cee67` (ADR-0012 section 2) |
+| 4 | `tool/build_android.sh release` on `a9cee67`, started from an SDK without `android-37.0` | 0 | The script installed the platform, then built `app-release.apk`, 71,136,157 bytes, SHA-256 `58f26cdcb9a6d808fd805c4a44af5670644746f41019280470956c505a258c8b`. `aapt2`: compileSdk 37, targetSdk 36 (unchanged); permissions unchanged from M05 (`CAMERA`, `ACCESS_NETWORK_STATE`, the AndroidX receiver permission); components unchanged: `ShareFileProvider`, `SharePlusPendingIntent`, CameraX `MetadataHolderService` and `InitializationProvider` not exported, `ProfileInstallReceiver` exported behind `DUMP`; `allowBackup=false`, `fullBackupContent=false`, `dataExtractionRules` present |
+| 5 | `tool/build_android.sh debug` on `a9cee67` | 0 | `app-debug.apk`, 240,891,123 bytes, SHA-256 `4641fb186168969247a2c83a0b88623bf4b2dbe4a4157eae36df14e91a9a01d7`; adds only `INTERNET` (Flutter debug tooling), as before |
+| 6 | `tool/build_ios.sh release` | 3 | BLOCKED: Linux host. The Swift free-space channel and the `permission_handler` Swift package have not been compiled yet (CI's manual iPadOS job or a Mac) |
+| 7 | `flutter test integration_test/camera_capture_test.dart -d <device>` | not run | BLOCKED: no physical tablet |
+| 8 | M06 device procedure (`docs/device_tests/M06_DEVICE_PROCEDURE.md`) | not run | BLOCKED: no iPad, no Android tablet, no enclosure |
+
+### Acceptance items
+
+| AC | Status | Evidence |
+| --- | --- | --- |
+| AC-0601 Camera permissions denied/granted/permanently denied have safe UX and documented repair | PASS (host); device BLOCKED | `managed_camera_service_test.dart` (32; permission group 11): never asked prompts once on opening; refused, refused for good and restricted fail with their own codes without prompting or opening; a refusal at the prompt says so; plugin permission errors map to the same states; the Settings repair is reported and its failure returns false; plugin exceptions become typed failures; `permission_handler` statuses map as ADR-0012 section 2 says. `camera_test_screen_test.dart`: the screen explains before asking and asks only on "Allow camera"; refused for good shows the Android Settings steps and opens Settings without asking; restricted shows no dead buttons; access turned on in Settings while away (or before ever being asked) opens the camera on return without a prompt or a photo. Launch checks and the self-test read the permission and never ask (`device_capability_probe_test.dart`, Diagnostics test). Repair steps: S18 copy per platform, `docs/device_tests/M06_DEVICE_PROCEDURE.md` section 1, and the iOS build rule in `docs/IOS_VALIDATION.md` |
+| AC-0602 Lens enumeration avoids unsupported cameras and selects known front/rear | PASS (host); device BLOCKED | `camera_choice_test.dart`: the platform's first camera of a lens is chosen, the other built-in lens is a noted fallback, external cameras never. Probe: the event's lens missing gives `CAMERA_LENS_UNAVAILABLE`, only an external camera gives `CAMERA_NONE`. Screen: only built-in lenses are offered; a rear-only tablet says so and opens the rear camera; switching reopens the chosen one |
+| AC-0603 DEVICE/iPad: real still saved at camera resolution with correct orientation/mirror metadata | BLOCKED | No iPad or Mac. Ready: `integration_test/camera_capture_test.dart` and procedure section 3 |
+| AC-0604 DEVICE/Android: the same on the certified Android model | BLOCKED | No Android tablet. Ready: the same test and procedure |
+| AC-0605 Preview keeps its aspect ratio with no stretch and the chosen preview mirroring | PASS (host, logic and layout); device BLOCKED | `managed_camera_service_test.dart`: the shown preview is mirrored exactly when asked on both lenses given each platform's own front-camera mirroring; the preview shape is the stream's long side over its short side in either orientation. The viewfinder takes that shape for the screen and centres the plugin's own aspect-keeping preview (letterboxed, never stretched); the camera test's goldens and screen checks in both orientations; mirroring switches change the preview and are recorded with the photo, independently |
+| AC-0606 Background/foreground/interrupt recovery without a leaked camera or delayed shutter | PASS (host); device BLOCKED | Service: suspend releases the camera (no camera open afterwards), resume reopens without prompting or capturing; access revoked while away fails on resume without prompting and recovers when restored; an interruption (another app) closes the camera and says why, and a capture in flight finishes first; suspending waits for a capture; dispose leaves no camera open. Screen: background then foreground reopens with zero shutters; a press while not in front is refused and nothing fires later; closing the screen releases the camera |
+| AC-0607 Capture calls serialised; two fast taps cannot make duplicate shots | PASS (host); device BLOCKED | Service: a second capture during one is refused at once (`CAMERA_CAPTURE_BUSY`), the driver fires once, and the next press works; operations run in call order. Screen: a double tap takes one photo. The device test repeats the double press on each lens |
+| AC-0608 Saved originals survive app restart; no preview screenshot substituted | PASS (host); device BLOCKED | `original_store_test.dart` (15): complete-JPEG and decode checks before storing; never overwrites; full disk and failed records leave nothing; recorded originals are immutable; after closing and reopening the database and files every original lists and reads back intact; a changed or missing file fails its check; startup finishes a commit interrupted after the file, undoes one interrupted while writing, quarantines a mismatching file and adopts the M01 spike's originals. Service: a capture survives a restart; the stored bytes are the driver's. Stills come only from the camera's full-resolution capture (`ResolutionPreset.max`), never from the preview; the device test asserts each still is at least as large as the preview stream |
+| AC-0609 DEVICE: front-camera position and lens clear through the enclosure | BLOCKED | No tablet or enclosure. Procedure section 8 |
+
+### M06 exit gate
+
+| Gate | Status |
+| --- | --- |
+| Real iPad and Android full-resolution still save and reopen, reliable lifecycle, no duplicate shutter | BLOCKED: no physical iPad or Android tablet. The service, store, lifecycle and screens pass on the host; the scripted device test and procedure are ready |
+
+### CI (GitHub Actions)
+
+Runs on GitHub-hosted `ubuntu-24.04` runners (4 cores). #20 on `832ce8d`
+was cancelled by the next push before its Android job ran (that commit's
+Android build fails, row 3).
+[#21](https://github.com/classamusic-spec/BOOTHD/actions/runs/39172769990)
+on `a9cee67`:
+
+| Job (#21) | Conclusion | Notes |
+| --- | --- | --- |
+| Format, analyze, test, licences | success | `tool/check.sh` in 7 min 14 s: generated code current, format and analyze clean, all tests passed as locally (goldens compared on Linux) |
+| Android release smoke build | success | From a runner SDK without API 37: the script installed `platforms;android-37.0`, AGP added CMake 3.22.1, `assembleRelease` 358 s; `app-release.apk` 71,136,157 bytes (the local size), SHA-256 `35978459c868a4eb3176557b5c7f32edfcc3d41d54c9c71ee3ac255608dbf6cf` (signed with the runner's own debug key, so the hash differs from row 4) |
+| iPadOS unsigned build | skipped | Manual dispatch only, by design; not run (macOS minutes), so the Swift changes are not yet compiled |
+
+### Security and privacy notes (M06)
+
+- `permission_handler` is used only through `CameraPermissions` in
+  infrastructure. It adds no Android permission (merged release manifest
+  compared with `aapt2`). On iOS it compiles in only the permissions whose
+  `Info.plist` keys exist (camera); the build rule in
+  `docs/IOS_VALIDATION.md` prevents a build with the camera compiled out.
+- Originals stay in the app's private support directory; the plugin's
+  temporary file is deleted after reading. Records hold dimensions,
+  checksum, lens, orientation, mirror settings and times: no location, no
+  guest data. Nothing is sent anywhere.
+- Failure details are codes or Dart type names: plugin descriptions (free
+  text that may name the device) and file paths never reach the screen or
+  logs. Diagnostics shows codes and repair steps only.
+- Recovery never deletes an original: files that fail their checks are
+  moved to `originals/.quarantine`.
+- The free-space channel returns one number. Camera test and self-test
+  are operator-only routes behind the PIN and absent from Booth Mode
+  (`access_flow_test.dart` checks the camera test route from Booth Mode).
