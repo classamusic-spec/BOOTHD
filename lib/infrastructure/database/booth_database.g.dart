@@ -4457,16 +4457,16 @@ class Assets extends Table with TableInfo<Assets, AssetRow> {
     requiredDuringInsert: false,
     $customConstraints: 'CHECK (display_name IS NULL OR length(display_name) BETWEEN 1 AND 120)',
   );
-  late final GeneratedColumnWithTypeConverter<AssetOrigin, String> origin =
-      GeneratedColumn<String>(
-        'origin',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: true,
-        $customConstraints:
-            'NOT NULL CHECK (origin IN (\'imported\', \'package\'))',
-      ).withConverter<AssetOrigin>(Assets.$converterorigin);
+  late final GeneratedColumnWithTypeConverter<AssetOrigin, String>
+  origin = GeneratedColumn<String>(
+    'origin',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'NOT NULL CHECK (origin IN (\'imported\', \'package\', \'bundled\'))',
+  ).withConverter<AssetOrigin>(Assets.$converterorigin);
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -5216,6 +5216,341 @@ class TemplateRevisionAssetsCompanion
   }
 }
 
+class TemplateDrafts extends Table
+    with TableInfo<TemplateDrafts, TemplateDraftRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  TemplateDrafts(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _templateIdMeta = const VerificationMeta(
+    'templateId',
+  );
+  late final GeneratedColumn<String> templateId = GeneratedColumn<String>(
+    'template_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'NOT NULL PRIMARY KEY REFERENCES templates(id)ON DELETE CASCADE',
+  );
+  static const VerificationMeta _baseRevisionIdMeta = const VerificationMeta(
+    'baseRevisionId',
+  );
+  late final GeneratedColumn<String> baseRevisionId = GeneratedColumn<String>(
+    'base_revision_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'NOT NULL REFERENCES template_revisions(id)ON DELETE CASCADE',
+  );
+  static const VerificationMeta _documentMeta = const VerificationMeta(
+    'document',
+  );
+  late final GeneratedColumn<String> document = GeneratedColumn<String>(
+    'document',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'NOT NULL CHECK (length(document) BETWEEN 2 AND 1048576)',
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    templateId,
+    baseRevisionId,
+    document,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'template_drafts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TemplateDraftRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('template_id')) {
+      context.handle(
+        _templateIdMeta,
+        templateId.isAcceptableOrUnknown(data['template_id']!, _templateIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_templateIdMeta);
+    }
+    if (data.containsKey('base_revision_id')) {
+      context.handle(
+        _baseRevisionIdMeta,
+        baseRevisionId.isAcceptableOrUnknown(
+          data['base_revision_id']!,
+          _baseRevisionIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_baseRevisionIdMeta);
+    }
+    if (data.containsKey('document')) {
+      context.handle(
+        _documentMeta,
+        document.isAcceptableOrUnknown(data['document']!, _documentMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_documentMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {templateId};
+  @override
+  TemplateDraftRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TemplateDraftRow(
+      templateId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}template_id'],
+      )!,
+      baseRevisionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}base_revision_id'],
+      )!,
+      document: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}document'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  TemplateDrafts createAlias(String alias) {
+    return TemplateDrafts(attachedDatabase, alias);
+  }
+
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class TemplateDraftRow extends DataClass
+    implements Insertable<TemplateDraftRow> {
+  final String templateId;
+  final String baseRevisionId;
+  final String document;
+  final DateTime updatedAt;
+  const TemplateDraftRow({
+    required this.templateId,
+    required this.baseRevisionId,
+    required this.document,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['template_id'] = Variable<String>(templateId);
+    map['base_revision_id'] = Variable<String>(baseRevisionId);
+    map['document'] = Variable<String>(document);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  TemplateDraftsCompanion toCompanion(bool nullToAbsent) {
+    return TemplateDraftsCompanion(
+      templateId: Value(templateId),
+      baseRevisionId: Value(baseRevisionId),
+      document: Value(document),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory TemplateDraftRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TemplateDraftRow(
+      templateId: serializer.fromJson<String>(json['template_id']),
+      baseRevisionId: serializer.fromJson<String>(json['base_revision_id']),
+      document: serializer.fromJson<String>(json['document']),
+      updatedAt: serializer.fromJson<DateTime>(json['updated_at']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'template_id': serializer.toJson<String>(templateId),
+      'base_revision_id': serializer.toJson<String>(baseRevisionId),
+      'document': serializer.toJson<String>(document),
+      'updated_at': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  TemplateDraftRow copyWith({
+    String? templateId,
+    String? baseRevisionId,
+    String? document,
+    DateTime? updatedAt,
+  }) => TemplateDraftRow(
+    templateId: templateId ?? this.templateId,
+    baseRevisionId: baseRevisionId ?? this.baseRevisionId,
+    document: document ?? this.document,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  TemplateDraftRow copyWithCompanion(TemplateDraftsCompanion data) {
+    return TemplateDraftRow(
+      templateId: data.templateId.present
+          ? data.templateId.value
+          : this.templateId,
+      baseRevisionId: data.baseRevisionId.present
+          ? data.baseRevisionId.value
+          : this.baseRevisionId,
+      document: data.document.present ? data.document.value : this.document,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TemplateDraftRow(')
+          ..write('templateId: $templateId, ')
+          ..write('baseRevisionId: $baseRevisionId, ')
+          ..write('document: $document, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(templateId, baseRevisionId, document, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TemplateDraftRow &&
+          other.templateId == this.templateId &&
+          other.baseRevisionId == this.baseRevisionId &&
+          other.document == this.document &&
+          other.updatedAt == this.updatedAt);
+}
+
+class TemplateDraftsCompanion extends UpdateCompanion<TemplateDraftRow> {
+  final Value<String> templateId;
+  final Value<String> baseRevisionId;
+  final Value<String> document;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const TemplateDraftsCompanion({
+    this.templateId = const Value.absent(),
+    this.baseRevisionId = const Value.absent(),
+    this.document = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TemplateDraftsCompanion.insert({
+    required String templateId,
+    required String baseRevisionId,
+    required String document,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : templateId = Value(templateId),
+       baseRevisionId = Value(baseRevisionId),
+       document = Value(document),
+       updatedAt = Value(updatedAt);
+  static Insertable<TemplateDraftRow> custom({
+    Expression<String>? templateId,
+    Expression<String>? baseRevisionId,
+    Expression<String>? document,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (templateId != null) 'template_id': templateId,
+      if (baseRevisionId != null) 'base_revision_id': baseRevisionId,
+      if (document != null) 'document': document,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TemplateDraftsCompanion copyWith({
+    Value<String>? templateId,
+    Value<String>? baseRevisionId,
+    Value<String>? document,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return TemplateDraftsCompanion(
+      templateId: templateId ?? this.templateId,
+      baseRevisionId: baseRevisionId ?? this.baseRevisionId,
+      document: document ?? this.document,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (templateId.present) {
+      map['template_id'] = Variable<String>(templateId.value);
+    }
+    if (baseRevisionId.present) {
+      map['base_revision_id'] = Variable<String>(baseRevisionId.value);
+    }
+    if (document.present) {
+      map['document'] = Variable<String>(document.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TemplateDraftsCompanion(')
+          ..write('templateId: $templateId, ')
+          ..write('baseRevisionId: $baseRevisionId, ')
+          ..write('document: $document, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class EventTemplates extends Table
     with TableInfo<EventTemplates, EventTemplateRow> {
   @override
@@ -5573,9 +5908,9 @@ abstract class _$BoothDatabase extends GeneratedDatabase {
     'template_revisions_are_immutable',
   );
   late final Assets assets = Assets(this);
-  late final Trigger assetsAreImmutable = Trigger(
-    'CREATE TRIGGER assets_are_immutable BEFORE UPDATE ON assets BEGIN SELECT RAISE (ABORT, \'assets are immutable\');END',
-    'assets_are_immutable',
+  late final Trigger assetContentIsImmutable = Trigger(
+    'CREATE TRIGGER asset_content_is_immutable BEFORE UPDATE OF id, media_type, relative_path, byte_length, width_px, height_px, origin, created_at ON assets BEGIN SELECT RAISE (ABORT, \'assets are immutable\');END',
+    'asset_content_is_immutable',
   );
   late final TemplateRevisionAssets templateRevisionAssets =
       TemplateRevisionAssets(this);
@@ -5583,6 +5918,7 @@ abstract class _$BoothDatabase extends GeneratedDatabase {
     'template_revision_assets_by_asset',
     'CREATE INDEX template_revision_assets_by_asset ON template_revision_assets (asset_id)',
   );
+  late final TemplateDrafts templateDrafts = TemplateDrafts(this);
   late final Index eventsByStatus = Index(
     'events_by_status',
     'CREATE INDEX events_by_status ON events (status, updated_at)',
@@ -5609,9 +5945,10 @@ abstract class _$BoothDatabase extends GeneratedDatabase {
     templateRevisions,
     templateRevisionsAreImmutable,
     assets,
-    assetsAreImmutable,
+    assetContentIsImmutable,
     templateRevisionAssets,
     templateRevisionAssetsByAsset,
+    templateDrafts,
     eventsByStatus,
     eventTemplates,
     eventTemplatesOneDefault,
@@ -5648,6 +5985,20 @@ abstract class _$BoothDatabase extends GeneratedDatabase {
       result: [
         TableUpdate('template_revision_assets', kind: UpdateKind.delete),
       ],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'templates',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('template_drafts', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'template_revisions',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('template_drafts', kind: UpdateKind.delete)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
@@ -7918,6 +8269,24 @@ final class $TemplatesReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<TemplateDrafts, List<TemplateDraftRow>>
+  _templateDraftsRefsTable(_$BoothDatabase db) => MultiTypedResultKey.fromTable(
+    db.templateDrafts,
+    aliasName: 'templates__id__template_drafts__template_id',
+  );
+
+  $TemplateDraftsProcessedTableManager get templateDraftsRefs {
+    final manager = $TemplateDraftsTableManager(
+      $_db,
+      $_db.templateDrafts,
+    ).filter((f) => f.templateId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_templateDraftsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $TemplatesFilterComposer extends Composer<_$BoothDatabase, Templates> {
@@ -7974,6 +8343,31 @@ class $TemplatesFilterComposer extends Composer<_$BoothDatabase, Templates> {
           }) => $TemplateRevisionsFilterComposer(
             $db: $db,
             $table: $db.templateRevisions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> templateDraftsRefs(
+    Expression<bool> Function($TemplateDraftsFilterComposer f) f,
+  ) {
+    final $TemplateDraftsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.templateDrafts,
+      getReferencedColumn: (t) => t.templateId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $TemplateDraftsFilterComposer(
+            $db: $db,
+            $table: $db.templateDrafts,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -8078,6 +8472,31 @@ class $TemplatesAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> templateDraftsRefs<T extends Object>(
+    Expression<T> Function($TemplateDraftsAnnotationComposer a) f,
+  ) {
+    final $TemplateDraftsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.templateDrafts,
+      getReferencedColumn: (t) => t.templateId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $TemplateDraftsAnnotationComposer(
+            $db: $db,
+            $table: $db.templateDrafts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $TemplatesTableManager
@@ -8093,7 +8512,10 @@ class $TemplatesTableManager
           $TemplatesUpdateCompanionBuilder,
           (TemplateRow, $TemplatesReferences),
           TemplateRow,
-          PrefetchHooks Function({bool templateRevisionsRefs})
+          PrefetchHooks Function({
+            bool templateRevisionsRefs,
+            bool templateDraftsRefs,
+          })
         > {
   $TemplatesTableManager(_$BoothDatabase db, Templates table)
     : super(
@@ -8150,37 +8572,61 @@ class $TemplatesTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({templateRevisionsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [
-                if (templateRevisionsRefs) db.templateRevisions,
-              ],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (templateRevisionsRefs)
-                    await $_getPrefetchedData<
-                      TemplateRow,
-                      Templates,
-                      TemplateRevisionRow
-                    >(
-                      currentTable: table,
-                      referencedTable: $TemplatesReferences
-                          ._templateRevisionsRefsTable(db),
-                      managerFromTypedResult: (p0) => $TemplatesReferences(
-                        db,
-                        table,
-                        p0,
-                      ).templateRevisionsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.templateId == item.id),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({templateRevisionsRefs = false, templateDraftsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (templateRevisionsRefs) db.templateRevisions,
+                    if (templateDraftsRefs) db.templateDrafts,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (templateRevisionsRefs)
+                        await $_getPrefetchedData<
+                          TemplateRow,
+                          Templates,
+                          TemplateRevisionRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $TemplatesReferences
+                              ._templateRevisionsRefsTable(db),
+                          managerFromTypedResult: (p0) => $TemplatesReferences(
+                            db,
+                            table,
+                            p0,
+                          ).templateRevisionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.templateId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (templateDraftsRefs)
+                        await $_getPrefetchedData<
+                          TemplateRow,
+                          Templates,
+                          TemplateDraftRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $TemplatesReferences
+                              ._templateDraftsRefsTable(db),
+                          managerFromTypedResult: (p0) => $TemplatesReferences(
+                            db,
+                            table,
+                            p0,
+                          ).templateDraftsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.templateId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -8197,7 +8643,10 @@ typedef $TemplatesProcessedTableManager =
       $TemplatesUpdateCompanionBuilder,
       (TemplateRow, $TemplatesReferences),
       TemplateRow,
-      PrefetchHooks Function({bool templateRevisionsRefs})
+      PrefetchHooks Function({
+        bool templateRevisionsRefs,
+        bool templateDraftsRefs,
+      })
     >;
 typedef $TemplateRevisionsCreateCompanionBuilder =
     TemplateRevisionsCompanion Function({
@@ -8276,6 +8725,24 @@ final class $TemplateRevisionsReferences
     final cache = $_typedResult.readTableOrNull(
       _templateRevisionAssetsRefsTable($_db),
     );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<TemplateDrafts, List<TemplateDraftRow>>
+  _templateDraftsRefsTable(_$BoothDatabase db) => MultiTypedResultKey.fromTable(
+    db.templateDrafts,
+    aliasName: 'template_revisions__id__template_drafts__base_revision_id',
+  );
+
+  $TemplateDraftsProcessedTableManager get templateDraftsRefs {
+    final manager = $TemplateDraftsTableManager(
+      $_db,
+      $_db.templateDrafts,
+    ).filter((f) => f.baseRevisionId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_templateDraftsRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -8393,6 +8860,31 @@ class $TemplateRevisionsFilterComposer
           }) => $TemplateRevisionAssetsFilterComposer(
             $db: $db,
             $table: $db.templateRevisionAssets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> templateDraftsRefs(
+    Expression<bool> Function($TemplateDraftsFilterComposer f) f,
+  ) {
+    final $TemplateDraftsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.templateDrafts,
+      getReferencedColumn: (t) => t.baseRevisionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $TemplateDraftsFilterComposer(
+            $db: $db,
+            $table: $db.templateDrafts,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -8602,6 +9094,31 @@ class $TemplateRevisionsAnnotationComposer
     return f(composer);
   }
 
+  Expression<T> templateDraftsRefs<T extends Object>(
+    Expression<T> Function($TemplateDraftsAnnotationComposer a) f,
+  ) {
+    final $TemplateDraftsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.templateDrafts,
+      getReferencedColumn: (t) => t.baseRevisionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $TemplateDraftsAnnotationComposer(
+            $db: $db,
+            $table: $db.templateDrafts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
   Expression<T> eventTemplatesRefs<T extends Object>(
     Expression<T> Function($EventTemplatesAnnotationComposer a) f,
   ) {
@@ -8644,6 +9161,7 @@ class $TemplateRevisionsTableManager
           PrefetchHooks Function({
             bool templateId,
             bool templateRevisionAssetsRefs,
+            bool templateDraftsRefs,
             bool eventTemplatesRefs,
           })
         > {
@@ -8722,12 +9240,14 @@ class $TemplateRevisionsTableManager
               ({
                 templateId = false,
                 templateRevisionAssetsRefs = false,
+                templateDraftsRefs = false,
                 eventTemplatesRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (templateRevisionAssetsRefs) db.templateRevisionAssets,
+                    if (templateDraftsRefs) db.templateDrafts,
                     if (eventTemplatesRefs) db.eventTemplates,
                   ],
                   addJoins:
@@ -8783,6 +9303,27 @@ class $TemplateRevisionsTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (templateDraftsRefs)
+                        await $_getPrefetchedData<
+                          TemplateRevisionRow,
+                          TemplateRevisions,
+                          TemplateDraftRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $TemplateRevisionsReferences
+                              ._templateDraftsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $TemplateRevisionsReferences(
+                                db,
+                                table,
+                                p0,
+                              ).templateDraftsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.baseRevisionId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                       if (eventTemplatesRefs)
                         await $_getPrefetchedData<
                           TemplateRevisionRow,
@@ -8827,6 +9368,7 @@ typedef $TemplateRevisionsProcessedTableManager =
       PrefetchHooks Function({
         bool templateId,
         bool templateRevisionAssetsRefs,
+        bool templateDraftsRefs,
         bool eventTemplatesRefs,
       })
     >;
@@ -9576,6 +10118,388 @@ typedef $TemplateRevisionAssetsProcessedTableManager =
       TemplateRevisionAssetRow,
       PrefetchHooks Function({bool templateRevisionId, bool assetId})
     >;
+typedef $TemplateDraftsCreateCompanionBuilder =
+    TemplateDraftsCompanion Function({
+      required String templateId,
+      required String baseRevisionId,
+      required String document,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $TemplateDraftsUpdateCompanionBuilder =
+    TemplateDraftsCompanion Function({
+      Value<String> templateId,
+      Value<String> baseRevisionId,
+      Value<String> document,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $TemplateDraftsReferences
+    extends BaseReferences<_$BoothDatabase, TemplateDrafts, TemplateDraftRow> {
+  $TemplateDraftsReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static Templates _templateIdTable(_$BoothDatabase db) =>
+      db.templates.createAlias('template_drafts__template_id__templates__id');
+
+  $TemplatesProcessedTableManager get templateId {
+    final $_column = $_itemColumn<String>('template_id')!;
+
+    final manager = $TemplatesTableManager(
+      $_db,
+      $_db.templates,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_templateIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static TemplateRevisions _baseRevisionIdTable(_$BoothDatabase db) => db
+      .templateRevisions
+      .createAlias('template_drafts__base_revision_id__template_revisions__id');
+
+  $TemplateRevisionsProcessedTableManager get baseRevisionId {
+    final $_column = $_itemColumn<String>('base_revision_id')!;
+
+    final manager = $TemplateRevisionsTableManager(
+      $_db,
+      $_db.templateRevisions,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_baseRevisionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $TemplateDraftsFilterComposer
+    extends Composer<_$BoothDatabase, TemplateDrafts> {
+  $TemplateDraftsFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get document => $composableBuilder(
+    column: $table.document,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $TemplatesFilterComposer get templateId {
+    final $TemplatesFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.templateId,
+      referencedTable: $db.templates,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $TemplatesFilterComposer(
+            $db: $db,
+            $table: $db.templates,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $TemplateRevisionsFilterComposer get baseRevisionId {
+    final $TemplateRevisionsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.baseRevisionId,
+      referencedTable: $db.templateRevisions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $TemplateRevisionsFilterComposer(
+            $db: $db,
+            $table: $db.templateRevisions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $TemplateDraftsOrderingComposer
+    extends Composer<_$BoothDatabase, TemplateDrafts> {
+  $TemplateDraftsOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get document => $composableBuilder(
+    column: $table.document,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $TemplatesOrderingComposer get templateId {
+    final $TemplatesOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.templateId,
+      referencedTable: $db.templates,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $TemplatesOrderingComposer(
+            $db: $db,
+            $table: $db.templates,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $TemplateRevisionsOrderingComposer get baseRevisionId {
+    final $TemplateRevisionsOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.baseRevisionId,
+      referencedTable: $db.templateRevisions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $TemplateRevisionsOrderingComposer(
+            $db: $db,
+            $table: $db.templateRevisions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $TemplateDraftsAnnotationComposer
+    extends Composer<_$BoothDatabase, TemplateDrafts> {
+  $TemplateDraftsAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get document =>
+      $composableBuilder(column: $table.document, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $TemplatesAnnotationComposer get templateId {
+    final $TemplatesAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.templateId,
+      referencedTable: $db.templates,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $TemplatesAnnotationComposer(
+            $db: $db,
+            $table: $db.templates,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $TemplateRevisionsAnnotationComposer get baseRevisionId {
+    final $TemplateRevisionsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.baseRevisionId,
+      referencedTable: $db.templateRevisions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $TemplateRevisionsAnnotationComposer(
+            $db: $db,
+            $table: $db.templateRevisions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $TemplateDraftsTableManager
+    extends
+        RootTableManager<
+          _$BoothDatabase,
+          TemplateDrafts,
+          TemplateDraftRow,
+          $TemplateDraftsFilterComposer,
+          $TemplateDraftsOrderingComposer,
+          $TemplateDraftsAnnotationComposer,
+          $TemplateDraftsCreateCompanionBuilder,
+          $TemplateDraftsUpdateCompanionBuilder,
+          (TemplateDraftRow, $TemplateDraftsReferences),
+          TemplateDraftRow,
+          PrefetchHooks Function({bool templateId, bool baseRevisionId})
+        > {
+  $TemplateDraftsTableManager(_$BoothDatabase db, TemplateDrafts table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $TemplateDraftsFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $TemplateDraftsOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $TemplateDraftsAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> templateId = const Value.absent(),
+                Value<String> baseRevisionId = const Value.absent(),
+                Value<String> document = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TemplateDraftsCompanion(
+                templateId: templateId,
+                baseRevisionId: baseRevisionId,
+                document: document,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String templateId,
+                required String baseRevisionId,
+                required String document,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => TemplateDraftsCompanion.insert(
+                templateId: templateId,
+                baseRevisionId: baseRevisionId,
+                document: document,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<TemplateDrafts, TemplateDraftRow>(table),
+                  $TemplateDraftsReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({templateId = false, baseRevisionId = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (templateId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.templateId,
+                            referencedTable: $TemplateDraftsReferences
+                                ._templateIdTable(db),
+                            referencedColumn: $TemplateDraftsReferences
+                                ._templateIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+                        if (baseRevisionId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.baseRevisionId,
+                            referencedTable: $TemplateDraftsReferences
+                                ._baseRevisionIdTable(db),
+                            referencedColumn: $TemplateDraftsReferences
+                                ._baseRevisionIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $TemplateDraftsProcessedTableManager =
+    ProcessedTableManager<
+      _$BoothDatabase,
+      TemplateDrafts,
+      TemplateDraftRow,
+      $TemplateDraftsFilterComposer,
+      $TemplateDraftsOrderingComposer,
+      $TemplateDraftsAnnotationComposer,
+      $TemplateDraftsCreateCompanionBuilder,
+      $TemplateDraftsUpdateCompanionBuilder,
+      (TemplateDraftRow, $TemplateDraftsReferences),
+      TemplateDraftRow,
+      PrefetchHooks Function({bool templateId, bool baseRevisionId})
+    >;
 typedef $EventTemplatesCreateCompanionBuilder =
     EventTemplatesCompanion Function({
       required String eventId,
@@ -9977,6 +10901,8 @@ class $BoothDatabaseManager {
   $AssetsTableManager get assets => $AssetsTableManager(_db, _db.assets);
   $TemplateRevisionAssetsTableManager get templateRevisionAssets =>
       $TemplateRevisionAssetsTableManager(_db, _db.templateRevisionAssets);
+  $TemplateDraftsTableManager get templateDrafts =>
+      $TemplateDraftsTableManager(_db, _db.templateDrafts);
   $EventTemplatesTableManager get eventTemplates =>
       $EventTemplatesTableManager(_db, _db.eventTemplates);
 }

@@ -15,6 +15,7 @@ dependencies:
   crypto: ^3.0.7
   drift: ^2.35.2
   drift_flutter: ^0.3.1
+  file_selector: ^1.1.0
   flutter:
     sdk: flutter
   flutter_riverpod: ^3.4.3
@@ -23,6 +24,7 @@ dependencies:
   material_symbols_icons: ^4.2960.0
   meta: ^1.17.0
   path_provider: ^2.1.6
+  share_plus: ^13.3.0
   sqlite3: ^3.5.2
 
 dev_dependencies:
@@ -55,7 +57,10 @@ flutter:
         - asset: assets/fonts/cormorant_garamond/CormorantGaramond-SemiBold.ttf
           weight: 600
 
-  # Font licence texts, registered with the app's licence page.
   assets:
+    # Font licence texts, registered with the app's licence page.
     - assets/fonts/inter/OFL.txt
     - assets/fonts/cormorant_garamond/OFL.txt
+    # The app's own template decorations, drawn by tool/art/decorations.dart
+    # (docs/ASSET_PROVENANCE.md).
+    - assets/decorations/

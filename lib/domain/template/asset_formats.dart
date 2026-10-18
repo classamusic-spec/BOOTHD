@@ -56,6 +56,24 @@ SniffResult sniffAsset(Uint8List bytes) {
 
 const _pngSignature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
 
+/// Whether [bytes] are a PNG that can hold transparency: an alpha channel
+/// (colour types 4 and 6) or a transparency chunk before the image data
+/// (S08 shows which artwork is transparent). JPEG and anything else: false.
+bool pngHasTransparency(Uint8List bytes) {
+  if (!_startsWith(bytes, _pngSignature) || bytes.length < 33) return false;
+  final colourType = bytes[25];
+  if (colourType == 4 || colourType == 6) return true;
+  var offset = 8;
+  while (offset + 8 <= bytes.length) {
+    final length = _u32(bytes, offset);
+    final type = _u32(bytes, offset + 4);
+    if (type == _tag('tRNS')) return true;
+    if (type == _tag('IDAT') || type == _tag('IEND')) return false;
+    offset += 12 + length;
+  }
+  return false;
+}
+
 bool _startsWith(Uint8List bytes, List<int> prefix) {
   if (bytes.length < prefix.length) return false;
   for (var i = 0; i < prefix.length; i++) {

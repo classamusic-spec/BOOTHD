@@ -17,6 +17,7 @@ decisions taken while executing milestones, plus owner change requests (CR).
 | [ADR-0009](ADR-0009-offline-storage-operator-access-booth-mode.md) | Offline storage, operator access, Booth Mode isolation and launch checks | Accepted | M03 |
 | [ADR-0010](ADR-0010-template-model-and-production-renderer.md) | Template document model, production renderer and template store | Accepted | M04 |
 | [CR-001](CR-001-premium-ux-quality-bar.md) | Premium UX quality bar: exceed the 15-screen board | Approved by owner 2026-10-17 | Binding from M02 |
+| [CR-002](CR-002-reference-boards.md) | Match the owner's reference boards | Requested by owner 2026-10-18 | M05 onward |
 
 Template: context, decision, consequences, verification, open questions.
 Supersede a record by adding a new one; do not rewrite accepted history.

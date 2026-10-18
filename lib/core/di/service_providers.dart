@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -13,9 +14,11 @@ import '../../domain/services/event_service.dart';
 import '../../domain/services/export_service.dart';
 import '../../domain/services/managed_storage.dart';
 import '../../domain/services/operator_auth_service.dart';
+import '../../domain/services/operator_files.dart';
 import '../../domain/services/operator_secrets.dart';
 import '../../domain/value_objects/clock.dart';
 import '../../domain/value_objects/entity_id.dart';
+import '../templates/template_library.dart';
 
 /// Service providers that features depend on, typed by domain interfaces.
 ///
@@ -85,6 +88,24 @@ final exportServiceProvider = Provider<ExportService>(
   (ref) => _unbound('exportServiceProvider'),
 );
 
+// Template Studio (M05, ADR-0011).
+
+final templateDraftRepositoryProvider = Provider<TemplateDraftRepository>(
+  (ref) => _unbound('templateDraftRepositoryProvider'),
+);
+
+/// The platform document picker and share sheet, for Studio screens only.
+final operatorFilesProvider = Provider<OperatorFiles>(
+  (ref) => _unbound('operatorFilesProvider'),
+);
+
+/// Reads a file bundled with the app (the template decorations).
+final bundledAssetLoaderProvider =
+    Provider<Future<Uint8List> Function(String assetPath)>(
+      (ref) =>
+          (path) async => (await rootBundle.load(path)).buffer.asUint8List(),
+    );
+
 final operatorAccessRepositoryProvider = Provider<OperatorAccessRepository>(
   (ref) => _unbound('operatorAccessRepositoryProvider'),
 );
@@ -119,6 +140,17 @@ final operatorAuthServiceProvider = Provider<OperatorAuthService>(
     hasher: ref.watch(pinHasherProvider),
     clock: ref.watch(clockProvider),
     newRecoveryCode: ref.watch(recoveryCodeGeneratorProvider),
+  ),
+);
+
+final templateLibraryProvider = Provider<TemplateLibrary>(
+  (ref) => TemplateLibrary(
+    assets: ref.watch(assetRepositoryProvider),
+    templates: ref.watch(templateRepositoryProvider),
+    packages: ref.watch(templatePackagesProvider),
+    drafts: ref.watch(templateDraftRepositoryProvider),
+    clock: ref.watch(clockProvider),
+    loadBundled: ref.watch(bundledAssetLoaderProvider),
   ),
 );
 

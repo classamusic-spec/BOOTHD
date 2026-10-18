@@ -32,6 +32,9 @@ enum TemplateStoreErrorCode {
   /// A file the document references is absent.
   assetMissing('TEMPLATE_ASSET_MISSING'),
 
+  /// A saved revision or an editor draft still uses the asset.
+  assetInUse('TEMPLATE_ASSET_IN_USE'),
+
   /// The document breaks the template rules; see the issues.
   invalidDocument('TEMPLATE_INVALID_DOCUMENT'),
 
@@ -96,6 +99,9 @@ enum AssetOrigin {
 
   /// Unpacked from a template package.
   package,
+
+  /// One of the app's own decorations or starter designs (M05).
+  bundled,
 }
 
 /// An asset held in managed storage under its content id.
@@ -134,6 +140,22 @@ abstract interface class AssetRepository {
   /// [TemplateStoreException] ([TemplateStoreErrorCode.assetMissing] or
   /// [TemplateStoreErrorCode.assetMismatch]).
   Future<Uint8List> read(String assetId);
+
+  /// Images the operator imported or that came with packages (the app's
+  /// own decorations are listed from the bundle), newest first; emits
+  /// again on change (S08).
+  Stream<List<StoredAsset>> watchImages();
+
+  /// Whether a saved revision or an editor draft uses [assetId].
+  Future<bool> isInUse(String assetId);
+
+  /// Changes the name the asset browser shows. Documents keep the name
+  /// they recorded.
+  Future<void> rename(String assetId, String name);
+
+  /// Deletes [assetId] and its file. Throws [TemplateStoreException]
+  /// ([TemplateStoreErrorCode.assetInUse]) while anything uses it.
+  Future<void> remove(String assetId);
 }
 
 /// A stored revision with its document.
@@ -153,7 +175,43 @@ final class StoredTemplateRevision {
   final String checksum;
 }
 
+/// A template as the library lists it: its latest revision, whether it is
+/// archived, and how many events offer it.
+final class TemplateListing {
+  const TemplateListing({
+    required this.latest,
+    required this.category,
+    required this.updatedAt,
+    required this.eventCount,
+    required this.hasDraft,
+  });
+
+  final TemplateRevisionSummary latest;
+  final String? category;
+  final DateTime updatedAt;
+
+  /// Events (of any status) that offer one of its revisions.
+  final int eventCount;
+
+  /// Unsaved editor changes are waiting (autosave).
+  final bool hasDraft;
+
+  String get templateId => latest.templateId;
+  bool get archived => latest.templateArchived;
+}
+
 abstract interface class TemplateRepository {
+  /// Every template, archived ones included, by name; emits again on
+  /// change.
+  Stream<List<TemplateListing>> watchLibrary();
+
+  /// Renames [templateId]. Revisions keep their documents.
+  Future<void> rename(String templateId, String name);
+
+  /// Archives or restores [templateId]. Archived templates stay available
+  /// to events that already offer them (A-15).
+  Future<void> setArchived(String templateId, {required bool archived});
+
   /// Stores [document] as revision 1 of a new template. Every asset the
   /// document lists must already be stored, as the document describes it.
   /// Throws [TemplateStoreException].
@@ -173,6 +231,9 @@ abstract interface class TemplateRepository {
   /// Reads a revision's manifest, checked against its recorded checksum.
   /// Throws [TemplateStoreException].
   Future<StoredTemplateRevision> loadRevision(String revisionId);
+
+  /// [loadRevision] for the newest revision of [templateId].
+  Future<StoredTemplateRevision> loadLatest(String templateId);
 }
 
 /// Template packages (`.porcelain-template`): one revision and its assets
@@ -185,4 +246,31 @@ abstract interface class TemplatePackages {
 
   /// Revision [revisionId] and every asset it lists, as a package.
   Future<Uint8List> exportPackage(String revisionId);
+}
+
+/// Unsaved editor work for one template (A-08 autosave): the document as
+/// the operator left it and the revision it started from.
+final class TemplateDraft {
+  const TemplateDraft({
+    required this.templateId,
+    required this.baseRevisionId,
+    required this.document,
+    required this.savedAt,
+  });
+
+  final String templateId;
+  final String baseRevisionId;
+  final TemplateDocument document;
+  final DateTime savedAt;
+}
+
+abstract interface class TemplateDraftRepository {
+  /// The draft for [templateId], or null. A draft that no longer reads is
+  /// discarded and reported as none.
+  Future<TemplateDraft?> load(String templateId);
+
+  /// Replaces the draft for its template.
+  Future<void> save(TemplateDraft draft);
+
+  Future<void> discard(String templateId);
 }

@@ -215,7 +215,7 @@ void main() {
 
       if (from >= 2) {
         final assets = await db.select(db.assets).get();
-        expect(assets, hasLength(3));
+        expect(assets, hasLength(from >= 3 ? 4 : 3));
         final flower = assets.firstWhere((a) => a.displayName == 'flower.png');
         expect(flower.mediaType, AssetMediaType.png);
         expect((flower.widthPx, flower.heightPx), (800, 800));
@@ -236,10 +236,24 @@ void main() {
         expect(await db.select(db.assets).get(), isEmpty);
         expect(await db.select(db.templateRevisionAssets).get(), isEmpty);
       }
+
+      final drafts = await db.select(db.templateDrafts).get();
+      if (from >= 3) {
+        final draft = drafts.single;
+        expect(draft.templateId, 'a0000000-0000-4000-8000-00000000000a');
+        expect(draft.baseRevisionId, _revisionA2);
+        expect(draft.updatedAt, DateTime.utc(2026, 10, 18, 10, 15));
+        final bundled = (await db.select(db.assets).get()).singleWhere(
+          (a) => a.origin == AssetOrigin.bundled,
+        );
+        expect(bundled.displayName, 'Floral corner');
+      } else {
+        expect(drafts, isEmpty, reason: 'drafts arrived with version 3');
+      }
     });
   }
 
-  test('asset rows cannot be changed, mislabelled or orphaned', () async {
+  test('asset content cannot be changed, mislabelled or orphaned', () async {
     final schema = await verifier.schemaAt(BoothDatabase.currentSchemaVersion);
     // seed_v2's rows, opened by the current code.
     final raw = schema.rawDatabase..execute(seedFor(2));
@@ -255,7 +269,30 @@ void main() {
     );
     const flower =
         'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
-    await rejects("UPDATE assets SET display_name = 'x' WHERE id = '$flower'");
+    // What an asset is never changes (version 3: its shown name may).
+    for (final change in [
+      "id = '${'b' * 64}'",
+      "media_type = 'jpeg'",
+      "relative_path = 'assets/x.png'",
+      'byte_length = 11',
+      'width_px = 2',
+      'height_px = 2',
+      "origin = 'bundled'",
+      "created_at = '2026-10-04T10:00:00.000Z'",
+    ]) {
+      await rejects("UPDATE assets SET $change WHERE id = '$flower'");
+    }
+    await seeded.customStatement(
+      "UPDATE assets SET display_name = 'Flower.png' WHERE id = '$flower'",
+    );
+    expect(
+      raw
+          .select("SELECT display_name FROM assets WHERE id = '$flower'")
+          .single
+          .values
+          .single,
+      'Flower.png',
+    );
     await rejects(
       "INSERT INTO assets VALUES ('${'d' * 64}', 'png', "
       "'assets/../evil.png', 10, 1, 1, NULL, 'imported', "
@@ -272,6 +309,11 @@ void main() {
       "'2026-10-03T10:00:00.000Z')",
     );
     await rejects("DELETE FROM assets WHERE id = '$flower'");
+    await rejects(
+      "INSERT INTO assets VALUES ('${'9' * 64}', 'png', "
+      "'assets/${'9' * 64}.png', 10, 1, 1, NULL, 'downloaded', "
+      "'2026-10-03T10:00:00.000Z')",
+    );
     await rejects(
       'INSERT INTO template_revision_assets VALUES '
       "('a1000000-0000-4000-8000-0000000000a1', '${'f' * 64}')",

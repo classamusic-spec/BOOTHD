@@ -47,6 +47,95 @@ final class DriftTemplateRepository implements TemplateRepository {
   static const maxCategoryLength = 40;
 
   @override
+  Stream<List<TemplateListing>> watchLibrary() => _db
+      .customSelect(
+        // The latest revision of every template, with how many events offer
+        // any of its revisions and whether editor work is waiting.
+        'SELECT t.id AS template_id, t.display_name, t.category, '
+        't.updated_at, t.archived_at, r.id AS revision_id, '
+        'r.revision_number, r.page_width_px, r.page_height_px, '
+        'r.photo_slot_count, '
+        '(SELECT count(DISTINCT et.event_id) FROM event_templates et '
+        'JOIN template_revisions r2 ON r2.id = et.template_revision_id '
+        'WHERE r2.template_id = t.id) AS event_count, '
+        'EXISTS (SELECT 1 FROM template_drafts d '
+        'WHERE d.template_id = t.id) AS has_draft '
+        'FROM templates t JOIN template_revisions r ON r.template_id = t.id '
+        'WHERE r.revision_number = (SELECT max(revision_number) '
+        'FROM template_revisions WHERE template_id = t.id) '
+        'ORDER BY t.display_name COLLATE NOCASE, t.id',
+        readsFrom: {
+          _db.templates,
+          _db.templateRevisions,
+          _db.eventTemplates,
+          _db.templateDrafts,
+        },
+      )
+      .watch()
+      .map(
+        (rows) => [
+          for (final row in rows)
+            TemplateListing(
+              latest: TemplateRevisionSummary(
+                revisionId: row.read<String>('revision_id'),
+                templateId: row.read<String>('template_id'),
+                templateName: row.read<String>('display_name'),
+                revisionNumber: row.read<int>('revision_number'),
+                pageWidthPx: row.read<int>('page_width_px'),
+                pageHeightPx: row.read<int>('page_height_px'),
+                photoSlotCount: row.read<int>('photo_slot_count'),
+                templateArchived:
+                    row.readNullable<DateTime>('archived_at') != null,
+              ),
+              category: row.readNullable<String>('category'),
+              updatedAt: row.read<DateTime>('updated_at'),
+              eventCount: row.read<int>('event_count'),
+              hasDraft: row.read<bool>('has_draft'),
+            ),
+        ],
+      );
+
+  @override
+  Future<void> rename(String templateId, String name) async {
+    final displayName = name.trim();
+    if (displayName.isEmpty || displayName.length > maxNameLength) {
+      throw const TemplateStoreException(
+        TemplateStoreErrorCode.invalidDocument,
+        detail: 'the template name must be 1 to $maxNameLength characters',
+      );
+    }
+    final changed =
+        await (_db.update(
+          _db.templates,
+        )..where((t) => t.id.equals(templateId))).write(
+          TemplatesCompanion(
+            displayName: Value(displayName),
+            updatedAt: Value(clock.now()),
+          ),
+        );
+    if (changed == 0) {
+      throw const TemplateStoreException(TemplateStoreErrorCode.notFound);
+    }
+  }
+
+  @override
+  Future<void> setArchived(String templateId, {required bool archived}) async {
+    final now = clock.now();
+    final changed =
+        await (_db.update(
+          _db.templates,
+        )..where((t) => t.id.equals(templateId))).write(
+          TemplatesCompanion(
+            archivedAt: Value(archived ? now : null),
+            updatedAt: Value(now),
+          ),
+        );
+    if (changed == 0) {
+      throw const TemplateStoreException(TemplateStoreErrorCode.notFound);
+    }
+  }
+
+  @override
   Future<TemplateRevisionSummary> createTemplate({
     required String name,
     String? category,
@@ -236,6 +325,20 @@ final class DriftTemplateRepository implements TemplateRepository {
         );
       }
     }
+  }
+
+  @override
+  Future<StoredTemplateRevision> loadLatest(String templateId) async {
+    final latest =
+        await (_db.select(_db.templateRevisions)
+              ..where((r) => r.templateId.equals(templateId))
+              ..orderBy([(r) => OrderingTerm.desc(r.revisionNumber)])
+              ..limit(1))
+            .getSingleOrNull();
+    if (latest == null) {
+      throw const TemplateStoreException(TemplateStoreErrorCode.notFound);
+    }
+    return loadRevision(latest.id);
   }
 
   @override

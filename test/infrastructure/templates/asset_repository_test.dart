@@ -6,7 +6,10 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:porcelain_photo_booth/core/templates/starter_designs.dart';
 import 'package:porcelain_photo_booth/domain/repositories/template_store.dart';
+import 'package:porcelain_photo_booth/domain/template/asset_formats.dart';
+import 'package:porcelain_photo_booth/domain/template/editing/document_edits.dart';
 import 'package:porcelain_photo_booth/domain/template/template_assets.dart';
 import 'package:porcelain_photo_booth/features/diagnostics/render_lab/fixture_images.dart';
 import 'package:porcelain_photo_booth/features/diagnostics/render_lab/png_encoder.dart';
@@ -50,13 +53,13 @@ Uint8List _rotatedJpeg(Uint8List jpeg) {
 }
 
 /// A PNG signature and IHDR claiming [width] x [height], and nothing else.
-Uint8List _pngHeaderOnly(int width, int height) {
+Uint8List _pngHeaderOnly(int width, int height, {int colourType = 6}) {
   final ihdr = ByteData(17)
     ..setUint32(0, 0x49484452) // "IHDR"
     ..setUint32(4, width)
     ..setUint32(8, height)
     ..setUint8(12, 8)
-    ..setUint8(13, 6);
+    ..setUint8(13, colourType);
   final body = ihdr.buffer.asUint8List();
   return Uint8List.fromList([
     0x89,
@@ -254,6 +257,119 @@ void main() {
     );
     expect(stored.id, id);
     expect(await harness.assets.read(id), png);
+  });
+
+  group('asset browser (S08)', () {
+    test('lists imported and package images, newest first', () async {
+      final font = File('assets/fonts/inter/Inter-Regular.ttf')
+          .readAsBytesSync();
+      await harness.assets.store(font, origin: AssetOrigin.imported);
+      await harness.assets.store(_png(4, 4), origin: AssetOrigin.bundled);
+      final first = await harness.assets.store(
+        _png(5, 5),
+        origin: AssetOrigin.imported,
+      );
+      harness.clock.advance(const Duration(minutes: 1));
+      final second = await harness.assets.store(
+        _jpeg(16, 16),
+        origin: AssetOrigin.package,
+      );
+      expect(
+        [for (final a in await harness.assets.watchImages().first) a.id],
+        [second.id, first.id],
+      );
+    });
+
+    test('rename changes the shown name only', () async {
+      final stored = await harness.assets.store(
+        _png(6, 6),
+        name: 'scan.png',
+        origin: AssetOrigin.imported,
+      );
+      await harness.assets.rename(stored.id, '  Gold leaf.png ');
+      expect(
+        (await harness.assets.find(stored.id))!.asset.name,
+        'Gold leaf.png',
+      );
+      await expectLater(
+        harness.assets.rename(stored.id, '  '),
+        _refused(TemplateStoreErrorCode.invalidDocument),
+      );
+      await expectLater(
+        harness.assets.rename('f' * 64, 'x.png'),
+        _refused(TemplateStoreErrorCode.notFound),
+      );
+    });
+
+    test('only an image nothing uses can be removed', () async {
+      final png = _png(7, 7);
+      final stored = await harness.assets.store(
+        png,
+        origin: AssetOrigin.imported,
+      );
+      final file = harness.file('assets/${stored.id}.png');
+
+      // Used by a saved revision.
+      final template = await harness.library.create(
+        starterDesigns.firstWhere((d) => d.id == 'blank-4x4'),
+        name: 'Uses it',
+      );
+      var document = (await harness.templates.loadRevision(template.revisionId))
+          .document;
+      document = DocumentEdits.add(
+        document,
+        NewLayers.image(document, 'art', stored.id, stored.asset),
+        assets: {stored.id: stored.asset},
+      );
+      final saved = await harness.library.save(template.templateId, document);
+      expect(await harness.assets.isInUse(stored.id), isTrue);
+      await expectLater(
+        harness.assets.remove(stored.id),
+        _refused(TemplateStoreErrorCode.assetInUse),
+      );
+
+      // Used only by an unsaved draft.
+      final other = await harness.assets.store(
+        _png(9, 9),
+        origin: AssetOrigin.imported,
+      );
+      await harness.library.saveDraft(
+        template.templateId,
+        baseRevisionId: saved.summary.revisionId,
+        document: DocumentEdits.add(
+          document,
+          NewLayers.image(document, 'more', other.id, other.asset),
+          assets: {other.id: other.asset},
+        ),
+      );
+      expect(await harness.assets.isInUse(other.id), isTrue);
+      await expectLater(
+        harness.assets.remove(other.id),
+        _refused(TemplateStoreErrorCode.assetInUse),
+      );
+      await harness.library.discardDraft(template.templateId);
+      expect(await harness.assets.isInUse(other.id), isFalse);
+      await harness.assets.remove(other.id);
+      expect(await harness.assets.find(other.id), isNull);
+      expect(harness.file('assets/${other.id}.png').existsSync(), isFalse);
+
+      // The used one is untouched.
+      expect(file.existsSync(), isTrue);
+      expect(await harness.assets.read(stored.id), png);
+    });
+
+    test('PNG transparency is read from the header', () {
+      expect(pngHasTransparency(flowerPng()), isTrue);
+      expect(pngHasTransparency(_jpeg(8, 8)), isFalse);
+      // RGB without a transparency chunk; RGB with one.
+      final rgb = _pngHeaderOnly(4, 4, colourType: 2);
+      expect(pngHasTransparency(rgb), isFalse);
+      final trns = [0, 0, 0, 6, ...'tRNS'.codeUnits, 0, 0, 0, 0, 0, 0];
+      expect(
+        pngHasTransparency(Uint8List.fromList([...rgb, ...trns, 0, 0, 0, 0])),
+        isTrue,
+      );
+    });
   });
 }
 

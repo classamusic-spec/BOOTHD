@@ -1048,8 +1048,305 @@ i1.GeneratedColumn<int> _column_70(String aliasedName) =>
       type: i1.DriftSqlType.int,
       $customConstraints: 'NOT NULL CHECK (is_default IN (0, 1))',
     );
+
+final class Schema3 extends i0.VersionedSchema {
+  Schema3({required super.database}) : super(version: 3);
+  @override
+  late final List<i1.DatabaseSchemaEntity> entities = [
+    boothProfiles,
+    events,
+    appSettings,
+    operatorAccess,
+    templates,
+    templateRevisions,
+    templateRevisionsAreImmutable,
+    assets,
+    assetContentIsImmutable,
+    templateRevisionAssets,
+    templateRevisionAssetsByAsset,
+    templateDrafts,
+    eventsByStatus,
+    eventTemplates,
+    eventTemplatesOneDefault,
+    eventTemplatesByRevision,
+  ];
+  late final Shape0 boothProfiles = Shape0(
+    source: i0.VersionedTable(
+      entityName: 'booth_profiles',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [
+        _column_0,
+        _column_1,
+        _column_2,
+        _column_3,
+        _column_4,
+        _column_5,
+        _column_6,
+        _column_7,
+        _column_8,
+        _column_9,
+        _column_10,
+        _column_11,
+        _column_12,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape1 events = Shape1(
+    source: i0.VersionedTable(
+      entityName: 'events',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [
+        'CHECK((retake_policy = \'none\' AND retake_limit = 0)OR(retake_policy <> \'none\' AND retake_limit BETWEEN 1 AND 5))',
+        'CHECK((retention_mode = \'keepUntilDeleted\' AND retention_days IS NULL)OR(retention_mode = \'deleteAfterDays\' AND retention_days BETWEEN 1 AND 365))',
+        'CHECK((status = \'archived\')=(archived_at IS NOT NULL))',
+      ],
+      columns: [
+        _column_0,
+        _column_13,
+        _column_14,
+        _column_15,
+        _column_16,
+        _column_17,
+        _column_18,
+        _column_19,
+        _column_20,
+        _column_21,
+        _column_22,
+        _column_23,
+        _column_24,
+        _column_25,
+        _column_26,
+        _column_27,
+        _column_28,
+        _column_29,
+        _column_30,
+        _column_31,
+        _column_32,
+        _column_33,
+        _column_34,
+        _column_35,
+        _column_36,
+        _column_37,
+        _column_11,
+        _column_12,
+        _column_38,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape2 appSettings = Shape2(
+    source: i0.VersionedTable(
+      entityName: 'app_settings',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [_column_39, _column_13, _column_40, _column_41],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape3 operatorAccess = Shape3(
+    source: i0.VersionedTable(
+      entityName: 'operator_access',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [
+        _column_39,
+        _column_42,
+        _column_43,
+        _column_44,
+        _column_45,
+        _column_46,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape4 templates = Shape4(
+    source: i0.VersionedTable(
+      entityName: 'templates',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [
+        _column_0,
+        _column_47,
+        _column_48,
+        _column_11,
+        _column_12,
+        _column_38,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape5 templateRevisions = Shape5(
+    source: i0.VersionedTable(
+      entityName: 'template_revisions',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['UNIQUE(template_id, revision_number)'],
+      columns: [
+        _column_0,
+        _column_49,
+        _column_50,
+        _column_51,
+        _column_52,
+        _column_53,
+        _column_54,
+        _column_55,
+        _column_56,
+        _column_11,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Trigger templateRevisionsAreImmutable = i1.Trigger(
+    'CREATE TRIGGER template_revisions_are_immutable BEFORE UPDATE ON template_revisions BEGIN SELECT RAISE (ABORT, \'template revisions are immutable\');END',
+    'template_revisions_are_immutable',
+  );
+  late final Shape6 assets = Shape6(
+    source: i0.VersionedTable(
+      entityName: 'assets',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [
+        'CHECK((media_type IN (\'png\', \'jpeg\'))=(width_px IS NOT NULL AND height_px IS NOT NULL))',
+        'CHECK(media_type IN (\'png\', \'jpeg\') OR byte_length <= 20971520)',
+      ],
+      columns: [
+        _column_57,
+        _column_58,
+        _column_59,
+        _column_60,
+        _column_61,
+        _column_62,
+        _column_63,
+        _column_71,
+        _column_11,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Trigger assetContentIsImmutable = i1.Trigger(
+    'CREATE TRIGGER asset_content_is_immutable BEFORE UPDATE OF id, media_type, relative_path, byte_length, width_px, height_px, origin, created_at ON assets BEGIN SELECT RAISE (ABORT, \'assets are immutable\');END',
+    'asset_content_is_immutable',
+  );
+  late final Shape7 templateRevisionAssets = Shape7(
+    source: i0.VersionedTable(
+      entityName: 'template_revision_assets',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(template_revision_id, asset_id)'],
+      columns: [_column_65, _column_66],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index templateRevisionAssetsByAsset = i1.Index(
+    'template_revision_assets_by_asset',
+    'CREATE INDEX template_revision_assets_by_asset ON template_revision_assets (asset_id)',
+  );
+  late final Shape9 templateDrafts = Shape9(
+    source: i0.VersionedTable(
+      entityName: 'template_drafts',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [_column_72, _column_73, _column_74, _column_12],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index eventsByStatus = i1.Index(
+    'events_by_status',
+    'CREATE INDEX events_by_status ON events (status, updated_at)',
+  );
+  late final Shape8 eventTemplates = Shape8(
+    source: i0.VersionedTable(
+      entityName: 'event_templates',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [
+        'PRIMARY KEY(event_id, template_revision_id)',
+        'UNIQUE(event_id, position)',
+      ],
+      columns: [_column_67, _column_68, _column_69, _column_70],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index eventTemplatesOneDefault = i1.Index(
+    'event_templates_one_default',
+    'CREATE UNIQUE INDEX event_templates_one_default ON event_templates (event_id) WHERE is_default = 1',
+  );
+  final i1.Index eventTemplatesByRevision = i1.Index(
+    'event_templates_by_revision',
+    'CREATE INDEX event_templates_by_revision ON event_templates (template_revision_id)',
+  );
+}
+
+i1.GeneratedColumn<String> _column_71(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'origin',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.string,
+      $customConstraints:
+          'NOT NULL CHECK (origin IN (\'imported\', \'package\', \'bundled\'))',
+    );
+
+class Shape9 extends i0.VersionedTable {
+  Shape9({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<String> get templateId =>
+      columnsByName['template_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get baseRevisionId =>
+      columnsByName['base_revision_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get document =>
+      columnsByName['document']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get updatedAt =>
+      columnsByName['updated_at']! as i1.GeneratedColumn<String>;
+}
+
+i1.GeneratedColumn<String> _column_72(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'template_id',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.string,
+      $customConstraints:
+          'NOT NULL PRIMARY KEY REFERENCES templates(id)ON DELETE CASCADE',
+    );
+i1.GeneratedColumn<String> _column_73(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'base_revision_id',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.string,
+      $customConstraints:
+          'NOT NULL REFERENCES template_revisions(id)ON DELETE CASCADE',
+    );
+i1.GeneratedColumn<String> _column_74(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'document',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.string,
+      $customConstraints:
+          'NOT NULL CHECK (length(document) BETWEEN 2 AND 1048576)',
+    );
 i0.MigrationStepWithVersion migrationSteps({
   required Future<void> Function(i1.Migrator m, Schema2 schema) from1To2,
+  required Future<void> Function(i1.Migrator m, Schema3 schema) from2To3,
 }) {
   return (currentVersion, database) async {
     switch (currentVersion) {
@@ -1058,6 +1355,11 @@ i0.MigrationStepWithVersion migrationSteps({
         final migrator = i1.Migrator(database, schema);
         await from1To2(migrator, schema);
         return 2;
+      case 2:
+        final schema = Schema3(database: database);
+        final migrator = i1.Migrator(database, schema);
+        await from2To3(migrator, schema);
+        return 3;
       default:
         throw ArgumentError.value('Unknown migration from $currentVersion');
     }
@@ -1066,6 +1368,7 @@ i0.MigrationStepWithVersion migrationSteps({
 
 i1.OnUpgrade stepByStep({
   required Future<void> Function(i1.Migrator m, Schema2 schema) from1To2,
+  required Future<void> Function(i1.Migrator m, Schema3 schema) from2To3,
 }) => i0.VersionedSchema.stepByStepHelper(
-  step: migrationSteps(from1To2: from1To2),
+  step: migrationSteps(from1To2: from1To2, from2To3: from2To3),
 );

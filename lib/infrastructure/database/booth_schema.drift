@@ -1,5 +1,6 @@
 -- Porcelain Photo Booth database schema (ADR-0009). Version 1 (M03);
--- version 2 (M04) adds template assets and the assets each revision uses.
+-- version 2 (M04) adds template assets and the assets each revision uses;
+-- version 3 (M05) adds editor drafts and bundled assets.
 --
 -- Rules enforced here as well as in the domain, so a defect elsewhere can
 -- never store an invalid event: foreign keys with explicit actions, CHECK
@@ -127,15 +128,18 @@ CREATE TABLE assets (
   display_name TEXT
     CHECK (display_name IS NULL OR length(display_name) BETWEEN 1 AND 120),
   origin ENUMNAME(AssetOrigin) NOT NULL
-    CHECK (origin IN ('imported', 'package')),
+    CHECK (origin IN ('imported', 'package', 'bundled')),
   created_at DATETIME NOT NULL,
   CHECK ((media_type IN ('png', 'jpeg'))
     = (width_px IS NOT NULL AND height_px IS NOT NULL)),
   CHECK (media_type IN ('png', 'jpeg') OR byte_length <= 20971520)
 ) AS AssetRow;
 
-CREATE TRIGGER assets_are_immutable
-  BEFORE UPDATE ON assets
+-- Version 3: what an asset is never changes; the name the asset browser
+-- shows may (S08). Documents keep the name they recorded.
+CREATE TRIGGER asset_content_is_immutable
+  BEFORE UPDATE OF id, media_type, relative_path, byte_length, width_px,
+    height_px, origin, created_at ON assets
 BEGIN
   SELECT RAISE(ABORT, 'assets are immutable');
 END;
@@ -151,6 +155,19 @@ CREATE TABLE template_revision_assets (
 
 CREATE INDEX template_revision_assets_by_asset
   ON template_revision_assets (asset_id);
+
+-- Unsaved editor work, one per template (version 3, A-08 autosave). The
+-- document is canonical template JSON (at most 1 MB); it becomes a revision
+-- only when the operator saves. Deleting the template or the revision it
+-- started from removes it.
+CREATE TABLE template_drafts (
+  template_id TEXT NOT NULL PRIMARY KEY
+    REFERENCES templates (id) ON DELETE CASCADE,
+  base_revision_id TEXT NOT NULL
+    REFERENCES template_revisions (id) ON DELETE CASCADE,
+  document TEXT NOT NULL CHECK (length(document) BETWEEN 2 AND 1048576),
+  updated_at DATETIME NOT NULL
+) AS TemplateDraftRow;
 
 -- Events (P-05, A-05). Limits mirror EventLimits.
 CREATE TABLE events (

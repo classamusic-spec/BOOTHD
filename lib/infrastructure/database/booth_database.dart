@@ -28,7 +28,7 @@ final class BoothDatabase extends _$BoothDatabase {
 
   /// Bump together with a migration step, a schema dump
   /// (`dart run drift_dev make-migrations`) and a seeded fixture.
-  static const currentSchemaVersion = 2;
+  static const currentSchemaVersion = 3;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -77,6 +77,18 @@ final class BoothDatabase extends _$BoothDatabase {
       await migrator.create(schema.assetsAreImmutable);
       await migrator.createTable(schema.templateRevisionAssets);
       await migrator.create(schema.templateRevisionAssetsByAsset);
+    },
+    // M05: editor drafts; assets may also be the app's own ("bundled"),
+    // which changes a CHECK, so the table is rebuilt with its rows. Its
+    // trigger now lets the shown name change (S08); the rebuild does not
+    // carry triggers over, so the old one is dropped and the new created.
+    from2To3: (migrator, schema) async {
+      await migrator.alterTable(TableMigration(schema.assets));
+      await migrator.database.customStatement(
+        'DROP TRIGGER IF EXISTS assets_are_immutable',
+      );
+      await migrator.create(schema.assetContentIsImmutable);
+      await migrator.createTable(schema.templateDrafts);
     },
   );
 

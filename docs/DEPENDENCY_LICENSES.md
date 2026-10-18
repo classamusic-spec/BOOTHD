@@ -7,7 +7,7 @@ Licence names come from a text heuristic over each package's LICENSE file and
 are a starting point for the release audit (AC-1204), not a legal opinion.
 SDK packages report version 0.0.0 and are pinned by the Flutter SDK version.
 
-## Runtime dependency graph: treat as shipped (87)
+## Runtime dependency graph: treat as shipped (104)
 
 Everything reachable from the app's non-dev dependencies. Deliberately
 conservative: release compilation drops unused code, but the licence audit
@@ -37,6 +37,14 @@ covers this whole set.
 | ffi | 2.2.0 | hosted |  | BSD-3-Clause |
 | ffi_leak_tracker | 0.1.2 | hosted |  | BSD-3-Clause |
 | file | 7.0.1 | hosted |  | BSD-3-Clause |
+| file_selector | 1.1.0 | hosted | yes | BSD-3-Clause |
+| file_selector_android | 0.5.2+11 | hosted |  | Apache-2.0 |
+| file_selector_ios | 0.5.3+7 | hosted |  | BSD-3-Clause |
+| file_selector_linux | 0.9.4+1 | hosted |  | BSD-3-Clause |
+| file_selector_macos | 0.9.5+1 | hosted |  | BSD-3-Clause |
+| file_selector_platform_interface | 2.7.0 | hosted |  | BSD-3-Clause |
+| file_selector_web | 0.9.5 | hosted |  | BSD-3-Clause |
+| file_selector_windows | 0.9.3+6 | hosted |  | BSD-3-Clause |
 | fixnum | 1.1.1 | hosted |  | BSD-3-Clause |
 | flutter | 0.0.0 | sdk | yes | BSD-3-Clause |
 | flutter_localizations | 0.0.0 | sdk |  | BSD-3-Clause |
@@ -53,6 +61,8 @@ covers this whole set.
 | glob | 2.2.0 | hosted |  | BSD-3-Clause |
 | go_router | 18.1.0 | hosted | yes | BSD-3-Clause |
 | hooks | 2.0.2 | hosted |  | BSD-3-Clause |
+| http | 1.6.0 | hosted |  | BSD-3-Clause |
+| http_parser | 4.1.2 | hosted |  | BSD-3-Clause |
 | intl | 0.20.3 | hosted |  | BSD-3-Clause |
 | jni | 1.1.0 | hosted |  | BSD-3-Clause |
 | jni_flutter | 1.0.4+1 | hosted |  | BSD-3-Clause |
@@ -67,6 +77,7 @@ covers this whole set.
 | material_symbols_icons | 4.2960.0 | hosted | yes | Apache-2.0 |
 | material_ui | 1.7.0 | hosted |  | BSD-3-Clause |
 | meta | 1.18.3 | hosted | yes | BSD-3-Clause |
+| mime | 2.1.0 | hosted |  | BSD-3-Clause |
 | native_toolchain_c | 0.19.2 | hosted |  | BSD-3-Clause |
 | objective_c | 9.5.0 | hosted |  | BSD-3-Clause |
 | package_config | 3.0.0 | hosted |  | BSD-3-Clause |
@@ -82,6 +93,8 @@ covers this whole set.
 | pub_semver | 2.2.1 | hosted |  | BSD-3-Clause |
 | record_use | 0.6.0 | hosted |  | BSD-3-Clause |
 | riverpod | 3.4.3 | hosted |  | MIT |
+| share_plus | 13.3.1 | hosted | yes | BSD-3-Clause |
+| share_plus_platform_interface | 7.2.0 | hosted |  | BSD-3-Clause |
 | sky_engine | 0.0.0 | sdk |  | Multiple (Flutter engine with bundled third-party notices) |
 | source_span | 1.10.2 | hosted |  | BSD-3-Clause |
 | sqlcipher_flutter_libs | 0.7.0+eol | hosted |  | Apache-2.0 |
@@ -95,6 +108,10 @@ covers this whole set.
 | term_glyph | 1.2.2 | hosted |  | BSD-3-Clause |
 | test_api | 0.7.12 | hosted |  | BSD-3-Clause |
 | typed_data | 1.4.0 | hosted |  | BSD-3-Clause |
+| url_launcher_linux | 3.2.3 | hosted |  | BSD-3-Clause |
+| url_launcher_platform_interface | 2.3.2 | hosted |  | BSD-3-Clause |
+| url_launcher_web | 2.4.3 | hosted |  | BSD-3-Clause |
+| url_launcher_windows | 3.1.6 | hosted |  | BSD-3-Clause |
 | uuid | 4.6.0 | hosted |  | MIT |
 | vector_math | 2.4.0 | hosted |  | BSD-3-Clause |
 | vm_service | 15.4.0 | hosted |  | BSD-3-Clause |
@@ -103,7 +120,7 @@ covers this whole set.
 | xdg_directories | 1.1.0 | hosted |  | BSD-3-Clause |
 | yaml | 3.1.4 | hosted |  | MIT |
 
-## Development and test tooling only (38)
+## Development and test tooling only (36)
 
 | Package | Version | Source | Direct | Licence (detected) |
 | --- | --- | --- | --- | --- |
@@ -125,12 +142,10 @@ covers this whole set.
 | fuchsia_remote_debug_protocol | 0.0.0 | sdk |  | BSD-3-Clause |
 | graphs | 2.3.2 | hosted |  | BSD-3-Clause |
 | http_multi_server | 3.2.2 | hosted |  | BSD-3-Clause |
-| http_parser | 4.1.2 | hosted |  | BSD-3-Clause |
 | integration_test | 0.0.0 | sdk | yes | BSD-3-Clause |
 | io | 1.1.0 | hosted |  | BSD-3-Clause |
 | json_annotation | 4.12.0 | hosted |  | BSD-3-Clause |
 | lints | 6.1.0 | hosted |  | BSD-3-Clause |
-| mime | 2.1.0 | hosted |  | BSD-3-Clause |
 | pool | 1.5.3 | hosted |  | BSD-3-Clause |
 | process | 5.0.6 | hosted |  | BSD-3-Clause |
 | pubspec_parse | 1.6.0 | hosted |  | BSD-3-Clause |

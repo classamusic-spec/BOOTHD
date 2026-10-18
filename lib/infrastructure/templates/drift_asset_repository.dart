@@ -137,6 +137,93 @@ final class DriftAssetRepository implements AssetRepository {
     return bytes;
   }
 
+  @override
+  Stream<List<StoredAsset>> watchImages() =>
+      (_db.select(_db.assets)
+            ..where(
+              (a) =>
+                  a.origin.equalsValue(AssetOrigin.bundled).not() &
+                  a.mediaType.isInValues([
+                    AssetMediaType.png,
+                    AssetMediaType.jpeg,
+                  ]),
+            )
+            ..orderBy([
+              (a) => OrderingTerm.desc(a.createdAt),
+              (a) => OrderingTerm.asc(a.id),
+            ]))
+          .watch()
+          .map((rows) => [for (final row in rows) _toDomain(row)]);
+
+  @override
+  Future<bool> isInUse(String assetId) async {
+    final row = await _db
+        .customSelect(
+          'SELECT EXISTS (SELECT 1 FROM template_revision_assets '
+          'WHERE asset_id = ?1) OR EXISTS (SELECT 1 FROM template_drafts '
+          'WHERE instr(document, ?1) > 0) AS used',
+          variables: [Variable.withString(assetId)],
+          readsFrom: {_db.templateRevisionAssets, _db.templateDrafts},
+        )
+        .getSingle();
+    return row.read<bool>('used');
+  }
+
+  @override
+  Future<void> rename(String assetId, String name) async {
+    final plain = _plainName(name);
+    if (plain == null) {
+      throw const TemplateStoreException(
+        TemplateStoreErrorCode.invalidDocument,
+        detail:
+            'the image name must be 1 to ${AssetLimits.maxNameLength} '
+            'characters',
+      );
+    }
+    final changed = await guardPersistence(
+      () => (_db.update(_db.assets)..where((a) => a.id.equals(assetId))).write(
+        AssetsCompanion(displayName: Value(plain)),
+      ),
+    );
+    if (changed == 0) {
+      throw TemplateStoreException(
+        TemplateStoreErrorCode.notFound,
+        detail: isAssetId(assetId) ? assetId : 'invalid asset id',
+      );
+    }
+  }
+
+  @override
+  Future<void> remove(String assetId) async {
+    final stored = await find(assetId);
+    if (stored == null) {
+      throw TemplateStoreException(
+        TemplateStoreErrorCode.notFound,
+        detail: isAssetId(assetId) ? assetId : 'invalid asset id',
+      );
+    }
+    // The check and the delete share a transaction, so a revision or
+    // draft saved meanwhile either sees the asset or blocks its removal.
+    await guardPersistence(
+      () => _db.transaction(() async {
+        if (await isInUse(assetId)) {
+          throw TemplateStoreException(
+            TemplateStoreErrorCode.assetInUse,
+            detail: assetId,
+          );
+        }
+        await (_db.delete(_db.assets)..where((a) => a.id.equals(assetId))).go();
+      }),
+    );
+    // The row is gone; a file left behind by a failed delete is harmless
+    // (storing the same bytes again reuses it).
+    try {
+      await (await _file(assetId, stored.asset.mediaType)).delete();
+    } on FileSystemException {
+      // Already absent.
+    }
+  }
+
   /// `assets/<id>.<extension>`, relative to managed storage.
   static String relativePathOf(String id, AssetMediaType mediaType) =>
       '${ManagedArea.assets.directoryName}/$id.${mediaType.extension}';

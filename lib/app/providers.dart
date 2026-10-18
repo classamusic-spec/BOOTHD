@@ -21,9 +21,11 @@ import '../infrastructure/device/device_capability_probe.dart';
 import '../infrastructure/file_store/file_export_service.dart';
 import '../infrastructure/file_store/managed_storage.dart';
 import '../infrastructure/file_store/original_store.dart';
+import '../infrastructure/files/platform_operator_files.dart';
 import '../infrastructure/security/pbkdf2_pin_hasher.dart';
 import '../infrastructure/security/secure_pin_verifier_store.dart';
 import '../infrastructure/templates/drift_asset_repository.dart';
+import '../infrastructure/templates/drift_template_draft_repository.dart';
 import '../infrastructure/templates/drift_template_repository.dart';
 import '../infrastructure/templates/zip_template_packages.dart';
 import 'router.dart';
@@ -135,6 +137,10 @@ List<Override> productionOverrides() => [
       templates: ref.watch(templateRepositoryProvider),
     ),
   ),
+  templateDraftRepositoryProvider.overrideWith(
+    (ref) => DriftTemplateDraftRepository(ref.watch(_boothDatabaseProvider)),
+  ),
+  operatorFilesProvider.overrideWithValue(PlatformOperatorFiles()),
   exportServiceProvider.overrideWith(
     (ref) => FileExportService(
       renderer: ref.watch(compositionRendererProvider),

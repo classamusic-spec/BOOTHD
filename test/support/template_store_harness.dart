@@ -1,12 +1,14 @@
 import 'dart:io';
 
 import 'package:crypto/crypto.dart' as crypto;
+import 'package:porcelain_photo_booth/core/templates/template_library.dart';
 import 'package:porcelain_photo_booth/domain/models/template_revision_summary.dart';
 import 'package:porcelain_photo_booth/domain/repositories/template_store.dart';
 import 'package:porcelain_photo_booth/features/diagnostics/render_lab/render_fixtures.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/booth_database.dart';
 import 'package:porcelain_photo_booth/infrastructure/file_store/managed_storage.dart';
 import 'package:porcelain_photo_booth/infrastructure/templates/drift_asset_repository.dart';
+import 'package:porcelain_photo_booth/infrastructure/templates/drift_template_draft_repository.dart';
 import 'package:porcelain_photo_booth/infrastructure/templates/drift_template_repository.dart';
 import 'package:porcelain_photo_booth/infrastructure/templates/zip_template_packages.dart';
 
@@ -26,6 +28,16 @@ final class TemplateStoreHarness {
       clock: clock,
     );
     packages = ZipTemplatePackages(assets: assets, templates: templates);
+    drafts = DriftTemplateDraftRepository(db);
+    library = TemplateLibrary(
+      assets: assets,
+      templates: templates,
+      packages: packages,
+      drafts: drafts,
+      clock: clock,
+      // The app reads its bundle; tests read the same files from disk.
+      loadBundled: (path) => File(path).readAsBytes(),
+    );
   }
 
   static Future<TemplateStoreHarness> create() async {
@@ -48,6 +60,8 @@ final class TemplateStoreHarness {
   final DriftAssetRepository assets;
   late final DriftTemplateRepository templates;
   late final ZipTemplatePackages packages;
+  late final DriftTemplateDraftRepository drafts;
+  late final TemplateLibrary library;
 
   Future<void> dispose() async {
     await db.close();
@@ -82,11 +96,12 @@ final class TemplateStoreHarness {
             .toString(),
   };
 
-  Future<({int templates, int revisions, int assets, int links})>
+  Future<({int templates, int revisions, int assets, int links, int drafts})>
   rowCounts() async => (
     templates: (await db.select(db.templates).get()).length,
     revisions: (await db.select(db.templateRevisions).get()).length,
     assets: (await db.select(db.assets).get()).length,
     links: (await db.select(db.templateRevisionAssets).get()).length,
+    drafts: (await db.select(db.templateDrafts).get()).length,
   );
 }
