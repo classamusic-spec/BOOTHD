@@ -16,6 +16,7 @@ decisions taken while executing milestones, plus owner change requests (CR).
 | [ADR-0008](ADR-0008-porcelain-design-system.md) | Porcelain design system, theme profiles and adaptive Studio shell | Accepted (owner approved M02) | M02 |
 | [ADR-0009](ADR-0009-offline-storage-operator-access-booth-mode.md) | Offline storage, operator access, Booth Mode isolation and launch checks | Accepted | M03 |
 | [ADR-0010](ADR-0010-template-model-and-production-renderer.md) | Template document model, production renderer and template store | Accepted | M04 |
+| [ADR-0011](ADR-0011-template-studio-editing.md) | Template Studio editing, drafts, library and display-scale decoding | Accepted | M05 |
 | [CR-001](CR-001-premium-ux-quality-bar.md) | Premium UX quality bar: exceed the 15-screen board | Approved by owner 2026-10-17 | Binding from M02 |
 | [CR-002](CR-002-reference-boards.md) | Match the owner's reference boards | Requested by owner 2026-10-18 | M05 onward |
 

@@ -35,6 +35,19 @@ final class MemoryTemplateStore {
   /// Events offering each template, as the library shows them.
   final eventCounts = <String, int>{};
 
+  /// While set, new revisions and drafts are refused with
+  /// [TemplateStoreErrorCode.storageFailed], as on a full disk.
+  var failWrites = false;
+
+  void _checkWrite() {
+    if (failWrites) {
+      throw const TemplateStoreException(
+        TemplateStoreErrorCode.storageFailed,
+        detail: 'test: writes refused',
+      );
+    }
+  }
+
   final _changes = StreamController<void>.broadcast(sync: true);
   void _changed() => _changes.add(null);
 
@@ -49,6 +62,9 @@ final class MemoryAssets implements AssetRepository {
   final MemoryTemplateStore _store;
   final _bytes = <String, Uint8List>{};
   final _stored = <String, StoredAsset>{};
+
+  /// How many assets are stored.
+  int get count => _stored.length;
 
   @override
   Future<StoredAsset> store(
@@ -329,6 +345,7 @@ final class MemoryTemplates implements TemplateRepository {
       throw const TemplateStoreException(TemplateStoreErrorCode.notFound);
     }
     _check(document);
+    _store._checkWrite();
     final number = _latest(templateId).summary.revisionNumber + 1;
     return _add(template, document, number).summary;
   }
@@ -436,6 +453,7 @@ final class MemoryDrafts implements TemplateDraftRepository {
 
   @override
   Future<void> save(TemplateDraft draft) async {
+    _store._checkWrite();
     _drafts[draft.templateId] = draft;
     _store._changed();
   }
@@ -452,7 +470,7 @@ final class FakeOperatorFiles implements OperatorFiles {
   PickedFile? nextPick;
   FilePickException? nextPickError;
   final picks = <PickableFile>[];
-  final shared = <({String fileName, String mimeType, int bytes})>[];
+  final shared = <({String fileName, String mimeType, Uint8List bytes})>[];
   ShareOutcome shareOutcome = ShareOutcome.shared;
 
   @override
@@ -476,7 +494,7 @@ final class FakeOperatorFiles implements OperatorFiles {
     required String mimeType,
     required ShareAnchor anchor,
   }) async {
-    shared.add((fileName: fileName, mimeType: mimeType, bytes: bytes.length));
+    shared.add((fileName: fileName, mimeType: mimeType, bytes: bytes));
     return shareOutcome;
   }
 }

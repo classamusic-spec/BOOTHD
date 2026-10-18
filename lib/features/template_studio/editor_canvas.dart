@@ -82,6 +82,44 @@ class _EditorCanvasState extends State<EditorCanvas> {
   var _pinchStartScale = 1.0;
   var _pinchPage = Offset.zero;
 
+  @override
+  void initState() {
+    super.initState();
+    _viewport.addListener(_reportDisplayScale);
+  }
+
+  @override
+  void didUpdateWidget(EditorCanvas old) {
+    super.didUpdateWidget(old);
+    if (old.viewport != widget.viewport) {
+      old.viewport.removeListener(_reportDisplayScale);
+      widget.viewport.addListener(_reportDisplayScale);
+    }
+    _reportDisplayScale();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _reportDisplayScale();
+  }
+
+  @override
+  void dispose() {
+    _viewport.removeListener(_reportDisplayScale);
+    super.dispose();
+  }
+
+  /// Tells the controller how big the page shows in physical pixels, so
+  /// images decode at the size they are seen (AC-0510).
+  void _reportDisplayScale() {
+    if (_viewport.viewSize.isEmpty) return;
+    final density =
+        MediaQuery.maybeDevicePixelRatioOf(context) ??
+        View.of(context).devicePixelRatio;
+    _controller.displayScale = _viewport.scale * density;
+  }
+
   PixelPoint _pagePoint(Offset view) {
     final p = _viewport.toPage(view);
     return PixelPoint(p.dx, p.dy);
@@ -511,7 +549,7 @@ class _ScenePainter extends CustomPainter {
           ..fillType = PathFillType.evenOdd
           ..addRect(Offset.zero & size)
           ..addRect(page),
-        Paint()..color = colors.inset.withValues(alpha: 0.8),
+        Paint()..color = colors.inset.withValues(alpha: 0.65),
       )
       ..drawRect(
         page,

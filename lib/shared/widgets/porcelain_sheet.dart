@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../core/design_system/porcelain_metrics.dart';
 import '../../core/design_system/porcelain_motion.dart';
 import '../../core/design_system/porcelain_theme.dart';
+import 'porcelain_button.dart';
+import 'porcelain_text_field.dart';
 
 /// Opens a modal porcelain sheet with a serif [title], a [body] and an
 /// optional row of [actions]. It rises from the bottom (instantly with
@@ -26,6 +28,96 @@ Future<T?> showPorcelainSheet<T>({
       body: body,
       actions: actions?.call(sheetContext) ?? const [],
     ),
+  );
+}
+
+/// Asks for a name in a porcelain sheet: a text field labelled [label]
+/// starting at [initialValue], Cancel and [confirmLabel]. Returns the text,
+/// or null when cancelled or dismissed. The field's controller belongs to
+/// the sheet, so it outlives the closing animation.
+Future<String?> showPorcelainNameSheet({
+  required BuildContext context,
+  required String title,
+  required String label,
+  required String initialValue,
+  required int maxLength,
+  String confirmLabel = 'Rename',
+  TextCapitalization textCapitalization = TextCapitalization.none,
+}) {
+  return showModalBottomSheet<String>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    sheetAnimationStyle: PorcelainMotion.of(context).isReduced
+        ? AnimationStyle.noAnimation
+        : null,
+    builder: (_) => _NameSheet(
+      title: title,
+      label: label,
+      initialValue: initialValue,
+      maxLength: maxLength,
+      confirmLabel: confirmLabel,
+      textCapitalization: textCapitalization,
+    ),
+  );
+}
+
+class _NameSheet extends StatefulWidget {
+  const _NameSheet({
+    required this.title,
+    required this.label,
+    required this.initialValue,
+    required this.maxLength,
+    required this.confirmLabel,
+    required this.textCapitalization,
+  });
+
+  final String title;
+  final String label;
+  final String initialValue;
+  final int maxLength;
+  final String confirmLabel;
+  final TextCapitalization textCapitalization;
+
+  @override
+  State<_NameSheet> createState() => _NameSheetState();
+}
+
+class _NameSheetState extends State<_NameSheet> {
+  late final _controller = TextEditingController(text: widget.initialValue);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _confirm() => Navigator.of(context).pop(_controller.text);
+
+  @override
+  Widget build(BuildContext context) => PorcelainSheet(
+    title: widget.title,
+    body: PorcelainTextField(
+      label: widget.label,
+      controller: _controller,
+      maxLength: widget.maxLength,
+      autofocus: true,
+      textCapitalization: widget.textCapitalization,
+      textInputAction: TextInputAction.done,
+      onSubmitted: (_) => _confirm(),
+    ),
+    actions: [
+      PorcelainButton(
+        label: 'Cancel',
+        variant: PorcelainButtonVariant.quiet,
+        onPressed: () => Navigator.of(context).pop(),
+      ),
+      PorcelainButton(
+        label: widget.confirmLabel,
+        variant: PorcelainButtonVariant.primary,
+        onPressed: _confirm,
+      ),
+    ],
   );
 }
 

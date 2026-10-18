@@ -17,7 +17,6 @@ import '../../shared/widgets/empty_state.dart';
 import '../../shared/widgets/porcelain_button.dart';
 import '../../shared/widgets/porcelain_segmented_control.dart';
 import '../../shared/widgets/porcelain_sheet.dart';
-import '../../shared/widgets/porcelain_text_field.dart';
 import '../../shared/widgets/porcelain_toast.dart';
 import '../../shared/widgets/pressable.dart';
 import '../../shared/widgets/status_badge.dart';
@@ -250,30 +249,13 @@ class _StoredImageTileState extends ConsumerState<_StoredImageTile> {
       .isInUse(widget.asset.id);
 
   Future<void> _rename() async {
-    final controller = TextEditingController(text: widget.asset.asset.name);
-    final name = await showPorcelainSheet<String>(
+    final name = await showPorcelainNameSheet(
       context: context,
       title: 'Rename image',
-      body: PorcelainTextField(
-        label: 'Name',
-        controller: controller,
-        maxLength: AssetLimits.maxNameLength,
-        autofocus: true,
-      ),
-      actions: (sheet) => [
-        PorcelainButton(
-          label: 'Cancel',
-          variant: PorcelainButtonVariant.quiet,
-          onPressed: () => Navigator.of(sheet).pop(),
-        ),
-        PorcelainButton(
-          label: 'Rename',
-          variant: PorcelainButtonVariant.primary,
-          onPressed: () => Navigator.of(sheet).pop(controller.text),
-        ),
-      ],
+      label: 'Name',
+      initialValue: widget.asset.asset.name ?? '',
+      maxLength: AssetLimits.maxNameLength,
     );
-    controller.dispose();
     if (name == null || !mounted) return;
     try {
       await ref.read(assetRepositoryProvider).rename(widget.asset.id, name);

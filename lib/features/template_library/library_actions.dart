@@ -11,7 +11,6 @@ import '../../domain/services/operator_files.dart';
 import '../../shared/templates/template_messages.dart';
 import '../../shared/widgets/porcelain_button.dart';
 import '../../shared/widgets/porcelain_sheet.dart';
-import '../../shared/widgets/porcelain_text_field.dart';
 import '../../shared/widgets/porcelain_toast.dart';
 import '../../shared/widgets/tone.dart';
 import 'new_template_sheet.dart';
@@ -172,33 +171,14 @@ abstract final class LibraryActions {
     WidgetRef ref,
     TemplateListing template,
   ) async {
-    final controller = TextEditingController(
-      text: template.latest.templateName,
-    );
-    final name = await showPorcelainSheet<String>(
+    final name = await showPorcelainNameSheet(
       context: context,
       title: 'Rename template',
-      body: PorcelainTextField(
-        label: 'Name',
-        controller: controller,
-        maxLength: maxTemplateNameLength,
-        autofocus: true,
-        textCapitalization: TextCapitalization.words,
-      ),
-      actions: (sheet) => [
-        PorcelainButton(
-          label: 'Cancel',
-          variant: PorcelainButtonVariant.quiet,
-          onPressed: () => Navigator.of(sheet).pop(),
-        ),
-        PorcelainButton(
-          label: 'Rename',
-          variant: PorcelainButtonVariant.primary,
-          onPressed: () => Navigator.of(sheet).pop(controller.text),
-        ),
-      ],
+      label: 'Name',
+      initialValue: template.latest.templateName,
+      maxLength: maxTemplateNameLength,
+      textCapitalization: TextCapitalization.words,
     );
-    controller.dispose();
     if (name == null || !context.mounted) return;
     try {
       await ref.read(templateLibraryProvider).rename(template.templateId, name);

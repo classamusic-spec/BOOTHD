@@ -31,11 +31,21 @@ final class SceneImageException implements Exception {
   String toString() => 'SceneImageException($source: $reason)';
 }
 
+/// The scale an image is decoded at when the scene draws it at most
+/// [drawScale] page pixels per image pixel and the output has
+/// [outputScale] output pixels per page pixel: the size it is drawn at,
+/// never above full size. Smaller outputs than the print decode at twice
+/// that and are reduced the last step as they are drawn: the codec shrinks
+/// in one step from 2x2 samples, so over larger steps it drops thin lines
+/// and edges that the print keeps (AC-0407, AC-0510).
+double decodeScaleFor(double drawScale, double outputScale) =>
+    math.min(1.0, drawScale * outputScale * (outputScale < 1 ? 2 : 1));
+
 /// Reads, decodes and resolves everything [scene] draws (A-07 steps 1-2).
 ///
-/// Each image is decoded no larger than [outputScale] times the largest
-/// size the scene draws it at (never above full size), which bounds memory
-/// for full-resolution originals and makes previews cheap. Every image must
+/// Each image is decoded at [decodeScaleFor] the largest size the scene
+/// draws it at, which bounds memory for full-resolution originals and makes
+/// previews cheap. Every image must
 /// decode, with its orientation applied, to the size the scene was compiled
 /// against; a different size means the file changed and the render stops.
 Future<SceneResources> loadSceneResources(
@@ -59,7 +69,7 @@ Future<SceneResources> loadSceneResources(
       if (actual != expected) {
         throw ImageMismatchException(source, expected, actual);
       }
-      final scale = math.min(1.0, scene.drawScale(source) * outputScale);
+      final scale = decodeScaleFor(scene.drawScale(source), outputScale);
       try {
         images[source] = DecodedImage(
           await decodeImage(bytes, scale: scale),

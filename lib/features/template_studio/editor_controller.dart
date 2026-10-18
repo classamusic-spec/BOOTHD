@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../core/composition/scene_images.dart';
+import '../../core/composition/scene_loader.dart';
 import '../../core/composition/scene_painter.dart';
 import '../../core/composition/template_fonts.dart';
 import '../../core/templates/slot_placeholder.dart';
@@ -70,6 +71,7 @@ final class TemplateEditorController extends ChangeNotifier {
     required StoredTemplateRevision revision,
     TemplateDraft? restoredDraft,
     this.autosaveDelay = const Duration(milliseconds: 1200),
+    this.refineDelay = const Duration(milliseconds: 250),
     TemplateFontLoader? fonts,
   }) : _revision = revision,
        history = EditHistory(revision.document),
@@ -86,6 +88,10 @@ final class TemplateEditorController extends ChangeNotifier {
   final TemplateLibrary library;
   final AssetRepository assets;
   final Duration autosaveDelay;
+
+  /// How long the view and layers must stay still before images are
+  /// decoded again at exactly the size they show.
+  final Duration refineDelay;
   final EditHistory history;
   final TemplateFontLoader _fonts;
 
@@ -172,6 +178,26 @@ final class TemplateEditorController extends ChangeNotifier {
     if (value == _showSafeArea) return;
     _showSafeArea = value;
     notifyListeners();
+  }
+
+  /// Physical pixels per page pixel on screen, set by the canvas from its
+  /// zoom and the screen's density (AC-0510). Images are decoded at the
+  /// size they show, as the renderer's preview decodes them: a print-size
+  /// image painted at a quarter would alias, and would not look like the
+  /// print. Whatever the view does, they are decoded again, exactly, once
+  /// it has been still for [refineDelay]. No image is decoded before the
+  /// first value arrives.
+  double? get displayScale => _displayScale;
+  double? _displayScale;
+  set displayScale(double? value) {
+    if (value == null || !(value > 0) || value == _displayScale) return;
+    final first = _displayScale == null;
+    _displayScale = value;
+    if (first) {
+      unawaited(_loadImages(refine: true));
+    } else {
+      _scheduleRefine();
+    }
   }
 
   /// Whether the inspector shows lengths in the page's unit (inches or
@@ -429,7 +455,9 @@ final class TemplateEditorController extends ChangeNotifier {
   final _images = <ImageSourceRef, DecodedImage>{};
   final _decodedScale = <ImageSourceRef, double>{};
   final _loading = <ImageSourceRef>{};
+  final _unreadable = <ImageSourceRef>{};
   final _fontsResolved = <FontRef, ResolvedFont>{};
+  Timer? _refineTimer;
 
   /// Images whose files could not be read; drawn as a hatched stand-in.
   final missingAssets = <String>{};
@@ -446,6 +474,30 @@ final class TemplateEditorController extends ChangeNotifier {
   bool get ready =>
       _scene.imageSizes.keys.every(_images.containsKey) &&
       _scene.fonts.every(_fontsResolved.containsKey);
+
+  /// Whether, besides being [ready], every image is decoded at exactly the
+  /// size it shows, with nothing waiting to be decoded again.
+  bool get sharp {
+    final display = _displayScale;
+    if (!ready || display == null || _refineTimer != null) return false;
+    return _scene.imageSizes.keys.every(
+      (ref) =>
+          _unreadable.contains(ref) ||
+          _fits(_decodedScale[ref], _neededScale(_scene, ref, display)),
+    );
+  }
+
+  /// The scale [ref] is decoded at to show at [display], chosen as the
+  /// renderer's preview chooses it.
+  static double _neededScale(
+    DocumentScene scene,
+    ImageSourceRef ref,
+    double display,
+  ) => decodeScaleFor(scene.drawScale(ref), display);
+
+  /// Exactly, so the canvas at rest is the preview, pixel for pixel.
+  static bool _fits(double? decoded, double needed) =>
+      decoded != null && (decoded - needed).abs() <= needed * 1e-9;
 
   var _disposed = false;
 
@@ -493,37 +545,66 @@ final class TemplateEditorController extends ChangeNotifier {
     }
     if (_disposed) return;
     if (fontsChanged) _publishResources();
-    // Images decode side by side; each appears as soon as it is ready.
-    await Future.wait([
-      for (final MapEntry(key: ref, value: size) in scene.imageSizes.entries)
-        _loadImage(scene, ref, size),
-    ]);
+    await _loadImages(refine: false);
+  }
+
+  /// Decodes the images of the current scene that have no pixels yet, side
+  /// by side, each appearing as soon as it is ready. With [refine], images
+  /// shown at another size than they were decoded at are decoded again;
+  /// otherwise that waits until things are still.
+  Future<void> _loadImages({required bool refine}) async {
+    final display = _displayScale;
+    if (display == null || _disposed) return;
+    final scene = _scene;
+    var later = false;
+    final loads = <Future<void>>[];
+    for (final MapEntry(key: ref, value: size) in scene.imageSizes.entries) {
+      if (_unreadable.contains(ref)) continue;
+      final needed = _neededScale(scene, ref, display);
+      if (!_images.containsKey(ref) ||
+          (refine && !_fits(_decodedScale[ref], needed))) {
+        loads.add(_loadImage(ref, size, needed));
+      } else if (!_fits(_decodedScale[ref], needed)) {
+        later = true;
+      }
+    }
+    if (later) _scheduleRefine();
+    await Future.wait(loads);
+  }
+
+  void _scheduleRefine() {
+    _refineTimer?.cancel();
+    _refineTimer = Timer(refineDelay, () {
+      _refineTimer = null;
+      unawaited(_loadImages(refine: true));
+    });
   }
 
   Future<void> _loadImage(
-    DocumentScene scene,
     ImageSourceRef ref,
     PixelSize size,
+    double scale,
   ) async {
-    final needed = math.min(1.0, math.max(scene.drawScale(ref), 0.05));
-    final decoded = _decodedScale[ref];
-    if (decoded != null && decoded >= math.min(1, needed * 0.8)) return;
-    if (!_loading.add(ref)) return;
+    // One decode per image at a time; a later need is met once it is done.
+    if (!_loading.add(ref)) {
+      _scheduleRefine();
+      return;
+    }
     try {
-      final image = await _decode(ref, size, needed);
+      final image = await _decode(ref, size, scale);
       if (_disposed) {
         image.dispose();
         return;
       }
       _replaceImage(ref, image);
-      _decodedScale[ref] = needed;
+      _decodedScale[ref] = scale;
       if (ref case AssetImageRef(:final assetId)) missingAssets.remove(assetId);
     } on Object {
       if (_disposed) return;
       if (!_images.containsKey(ref)) {
         _replaceImage(ref, DecodedImage(await _hatch(), sourceSize: size));
       }
-      _decodedScale[ref] = 1;
+      _unreadable.add(ref);
       if (ref case AssetImageRef(:final assetId)) missingAssets.add(assetId);
     } finally {
       _loading.remove(ref);
@@ -562,10 +643,12 @@ final class TemplateEditorController extends ChangeNotifier {
     if (_images.containsKey(ref)) return;
     final size = PixelSize(asset.widthPx!, asset.heightPx!);
     final page = document.page;
-    // New images are at most the page's size.
+    // New images are at most the page's size, shown at the view's scale;
+    // once placed they are decoded again at exactly the size they show.
     final scale = math.min(
       1.0,
-      math.max(page.widthPx / size.width, page.heightPx / size.height),
+      math.max(page.widthPx / size.width, page.heightPx / size.height) *
+          (_displayScale ?? 1),
     );
     final image = await _decode(ref, size, scale);
     if (_disposed) {
@@ -699,6 +782,7 @@ final class TemplateEditorController extends ChangeNotifier {
   void dispose() {
     _disposed = true;
     _draftTimer?.cancel();
+    _refineTimer?.cancel();
     // Unsaved work is kept as a draft even if the timer had not fired.
     if (hasUnsavedChanges) unawaited(writeDraft());
     for (final image in _images.values) {
