@@ -133,10 +133,9 @@ class DiagnosticsScreen extends ConsumerWidget {
                   children: [
                     PorcelainListRow(
                       icon: PorcelainIcons.layers,
-                      title: 'Render spike',
-                      subtitle:
-                          'M01: 1200 × 1800 composition with overlay checks',
-                      onPressed: () => context.push(RoutePaths.renderSpike),
+                      title: 'Render lab',
+                      subtitle: 'Renderer fixtures, parity and failure checks',
+                      onPressed: () => context.push(RoutePaths.renderLab),
                     ),
                     PorcelainListRow(
                       icon: PorcelainIcons.camera,

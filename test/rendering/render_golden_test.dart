@@ -1,13 +1,16 @@
-// Golden comparison for FIX-01 (AC-0104). Regenerate after an intentional
-// rendering change with: flutter test --update-goldens test/rendering/
+// Golden comparisons (AC-0104, AC-0407). FIX-01's goldens date from the M01
+// spike: the production renderer must still reproduce them. Regenerate
+// after an intentional rendering change with:
+//   flutter test --update-goldens test/rendering/
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:porcelain_photo_booth/domain/services/composition_renderer.dart';
-import 'package:porcelain_photo_booth/features/diagnostics/spikes/render/render_checks.dart';
-import 'package:porcelain_photo_booth/features/diagnostics/spikes/render/render_fixtures.dart';
+import 'package:porcelain_photo_booth/features/diagnostics/render_lab/render_checks.dart';
+import 'package:porcelain_photo_booth/features/diagnostics/render_lab/render_fixtures.dart';
+import 'package:porcelain_photo_booth/features/diagnostics/render_lab/render_lab_runner.dart';
 import 'package:porcelain_photo_booth/infrastructure/composition/dart_ui_composition_renderer.dart';
 
 const _goldens = 'test_assets/expected_renders';
@@ -25,14 +28,14 @@ Future<Uint8List> _decodeRgba(Uint8List png) async {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  const renderer = DartUiCompositionRenderer();
+  final renderer = DartUiCompositionRenderer();
 
-  Future<void> expectMatchesGolden(RenderedImage image, String name) async {
+  Future<void> expectMatchesGolden(RenderArtifact image, String name) async {
     final file = File('$_goldens/$name');
     if (autoUpdateGoldenFiles) {
       file
         ..createSync(recursive: true)
-        ..writeAsBytesSync(image.png);
+        ..writeAsBytesSync(image.bytes);
       return;
     }
     expect(
@@ -51,39 +54,37 @@ void main() {
     expect(GoldenTolerance.accepts(diff), isTrue, reason: '$diff');
   }
 
-  test('FIX-01 export matches its golden within tolerance', () async {
-    final image = await renderer.renderExport(
-      fix01(),
-      slotAssets: fix01SlotAssets,
-      assets: fix01Assets(),
-      includePixels: true,
+  test('FIX-01 export still matches the M01 spike golden', () async {
+    await expectMatchesGolden(
+      await exportPixels(renderer, fix01()),
+      labGoldens['FIX-01']!,
     );
-    await expectMatchesGolden(image, 'fix01_export_1200x1800.png');
   });
 
-  test('FIX-01 workspace matches its golden within tolerance', () async {
-    final image = await renderer.renderWorkspace(
-      fix01(),
-      slotAssets: fix01SlotAssets,
-      assets: fix01Assets(),
-      includePixels: true,
+  test('FIX-01 workspace still matches the M01 spike golden', () async {
+    await expectMatchesGolden(
+      await renderer.renderPreview(
+        fix01().render,
+        maxWidthPx: 1440,
+        maxHeightPx: 2160,
+        workspaceMargin: 0.1,
+        includePixels: true,
+      ),
+      labGoldens[workspaceGoldenKey]!,
     );
-    await expectMatchesGolden(image, 'fix01_workspace_1440x2160.png');
   });
+
+  for (final fixture in labFixtures()) {
+    final name = labGoldens[fixture.id];
+    if (name == null || fixture.id == 'FIX-01') continue;
+    test('$name matches its golden', () async {
+      await expectMatchesGolden(await exportPixels(renderer, fixture), name);
+    });
+  }
 
   test('the tolerance rejects a visibly different image', () async {
-    final good = await renderer.renderExport(
-      fix01(),
-      slotAssets: fix01SlotAssets,
-      assets: fix01Assets(),
-      includePixels: true,
-    );
-    final shifted = await renderer.renderExport(
-      fix01(flowerBelowSlots: true),
-      slotAssets: fix01SlotAssets,
-      assets: fix01Assets(),
-      includePixels: true,
-    );
+    final good = await exportPixels(renderer, fix01());
+    final shifted = await exportPixels(renderer, fix01(flowerBelowSlots: true));
     final diff = compareRgba(
       good.rgba!,
       shifted.rgba!,

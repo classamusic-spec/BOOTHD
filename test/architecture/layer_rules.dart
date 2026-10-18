@@ -34,7 +34,9 @@ const Map<Layer, Set<String>> allowedPackages = {
   // The icon font is wrapped by core/design_system/porcelain_icons.dart so
   // features and shared widgets use semantic icon names only (ADR-0008).
   Layer.core: {..._uiPackages, 'material_symbols_icons'},
-  Layer.domain: {'meta', 'collection'},
+  // Template assets are content-addressed by SHA-256, a domain rule; crypto
+  // is the Dart team's pure-Dart implementation (ADR-0010).
+  Layer.domain: {'meta', 'collection', 'crypto'},
   Layer.features: _uiPackages,
   Layer.shared: _uiPackages,
 };

@@ -9,7 +9,7 @@ import 'package:porcelain_photo_booth/features/booth/guest_preview_screen.dart';
 import 'package:porcelain_photo_booth/features/dashboard/dashboard_screen.dart';
 import 'package:porcelain_photo_booth/features/diagnostics/component_gallery_screen.dart';
 import 'package:porcelain_photo_booth/features/diagnostics/diagnostics_screen.dart';
-import 'package:porcelain_photo_booth/features/diagnostics/spikes/render_spike_screen.dart';
+import 'package:porcelain_photo_booth/features/diagnostics/render_lab/render_lab_screen.dart';
 import 'package:porcelain_photo_booth/features/events/events_screen.dart';
 import 'package:porcelain_photo_booth/features/gallery/gallery_screen.dart';
 import 'package:porcelain_photo_booth/features/settings/settings_screen.dart';
@@ -247,8 +247,8 @@ void main() {
   ) async {
     useViewport(tester, TabletViewport.ipadLandscape);
     await pumpApp(tester, location: RoutePaths.diagnostics);
-    await tapVisible(tester, find.text('Render spike'));
-    expect(find.byType(RenderSpikeScreen), findsOneWidget);
+    await tapVisible(tester, find.text('Render lab'));
+    expect(find.byType(RenderLabScreen), findsOneWidget);
 
     routerOf(tester).go(RoutePaths.componentGallery);
     await tester.pump(const Duration(seconds: 1));
@@ -265,9 +265,9 @@ void main() {
       environment: releaseIpad,
     );
     expect(find.text('Developer tools'), findsNothing);
-    expect(find.text('Render spike'), findsNothing);
+    expect(find.text('Render lab'), findsNothing);
     for (final path in [
-      RoutePaths.renderSpike,
+      RoutePaths.renderLab,
       RoutePaths.cameraSpike,
       RoutePaths.componentGallery,
     ]) {

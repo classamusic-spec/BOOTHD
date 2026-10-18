@@ -128,14 +128,27 @@ final class ImageDiff {
       '$threshold';
 }
 
-ImageDiff compareRgba(Uint8List a, Uint8List b, {int threshold = 8}) {
+/// With [mask] (one byte per pixel), only pixels whose mask byte is
+/// non-zero are compared and counted.
+ImageDiff compareRgba(
+  Uint8List a,
+  Uint8List b, {
+  int threshold = 8,
+  Uint8List? mask,
+}) {
   if (a.length != b.length) {
     throw ArgumentError('images differ in size: ${a.length} vs ${b.length}');
+  }
+  if (mask != null && mask.length * 4 != a.length) {
+    throw ArgumentError('the mask does not match the images');
   }
   var maxDelta = 0;
   var sum = 0;
   var over = 0;
+  var pixels = 0;
   for (var i = 0; i < a.length; i += 4) {
+    if (mask != null && mask[i >> 2] == 0) continue;
+    pixels++;
     var pixelMax = 0;
     for (var c = 0; c < 3; c++) {
       final d = (a[i + c] - b[i + c]).abs();
@@ -145,7 +158,7 @@ ImageDiff compareRgba(Uint8List a, Uint8List b, {int threshold = 8}) {
     if (pixelMax > maxDelta) maxDelta = pixelMax;
     if (pixelMax > threshold) over++;
   }
-  final pixels = a.length ~/ 4;
+  if (pixels == 0) throw ArgumentError('no pixels to compare');
   return ImageDiff(
     maxDelta: maxDelta,
     meanAbsDelta: sum / (pixels * 3),
@@ -173,4 +186,91 @@ abstract final class GoldenTolerance {
       diff.threshold == threshold &&
       diff.fractionOverThreshold <= maxFractionOver &&
       diff.meanAbsDelta <= maxMeanAbsDelta;
+}
+
+/// Preview-to-export parity (AC-0407, ADR-0010): a preview against its
+/// export box-filtered down to the preview's size, outside text. Previews
+/// decode images smaller and resample them once, so hard edges inside
+/// photos and decorations differ by up to a pixel's blend; text is
+/// rasterised by the font engine at the preview's size, so it is compared
+/// by geometry ([TextParity]) rather than by pixels.
+abstract final class PreviewTolerance {
+  static const threshold = 16;
+  static const maxFractionOver = 0.005;
+  static const maxMeanAbsDelta = 1.0;
+
+  static bool accepts(ImageDiff diff) =>
+      diff.threshold == threshold &&
+      diff.fractionOverThreshold <= maxFractionOver &&
+      diff.meanAbsDelta <= maxMeanAbsDelta;
+}
+
+/// Text in a preview against the same text in the export at the preview's
+/// size: the same number of lines, with the ink's bounds within this many
+/// preview pixels on every side.
+abstract final class TextParity {
+  static const maxEdgeShift = 1;
+}
+
+/// Averages [factor] x [factor] blocks: a box-filtered downscale.
+Uint8List downscale(Uint8List rgba, int width, int height, int factor) {
+  final outWidth = width ~/ factor;
+  final outHeight = height ~/ factor;
+  final out = Uint8List(outWidth * outHeight * 4);
+  for (var y = 0; y < outHeight; y++) {
+    for (var x = 0; x < outWidth; x++) {
+      for (var c = 0; c < 4; c++) {
+        var sum = 0;
+        for (var dy = 0; dy < factor; dy++) {
+          for (var dx = 0; dx < factor; dx++) {
+            sum += rgba[((y * factor + dy) * width + x * factor + dx) * 4 + c];
+          }
+        }
+        out[(y * outWidth + x) * 4 + c] = (sum / (factor * factor)).round();
+      }
+    }
+  }
+  return out;
+}
+
+/// The bounds of "ink" (pixels darker than [threshold] in any channel)
+/// inside [left, top, right, bottom), and the number of separate bands of
+/// inked rows (text lines).
+({int left, int top, int right, int bottom, int bands})? inkIn(
+  Uint8List rgba,
+  int width, {
+  required int left,
+  required int top,
+  required int right,
+  required int bottom,
+  int threshold = 160,
+}) {
+  int? minX, minY, maxX, maxY;
+  var bands = 0;
+  var previousRowInked = false;
+  for (var y = top; y < bottom; y++) {
+    var rowInked = false;
+    for (var x = left; x < right; x++) {
+      final i = (y * width + x) * 4;
+      if (rgba[i] < threshold ||
+          rgba[i + 1] < threshold ||
+          rgba[i + 2] < threshold) {
+        rowInked = true;
+        minX = minX == null || x < minX ? x : minX;
+        maxX = maxX == null || x > maxX ? x : maxX;
+        minY ??= y;
+        maxY = y;
+      }
+    }
+    if (rowInked && !previousRowInked) bands++;
+    previousRowInked = rowInked;
+  }
+  if (minX == null) return null;
+  return (
+    left: minX,
+    top: minY!,
+    right: maxX! + 1,
+    bottom: maxY! + 1,
+    bands: bands,
+  );
 }

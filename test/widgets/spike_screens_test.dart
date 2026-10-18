@@ -5,12 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:porcelain_photo_booth/core/di/service_providers.dart';
+import 'package:porcelain_photo_booth/domain/models/booth_event.dart';
 import 'package:porcelain_photo_booth/domain/services/camera_service.dart';
 import 'package:porcelain_photo_booth/domain/services/composition_renderer.dart';
-import 'package:porcelain_photo_booth/domain/template/template_document.dart';
+import 'package:porcelain_photo_booth/features/diagnostics/render_lab/png_encoder.dart';
+import 'package:porcelain_photo_booth/features/diagnostics/render_lab/render_lab_screen.dart';
 import 'package:porcelain_photo_booth/features/diagnostics/spikes/camera_spike_screen.dart';
-import 'package:porcelain_photo_booth/features/diagnostics/spikes/render/png_encoder.dart';
-import 'package:porcelain_photo_booth/features/diagnostics/spikes/render_spike_screen.dart';
 
 const _front = CameraDescriptor(
   id: 'front-0',
@@ -114,19 +114,19 @@ final class _FakeStore implements CapturedStillStore {
 
 final class _FailingRenderer implements CompositionRenderer {
   @override
-  Future<RenderedImage> renderExport(
-    TemplateDocument document, {
-    required Map<int, String> slotAssets,
-    required Map<String, Uint8List> assets,
+  Future<RenderArtifact> renderExport(
+    TemplateRender render, {
+    OutputProfile output = const OutputProfile(),
+    int flattenArgb = 0xFFFFFFFF,
     bool includePixels = false,
   }) async => throw const RenderFailure(RenderFailureCode.missingAsset);
 
   @override
-  Future<RenderedImage> renderWorkspace(
-    TemplateDocument document, {
-    required Map<int, String> slotAssets,
-    required Map<String, Uint8List> assets,
-    double marginFraction = 0.1,
+  Future<RenderArtifact> renderPreview(
+    TemplateRender render, {
+    required int maxWidthPx,
+    required int maxHeightPx,
+    double workspaceMargin = 0,
     bool includePixels = false,
   }) async => throw const RenderFailure(RenderFailureCode.missingAsset);
 }
@@ -210,7 +210,7 @@ void main() {
     expect(camera.state, CameraLifecycle.suspended);
   });
 
-  testWidgets('render spike reports renderer failures instead of crashing', (
+  testWidgets('render lab reports renderer failures instead of crashing', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -218,14 +218,17 @@ void main() {
         overrides: [
           compositionRendererProvider.overrideWithValue(_FailingRenderer()),
         ],
-        child: const MaterialApp(home: RenderSpikeScreen()),
+        child: const MaterialApp(home: RenderLabScreen()),
       ),
     );
-    await tester.tap(find.text('Run FIX-01 render spike'));
+    await tester.tap(find.text('Run the fixture suite'));
     await tester.pumpAndSettle();
 
     expect(
-      find.text('Render spike failed: RenderFailure(missingAsset)'),
+      find.text(
+        'The render lab failed: '
+        'RenderFailure(RENDER_MISSING_ASSET)',
+      ),
       findsOneWidget,
     );
   });

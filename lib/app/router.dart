@@ -11,8 +11,8 @@ import '../features/booth/guest_preview_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
 import '../features/diagnostics/component_gallery_screen.dart';
 import '../features/diagnostics/diagnostics_screen.dart';
+import '../features/diagnostics/render_lab/render_lab_screen.dart';
 import '../features/diagnostics/spikes/camera_spike_screen.dart';
-import '../features/diagnostics/spikes/render_spike_screen.dart';
 import '../features/events/event_editor_screen.dart';
 import '../features/events/events_screen.dart';
 import '../features/events/preflight_screen.dart';
@@ -158,8 +158,8 @@ GoRouter buildRouter({
       ),
       if (devTools) ...[
         GoRoute(
-          path: RoutePaths.renderSpike,
-          builder: (_, _) => const RenderSpikeScreen(),
+          path: RoutePaths.renderLab,
+          builder: (_, _) => const RenderLabScreen(),
         ),
         GoRoute(
           path: RoutePaths.cameraSpike,

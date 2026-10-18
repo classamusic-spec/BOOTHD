@@ -4,23 +4,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/di/service_providers.dart';
-import 'render/render_spike_runner.dart';
+import 'render_lab_runner.dart';
 
-/// Dev-only M01 render spike (debug and profile builds only).
+/// Dev-only render lab (debug and profile builds only, ADR-0010).
 ///
-/// Renders FIX-01 offscreen from encoded images on this device and runs
-/// every pixel, halo and failure check, showing the print output and the
-/// editor workspace. Deliberately plain: this is a feasibility probe.
-class RenderSpikeScreen extends ConsumerStatefulWidget {
-  const RenderSpikeScreen({super.key});
+/// Runs the renderer's fixture suite on this device: every fixture's pixel
+/// checks, the editor workspace, the halo probes and the failure probes,
+/// then shows the print outputs. A diagnostic tool, deliberately plain.
+class RenderLabScreen extends ConsumerStatefulWidget {
+  const RenderLabScreen({super.key});
 
   @override
-  ConsumerState<RenderSpikeScreen> createState() => _RenderSpikeScreenState();
+  ConsumerState<RenderLabScreen> createState() => _RenderLabScreenState();
 }
 
-class _RenderSpikeScreenState extends ConsumerState<RenderSpikeScreen> {
+class _RenderLabScreenState extends ConsumerState<RenderLabScreen> {
   var _running = false;
-  RenderSpikeReport? _report;
+  RenderLabReport? _report;
   String? _error;
 
   Future<void> _run() async {
@@ -30,9 +30,7 @@ class _RenderSpikeScreenState extends ConsumerState<RenderSpikeScreen> {
       _error = null;
     });
     try {
-      final report = await runRenderSpike(
-        ref.read(compositionRendererProvider),
-      );
+      final report = await runRenderLab(ref.read(compositionRendererProvider));
       if (mounted) setState(() => _report = report);
     } on Object catch (error) {
       if (mounted) setState(() => _error = '$error');
@@ -46,7 +44,7 @@ class _RenderSpikeScreenState extends ConsumerState<RenderSpikeScreen> {
     final report = _report;
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
-      appBar: AppBar(title: const Text('M01 render spike')),
+      appBar: AppBar(title: const Text('Render lab')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -54,13 +52,13 @@ class _RenderSpikeScreenState extends ConsumerState<RenderSpikeScreen> {
             alignment: Alignment.centerLeft,
             child: FilledButton(
               onPressed: _running ? null : _run,
-              child: Text(_running ? 'Rendering…' : 'Run FIX-01 render spike'),
+              child: Text(_running ? 'Rendering…' : 'Run the fixture suite'),
             ),
           ),
           if (_error case final error?)
             Padding(
               padding: const EdgeInsets.only(top: 16),
-              child: Text('Render spike failed: $error'),
+              child: Text('The render lab failed: $error'),
             ),
           if (report != null) ...[
             const SizedBox(height: 16),
@@ -73,13 +71,16 @@ class _RenderSpikeScreenState extends ConsumerState<RenderSpikeScreen> {
               spacing: 16,
               runSpacing: 16,
               children: [
-                _RenderPreview(
-                  label: 'Export, 1200x1800 print output',
-                  png: report.export.png,
-                ),
-                _RenderPreview(
+                for (final result in report.fixtures)
+                  _Output(
+                    label:
+                        '${result.fixture.id}, '
+                        '${result.export.widthPx}x${result.export.heightPx}',
+                    png: result.export.bytes,
+                  ),
+                _Output(
                   label: 'Editor workspace, shows overflow',
-                  png: report.workspace.png,
+                  png: report.workspace.bytes,
                 ),
               ],
             ),
@@ -96,15 +97,15 @@ class _RenderSpikeScreenState extends ConsumerState<RenderSpikeScreen> {
   }
 }
 
-class _RenderPreview extends StatelessWidget {
-  const _RenderPreview({required this.label, required this.png});
+class _Output extends StatelessWidget {
+  const _Output({required this.label, required this.png});
 
   final String label;
   final Uint8List png;
 
   @override
   Widget build(BuildContext context) => SizedBox(
-    width: 280,
+    width: 220,
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

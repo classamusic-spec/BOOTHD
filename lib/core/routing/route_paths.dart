@@ -50,7 +50,7 @@ abstract final class RoutePaths {
   static const guestPreview = '/preview/guest-welcome';
 
   /// Developer tools, registered only outside release builds.
-  static const renderSpike = '/dev/render-spike';
+  static const renderLab = '/dev/render-lab';
   static const cameraSpike = '/dev/camera-spike';
   static const componentGallery = '/dev/components';
 }

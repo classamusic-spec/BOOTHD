@@ -74,9 +74,7 @@ final _boothDatabaseProvider = Provider<BoothDatabase>((ref) {
 /// Providers are lazy: nothing touches the camera or disk until a screen
 /// (or startup) reads them.
 List<Override> productionOverrides() => [
-  compositionRendererProvider.overrideWithValue(
-    const DartUiCompositionRenderer(),
-  ),
+  compositionRendererProvider.overrideWithValue(DartUiCompositionRenderer()),
   capturedStillStoreProvider.overrideWith(
     (ref) => ref.watch(_originalStoreProvider),
   ),
