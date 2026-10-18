@@ -65,6 +65,11 @@ class _EditorCanvasState extends State<EditorCanvas> {
   var _pointers = 0;
   var _multiTouch = false;
 
+  /// Where each finger now down first touched (canvas coordinates). A
+  /// gesture acts from there, not from where it cleared the touch slop, so
+  /// a layer stays under the finger and a handle is grabbed where touched.
+  final _downs = <int, Offset>{};
+
   // Move.
   TemplateDocument? _startDocument;
   var _moving = <String>{};
@@ -179,7 +184,10 @@ class _EditorCanvasState extends State<EditorCanvas> {
   }
 
   void _onScaleStart(ScaleStartDetails details) {
-    final focal = details.localFocalPoint;
+    final downs = _downs.values;
+    final focal = downs.length == details.pointerCount
+        ? downs.reduce((a, b) => a + b) / downs.length.toDouble()
+        : details.localFocalPoint;
     if (details.pointerCount >= 2) {
       _multiTouch = true;
       _mode = _Mode.zoom;
@@ -187,9 +195,15 @@ class _EditorCanvasState extends State<EditorCanvas> {
       _pinchPage = _viewport.toPage(focal);
       return;
     }
+    // The page follows a panning finger from where it touched.
+    void pan() {
+      _mode = _Mode.pan;
+      if (!_multiTouch) _viewport.panBy(details.localFocalPoint - focal);
+    }
+
     // A finger left after a pinch only pans, never grabs a layer.
     if (_multiTouch || _controller.tool == EditorTool.pan) {
-      _mode = _Mode.pan;
+      pan();
       return;
     }
 
@@ -213,7 +227,7 @@ class _EditorCanvasState extends State<EditorCanvas> {
     final document = _controller.document;
     final hit = layerAt(document, _pagePoint(focal), slop: _pageSlop);
     if (hit == null) {
-      _mode = _Mode.pan;
+      pan();
       return;
     }
     if (!_controller.isSelected(hit)) _controller.select(hit);
@@ -223,7 +237,7 @@ class _EditorCanvasState extends State<EditorCanvas> {
     };
     if (movable.isEmpty) {
       // A locked layer: selected so it can be unlocked, never moved.
-      _mode = _Mode.pan;
+      pan();
       return;
     }
     _mode = _Mode.move;
@@ -421,9 +435,12 @@ class _EditorCanvasState extends State<EditorCanvas> {
       builder: (context, constraints) {
         _viewport.resize(constraints.biggest);
         return Listener(
-          onPointerDown: (_) => _pointers++,
-          onPointerUp: (_) => _pointerGone(),
-          onPointerCancel: (_) => _pointerGone(),
+          onPointerDown: (event) {
+            _pointers++;
+            _downs[event.pointer] = event.localPosition;
+          },
+          onPointerUp: (event) => _pointerGone(event.pointer),
+          onPointerCancel: (event) => _pointerGone(event.pointer),
           onPointerSignal: _onPointerSignal,
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
@@ -462,7 +479,8 @@ class _EditorCanvasState extends State<EditorCanvas> {
     );
   }
 
-  void _pointerGone() {
+  void _pointerGone(int pointer) {
+    _downs.remove(pointer);
     _pointers = math.max(0, _pointers - 1);
     if (_pointers == 0) _multiTouch = false;
   }

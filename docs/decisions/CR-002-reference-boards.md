@@ -34,6 +34,29 @@
 | Seven guest experiences (Porcelain Classic, Light Wood, Storybook Garden, Kid Party Arcade, Retro Game Quest, Disco Nights, Midnight Gala) | UX-02: three theme profiles | The three existing themes are shown as experience cards; the four new experiences need an owner decision (new artwork, sounds and motion for each) |
 | Countdown styles, sound effects, celebration animation | Belong with the countdown (M07) | Added with the guest flow, not as settings that do nothing now |
 
+## Status after M05 (2026-10-18)
+
+Built and covered by goldens in both orientations:
+
+- Welcome / Start: the wordmark, "Let's Make Some Memories" as a two or
+  three line serif block, the pearl Start button in a polished gold rim
+  ("TAP TO", camera, "START"), the event's own print at a slight angle
+  (its template with neutral photo spaces), the non-interactive Photo
+  booth / Pose / Smile / Enjoy guide, cream blossoms in the corners and
+  along the open edge. The operator's own words still win; the event's
+  name and date sit above the title.
+- Choose your style (operator side): "CHOOSE YOUR STYLE" with the five
+  board designs and four blank pages, each rendered as it prints; the
+  chosen card has a gold edge and a check. The library shows the same
+  rendered cards. The guest-side chooser waits for M07.
+- Event Setup (S14): Event, Experience, Templates, Camera, Output and
+  Privacy tabs; "Choose guest experience" cards drawn in each theme, gold
+  edged with a check when chosen.
+
+Still open for the owner: the four experiences the app does not have
+(above), countdown styles and sounds (M07), "Black & White" (needs a photo
+filter), and whether a back step inside a guest session is wanted (M07).
+
 ## Verification
 
 Goldens of the changed screens in both orientations next to the boards; the
