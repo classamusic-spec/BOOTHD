@@ -1,0 +1,75 @@
+# Static checks, unit/widget tests and an Android smoke build on every push
+# to main or claude/** and on pull requests. The iPadOS build runs on a macOS
+# runner only when started by hand (Actions > CI > Run workflow > ios: true),
+# because macOS minutes are expensive and no signing is configured yet.
+# None of these jobs is physical-device evidence (TEST_AND_DEVICE_PLAN T-03).
+name: CI
+
+on:
+  push:
+    branches: [main, 'claude/**']
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      ios:
+        description: Also build iPadOS (unsigned) on a macOS runner
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Keep in step with environment.flutter in pubspec.yaml (ADR-0001).
+  FLUTTER_VERSION: 3.47.7
+
+jobs:
+  checks:
+    name: Format, analyze, test, licences
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: tool/check.sh
+
+  android:
+    name: Android release smoke build
+    needs: checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: tool/build_android.sh release
+
+  ios:
+    name: iPadOS unsigned build
+    if: github.event_name == 'workflow_dispatch' && inputs.ios
+    needs: checks
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: tool/build_ios.sh release
