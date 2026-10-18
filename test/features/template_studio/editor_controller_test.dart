@@ -14,6 +14,7 @@ import 'package:porcelain_photo_booth/domain/repositories/template_store.dart';
 import 'package:porcelain_photo_booth/domain/template/editing/document_edits.dart';
 import 'package:porcelain_photo_booth/domain/template/editing/layer_copy.dart';
 import 'package:porcelain_photo_booth/domain/template/geometry.dart';
+import 'package:porcelain_photo_booth/domain/template/template_assets.dart';
 import 'package:porcelain_photo_booth/domain/template/template_document.dart';
 import 'package:porcelain_photo_booth/domain/template/template_layers.dart';
 import 'package:porcelain_photo_booth/features/template_studio/editor_controller.dart';
@@ -228,6 +229,36 @@ void main() {
       expect(_slot(controller, 'photo-1').rotationDegrees, 45);
       controller.undo();
       expect(_slot(controller, 'photo-1').rotationDegrees, 0);
+      expect(controller.canUndo, isFalse);
+    });
+
+    _test('a background colour, a gradient and removing it are one step '
+        'each', (tester, booth) async {
+      final controller = await booth.open();
+      BackgroundFill? fill() => controller.document.background?.fill;
+      final original = fill();
+      const navy = SolidFill(ArgbColor(0xFF223344));
+      const gradient = LinearGradientFill(
+        angleDegrees: 90,
+        stops: [
+          GradientStop(0, ArgbColor(0xFFFFFFFF)),
+          GradientStop(1, ArgbColor(0xFFE6CD9B)),
+        ],
+      );
+      await controller.setBackground(navy);
+      await controller.setBackground(gradient);
+      expect(fill(), gradient);
+      controller
+        ..select('background')
+        ..deleteSelected();
+      expect(controller.document.background, isNull);
+
+      controller.undo();
+      expect(fill(), gradient);
+      controller.undo();
+      expect(fill(), navy);
+      controller.undo();
+      expect(fill(), original);
       expect(controller.canUndo, isFalse);
     });
 

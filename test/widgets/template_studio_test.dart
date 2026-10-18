@@ -16,6 +16,7 @@ import 'package:porcelain_photo_booth/domain/template/geometry.dart';
 import 'package:porcelain_photo_booth/domain/template/template_layers.dart';
 import 'package:porcelain_photo_booth/features/template_studio/editor_canvas.dart';
 import 'package:porcelain_photo_booth/features/template_studio/editor_controller.dart';
+import 'package:porcelain_photo_booth/features/template_studio/inspector_controls.dart';
 import 'package:porcelain_photo_booth/shared/widgets/porcelain_text_field.dart';
 
 import '../support/app_harness.dart';
@@ -375,23 +376,59 @@ void main() {
     expect(saved, controller.document);
   });
 
-  testWidgets('exact numbers in the inspector move and size a layer', (
-    tester,
-  ) async {
-    await _openEditor(tester);
-    final controller = _controller(tester);
-    controller.select('photo-1');
-    await tester.pumpAndSettle();
+  for (final viewport in [
+    TabletViewport.ipadLandscape,
+    TabletViewport.ipadPortrait,
+  ]) {
+    testWidgets('${viewport.name}: exact numbers in the inspector move, size '
+        'and turn a layer', (tester) async {
+      await _openEditor(tester, viewport: viewport);
+      final controller = _controller(tester);
+      controller.select('photo-1');
+      await tester.pumpAndSettle();
+      if (viewport == TabletViewport.ipadPortrait) {
+        // Portrait keeps the inspector in a sheet over the canvas, opened
+        // from the tool shelf (the last "Inspector": the closed sheet has
+        // its own switch).
+        await tester.tap(find.bySemanticsLabel('Inspector').last);
+        await tester.pumpAndSettle();
+      }
 
-    await tester.enterText(find.widgetWithText(TextField, '36.0').first, '50');
-    await tester.testTextInput.receiveAction(TextInputAction.done);
-    await tester.pumpAndSettle();
-    final slot = controller.document.layers.firstWhere(
-      (l) => l.id == 'photo-1',
-    ) as PhotoSlotLayer;
-    expect(slot.frame.x * 600, closeTo(50, 1e-9));
-    expect(controller.canUndo, isTrue);
-  });
+      Future<void> type(String label, String text) async {
+        final field = find.descendant(
+          of: find
+              .ancestor(
+                // Labels carry their unit: "X (px)", "Rotation (°)".
+                of: find.textContaining(RegExp('^$label \\(')),
+                matching: find.byType(InspectorNumberField),
+              )
+              .first,
+          matching: find.byType(TextField),
+        );
+        await tester.ensureVisible(field);
+        await tester.pumpAndSettle();
+        await tester.enterText(field, text);
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pumpAndSettle();
+      }
+
+      await type('X', '50');
+      await type('Width', '480');
+      await type('Rotation', '12.5');
+      final slot = _slot(controller, 'photo-1');
+      expect(slot.frame.x * 600, closeTo(50, 1e-9));
+      expect(slot.frame.width * 600, closeTo(480, 1e-9));
+      expect(slot.rotationDegrees, 12.5);
+      // Three commits, three undo steps.
+      controller
+        ..undo()
+        ..undo()
+        ..undo();
+      await tester.pump();
+      expect(_slot(controller, 'photo-1').frame.x * 600, closeTo(36, 1e-9));
+      expect(controller.canUndo, isFalse);
+    });
+  }
 
   testWidgets('save stores revision 2 and clears the unsaved state', (
     tester,

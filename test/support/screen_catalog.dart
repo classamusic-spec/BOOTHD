@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:porcelain_photo_booth/core/design_system/appearance.dart';
 import 'package:porcelain_photo_booth/core/routing/route_paths.dart';
 import 'package:porcelain_photo_booth/features/template_studio/editor_canvas.dart';
+import 'package:porcelain_photo_booth/features/template_studio/layers_panel.dart';
 import 'package:porcelain_photo_booth/shared/operator_access/access_copy.dart';
 
 import 'app_harness.dart';
@@ -140,6 +141,7 @@ final screens = <String, ScreenSpec>{
     then: (tester) async {
       await tester.tap(find.bySemanticsLabel('Layers').last);
       await tester.pumpAndSettle();
+      expect(find.byType(LayersPanel), findsOneWidget);
     },
   ),
   'template preview': ScreenSpec(

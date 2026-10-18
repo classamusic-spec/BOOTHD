@@ -677,16 +677,34 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen> {
           ),
           child: SafeArea(
             top: false,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
+            // The tools scroll on narrow screens; the two panels stay in
+            // view at the end.
+            child: Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: PorcelainSpace.sm,
                 vertical: PorcelainSpace.xxs,
               ),
               child: Row(
                 children: [
-                  for (final tool in _tools(controller))
-                    _ToolTile(tool: tool, compact: true),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          for (final tool in _tools(controller))
+                            _ToolTile(tool: tool, compact: true),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Container(
+                    width: 1,
+                    height: 48,
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: PorcelainSpace.xxs,
+                    ),
+                    color: colors.divider,
+                  ),
                   _ToolTile(
                     compact: true,
                     tool: _Tool(
@@ -834,13 +852,21 @@ class _ToolTile extends StatelessWidget {
               color: selected ? colors.accentIcon : colors.ink,
             ),
             const SizedBox(height: 4),
-            Text(
-              tool.label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: selected
-                  ? theme.text.labelMedium.copyWith(fontWeight: FontWeight.w600)
-                  : theme.text.labelMedium,
+            // A long word ("Background") shrinks a little to stay whole.
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  tool.label,
+                  maxLines: 1,
+                  style: selected
+                      ? theme.text.labelMedium.copyWith(
+                          fontWeight: FontWeight.w600,
+                        )
+                      : theme.text.labelMedium,
+                ),
+              ),
             ),
           ],
         ),
