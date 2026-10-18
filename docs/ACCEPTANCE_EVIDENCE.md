@@ -168,3 +168,77 @@ on `af018c7`, GitHub-hosted `ubuntu-24.04` runners:
   live only in app support storage with SHA-256 checksums, and metadata
   holds no guest data.
 - The spike screens are unreachable in release builds.
+
+## M02: Porcelain design system and adaptive Studio shell
+
+```text
+Milestone: M02 | code commit 9e368d5ed9ea62182030f5d4e279009201b4bc8d | build 0.1.0+1
+Host: same Linux cloud VM as M00 and M01 (no KVM, no macOS, no attached devices)
+Flutter 3.47.7 / Dart 3.13.5; new: material_symbols_icons 4.2960.0;
+  bundled fonts Inter 4.001 and Cormorant Garamond 4.001 (SIL OFL 1.1)
+iPad: BLOCKED (no physical iPad, no Mac); layouts verified at iPad sizes in the test renderer
+Android: builds PASS; no physical tablet
+Owner approval requested: YES, including the AC-0209 "exceeds the board" sign-off
+Owner review page (private): https://claude.ai/artifact/Xr7e93RdsmfDZ8nvi2HNss
+```
+
+### Commands and exit codes (2026-10-18 UTC)
+
+Rows 1, 3 and 4 ran on a clean working tree at `9e368d5`.
+
+| # | Command | Exit | Result |
+| --- | --- | --- | --- |
+| 1 | `tool/check.sh` | 0 | Format: 113 files, 0 changed. Analyze: no issues. Tests: 559 passed, 1 skipped (M01 device comparison, no device results). Licence report current: 70 runtime and 9 dev packages, 0 needing review |
+| 2 | Test breakdown (inside row 1) | 0 | architecture 97, domain 20, infrastructure 23, rendering 13 (+1 skip), design system 18, core 3, app/router 16, components 24, screens 225, guest isolation 13, spike screens 4, goldens 103 |
+| 3 | `tool/build_android.sh release` | 0 | `app-release.apk`, 56,093,766 bytes, SHA-256 `d2b9a1a703b5883b5cccce89e1430afcd7e2cd4b3961483e0a636e2bb433aa03` (identical to the pre-commit build). `aapt2`: permissions unchanged from M01 (`CAMERA`, `ACCESS_NETWORK_STATE`, AndroidX internal); `android.hardware.camera` optional |
+| 4 | `tool/build_android.sh debug` | 0 | `app-debug.apk`, 203,487,738 bytes, SHA-256 `1d6f2959809189557fe25e9e793585f72559bc2f6c62db2b6f3365aadaa4ce99` |
+| 5 | Release APK font audit (`unzip`, fontTools 4.60.1) | 0 | Icon tree shaking: `MaterialSymbolsRounded.ttf` 15,073,408 to 139,836 bytes, 82 glyphs, `fvar`/`gvar`/`HVAR`/`avar` kept with FILL, GRAD, opsz and wght axes, so fill and weight variations work in release. Inter and Cormorant Garamond TTFs and both OFL texts bundled unmodified |
+| 6 | `tool/build_ios.sh release` | 3 | BLOCKED: Linux host |
+| 7 | `flutter test integration_test/app_launch_test.dart -d <device>` | not run | BLOCKED: no device. Updated to expect the Studio dashboard |
+| 8 | Mutation guards (inside row 1) | 0 | A palette halfway between light and dark fails the contrast check; literal colours are caught by the token rule; a disabled control without a reason is caught by the dead-control audit |
+
+### Acceptance items
+
+| AC | Status | Evidence |
+| --- | --- | --- |
+| AC-0201 Porcelain default palette and semantic tokens; no raw per-feature colour scattering | PASS | `lib/core/design_system/` (34 colour roles, 24 type styles, metrics, motion, depth); `test/design_system/design_system_rules_test.dart`: no colour literals in `lib/features` or `lib/shared` (M01 spike fixtures excepted), with a mutation guard |
+| AC-0202 Reusable buttons, cards, toggles, steppers, sheets, forms with press, disabled, selected, loading and focus states | PASS | `lib/shared/widgets/`; `test/widgets/components_test.dart` (24): pressed depth and 1 dp travel while held, disabled reason in semantics and on tap, busy ignores presses and announces progress, keyboard focus ring and Enter activation, touch sizes, switch, stepper (incl. accessibility increase), segments, field error, selected card, toast, sheet, grid, navigation. Every state per theme in the component-gallery goldens |
+| AC-0203 Dashboard and navigation work; all links and actions functional or clearly disabled with rationale | PASS | `test/app/router_test.dart` (16): every section from sidebar and rail, state kept across sections, dashboard cards, guest preview open and close, settings two-pane and single-pane, rotation keeps the open section, licence page, theme preview then apply, fallback route, developer tools only in debug. `screens_test.dart` audits every screen in both orientations: each control is enabled, busy, or disabled with a stated reason |
+| AC-0204 Studio layout at tablet portrait and landscape viewport sizes; no overflows | PASS (test renderer) | `test/widgets/screens_test.dart`: 14 screens at 6 tablet sizes (iPad 820x1180 and 1180x820, Android 800x1280 and 1280x800, compact 600x960 and 960x600) and at 200% text on the compact sizes, no exceptions. Physical tablets: M11 |
+| AC-0205 Contrast, labels, touch targets and reduced motion evaluated; exceptions fixed or justified | PASS | Guideline tests (AC-0208); reduced motion: zero-duration presses, still busy indicator, skipped route transitions, operator override and platform setting (`components_test.dart`, `router_test.dart`). Findings fixed, none waived: 1x contrast sampling of thin 13 px labels, a label box touching an item edge, captions inside a frame shadow, 200% text overflow in list rows (implementation log) |
+| AC-0206 Theme data shape supports Light Oak and Darkroom without feature changes | PASS | One `PorcelainColors` and `PorcelainTypography` shape for all profiles; applying Light Oak in Settings re-themes the running app (`router_test.dart`); every screen has goldens in all three profiles with no profile-specific feature code |
+| AC-0207 Automated token-pair contrast test | PASS | `test/design_system/contrast_test.dart`: 82 pairs in each of 6 palettes (3 profiles, standard and high contrast) meet guest text 7:1, other text 4.5:1, focus and boundaries 3:1; ink on canvas 12.4–19.3:1; high contrast never lowers contrast |
+| AC-0208 Every screen passes tap-target, labelled-tap-target and text-contrast guidelines in portrait and landscape | PASS | `screens_test.dart`: all four guidelines on 14 screens at iPad and Android portrait and landscape (56 runs), plus text contrast in Light Oak and Darkroom Walnut; `guest_isolation_test.dart`: the welcome in all three themes, both orientations |
+| AC-0209 Golden screenshots for every screen in portrait and landscape at the defined sizes; owner records that they exceed the board | BLOCKED (owner sign-off) | Goldens PASS: 103 in `test/goldens/` (every screen at iPad and Android sizes for Porcelain Studio, iPad size for Light Oak and Darkroom Walnut, component galleries, high-contrast dashboard), compared exactly on two machines (row 1, CI). Waiting for the owner's verdict; review page above |
+| AC-0210 No guest-visible print, save, share, settings, back or escape controls | PASS | `test/widgets/guest_isolation_test.dart` (13): at all 6 sizes the welcome exposes one actionable node ("Start"), no back, close, icon, menu, drawer or app-bar widgets, no forbidden words; also inside the operator preview; sample copy never mentions printing |
+| AC-0211 Fonts, icons and illustrations have recorded licences and provenance; no board artwork or sample people | PASS | `docs/ASSET_PROVENANCE.md` with SHA-256 per bundled file, enforced by `test/core/app_info_and_licences_test.dart`; font licences registered on the licence page (tested); icon licence in `docs/DEPENDENCY_LICENSES.md`; botanical art original and drawn in code; generic sample copy with no names, dates or people |
+
+### M02 exit gate
+
+| Gate | Status |
+| --- | --- |
+| Shared UI renders legibly on both device layouts | PASS in the test renderer at iPad and Android tablet sizes (overflow, guideline and golden tests); on physical tablets BLOCKED until devices are available (M11 certifies) |
+| No dead functional controls | PASS (dead-control audit on every screen, both orientations) |
+
+### CI (GitHub Actions run #5)
+
+[Run 39091137971](https://github.com/classamusic-spec/BOOTHD/actions/runs/39091137971)
+on `9e368d5`, GitHub-hosted `ubuntu-24.04` runners:
+
+| Job | Conclusion | Notes |
+| --- | --- | --- |
+| Format, analyze, test, licences | success | 559 passed, 1 skipped, as locally; all 103 widget goldens matched exactly on a second machine |
+| Android release smoke build | in progress when this was recorded | Result added in the next commit |
+| iPadOS unsigned build | skipped | Manual dispatch only, by design |
+
+### Security and privacy notes (M02)
+
+- No new permissions (row 3) and no network use: fonts are bundled, never
+  fetched at runtime.
+- The licence page lists every package plus the two bundled font licences.
+- Developer tools (spikes, component gallery) are unreachable in release
+  builds (`router_test.dart`).
+- The guest welcome is shown only as an operator preview; the guest area
+  has exactly one control. Booth Mode isolation and the PIN come in
+  M03 and M07.
+- No guest data is created or stored by M02.
