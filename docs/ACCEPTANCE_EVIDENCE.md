@@ -18,8 +18,9 @@ Owner approval requested: YES (do not start M01 automatically)
 
 ### Commands and exit codes (2026-10-18 UTC, host above)
 
-Rows 4–9 and 13 were re-run on a clean checkout of commit `dba6ce4` with
-identical results. APK SHA-256 (identical across two builds):
+Rows 4–9 and 13 were re-run with the working tree clean at commit `dba6ce4`
+(build caches kept) with identical results. APK SHA-256 (identical across
+two builds):
 debug `1a3f52fd7fc28e8397dc9bfceaafe93d173bed35669f09ddefd99f426918a67c`,
 release `e0c12c229f51f6fa8b0e948c1aa59a902d297833ebb6988f65146ddf939c06f4`.
 
@@ -47,7 +48,7 @@ release `e0c12c229f51f6fa8b0e948c1aa59a902d297833ebb6988f65146ddf939c06f4`.
 | AC-0002 Toolchain inventory incl. Flutter/Dart/Xcode/Android SDK, host OS, devices; iPad limits stated | PASS | `docs/TOOLCHAIN_INVENTORY.md` (rows 1–3); Xcode absent and iPad build BLOCKED stated explicitly; repeatable via `tool/toolchain_inventory.sh` |
 | AC-0003 `dart format` and `flutter analyze` pass | PASS | Rows 4, 5 |
 | AC-0004 `flutter test` passes; sample app launches in accessible simulators/emulators | BLOCKED | Tests PASS (row 6). Launch could not run: no emulator (no KVM) or simulator (no macOS) and no device (row 11). Owner steps: run `flutter test integration_test -d <device>` on an Android emulator or tablet and on an iPad simulator (`docs/IOS_VALIDATION.md`) |
-| AC-0005 Exact lockfile and licences recorded; repeatable CI/local checks exist | PASS | `pubspec.lock` (Flutter pinned 3.47.7), `docs/DEPENDENCY_LICENSES.md` (row 7), `tool/check.sh`, `.github/workflows/ci.yml`. First GitHub Actions run: recorded below once it completes |
+| AC-0005 Exact lockfile and licences recorded; repeatable CI/local checks exist | PASS | `pubspec.lock` (Flutter pinned 3.47.7), `docs/DEPENDENCY_LICENSES.md` (row 7), `tool/check.sh`, `.github/workflows/ci.yml`. GitHub Actions run #1: both jobs green (see "CI" below) |
 | AC-0006 Architecture, data ownership, test and orientation decisions in ADRs | PASS | `docs/decisions/ADR-0001`..`ADR-0006` |
 
 ### M00 exit gate
@@ -60,6 +61,20 @@ release `e0c12c229f51f6fa8b0e948c1aa59a902d297833ebb6988f65146ddf939c06f4`.
 | Baseline tests run | PASS (row 6) |
 | Android build attempted | PASS: debug and release APKs build (rows 8, 9) |
 | iPadOS build attempted | BLOCKED (Linux host); manual macOS CI job and `docs/IOS_VALIDATION.md` provided, not yet run |
+
+### CI (GitHub Actions run #1)
+
+[Run 39081949708](https://github.com/classamusic-spec/BOOTHD/actions/runs/39081949708)
+on commit `3f90522` (push to `claude/new-session-fh2zxl`, 2026-10-18 UTC),
+GitHub-hosted `ubuntu-24.04` runners:
+
+| Job | Conclusion | Notes |
+| --- | --- | --- |
+| Format, analyze, test, licences (`tool/check.sh`) | success | Licence report reproduced exactly on a different machine |
+| Android release smoke build (`tool/build_android.sh release`) | success | 47,270,499 bytes, same size as local. SHA-256 `1f68c7c1b808205c37373d3a5d5b2c7778e1d3b3b19cbb7ab1e9ca3ac9743170` differs from local only because each machine signs with its own debug key. Log warns that `cupertino_ui` references Cupertino icon fonts the app does not bundle (harmless; M02 picks the icon family per CR-001) |
+| iPadOS unsigned build | skipped | Manual dispatch only, by design |
+
+CI is not device evidence and does not change AC-0004's BLOCKED status.
 
 ### Security and privacy notes
 
