@@ -7,7 +7,7 @@ Licence names come from a text heuristic over each package's LICENSE file and
 are a starting point for the release audit (AC-1204), not a legal opinion.
 SDK packages report version 0.0.0 and are pinned by the Flutter SDK version.
 
-## Runtime dependency graph: treat as shipped (104)
+## Runtime dependency graph: treat as shipped (110)
 
 Everything reachable from the app's non-dev dependencies. Deliberately
 conservative: release compilation drops unused code, but the licence audit
@@ -88,6 +88,12 @@ covers this whole set.
 | path_provider_linux | 2.2.2 | hosted |  | BSD-3-Clause |
 | path_provider_platform_interface | 2.1.3 | hosted |  | BSD-3-Clause |
 | path_provider_windows | 2.3.0 | hosted |  | BSD-3-Clause |
+| permission_handler | 13.0.2 | hosted | yes | MIT |
+| permission_handler_android | 14.1.0 | hosted |  | MIT |
+| permission_handler_apple | 9.6.2 | hosted |  | MIT |
+| permission_handler_html | 0.1.4+1 | hosted |  | MIT |
+| permission_handler_platform_interface | 4.4.1 | hosted |  | MIT |
+| permission_handler_windows | 0.2.2 | hosted |  | MIT |
 | platform | 3.2.0 | hosted |  | BSD-3-Clause |
 | plugin_platform_interface | 2.1.8 | hosted |  | BSD-3-Clause |
 | pub_semver | 2.2.1 | hosted |  | BSD-3-Clause |

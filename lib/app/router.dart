@@ -10,10 +10,10 @@ import '../features/booth/booth_operator_screen.dart';
 import '../features/booth/booth_welcome_screen.dart';
 import '../features/booth/guest_preview_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
+import '../features/diagnostics/camera_test_screen.dart';
 import '../features/diagnostics/component_gallery_screen.dart';
 import '../features/diagnostics/diagnostics_screen.dart';
 import '../features/diagnostics/render_lab/render_lab_screen.dart';
-import '../features/diagnostics/spikes/camera_spike_screen.dart';
 import '../features/events/event_editor_screen.dart';
 import '../features/events/events_screen.dart';
 import '../features/events/preflight_screen.dart';
@@ -169,9 +169,16 @@ GoRouter buildRouter({
           ),
           StatefulShellBranch(
             routes: [
-              section(
-                RoutePaths.diagnostics,
-                (_, _) => const DiagnosticsScreen(),
+              GoRoute(
+                path: RoutePaths.diagnostics,
+                builder: (_, _) => const DiagnosticsScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'camera',
+                    parentNavigatorKey: root,
+                    builder: (_, _) => const CameraTestScreen(),
+                  ),
+                ],
               ),
             ],
           ),
@@ -185,10 +192,6 @@ GoRouter buildRouter({
         GoRoute(
           path: RoutePaths.renderLab,
           builder: (_, _) => const RenderLabScreen(),
-        ),
-        GoRoute(
-          path: RoutePaths.cameraSpike,
-          builder: (_, _) => const CameraSpikeScreen(),
         ),
         GoRoute(
           path: RoutePaths.componentGallery,

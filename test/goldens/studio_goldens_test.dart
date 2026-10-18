@@ -2,7 +2,8 @@
 // landscape at the defined tablet sizes, in every implemented theme; M03
 // adds first-run setup, the PIN screens, the event list and editor, the
 // launch checks and Booth Mode; M05 the template library, the new-template
-// chooser, the Template Studio and the template preview.
+// chooser, the Template Studio and the template preview; M06 the camera
+// test (on the simulated camera) and the Diagnostics self-test.
 //
 // Rendered at 1x to keep the repository small; text and blur rasterise
 // differently on macOS and Windows, so goldens are compared on Linux only
@@ -39,6 +40,7 @@ const themed = [
   'settings booth',
   'settings about',
   'diagnostics',
+  'camera test',
   'guest preview',
   'not found',
   'setup welcome',
@@ -63,6 +65,10 @@ const states = [
   'template editor selected',
   'template editor layers',
   'template preview',
+  'diagnostics self-test',
+  'camera test permission',
+  'camera test refused',
+  'camera test saved',
   'setup privacy',
   'setup pin',
   'setup recovery code',

@@ -186,3 +186,14 @@ final class PorcelainColors {
     );
   }
 }
+
+/// The camera viewfinder (S18 and guest capture): dark in every theme, so
+/// the live picture reads as a photograph and no glaze tints its edges.
+abstract final class PorcelainViewfinder {
+  /// Behind the live picture and around it when its shape differs.
+  static const background = Color(0xFF14110E);
+
+  /// Messages and icons on [background]: >=7:1
+  /// (`test/design_system/contrast_test.dart`).
+  static const ink = Color(0xFFF3EDE3);
+}

@@ -243,3 +243,56 @@ CREATE UNIQUE INDEX event_templates_one_default
 
 CREATE INDEX event_templates_by_revision
   ON event_templates (template_revision_id);
+
+-- Camera originals (version 4; A-05 CapturedPhoto, A-11, M06). A row is
+-- written only once its file, originals/<id>.jpg, has been staged, read
+-- back, fully decoded and renamed into place; neither ever changes again.
+-- Sizes are as decoded, with any EXIF orientation applied.
+CREATE TABLE original_photos (
+  id TEXT NOT NULL PRIMARY KEY
+    CHECK (length(id) BETWEEN 1 AND 64 AND id NOT GLOB '*[^0-9A-Za-z-]*'),
+  relative_path TEXT NOT NULL UNIQUE
+    CHECK (relative_path = 'originals/' || id || '.jpg'),
+  width_px INTEGER NOT NULL CHECK (width_px BETWEEN 1 AND 20000),
+  height_px INTEGER NOT NULL CHECK (height_px BETWEEN 1 AND 20000),
+  byte_length INTEGER NOT NULL CHECK (byte_length BETWEEN 1 AND 104857600),
+  sha256 TEXT NOT NULL
+    CHECK (length(sha256) = 64 AND sha256 NOT GLOB '*[^0-9a-f]*'),
+  lens ENUMNAME(CameraLens) NOT NULL
+    CHECK (lens IN ('front', 'back', 'external')),
+  sensor_orientation INTEGER NOT NULL
+    CHECK (sensor_orientation IN (0, 90, 180, 270)),
+  device_orientation ENUMNAME(CaptureOrientation) NOT NULL
+    CHECK (device_orientation IN ('portraitUp', 'landscapeLeft',
+      'portraitDown', 'landscapeRight', 'unknown')),
+  exif_orientation INTEGER
+    CHECK (exif_orientation IS NULL OR exif_orientation BETWEEN 1 AND 8),
+  mirror_preview BOOLEAN NOT NULL CHECK (mirror_preview IN (0, 1)),
+  mirror_output BOOLEAN NOT NULL CHECK (mirror_output IN (0, 1)),
+  origin ENUMNAME(CaptureOrigin) NOT NULL
+    CHECK (origin IN ('diagnostics', 'session', 'legacy')),
+  captured_at DATETIME NOT NULL,
+  committed_at DATETIME NOT NULL
+) AS OriginalPhotoRow;
+
+CREATE INDEX original_photos_by_time ON original_photos (captured_at);
+
+CREATE TRIGGER original_photos_are_immutable
+  BEFORE UPDATE ON original_photos
+BEGIN
+  SELECT RAISE(ABORT, 'originals are immutable');
+END;
+
+-- Originals being committed (version 4; A-11 journal). A row is written
+-- before the file, and removed in the transaction that adds the original's
+-- row. One left at startup belongs to a commit the app never finished; it
+-- carries the checksum and the record (JSON) needed to finish or undo it.
+CREATE TABLE pending_original_commits (
+  id TEXT NOT NULL PRIMARY KEY
+    CHECK (length(id) BETWEEN 1 AND 64 AND id NOT GLOB '*[^0-9A-Za-z-]*'),
+  sha256 TEXT NOT NULL
+    CHECK (length(sha256) = 64 AND sha256 NOT GLOB '*[^0-9a-f]*'),
+  byte_length INTEGER NOT NULL CHECK (byte_length >= 1),
+  metadata TEXT NOT NULL CHECK (length(metadata) BETWEEN 2 AND 65536),
+  started_at DATETIME NOT NULL
+) AS PendingOriginalCommitRow;

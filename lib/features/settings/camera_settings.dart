@@ -1,11 +1,13 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/booth/booth_providers.dart';
 import '../../core/design_system/porcelain_icons.dart';
 import '../../core/design_system/porcelain_metrics.dart';
 import '../../core/design_system/porcelain_theme.dart';
 import '../../core/di/service_providers.dart';
+import '../../core/routing/route_paths.dart';
 import '../../domain/models/booth_profile.dart';
 import '../../domain/services/camera_service.dart';
 import '../../shared/widgets/page_header.dart';
@@ -18,15 +20,18 @@ import '../../shared/widgets/skeleton.dart';
 import '../../shared/widgets/status_badge.dart';
 import '../../shared/widgets/tone.dart';
 
-/// Camera settings (S15): the camera and mirroring new events start with
-/// (stored now), and the camera tests that arrive with the production
-/// camera service (M06). Preview and saved-photo mirroring are separate
-/// (CR-001 fix 5).
+/// The built-in cameras this tablet reports.
+final _tabletCamerasProvider =
+    FutureProvider.autoDispose<List<CameraDescriptor>>(
+      (ref) => ref.watch(cameraServiceProvider).availableCameras(),
+    );
+
+/// Camera settings (S15): the camera and mirroring new events start with,
+/// the cameras this tablet reports, and the way into the camera test.
+/// Preview and saved-photo mirroring are separate (CR-001 fix 5).
 class CameraSettings extends ConsumerWidget {
   const CameraSettings({super.key});
 
-  static const reason =
-      'Camera discovery and tests arrive with the camera service in M06.';
   static const saveFailed =
       "That change couldn't be saved on the tablet. Try again.";
 
@@ -107,34 +112,61 @@ class CameraSettings extends ConsumerWidget {
           title: 'This tablet',
           subtitle: 'What the cameras can do, tested on the device.',
         ),
-        const PorcelainCard(
+        PorcelainCard(
           child: Column(
             children: [
               PorcelainListRow(
                 icon: PorcelainIcons.camera,
                 title: 'Cameras on this tablet',
-                subtitle: 'Front or rear, from the cameras it reports.',
-                trailing: StatusBadge(label: 'M06'),
-                disabledReason: reason,
+                subtitle: 'Built-in cameras the tablet reports.',
+                trailing: switch (ref.watch(_tabletCamerasProvider)) {
+                  AsyncData(:final value) => _CamerasBadge(value),
+                  AsyncError() => const StatusBadge(
+                    label: "Couldn't list",
+                    tone: PorcelainTone.danger,
+                  ),
+                  _ => const StatusBadge(label: 'Checking'),
+                },
               ),
               PorcelainListRow(
                 icon: PorcelainIcons.preview,
-                title: 'Live camera test',
+                title: 'Camera test',
                 subtitle: 'Preview, mirroring and a test photo.',
-                trailing: StatusBadge(label: 'M06'),
-                disabledReason: reason,
+                onPressed: () => context.push(RoutePaths.cameraTest),
               ),
-              PorcelainListRow(
+              const PorcelainListRow(
                 icon: PorcelainIcons.outputFormat,
                 title: 'Capture quality',
-                subtitle: 'Only the resolutions the camera supports.',
-                trailing: StatusBadge(label: 'M06'),
-                disabledReason: reason,
+                subtitle:
+                    "The camera's full-resolution still, never a picture of "
+                    'the screen.',
+                trailing: StatusBadge(label: 'Highest'),
               ),
             ],
           ),
         ),
       ],
+    );
+  }
+}
+
+class _CamerasBadge extends StatelessWidget {
+  const _CamerasBadge(this.cameras);
+
+  final List<CameraDescriptor> cameras;
+
+  @override
+  Widget build(BuildContext context) {
+    final front = cameras.any((c) => c.lens == CameraLens.front);
+    final back = cameras.any((c) => c.lens == CameraLens.back);
+    return StatusBadge(
+      label: switch ((front, back)) {
+        (true, true) => 'Front and rear',
+        (true, false) => 'Front only',
+        (false, true) => 'Rear only',
+        (false, false) => 'None found',
+      },
+      tone: front || back ? PorcelainTone.success : PorcelainTone.warning,
     );
   }
 }

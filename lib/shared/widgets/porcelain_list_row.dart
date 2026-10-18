@@ -69,6 +69,7 @@ class PorcelainListRow extends StatelessWidget {
                 const SizedBox(width: PorcelainSpace.md),
               ],
               Expanded(
+                flex: 3,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
@@ -91,8 +92,15 @@ class PorcelainListRow extends StatelessWidget {
               ),
               if (trailing != null) ...[
                 const SizedBox(width: PorcelainSpace.md),
-                // May shrink (badges wrap) when large text needs the room.
-                Flexible(child: trailing!),
+                // At the row's end; may shrink (badges wrap) when large
+                // text needs the room.
+                Flexible(
+                  flex: 2,
+                  child: Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: trailing,
+                  ),
+                ),
               ],
               if (_interactive && showChevron) ...[
                 const SizedBox(width: PorcelainSpace.xs),

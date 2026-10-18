@@ -32,6 +32,8 @@ const _archived = 'e0000000-0000-4000-8000-000000000003';
 const _revisionA1 = 'a1000000-0000-4000-8000-0000000000a1';
 const _revisionA2 = 'a2000000-0000-4000-8000-0000000000a2';
 const _revisionB1 = 'b1000000-0000-4000-8000-0000000000b1';
+const _sessionOriginal = '20261114180500-0a1b2c3d';
+const _legacyOriginal = 'm01-spike-still';
 
 String seedFor(int version) =>
     File('test/drift/booth/fixtures/seed_v$version.sql').readAsStringSync();
@@ -250,8 +252,98 @@ void main() {
       } else {
         expect(drafts, isEmpty, reason: 'drafts arrived with version 3');
       }
+
+      final originals = await (db.select(
+        db.originalPhotos,
+      )..orderBy([(o) => OrderingTerm.desc(o.capturedAt)])).get();
+      final pending = await db.select(db.pendingOriginalCommits).get();
+      if (from >= 4) {
+        expect(originals.map((o) => o.id), [_sessionOriginal, _legacyOriginal]);
+        final session = originals.first;
+        expect(session.relativePath, 'originals/$_sessionOriginal.jpg');
+        expect((session.widthPx, session.heightPx), (4032, 3024));
+        expect(session.byteLength, 3145728);
+        expect(session.sha256, '1' * 64);
+        expect(session.lens, CameraLens.back);
+        expect(session.sensorOrientation, 90);
+        expect(session.deviceOrientation, CaptureOrientation.landscapeLeft);
+        expect(session.exifOrientation, 1);
+        expect(session.mirrorPreview, isFalse);
+        expect(session.mirrorOutput, isTrue);
+        expect(session.origin, CaptureOrigin.session);
+        expect(session.capturedAt, DateTime.utc(2026, 11, 14, 18, 5));
+        expect(session.committedAt, DateTime.utc(2026, 11, 14, 18, 5, 1, 250));
+        final legacy = originals.last;
+        expect(legacy.lens, CameraLens.front);
+        expect(legacy.deviceOrientation, CaptureOrientation.unknown);
+        expect(legacy.exifOrientation, isNull);
+        expect(legacy.mirrorPreview, isTrue);
+        expect(legacy.origin, CaptureOrigin.legacy);
+        final intent = pending.single;
+        expect(intent.id, '20261114180900-4e5f6a7b');
+        expect(intent.sha256, '3' * 64);
+        expect(intent.byteLength, 1048576);
+        expect(intent.startedAt, DateTime.utc(2026, 11, 14, 18, 9));
+      } else {
+        expect(originals, isEmpty, reason: 'originals arrived with version 4');
+        expect(pending, isEmpty);
+      }
     });
   }
+
+  test('originals cannot be changed, misplaced or mislabelled', () async {
+    final schema = await verifier.schemaAt(BoothDatabase.currentSchemaVersion);
+    final raw = schema.rawDatabase..execute(seedFor(4));
+    final seeded = currentCode(schema.newConnection());
+    addTearDown(seeded.close);
+    await seeded.customSelect('SELECT 1').get();
+
+    Future<void> rejects(String sql) => expectLater(
+      seeded.customStatement(sql),
+      throwsA(anything),
+      reason: sql,
+    );
+    // An original is immutable once recorded (A-11).
+    for (final change in [
+      "relative_path = 'originals/other.jpg'",
+      'width_px = 1',
+      "sha256 = '${'4' * 64}'",
+      "lens = 'front'",
+      'mirror_output = 0',
+      "origin = 'diagnostics'",
+      "captured_at = '2026-11-14T18:06:00.000Z'",
+    ]) {
+      await rejects(
+        "UPDATE original_photos SET $change WHERE id = '$_sessionOriginal'",
+      );
+    }
+    String original({
+      String id = 'new-original',
+      String? path,
+      String sha256 =
+          '5555555555555555555555555555555555555555555555555555555555555555',
+      String lens = 'back',
+      int sensor = 90,
+      String exif = 'NULL',
+    }) =>
+        "INSERT INTO original_photos VALUES ('$id', "
+        "'${path ?? 'originals/$id.jpg'}', 4032, 3024, 1000, '$sha256', "
+        "'$lens', $sensor, 'unknown', $exif, 0, 0, 'session', "
+        "'2026-11-14T18:10:00.000Z', '2026-11-14T18:10:01.000Z')";
+    await rejects(original(id: '../escape', path: 'originals/../escape.jpg'));
+    await rejects(original(path: 'assets/new-original.jpg'));
+    await rejects(original(path: 'originals/new-original.png'));
+    await rejects(original(sha256: 'A' * 64));
+    await rejects(original(sha256: 'a' * 63));
+    await rejects(original(lens: 'side'));
+    await rejects(original(sensor: 45));
+    await rejects(original(exif: '9'));
+    await seeded.customStatement(original());
+    expect(
+      raw.select('SELECT count(*) FROM original_photos').single.values.single,
+      3,
+    );
+  });
 
   test('asset content cannot be changed, mislabelled or orphaned', () async {
     final schema = await verifier.schemaAt(BoothDatabase.currentSchemaVersion);

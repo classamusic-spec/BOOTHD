@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -5,10 +7,13 @@ import 'package:go_router/go_router.dart';
 import '../../core/design_system/porcelain_icons.dart';
 import '../../core/design_system/porcelain_metrics.dart';
 import '../../core/design_system/porcelain_theme.dart';
+import '../../core/di/service_providers.dart';
+import '../../core/diagnostics/device_self_test.dart';
 import '../../core/platform/app_environment.dart';
 import '../../core/platform/app_info.dart';
 import '../../core/routing/route_paths.dart';
 import '../../domain/value_objects/orientation.dart';
+import '../../shared/formatters/date_format.dart';
 import '../../shared/widgets/page_header.dart';
 import '../../shared/widgets/porcelain_button.dart';
 import '../../shared/widgets/porcelain_card.dart';
@@ -16,18 +21,49 @@ import '../../shared/widgets/porcelain_list_row.dart';
 import '../../shared/widgets/status_badge.dart';
 import '../../shared/widgets/studio_page.dart';
 import '../../shared/widgets/tone.dart';
+import 'self_test_copy.dart';
 
-/// Device diagnostics (S18). Today it reports what this build can verify
-/// about itself; the measured self-test arrives with the camera service
-/// (M06). Developer tools appear in debug and profile builds only.
-class DiagnosticsScreen extends ConsumerWidget {
+/// Device diagnostics (S18): what this build can verify about itself, the
+/// camera test, and a self-test that measures the camera, file writing and
+/// free storage with repair steps for anything that fails. Developer tools
+/// appear in debug and profile builds only.
+class DiagnosticsScreen extends ConsumerStatefulWidget {
   const DiagnosticsScreen({super.key});
 
-  static const selfTestReason =
-      'The self-test arrives with the camera service in M06.';
+  @override
+  ConsumerState<DiagnosticsScreen> createState() => _DiagnosticsScreenState();
+}
+
+class _DiagnosticsScreenState extends ConsumerState<DiagnosticsScreen> {
+  /// Results of the last run, by check; a check without one has not run.
+  final _results = <SelfTestCheck, SelfTestResult>{};
+  var _running = false;
+  DateTime? _ranAt;
+
+  Future<void> _runSelfTest() async {
+    final selfTest = ref.read(deviceSelfTestProvider);
+    setState(() {
+      _running = true;
+      _results.clear();
+    });
+    try {
+      for (final check in SelfTestCheck.values) {
+        final result = await selfTest.check(check);
+        if (!mounted) return;
+        setState(() => _results[check] = result);
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _running = false;
+          _ranAt = ref.read(clockProvider).now();
+        });
+      }
+    }
+  }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final environment = ref.watch(appEnvironmentProvider);
     final theme = context.porcelain;
     final media = MediaQuery.of(context);
@@ -91,29 +127,64 @@ class DiagnosticsScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SectionHeader(
+              title: 'Camera',
+              subtitle:
+                  'The live picture, mirroring and a test photo saved like '
+                  "a guest's.",
+            ),
+            PorcelainCard(
+              child: PorcelainListRow(
+                icon: PorcelainIcons.camera,
+                title: 'Camera test',
+                subtitle:
+                    'Allow the camera, choose front or rear, and save a '
+                    'test photo',
+                onPressed: () => context.push(RoutePaths.cameraTest),
+              ),
+            ),
+          ],
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SectionHeader(
               title: 'Self-test',
               subtitle:
                   'Measures the camera, file writing and free storage, with '
                   'repair steps for anything that fails.',
               trailing: PorcelainButton(
-                label: 'Run self-test',
-                icon: PorcelainIcons.start,
-                onPressed: null,
-                disabledReason: selfTestReason,
+                label: _ranAt == null ? 'Run self-test' : 'Run again',
+                icon: _ranAt == null
+                    ? PorcelainIcons.start
+                    : PorcelainIcons.retry,
+                busy: _running,
+                busyLabel: 'Testing…',
+                onPressed: _running ? null : () => unawaited(_runSelfTest()),
               ),
             ),
-            const PorcelainCard(
+            PorcelainCard(
               child: Column(
                 children: [
-                  _Check(icon: PorcelainIcons.camera, label: 'Camera'),
-                  _Check(icon: PorcelainIcons.fileWrite, label: 'File write'),
-                  _Check(icon: PorcelainIcons.storage, label: 'Free storage'),
+                  for (final check in SelfTestCheck.values)
+                    _Check(
+                      check: check,
+                      result: _results[check],
+                      running: _running,
+                      platform: environment.platform,
+                    ),
                 ],
               ),
             ),
             const SizedBox(height: PorcelainSpace.sm),
             Text(
-              selfTestReason,
+              switch (_ranAt) {
+                null =>
+                  'Nothing is asked for, opened or kept: the camera test '
+                      'does that on purpose.',
+                final ranAt =>
+                  'Last run ${formatTimestamp(ranAt.toLocal())}. Nothing was asked '
+                      'for, opened or kept.',
+              },
               style: theme.text.bodyMedium.copyWith(
                 color: theme.colors.inkMuted,
               ),
@@ -136,12 +207,6 @@ class DiagnosticsScreen extends ConsumerWidget {
                       title: 'Render lab',
                       subtitle: 'Renderer fixtures, parity and failure checks',
                       onPressed: () => context.push(RoutePaths.renderLab),
-                    ),
-                    PorcelainListRow(
-                      icon: PorcelainIcons.camera,
-                      title: 'Camera spike',
-                      subtitle: 'M01: one still into managed storage',
-                      onPressed: () => context.push(RoutePaths.cameraSpike),
                     ),
                     PorcelainListRow(
                       icon: PorcelainIcons.components,
@@ -181,21 +246,49 @@ class _Fact extends StatelessWidget {
   }
 }
 
+/// One self-test check: waiting, checking, or its measured outcome.
 class _Check extends StatelessWidget {
-  const _Check({required this.icon, required this.label});
+  const _Check({
+    required this.check,
+    required this.result,
+    required this.running,
+    required this.platform,
+  });
 
-  final IconData icon;
-  final String label;
+  final SelfTestCheck check;
+  final SelfTestResult? result;
+  final bool running;
+  final TargetPlatform platform;
 
   @override
   Widget build(BuildContext context) {
+    final result = this.result;
     return PorcelainListRow(
-      icon: icon,
-      title: label,
-      trailing: const StatusBadge(
-        label: 'Not run',
-        tone: PorcelainTone.neutral,
-      ),
+      icon: switch (check) {
+        SelfTestCheck.camera => PorcelainIcons.camera,
+        SelfTestCheck.fileWrite => PorcelainIcons.fileWrite,
+        SelfTestCheck.freeStorage => PorcelainIcons.storage,
+      },
+      title: SelfTestCopy.title(check),
+      subtitle: result == null
+          ? SelfTestCopy.waiting(check)
+          : SelfTestCopy.outcome(result, platform),
+      trailing: switch (result) {
+        null when running => const StatusBadge(label: 'Checking'),
+        null => const StatusBadge(label: 'Not run'),
+        SelfTestResult(passed: true) => const StatusBadge(
+          label: 'Passed',
+          tone: PorcelainTone.success,
+          icon: PorcelainIcons.success,
+        ),
+        SelfTestResult(:final problemCode) => StatusBadge(
+          label: problemCode == 'STORAGE_LOW' ? 'Low' : 'Problem',
+          tone: problemCode == 'STORAGE_LOW'
+              ? PorcelainTone.warning
+              : PorcelainTone.danger,
+          icon: PorcelainIcons.warning,
+        ),
+      },
     );
   }
 }

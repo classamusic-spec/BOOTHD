@@ -5894,6 +5894,1288 @@ class EventTemplatesCompanion extends UpdateCompanion<EventTemplateRow> {
   }
 }
 
+class OriginalPhotos extends Table
+    with TableInfo<OriginalPhotos, OriginalPhotoRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  OriginalPhotos(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL PRIMARY KEY CHECK (length(id) BETWEEN 1 AND 64 AND id NOT GLOB \'*[^0-9A-Za-z-]*\')',
+  );
+  static const VerificationMeta _relativePathMeta = const VerificationMeta(
+    'relativePath',
+  );
+  late final GeneratedColumn<String> relativePath = GeneratedColumn<String>(
+    'relative_path',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL UNIQUE CHECK (relative_path = \'originals/\' || id || \'.jpg\')',
+  );
+  static const VerificationMeta _widthPxMeta = const VerificationMeta(
+    'widthPx',
+  );
+  late final GeneratedColumn<int> widthPx = GeneratedColumn<int>(
+    'width_px',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (width_px BETWEEN 1 AND 20000)',
+  );
+  static const VerificationMeta _heightPxMeta = const VerificationMeta(
+    'heightPx',
+  );
+  late final GeneratedColumn<int> heightPx = GeneratedColumn<int>(
+    'height_px',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (height_px BETWEEN 1 AND 20000)',
+  );
+  static const VerificationMeta _byteLengthMeta = const VerificationMeta(
+    'byteLength',
+  );
+  late final GeneratedColumn<int> byteLength = GeneratedColumn<int>(
+    'byte_length',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (byte_length BETWEEN 1 AND 104857600)',
+  );
+  static const VerificationMeta _sha256Meta = const VerificationMeta('sha256');
+  late final GeneratedColumn<String> sha256 = GeneratedColumn<String>(
+    'sha256',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (length(sha256) = 64 AND sha256 NOT GLOB \'*[^0-9a-f]*\')',
+  );
+  late final GeneratedColumnWithTypeConverter<CameraLens, String> lens =
+      GeneratedColumn<String>(
+        'lens',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+        $customConstraints:
+            'NOT NULL CHECK (lens IN (\'front\', \'back\', \'external\'))',
+      ).withConverter<CameraLens>(OriginalPhotos.$converterlens);
+  static const VerificationMeta _sensorOrientationMeta = const VerificationMeta(
+    'sensorOrientation',
+  );
+  late final GeneratedColumn<int> sensorOrientation = GeneratedColumn<int>(
+    'sensor_orientation',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'NOT NULL CHECK (sensor_orientation IN (0, 90, 180, 270))',
+  );
+  late final GeneratedColumnWithTypeConverter<CaptureOrientation, String>
+  deviceOrientation =
+      GeneratedColumn<String>(
+        'device_orientation',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL CHECK (device_orientation IN (\'portraitUp\', \'landscapeLeft\', \'portraitDown\', \'landscapeRight\', \'unknown\'))',
+      ).withConverter<CaptureOrientation>(
+        OriginalPhotos.$converterdeviceOrientation,
+      );
+  static const VerificationMeta _exifOrientationMeta = const VerificationMeta(
+    'exifOrientation',
+  );
+  late final GeneratedColumn<int> exifOrientation = GeneratedColumn<int>(
+    'exif_orientation',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints:
+        'CHECK (exif_orientation IS NULL OR exif_orientation BETWEEN 1 AND 8)',
+  );
+  static const VerificationMeta _mirrorPreviewMeta = const VerificationMeta(
+    'mirrorPreview',
+  );
+  late final GeneratedColumn<bool> mirrorPreview = GeneratedColumn<bool>(
+    'mirror_preview',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (mirror_preview IN (0, 1))',
+  );
+  static const VerificationMeta _mirrorOutputMeta = const VerificationMeta(
+    'mirrorOutput',
+  );
+  late final GeneratedColumn<bool> mirrorOutput = GeneratedColumn<bool>(
+    'mirror_output',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (mirror_output IN (0, 1))',
+  );
+  late final GeneratedColumnWithTypeConverter<CaptureOrigin, String>
+  origin = GeneratedColumn<String>(
+    'origin',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'NOT NULL CHECK (origin IN (\'diagnostics\', \'session\', \'legacy\'))',
+  ).withConverter<CaptureOrigin>(OriginalPhotos.$converterorigin);
+  static const VerificationMeta _capturedAtMeta = const VerificationMeta(
+    'capturedAt',
+  );
+  late final GeneratedColumn<DateTime> capturedAt = GeneratedColumn<DateTime>(
+    'captured_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _committedAtMeta = const VerificationMeta(
+    'committedAt',
+  );
+  late final GeneratedColumn<DateTime> committedAt = GeneratedColumn<DateTime>(
+    'committed_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    relativePath,
+    widthPx,
+    heightPx,
+    byteLength,
+    sha256,
+    lens,
+    sensorOrientation,
+    deviceOrientation,
+    exifOrientation,
+    mirrorPreview,
+    mirrorOutput,
+    origin,
+    capturedAt,
+    committedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'original_photos';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<OriginalPhotoRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('relative_path')) {
+      context.handle(
+        _relativePathMeta,
+        relativePath.isAcceptableOrUnknown(
+          data['relative_path']!,
+          _relativePathMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_relativePathMeta);
+    }
+    if (data.containsKey('width_px')) {
+      context.handle(
+        _widthPxMeta,
+        widthPx.isAcceptableOrUnknown(data['width_px']!, _widthPxMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_widthPxMeta);
+    }
+    if (data.containsKey('height_px')) {
+      context.handle(
+        _heightPxMeta,
+        heightPx.isAcceptableOrUnknown(data['height_px']!, _heightPxMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_heightPxMeta);
+    }
+    if (data.containsKey('byte_length')) {
+      context.handle(
+        _byteLengthMeta,
+        byteLength.isAcceptableOrUnknown(data['byte_length']!, _byteLengthMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_byteLengthMeta);
+    }
+    if (data.containsKey('sha256')) {
+      context.handle(
+        _sha256Meta,
+        sha256.isAcceptableOrUnknown(data['sha256']!, _sha256Meta),
+      );
+    } else if (isInserting) {
+      context.missing(_sha256Meta);
+    }
+    if (data.containsKey('sensor_orientation')) {
+      context.handle(
+        _sensorOrientationMeta,
+        sensorOrientation.isAcceptableOrUnknown(
+          data['sensor_orientation']!,
+          _sensorOrientationMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_sensorOrientationMeta);
+    }
+    if (data.containsKey('exif_orientation')) {
+      context.handle(
+        _exifOrientationMeta,
+        exifOrientation.isAcceptableOrUnknown(
+          data['exif_orientation']!,
+          _exifOrientationMeta,
+        ),
+      );
+    }
+    if (data.containsKey('mirror_preview')) {
+      context.handle(
+        _mirrorPreviewMeta,
+        mirrorPreview.isAcceptableOrUnknown(
+          data['mirror_preview']!,
+          _mirrorPreviewMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_mirrorPreviewMeta);
+    }
+    if (data.containsKey('mirror_output')) {
+      context.handle(
+        _mirrorOutputMeta,
+        mirrorOutput.isAcceptableOrUnknown(
+          data['mirror_output']!,
+          _mirrorOutputMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_mirrorOutputMeta);
+    }
+    if (data.containsKey('captured_at')) {
+      context.handle(
+        _capturedAtMeta,
+        capturedAt.isAcceptableOrUnknown(data['captured_at']!, _capturedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_capturedAtMeta);
+    }
+    if (data.containsKey('committed_at')) {
+      context.handle(
+        _committedAtMeta,
+        committedAt.isAcceptableOrUnknown(
+          data['committed_at']!,
+          _committedAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_committedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  OriginalPhotoRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return OriginalPhotoRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      relativePath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}relative_path'],
+      )!,
+      widthPx: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}width_px'],
+      )!,
+      heightPx: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}height_px'],
+      )!,
+      byteLength: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}byte_length'],
+      )!,
+      sha256: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sha256'],
+      )!,
+      lens: OriginalPhotos.$converterlens.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}lens'],
+        )!,
+      ),
+      sensorOrientation: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sensor_orientation'],
+      )!,
+      deviceOrientation: OriginalPhotos.$converterdeviceOrientation.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}device_orientation'],
+        )!,
+      ),
+      exifOrientation: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}exif_orientation'],
+      ),
+      mirrorPreview: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}mirror_preview'],
+      )!,
+      mirrorOutput: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}mirror_output'],
+      )!,
+      origin: OriginalPhotos.$converterorigin.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}origin'],
+        )!,
+      ),
+      capturedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}captured_at'],
+      )!,
+      committedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}committed_at'],
+      )!,
+    );
+  }
+
+  @override
+  OriginalPhotos createAlias(String alias) {
+    return OriginalPhotos(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<CameraLens, String, String> $converterlens =
+      const EnumNameConverter<CameraLens>(CameraLens.values);
+  static JsonTypeConverter2<CaptureOrientation, String, String>
+  $converterdeviceOrientation = const EnumNameConverter<CaptureOrientation>(
+    CaptureOrientation.values,
+  );
+  static JsonTypeConverter2<CaptureOrigin, String, String> $converterorigin =
+      const EnumNameConverter<CaptureOrigin>(CaptureOrigin.values);
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class OriginalPhotoRow extends DataClass
+    implements Insertable<OriginalPhotoRow> {
+  final String id;
+  final String relativePath;
+  final int widthPx;
+  final int heightPx;
+  final int byteLength;
+  final String sha256;
+  final CameraLens lens;
+  final int sensorOrientation;
+  final CaptureOrientation deviceOrientation;
+  final int? exifOrientation;
+  final bool mirrorPreview;
+  final bool mirrorOutput;
+  final CaptureOrigin origin;
+  final DateTime capturedAt;
+  final DateTime committedAt;
+  const OriginalPhotoRow({
+    required this.id,
+    required this.relativePath,
+    required this.widthPx,
+    required this.heightPx,
+    required this.byteLength,
+    required this.sha256,
+    required this.lens,
+    required this.sensorOrientation,
+    required this.deviceOrientation,
+    this.exifOrientation,
+    required this.mirrorPreview,
+    required this.mirrorOutput,
+    required this.origin,
+    required this.capturedAt,
+    required this.committedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['relative_path'] = Variable<String>(relativePath);
+    map['width_px'] = Variable<int>(widthPx);
+    map['height_px'] = Variable<int>(heightPx);
+    map['byte_length'] = Variable<int>(byteLength);
+    map['sha256'] = Variable<String>(sha256);
+    {
+      map['lens'] = Variable<String>(OriginalPhotos.$converterlens.toSql(lens));
+    }
+    map['sensor_orientation'] = Variable<int>(sensorOrientation);
+    {
+      map['device_orientation'] = Variable<String>(
+        OriginalPhotos.$converterdeviceOrientation.toSql(deviceOrientation),
+      );
+    }
+    if (!nullToAbsent || exifOrientation != null) {
+      map['exif_orientation'] = Variable<int>(exifOrientation);
+    }
+    map['mirror_preview'] = Variable<bool>(mirrorPreview);
+    map['mirror_output'] = Variable<bool>(mirrorOutput);
+    {
+      map['origin'] = Variable<String>(
+        OriginalPhotos.$converterorigin.toSql(origin),
+      );
+    }
+    map['captured_at'] = Variable<DateTime>(capturedAt);
+    map['committed_at'] = Variable<DateTime>(committedAt);
+    return map;
+  }
+
+  OriginalPhotosCompanion toCompanion(bool nullToAbsent) {
+    return OriginalPhotosCompanion(
+      id: Value(id),
+      relativePath: Value(relativePath),
+      widthPx: Value(widthPx),
+      heightPx: Value(heightPx),
+      byteLength: Value(byteLength),
+      sha256: Value(sha256),
+      lens: Value(lens),
+      sensorOrientation: Value(sensorOrientation),
+      deviceOrientation: Value(deviceOrientation),
+      exifOrientation: exifOrientation == null && nullToAbsent
+          ? const Value.absent()
+          : Value(exifOrientation),
+      mirrorPreview: Value(mirrorPreview),
+      mirrorOutput: Value(mirrorOutput),
+      origin: Value(origin),
+      capturedAt: Value(capturedAt),
+      committedAt: Value(committedAt),
+    );
+  }
+
+  factory OriginalPhotoRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return OriginalPhotoRow(
+      id: serializer.fromJson<String>(json['id']),
+      relativePath: serializer.fromJson<String>(json['relative_path']),
+      widthPx: serializer.fromJson<int>(json['width_px']),
+      heightPx: serializer.fromJson<int>(json['height_px']),
+      byteLength: serializer.fromJson<int>(json['byte_length']),
+      sha256: serializer.fromJson<String>(json['sha256']),
+      lens: OriginalPhotos.$converterlens.fromJson(
+        serializer.fromJson<String>(json['lens']),
+      ),
+      sensorOrientation: serializer.fromJson<int>(json['sensor_orientation']),
+      deviceOrientation: OriginalPhotos.$converterdeviceOrientation.fromJson(
+        serializer.fromJson<String>(json['device_orientation']),
+      ),
+      exifOrientation: serializer.fromJson<int?>(json['exif_orientation']),
+      mirrorPreview: serializer.fromJson<bool>(json['mirror_preview']),
+      mirrorOutput: serializer.fromJson<bool>(json['mirror_output']),
+      origin: OriginalPhotos.$converterorigin.fromJson(
+        serializer.fromJson<String>(json['origin']),
+      ),
+      capturedAt: serializer.fromJson<DateTime>(json['captured_at']),
+      committedAt: serializer.fromJson<DateTime>(json['committed_at']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'relative_path': serializer.toJson<String>(relativePath),
+      'width_px': serializer.toJson<int>(widthPx),
+      'height_px': serializer.toJson<int>(heightPx),
+      'byte_length': serializer.toJson<int>(byteLength),
+      'sha256': serializer.toJson<String>(sha256),
+      'lens': serializer.toJson<String>(
+        OriginalPhotos.$converterlens.toJson(lens),
+      ),
+      'sensor_orientation': serializer.toJson<int>(sensorOrientation),
+      'device_orientation': serializer.toJson<String>(
+        OriginalPhotos.$converterdeviceOrientation.toJson(deviceOrientation),
+      ),
+      'exif_orientation': serializer.toJson<int?>(exifOrientation),
+      'mirror_preview': serializer.toJson<bool>(mirrorPreview),
+      'mirror_output': serializer.toJson<bool>(mirrorOutput),
+      'origin': serializer.toJson<String>(
+        OriginalPhotos.$converterorigin.toJson(origin),
+      ),
+      'captured_at': serializer.toJson<DateTime>(capturedAt),
+      'committed_at': serializer.toJson<DateTime>(committedAt),
+    };
+  }
+
+  OriginalPhotoRow copyWith({
+    String? id,
+    String? relativePath,
+    int? widthPx,
+    int? heightPx,
+    int? byteLength,
+    String? sha256,
+    CameraLens? lens,
+    int? sensorOrientation,
+    CaptureOrientation? deviceOrientation,
+    Value<int?> exifOrientation = const Value.absent(),
+    bool? mirrorPreview,
+    bool? mirrorOutput,
+    CaptureOrigin? origin,
+    DateTime? capturedAt,
+    DateTime? committedAt,
+  }) => OriginalPhotoRow(
+    id: id ?? this.id,
+    relativePath: relativePath ?? this.relativePath,
+    widthPx: widthPx ?? this.widthPx,
+    heightPx: heightPx ?? this.heightPx,
+    byteLength: byteLength ?? this.byteLength,
+    sha256: sha256 ?? this.sha256,
+    lens: lens ?? this.lens,
+    sensorOrientation: sensorOrientation ?? this.sensorOrientation,
+    deviceOrientation: deviceOrientation ?? this.deviceOrientation,
+    exifOrientation: exifOrientation.present
+        ? exifOrientation.value
+        : this.exifOrientation,
+    mirrorPreview: mirrorPreview ?? this.mirrorPreview,
+    mirrorOutput: mirrorOutput ?? this.mirrorOutput,
+    origin: origin ?? this.origin,
+    capturedAt: capturedAt ?? this.capturedAt,
+    committedAt: committedAt ?? this.committedAt,
+  );
+  OriginalPhotoRow copyWithCompanion(OriginalPhotosCompanion data) {
+    return OriginalPhotoRow(
+      id: data.id.present ? data.id.value : this.id,
+      relativePath: data.relativePath.present
+          ? data.relativePath.value
+          : this.relativePath,
+      widthPx: data.widthPx.present ? data.widthPx.value : this.widthPx,
+      heightPx: data.heightPx.present ? data.heightPx.value : this.heightPx,
+      byteLength: data.byteLength.present
+          ? data.byteLength.value
+          : this.byteLength,
+      sha256: data.sha256.present ? data.sha256.value : this.sha256,
+      lens: data.lens.present ? data.lens.value : this.lens,
+      sensorOrientation: data.sensorOrientation.present
+          ? data.sensorOrientation.value
+          : this.sensorOrientation,
+      deviceOrientation: data.deviceOrientation.present
+          ? data.deviceOrientation.value
+          : this.deviceOrientation,
+      exifOrientation: data.exifOrientation.present
+          ? data.exifOrientation.value
+          : this.exifOrientation,
+      mirrorPreview: data.mirrorPreview.present
+          ? data.mirrorPreview.value
+          : this.mirrorPreview,
+      mirrorOutput: data.mirrorOutput.present
+          ? data.mirrorOutput.value
+          : this.mirrorOutput,
+      origin: data.origin.present ? data.origin.value : this.origin,
+      capturedAt: data.capturedAt.present
+          ? data.capturedAt.value
+          : this.capturedAt,
+      committedAt: data.committedAt.present
+          ? data.committedAt.value
+          : this.committedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OriginalPhotoRow(')
+          ..write('id: $id, ')
+          ..write('relativePath: $relativePath, ')
+          ..write('widthPx: $widthPx, ')
+          ..write('heightPx: $heightPx, ')
+          ..write('byteLength: $byteLength, ')
+          ..write('sha256: $sha256, ')
+          ..write('lens: $lens, ')
+          ..write('sensorOrientation: $sensorOrientation, ')
+          ..write('deviceOrientation: $deviceOrientation, ')
+          ..write('exifOrientation: $exifOrientation, ')
+          ..write('mirrorPreview: $mirrorPreview, ')
+          ..write('mirrorOutput: $mirrorOutput, ')
+          ..write('origin: $origin, ')
+          ..write('capturedAt: $capturedAt, ')
+          ..write('committedAt: $committedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    relativePath,
+    widthPx,
+    heightPx,
+    byteLength,
+    sha256,
+    lens,
+    sensorOrientation,
+    deviceOrientation,
+    exifOrientation,
+    mirrorPreview,
+    mirrorOutput,
+    origin,
+    capturedAt,
+    committedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is OriginalPhotoRow &&
+          other.id == this.id &&
+          other.relativePath == this.relativePath &&
+          other.widthPx == this.widthPx &&
+          other.heightPx == this.heightPx &&
+          other.byteLength == this.byteLength &&
+          other.sha256 == this.sha256 &&
+          other.lens == this.lens &&
+          other.sensorOrientation == this.sensorOrientation &&
+          other.deviceOrientation == this.deviceOrientation &&
+          other.exifOrientation == this.exifOrientation &&
+          other.mirrorPreview == this.mirrorPreview &&
+          other.mirrorOutput == this.mirrorOutput &&
+          other.origin == this.origin &&
+          other.capturedAt == this.capturedAt &&
+          other.committedAt == this.committedAt);
+}
+
+class OriginalPhotosCompanion extends UpdateCompanion<OriginalPhotoRow> {
+  final Value<String> id;
+  final Value<String> relativePath;
+  final Value<int> widthPx;
+  final Value<int> heightPx;
+  final Value<int> byteLength;
+  final Value<String> sha256;
+  final Value<CameraLens> lens;
+  final Value<int> sensorOrientation;
+  final Value<CaptureOrientation> deviceOrientation;
+  final Value<int?> exifOrientation;
+  final Value<bool> mirrorPreview;
+  final Value<bool> mirrorOutput;
+  final Value<CaptureOrigin> origin;
+  final Value<DateTime> capturedAt;
+  final Value<DateTime> committedAt;
+  final Value<int> rowid;
+  const OriginalPhotosCompanion({
+    this.id = const Value.absent(),
+    this.relativePath = const Value.absent(),
+    this.widthPx = const Value.absent(),
+    this.heightPx = const Value.absent(),
+    this.byteLength = const Value.absent(),
+    this.sha256 = const Value.absent(),
+    this.lens = const Value.absent(),
+    this.sensorOrientation = const Value.absent(),
+    this.deviceOrientation = const Value.absent(),
+    this.exifOrientation = const Value.absent(),
+    this.mirrorPreview = const Value.absent(),
+    this.mirrorOutput = const Value.absent(),
+    this.origin = const Value.absent(),
+    this.capturedAt = const Value.absent(),
+    this.committedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  OriginalPhotosCompanion.insert({
+    required String id,
+    required String relativePath,
+    required int widthPx,
+    required int heightPx,
+    required int byteLength,
+    required String sha256,
+    required CameraLens lens,
+    required int sensorOrientation,
+    required CaptureOrientation deviceOrientation,
+    this.exifOrientation = const Value.absent(),
+    required bool mirrorPreview,
+    required bool mirrorOutput,
+    required CaptureOrigin origin,
+    required DateTime capturedAt,
+    required DateTime committedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       relativePath = Value(relativePath),
+       widthPx = Value(widthPx),
+       heightPx = Value(heightPx),
+       byteLength = Value(byteLength),
+       sha256 = Value(sha256),
+       lens = Value(lens),
+       sensorOrientation = Value(sensorOrientation),
+       deviceOrientation = Value(deviceOrientation),
+       mirrorPreview = Value(mirrorPreview),
+       mirrorOutput = Value(mirrorOutput),
+       origin = Value(origin),
+       capturedAt = Value(capturedAt),
+       committedAt = Value(committedAt);
+  static Insertable<OriginalPhotoRow> custom({
+    Expression<String>? id,
+    Expression<String>? relativePath,
+    Expression<int>? widthPx,
+    Expression<int>? heightPx,
+    Expression<int>? byteLength,
+    Expression<String>? sha256,
+    Expression<String>? lens,
+    Expression<int>? sensorOrientation,
+    Expression<String>? deviceOrientation,
+    Expression<int>? exifOrientation,
+    Expression<bool>? mirrorPreview,
+    Expression<bool>? mirrorOutput,
+    Expression<String>? origin,
+    Expression<DateTime>? capturedAt,
+    Expression<DateTime>? committedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (relativePath != null) 'relative_path': relativePath,
+      if (widthPx != null) 'width_px': widthPx,
+      if (heightPx != null) 'height_px': heightPx,
+      if (byteLength != null) 'byte_length': byteLength,
+      if (sha256 != null) 'sha256': sha256,
+      if (lens != null) 'lens': lens,
+      if (sensorOrientation != null) 'sensor_orientation': sensorOrientation,
+      if (deviceOrientation != null) 'device_orientation': deviceOrientation,
+      if (exifOrientation != null) 'exif_orientation': exifOrientation,
+      if (mirrorPreview != null) 'mirror_preview': mirrorPreview,
+      if (mirrorOutput != null) 'mirror_output': mirrorOutput,
+      if (origin != null) 'origin': origin,
+      if (capturedAt != null) 'captured_at': capturedAt,
+      if (committedAt != null) 'committed_at': committedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  OriginalPhotosCompanion copyWith({
+    Value<String>? id,
+    Value<String>? relativePath,
+    Value<int>? widthPx,
+    Value<int>? heightPx,
+    Value<int>? byteLength,
+    Value<String>? sha256,
+    Value<CameraLens>? lens,
+    Value<int>? sensorOrientation,
+    Value<CaptureOrientation>? deviceOrientation,
+    Value<int?>? exifOrientation,
+    Value<bool>? mirrorPreview,
+    Value<bool>? mirrorOutput,
+    Value<CaptureOrigin>? origin,
+    Value<DateTime>? capturedAt,
+    Value<DateTime>? committedAt,
+    Value<int>? rowid,
+  }) {
+    return OriginalPhotosCompanion(
+      id: id ?? this.id,
+      relativePath: relativePath ?? this.relativePath,
+      widthPx: widthPx ?? this.widthPx,
+      heightPx: heightPx ?? this.heightPx,
+      byteLength: byteLength ?? this.byteLength,
+      sha256: sha256 ?? this.sha256,
+      lens: lens ?? this.lens,
+      sensorOrientation: sensorOrientation ?? this.sensorOrientation,
+      deviceOrientation: deviceOrientation ?? this.deviceOrientation,
+      exifOrientation: exifOrientation ?? this.exifOrientation,
+      mirrorPreview: mirrorPreview ?? this.mirrorPreview,
+      mirrorOutput: mirrorOutput ?? this.mirrorOutput,
+      origin: origin ?? this.origin,
+      capturedAt: capturedAt ?? this.capturedAt,
+      committedAt: committedAt ?? this.committedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (relativePath.present) {
+      map['relative_path'] = Variable<String>(relativePath.value);
+    }
+    if (widthPx.present) {
+      map['width_px'] = Variable<int>(widthPx.value);
+    }
+    if (heightPx.present) {
+      map['height_px'] = Variable<int>(heightPx.value);
+    }
+    if (byteLength.present) {
+      map['byte_length'] = Variable<int>(byteLength.value);
+    }
+    if (sha256.present) {
+      map['sha256'] = Variable<String>(sha256.value);
+    }
+    if (lens.present) {
+      map['lens'] = Variable<String>(
+        OriginalPhotos.$converterlens.toSql(lens.value),
+      );
+    }
+    if (sensorOrientation.present) {
+      map['sensor_orientation'] = Variable<int>(sensorOrientation.value);
+    }
+    if (deviceOrientation.present) {
+      map['device_orientation'] = Variable<String>(
+        OriginalPhotos.$converterdeviceOrientation.toSql(
+          deviceOrientation.value,
+        ),
+      );
+    }
+    if (exifOrientation.present) {
+      map['exif_orientation'] = Variable<int>(exifOrientation.value);
+    }
+    if (mirrorPreview.present) {
+      map['mirror_preview'] = Variable<bool>(mirrorPreview.value);
+    }
+    if (mirrorOutput.present) {
+      map['mirror_output'] = Variable<bool>(mirrorOutput.value);
+    }
+    if (origin.present) {
+      map['origin'] = Variable<String>(
+        OriginalPhotos.$converterorigin.toSql(origin.value),
+      );
+    }
+    if (capturedAt.present) {
+      map['captured_at'] = Variable<DateTime>(capturedAt.value);
+    }
+    if (committedAt.present) {
+      map['committed_at'] = Variable<DateTime>(committedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OriginalPhotosCompanion(')
+          ..write('id: $id, ')
+          ..write('relativePath: $relativePath, ')
+          ..write('widthPx: $widthPx, ')
+          ..write('heightPx: $heightPx, ')
+          ..write('byteLength: $byteLength, ')
+          ..write('sha256: $sha256, ')
+          ..write('lens: $lens, ')
+          ..write('sensorOrientation: $sensorOrientation, ')
+          ..write('deviceOrientation: $deviceOrientation, ')
+          ..write('exifOrientation: $exifOrientation, ')
+          ..write('mirrorPreview: $mirrorPreview, ')
+          ..write('mirrorOutput: $mirrorOutput, ')
+          ..write('origin: $origin, ')
+          ..write('capturedAt: $capturedAt, ')
+          ..write('committedAt: $committedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class PendingOriginalCommits extends Table
+    with TableInfo<PendingOriginalCommits, PendingOriginalCommitRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  PendingOriginalCommits(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL PRIMARY KEY CHECK (length(id) BETWEEN 1 AND 64 AND id NOT GLOB \'*[^0-9A-Za-z-]*\')',
+  );
+  static const VerificationMeta _sha256Meta = const VerificationMeta('sha256');
+  late final GeneratedColumn<String> sha256 = GeneratedColumn<String>(
+    'sha256',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (length(sha256) = 64 AND sha256 NOT GLOB \'*[^0-9a-f]*\')',
+  );
+  static const VerificationMeta _byteLengthMeta = const VerificationMeta(
+    'byteLength',
+  );
+  late final GeneratedColumn<int> byteLength = GeneratedColumn<int>(
+    'byte_length',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (byte_length >= 1)',
+  );
+  static const VerificationMeta _metadataMeta = const VerificationMeta(
+    'metadata',
+  );
+  late final GeneratedColumn<String> metadata = GeneratedColumn<String>(
+    'metadata',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (length(metadata) BETWEEN 2 AND 65536)',
+  );
+  static const VerificationMeta _startedAtMeta = const VerificationMeta(
+    'startedAt',
+  );
+  late final GeneratedColumn<DateTime> startedAt = GeneratedColumn<DateTime>(
+    'started_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    sha256,
+    byteLength,
+    metadata,
+    startedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'pending_original_commits';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PendingOriginalCommitRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('sha256')) {
+      context.handle(
+        _sha256Meta,
+        sha256.isAcceptableOrUnknown(data['sha256']!, _sha256Meta),
+      );
+    } else if (isInserting) {
+      context.missing(_sha256Meta);
+    }
+    if (data.containsKey('byte_length')) {
+      context.handle(
+        _byteLengthMeta,
+        byteLength.isAcceptableOrUnknown(data['byte_length']!, _byteLengthMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_byteLengthMeta);
+    }
+    if (data.containsKey('metadata')) {
+      context.handle(
+        _metadataMeta,
+        metadata.isAcceptableOrUnknown(data['metadata']!, _metadataMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_metadataMeta);
+    }
+    if (data.containsKey('started_at')) {
+      context.handle(
+        _startedAtMeta,
+        startedAt.isAcceptableOrUnknown(data['started_at']!, _startedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_startedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PendingOriginalCommitRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PendingOriginalCommitRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      sha256: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sha256'],
+      )!,
+      byteLength: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}byte_length'],
+      )!,
+      metadata: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}metadata'],
+      )!,
+      startedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}started_at'],
+      )!,
+    );
+  }
+
+  @override
+  PendingOriginalCommits createAlias(String alias) {
+    return PendingOriginalCommits(attachedDatabase, alias);
+  }
+
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class PendingOriginalCommitRow extends DataClass
+    implements Insertable<PendingOriginalCommitRow> {
+  final String id;
+  final String sha256;
+  final int byteLength;
+  final String metadata;
+  final DateTime startedAt;
+  const PendingOriginalCommitRow({
+    required this.id,
+    required this.sha256,
+    required this.byteLength,
+    required this.metadata,
+    required this.startedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['sha256'] = Variable<String>(sha256);
+    map['byte_length'] = Variable<int>(byteLength);
+    map['metadata'] = Variable<String>(metadata);
+    map['started_at'] = Variable<DateTime>(startedAt);
+    return map;
+  }
+
+  PendingOriginalCommitsCompanion toCompanion(bool nullToAbsent) {
+    return PendingOriginalCommitsCompanion(
+      id: Value(id),
+      sha256: Value(sha256),
+      byteLength: Value(byteLength),
+      metadata: Value(metadata),
+      startedAt: Value(startedAt),
+    );
+  }
+
+  factory PendingOriginalCommitRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PendingOriginalCommitRow(
+      id: serializer.fromJson<String>(json['id']),
+      sha256: serializer.fromJson<String>(json['sha256']),
+      byteLength: serializer.fromJson<int>(json['byte_length']),
+      metadata: serializer.fromJson<String>(json['metadata']),
+      startedAt: serializer.fromJson<DateTime>(json['started_at']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'sha256': serializer.toJson<String>(sha256),
+      'byte_length': serializer.toJson<int>(byteLength),
+      'metadata': serializer.toJson<String>(metadata),
+      'started_at': serializer.toJson<DateTime>(startedAt),
+    };
+  }
+
+  PendingOriginalCommitRow copyWith({
+    String? id,
+    String? sha256,
+    int? byteLength,
+    String? metadata,
+    DateTime? startedAt,
+  }) => PendingOriginalCommitRow(
+    id: id ?? this.id,
+    sha256: sha256 ?? this.sha256,
+    byteLength: byteLength ?? this.byteLength,
+    metadata: metadata ?? this.metadata,
+    startedAt: startedAt ?? this.startedAt,
+  );
+  PendingOriginalCommitRow copyWithCompanion(
+    PendingOriginalCommitsCompanion data,
+  ) {
+    return PendingOriginalCommitRow(
+      id: data.id.present ? data.id.value : this.id,
+      sha256: data.sha256.present ? data.sha256.value : this.sha256,
+      byteLength: data.byteLength.present
+          ? data.byteLength.value
+          : this.byteLength,
+      metadata: data.metadata.present ? data.metadata.value : this.metadata,
+      startedAt: data.startedAt.present ? data.startedAt.value : this.startedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PendingOriginalCommitRow(')
+          ..write('id: $id, ')
+          ..write('sha256: $sha256, ')
+          ..write('byteLength: $byteLength, ')
+          ..write('metadata: $metadata, ')
+          ..write('startedAt: $startedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, sha256, byteLength, metadata, startedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PendingOriginalCommitRow &&
+          other.id == this.id &&
+          other.sha256 == this.sha256 &&
+          other.byteLength == this.byteLength &&
+          other.metadata == this.metadata &&
+          other.startedAt == this.startedAt);
+}
+
+class PendingOriginalCommitsCompanion
+    extends UpdateCompanion<PendingOriginalCommitRow> {
+  final Value<String> id;
+  final Value<String> sha256;
+  final Value<int> byteLength;
+  final Value<String> metadata;
+  final Value<DateTime> startedAt;
+  final Value<int> rowid;
+  const PendingOriginalCommitsCompanion({
+    this.id = const Value.absent(),
+    this.sha256 = const Value.absent(),
+    this.byteLength = const Value.absent(),
+    this.metadata = const Value.absent(),
+    this.startedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PendingOriginalCommitsCompanion.insert({
+    required String id,
+    required String sha256,
+    required int byteLength,
+    required String metadata,
+    required DateTime startedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       sha256 = Value(sha256),
+       byteLength = Value(byteLength),
+       metadata = Value(metadata),
+       startedAt = Value(startedAt);
+  static Insertable<PendingOriginalCommitRow> custom({
+    Expression<String>? id,
+    Expression<String>? sha256,
+    Expression<int>? byteLength,
+    Expression<String>? metadata,
+    Expression<DateTime>? startedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (sha256 != null) 'sha256': sha256,
+      if (byteLength != null) 'byte_length': byteLength,
+      if (metadata != null) 'metadata': metadata,
+      if (startedAt != null) 'started_at': startedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PendingOriginalCommitsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? sha256,
+    Value<int>? byteLength,
+    Value<String>? metadata,
+    Value<DateTime>? startedAt,
+    Value<int>? rowid,
+  }) {
+    return PendingOriginalCommitsCompanion(
+      id: id ?? this.id,
+      sha256: sha256 ?? this.sha256,
+      byteLength: byteLength ?? this.byteLength,
+      metadata: metadata ?? this.metadata,
+      startedAt: startedAt ?? this.startedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (sha256.present) {
+      map['sha256'] = Variable<String>(sha256.value);
+    }
+    if (byteLength.present) {
+      map['byte_length'] = Variable<int>(byteLength.value);
+    }
+    if (metadata.present) {
+      map['metadata'] = Variable<String>(metadata.value);
+    }
+    if (startedAt.present) {
+      map['started_at'] = Variable<DateTime>(startedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PendingOriginalCommitsCompanion(')
+          ..write('id: $id, ')
+          ..write('sha256: $sha256, ')
+          ..write('byteLength: $byteLength, ')
+          ..write('metadata: $metadata, ')
+          ..write('startedAt: $startedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$BoothDatabase extends GeneratedDatabase {
   _$BoothDatabase(QueryExecutor e) : super(e);
   $BoothDatabaseManager get managers => $BoothDatabaseManager(this);
@@ -5932,6 +7214,17 @@ abstract class _$BoothDatabase extends GeneratedDatabase {
     'event_templates_by_revision',
     'CREATE INDEX event_templates_by_revision ON event_templates (template_revision_id)',
   );
+  late final OriginalPhotos originalPhotos = OriginalPhotos(this);
+  late final Index originalPhotosByTime = Index(
+    'original_photos_by_time',
+    'CREATE INDEX original_photos_by_time ON original_photos (captured_at)',
+  );
+  late final Trigger originalPhotosAreImmutable = Trigger(
+    'CREATE TRIGGER original_photos_are_immutable BEFORE UPDATE ON original_photos BEGIN SELECT RAISE (ABORT, \'originals are immutable\');END',
+    'original_photos_are_immutable',
+  );
+  late final PendingOriginalCommits pendingOriginalCommits =
+      PendingOriginalCommits(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -5953,6 +7246,10 @@ abstract class _$BoothDatabase extends GeneratedDatabase {
     eventTemplates,
     eventTemplatesOneDefault,
     eventTemplatesByRevision,
+    originalPhotos,
+    originalPhotosByTime,
+    originalPhotosAreImmutable,
+    pendingOriginalCommits,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -6006,6 +7303,13 @@ abstract class _$BoothDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('event_templates', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'original_photos',
+        limitUpdateKind: UpdateKind.update,
+      ),
+      result: [],
     ),
   ]);
   @override
@@ -10883,6 +12187,651 @@ typedef $EventTemplatesProcessedTableManager =
       EventTemplateRow,
       PrefetchHooks Function({bool eventId, bool templateRevisionId})
     >;
+typedef $OriginalPhotosCreateCompanionBuilder =
+    OriginalPhotosCompanion Function({
+      required String id,
+      required String relativePath,
+      required int widthPx,
+      required int heightPx,
+      required int byteLength,
+      required String sha256,
+      required CameraLens lens,
+      required int sensorOrientation,
+      required CaptureOrientation deviceOrientation,
+      Value<int?> exifOrientation,
+      required bool mirrorPreview,
+      required bool mirrorOutput,
+      required CaptureOrigin origin,
+      required DateTime capturedAt,
+      required DateTime committedAt,
+      Value<int> rowid,
+    });
+typedef $OriginalPhotosUpdateCompanionBuilder =
+    OriginalPhotosCompanion Function({
+      Value<String> id,
+      Value<String> relativePath,
+      Value<int> widthPx,
+      Value<int> heightPx,
+      Value<int> byteLength,
+      Value<String> sha256,
+      Value<CameraLens> lens,
+      Value<int> sensorOrientation,
+      Value<CaptureOrientation> deviceOrientation,
+      Value<int?> exifOrientation,
+      Value<bool> mirrorPreview,
+      Value<bool> mirrorOutput,
+      Value<CaptureOrigin> origin,
+      Value<DateTime> capturedAt,
+      Value<DateTime> committedAt,
+      Value<int> rowid,
+    });
+
+class $OriginalPhotosFilterComposer
+    extends Composer<_$BoothDatabase, OriginalPhotos> {
+  $OriginalPhotosFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get relativePath => $composableBuilder(
+    column: $table.relativePath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get widthPx => $composableBuilder(
+    column: $table.widthPx,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get heightPx => $composableBuilder(
+    column: $table.heightPx,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get byteLength => $composableBuilder(
+    column: $table.byteLength,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sha256 => $composableBuilder(
+    column: $table.sha256,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<CameraLens, CameraLens, String> get lens =>
+      $composableBuilder(
+        column: $table.lens,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<int> get sensorOrientation => $composableBuilder(
+    column: $table.sensorOrientation,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<CaptureOrientation, CaptureOrientation, String>
+  get deviceOrientation => $composableBuilder(
+    column: $table.deviceOrientation,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<int> get exifOrientation => $composableBuilder(
+    column: $table.exifOrientation,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get mirrorPreview => $composableBuilder(
+    column: $table.mirrorPreview,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get mirrorOutput => $composableBuilder(
+    column: $table.mirrorOutput,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<CaptureOrigin, CaptureOrigin, String>
+  get origin => $composableBuilder(
+    column: $table.origin,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<DateTime> get capturedAt => $composableBuilder(
+    column: $table.capturedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get committedAt => $composableBuilder(
+    column: $table.committedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $OriginalPhotosOrderingComposer
+    extends Composer<_$BoothDatabase, OriginalPhotos> {
+  $OriginalPhotosOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get relativePath => $composableBuilder(
+    column: $table.relativePath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get widthPx => $composableBuilder(
+    column: $table.widthPx,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get heightPx => $composableBuilder(
+    column: $table.heightPx,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get byteLength => $composableBuilder(
+    column: $table.byteLength,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sha256 => $composableBuilder(
+    column: $table.sha256,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lens => $composableBuilder(
+    column: $table.lens,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sensorOrientation => $composableBuilder(
+    column: $table.sensorOrientation,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get deviceOrientation => $composableBuilder(
+    column: $table.deviceOrientation,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get exifOrientation => $composableBuilder(
+    column: $table.exifOrientation,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get mirrorPreview => $composableBuilder(
+    column: $table.mirrorPreview,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get mirrorOutput => $composableBuilder(
+    column: $table.mirrorOutput,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get origin => $composableBuilder(
+    column: $table.origin,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get capturedAt => $composableBuilder(
+    column: $table.capturedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get committedAt => $composableBuilder(
+    column: $table.committedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $OriginalPhotosAnnotationComposer
+    extends Composer<_$BoothDatabase, OriginalPhotos> {
+  $OriginalPhotosAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get relativePath => $composableBuilder(
+    column: $table.relativePath,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get widthPx =>
+      $composableBuilder(column: $table.widthPx, builder: (column) => column);
+
+  GeneratedColumn<int> get heightPx =>
+      $composableBuilder(column: $table.heightPx, builder: (column) => column);
+
+  GeneratedColumn<int> get byteLength => $composableBuilder(
+    column: $table.byteLength,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sha256 =>
+      $composableBuilder(column: $table.sha256, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<CameraLens, String> get lens =>
+      $composableBuilder(column: $table.lens, builder: (column) => column);
+
+  GeneratedColumn<int> get sensorOrientation => $composableBuilder(
+    column: $table.sensorOrientation,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<CaptureOrientation, String>
+  get deviceOrientation => $composableBuilder(
+    column: $table.deviceOrientation,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get exifOrientation => $composableBuilder(
+    column: $table.exifOrientation,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get mirrorPreview => $composableBuilder(
+    column: $table.mirrorPreview,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get mirrorOutput => $composableBuilder(
+    column: $table.mirrorOutput,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<CaptureOrigin, String> get origin =>
+      $composableBuilder(column: $table.origin, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get capturedAt => $composableBuilder(
+    column: $table.capturedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get committedAt => $composableBuilder(
+    column: $table.committedAt,
+    builder: (column) => column,
+  );
+}
+
+class $OriginalPhotosTableManager
+    extends
+        RootTableManager<
+          _$BoothDatabase,
+          OriginalPhotos,
+          OriginalPhotoRow,
+          $OriginalPhotosFilterComposer,
+          $OriginalPhotosOrderingComposer,
+          $OriginalPhotosAnnotationComposer,
+          $OriginalPhotosCreateCompanionBuilder,
+          $OriginalPhotosUpdateCompanionBuilder,
+          (
+            OriginalPhotoRow,
+            BaseReferences<_$BoothDatabase, OriginalPhotos, OriginalPhotoRow>,
+          ),
+          OriginalPhotoRow,
+          PrefetchHooks Function()
+        > {
+  $OriginalPhotosTableManager(_$BoothDatabase db, OriginalPhotos table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $OriginalPhotosFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $OriginalPhotosOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $OriginalPhotosAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> relativePath = const Value.absent(),
+                Value<int> widthPx = const Value.absent(),
+                Value<int> heightPx = const Value.absent(),
+                Value<int> byteLength = const Value.absent(),
+                Value<String> sha256 = const Value.absent(),
+                Value<CameraLens> lens = const Value.absent(),
+                Value<int> sensorOrientation = const Value.absent(),
+                Value<CaptureOrientation> deviceOrientation =
+                    const Value.absent(),
+                Value<int?> exifOrientation = const Value.absent(),
+                Value<bool> mirrorPreview = const Value.absent(),
+                Value<bool> mirrorOutput = const Value.absent(),
+                Value<CaptureOrigin> origin = const Value.absent(),
+                Value<DateTime> capturedAt = const Value.absent(),
+                Value<DateTime> committedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => OriginalPhotosCompanion(
+                id: id,
+                relativePath: relativePath,
+                widthPx: widthPx,
+                heightPx: heightPx,
+                byteLength: byteLength,
+                sha256: sha256,
+                lens: lens,
+                sensorOrientation: sensorOrientation,
+                deviceOrientation: deviceOrientation,
+                exifOrientation: exifOrientation,
+                mirrorPreview: mirrorPreview,
+                mirrorOutput: mirrorOutput,
+                origin: origin,
+                capturedAt: capturedAt,
+                committedAt: committedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String relativePath,
+                required int widthPx,
+                required int heightPx,
+                required int byteLength,
+                required String sha256,
+                required CameraLens lens,
+                required int sensorOrientation,
+                required CaptureOrientation deviceOrientation,
+                Value<int?> exifOrientation = const Value.absent(),
+                required bool mirrorPreview,
+                required bool mirrorOutput,
+                required CaptureOrigin origin,
+                required DateTime capturedAt,
+                required DateTime committedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => OriginalPhotosCompanion.insert(
+                id: id,
+                relativePath: relativePath,
+                widthPx: widthPx,
+                heightPx: heightPx,
+                byteLength: byteLength,
+                sha256: sha256,
+                lens: lens,
+                sensorOrientation: sensorOrientation,
+                deviceOrientation: deviceOrientation,
+                exifOrientation: exifOrientation,
+                mirrorPreview: mirrorPreview,
+                mirrorOutput: mirrorOutput,
+                origin: origin,
+                capturedAt: capturedAt,
+                committedAt: committedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<OriginalPhotos, OriginalPhotoRow>(table),
+                  BaseReferences<
+                    _$BoothDatabase,
+                    OriginalPhotos,
+                    OriginalPhotoRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $OriginalPhotosProcessedTableManager =
+    ProcessedTableManager<
+      _$BoothDatabase,
+      OriginalPhotos,
+      OriginalPhotoRow,
+      $OriginalPhotosFilterComposer,
+      $OriginalPhotosOrderingComposer,
+      $OriginalPhotosAnnotationComposer,
+      $OriginalPhotosCreateCompanionBuilder,
+      $OriginalPhotosUpdateCompanionBuilder,
+      (
+        OriginalPhotoRow,
+        BaseReferences<_$BoothDatabase, OriginalPhotos, OriginalPhotoRow>,
+      ),
+      OriginalPhotoRow,
+      PrefetchHooks Function()
+    >;
+typedef $PendingOriginalCommitsCreateCompanionBuilder =
+    PendingOriginalCommitsCompanion Function({
+      required String id,
+      required String sha256,
+      required int byteLength,
+      required String metadata,
+      required DateTime startedAt,
+      Value<int> rowid,
+    });
+typedef $PendingOriginalCommitsUpdateCompanionBuilder =
+    PendingOriginalCommitsCompanion Function({
+      Value<String> id,
+      Value<String> sha256,
+      Value<int> byteLength,
+      Value<String> metadata,
+      Value<DateTime> startedAt,
+      Value<int> rowid,
+    });
+
+class $PendingOriginalCommitsFilterComposer
+    extends Composer<_$BoothDatabase, PendingOriginalCommits> {
+  $PendingOriginalCommitsFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sha256 => $composableBuilder(
+    column: $table.sha256,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get byteLength => $composableBuilder(
+    column: $table.byteLength,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get metadata => $composableBuilder(
+    column: $table.metadata,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get startedAt => $composableBuilder(
+    column: $table.startedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $PendingOriginalCommitsOrderingComposer
+    extends Composer<_$BoothDatabase, PendingOriginalCommits> {
+  $PendingOriginalCommitsOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sha256 => $composableBuilder(
+    column: $table.sha256,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get byteLength => $composableBuilder(
+    column: $table.byteLength,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get metadata => $composableBuilder(
+    column: $table.metadata,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get startedAt => $composableBuilder(
+    column: $table.startedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $PendingOriginalCommitsAnnotationComposer
+    extends Composer<_$BoothDatabase, PendingOriginalCommits> {
+  $PendingOriginalCommitsAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get sha256 =>
+      $composableBuilder(column: $table.sha256, builder: (column) => column);
+
+  GeneratedColumn<int> get byteLength => $composableBuilder(
+    column: $table.byteLength,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get metadata =>
+      $composableBuilder(column: $table.metadata, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get startedAt =>
+      $composableBuilder(column: $table.startedAt, builder: (column) => column);
+}
+
+class $PendingOriginalCommitsTableManager
+    extends
+        RootTableManager<
+          _$BoothDatabase,
+          PendingOriginalCommits,
+          PendingOriginalCommitRow,
+          $PendingOriginalCommitsFilterComposer,
+          $PendingOriginalCommitsOrderingComposer,
+          $PendingOriginalCommitsAnnotationComposer,
+          $PendingOriginalCommitsCreateCompanionBuilder,
+          $PendingOriginalCommitsUpdateCompanionBuilder,
+          (
+            PendingOriginalCommitRow,
+            BaseReferences<
+              _$BoothDatabase,
+              PendingOriginalCommits,
+              PendingOriginalCommitRow
+            >,
+          ),
+          PendingOriginalCommitRow,
+          PrefetchHooks Function()
+        > {
+  $PendingOriginalCommitsTableManager(
+    _$BoothDatabase db,
+    PendingOriginalCommits table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $PendingOriginalCommitsFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $PendingOriginalCommitsOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $PendingOriginalCommitsAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> sha256 = const Value.absent(),
+                Value<int> byteLength = const Value.absent(),
+                Value<String> metadata = const Value.absent(),
+                Value<DateTime> startedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PendingOriginalCommitsCompanion(
+                id: id,
+                sha256: sha256,
+                byteLength: byteLength,
+                metadata: metadata,
+                startedAt: startedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String sha256,
+                required int byteLength,
+                required String metadata,
+                required DateTime startedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => PendingOriginalCommitsCompanion.insert(
+                id: id,
+                sha256: sha256,
+                byteLength: byteLength,
+                metadata: metadata,
+                startedAt: startedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<PendingOriginalCommits, PendingOriginalCommitRow>(
+                    table,
+                  ),
+                  BaseReferences<
+                    _$BoothDatabase,
+                    PendingOriginalCommits,
+                    PendingOriginalCommitRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $PendingOriginalCommitsProcessedTableManager =
+    ProcessedTableManager<
+      _$BoothDatabase,
+      PendingOriginalCommits,
+      PendingOriginalCommitRow,
+      $PendingOriginalCommitsFilterComposer,
+      $PendingOriginalCommitsOrderingComposer,
+      $PendingOriginalCommitsAnnotationComposer,
+      $PendingOriginalCommitsCreateCompanionBuilder,
+      $PendingOriginalCommitsUpdateCompanionBuilder,
+      (
+        PendingOriginalCommitRow,
+        BaseReferences<
+          _$BoothDatabase,
+          PendingOriginalCommits,
+          PendingOriginalCommitRow
+        >,
+      ),
+      PendingOriginalCommitRow,
+      PrefetchHooks Function()
+    >;
 
 class $BoothDatabaseManager {
   final _$BoothDatabase _db;
@@ -10905,4 +12854,8 @@ class $BoothDatabaseManager {
       $TemplateDraftsTableManager(_db, _db.templateDrafts);
   $EventTemplatesTableManager get eventTemplates =>
       $EventTemplatesTableManager(_db, _db.eventTemplates);
+  $OriginalPhotosTableManager get originalPhotos =>
+      $OriginalPhotosTableManager(_db, _db.originalPhotos);
+  $PendingOriginalCommitsTableManager get pendingOriginalCommits =>
+      $PendingOriginalCommitsTableManager(_db, _db.pendingOriginalCommits);
 }

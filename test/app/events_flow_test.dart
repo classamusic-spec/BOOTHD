@@ -304,8 +304,8 @@ void main() {
   });
 
   group('launch checks', () {
-    testWidgets('a draft is blocked; checks this build cannot make say so and '
-        'block; the renderer and template checks run', (tester) async {
+    testWidgets('a draft is blocked; the camera, free space, renderer and '
+        'template checks run', (tester) async {
       useViewport(tester, TabletViewport.ipadLandscape);
       await pumpApp(
         tester,
@@ -322,8 +322,21 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Choose at least one template.'), findsOneWidget);
-      expect(find.text('Not yet available'), findsNWidgets(2));
+      // Only the kiosk lock is beyond this build, and it only reminds.
+      expect(find.text('Not yet available'), findsNothing);
       expect(find.text('Passed'), findsWidgets);
+      expect(
+        find.text(
+          'Camera access is allowed and the tablet has a front camera. '
+          'Diagnostics > Camera test shows its picture and saves a test '
+          'photo.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.text('At least 1 GB free. Diagnostics shows the exact amount.'),
+        findsOneWidget,
+      );
       expect(
         find.text(
           'A test page rendered at full print size as JPEG; nothing was '

@@ -10,14 +10,12 @@ import 'package:porcelain_photo_booth/core/design_system/porcelain_theme_data.da
 import 'package:porcelain_photo_booth/core/design_system/porcelain_typography.dart';
 import 'package:porcelain_photo_booth/core/design_system/theme_profiles.dart';
 
-/// Dart sources under [dir], except the M01 developer spike, which draws
-/// test fixtures with literal pixel colours and is removed in M04/M06.
+/// Dart sources under [dir].
 List<File> _sources(String dir) =>
     Directory(dir)
         .listSync(recursive: true)
         .whereType<File>()
         .where((f) => f.path.endsWith('.dart'))
-        .where((f) => !f.path.replaceAll(r'\', '/').contains('/spikes/'))
         .toList()
       ..sort((a, b) => a.path.compareTo(b.path));
 

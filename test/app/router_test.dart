@@ -267,11 +267,7 @@ void main() {
     );
     expect(find.text('Developer tools'), findsNothing);
     expect(find.text('Render lab'), findsNothing);
-    for (final path in [
-      RoutePaths.renderLab,
-      RoutePaths.cameraSpike,
-      RoutePaths.componentGallery,
-    ]) {
+    for (final path in [RoutePaths.renderLab, RoutePaths.componentGallery]) {
       routerOf(tester).go(path);
       await tester.pumpAndSettle();
       expect(find.text("This page isn't available"), findsOneWidget);

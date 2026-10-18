@@ -41,8 +41,9 @@ final capturedStillStoreProvider = Provider<CapturedStillStore>(
   (ref) => _unbound('capturedStillStoreProvider'),
 );
 
-/// Builds the live camera preview; [mirror] flips it horizontally on top of
-/// whatever the platform already does.
+/// Builds the live camera preview of the open camera, never stretched;
+/// [mirror] true shows guests themselves as in a mirror, whatever the
+/// platform does by default (ADR-0012).
 typedef CameraPreviewBuilder = Widget Function(
   BuildContext context, {
   required bool mirror,
@@ -50,6 +51,11 @@ typedef CameraPreviewBuilder = Widget Function(
 
 final cameraPreviewBuilderProvider = Provider<CameraPreviewBuilder>(
   (ref) => _unbound('cameraPreviewBuilderProvider'),
+);
+
+/// Free space on the booth's volume (M06, ADR-0012).
+final deviceStorageInfoProvider = Provider<DeviceStorageInfo>(
+  (ref) => _unbound('deviceStorageInfoProvider'),
 );
 
 // Storage and security (M03, ADR-0009).

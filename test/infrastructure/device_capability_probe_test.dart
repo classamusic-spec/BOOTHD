@@ -1,6 +1,6 @@
-// Launch checks (S19, A-14): storage, the renderer and template assets are
-// checked for real (M03, M04); the rest name the milestone that adds them
-// and are never reported as ready.
+// Launch checks (S19, A-14): storage, free space, the camera, the renderer
+// and template assets are checked for real (M03, M04, M06); the kiosk lock
+// names the milestone that adds it and is never reported as ready.
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -13,6 +13,7 @@ import 'package:porcelain_photo_booth/features/diagnostics/render_lab/render_fix
 import 'package:porcelain_photo_booth/infrastructure/composition/dart_ui_composition_renderer.dart';
 import 'package:porcelain_photo_booth/infrastructure/device/device_capability_probe.dart';
 
+import '../support/simulated_camera.dart';
 import '../support/template_store_harness.dart';
 
 void main() {
@@ -20,15 +21,21 @@ void main() {
   final fixtures = [fix01(), fix02(), fix03(), clipAndFit(), fix05()];
   late TemplateStoreHarness harness;
   late DeviceCapabilityProbe probe;
+  late SimulatedCameraService camera;
+  late FakeDeviceStorage space;
   late List<TemplateRevisionSummary> templates;
 
   setUp(() async {
     harness = await TemplateStoreHarness.create();
+    camera = SimulatedCameraService();
+    space = FakeDeviceStorage();
     probe = DeviceCapabilityProbe(
       harness.storage,
       renderer: DartUiCompositionRenderer(),
       templates: harness.templates,
       assets: harness.assets,
+      camera: camera,
+      space: space,
     );
     templates = [
       for (final (i, fixture) in fixtures.indexed)
@@ -101,18 +108,72 @@ void main() {
     );
   });
 
-  test('storage is checked for real; the rest name their milestone', () async {
+  const front = CaptureSettings(
+    lens: CameraLens.front,
+    mirrorPreview: true,
+    mirrorOutput: false,
+    orientation: GuestOrientationPreference.portrait,
+  );
+  const rear = CaptureSettings(
+    lens: CameraLens.back,
+    mirrorPreview: false,
+    mirrorOutput: false,
+    orientation: GuestOrientationPreference.landscape,
+  );
+
+  test('the camera check reads the permission and never asks', () async {
+    expect(await probe.camera(front), isA<CapabilityReady>());
+    expect(await probe.camera(rear), isA<CapabilityReady>());
+    for (final (permission, code) in [
+      (CameraPermission.notDetermined, 'CAMERA_PERMISSION_NOT_ASKED'),
+      (CameraPermission.denied, 'CAMERA_PERMISSION_DENIED'),
+      (
+        CameraPermission.permanentlyDenied,
+        'CAMERA_PERMISSION_PERMANENTLY_DENIED',
+      ),
+      (CameraPermission.restricted, 'CAMERA_PERMISSION_RESTRICTED'),
+    ]) {
+      camera.systemPermission = permission;
+      expect(problem(await probe.camera(front)), code);
+    }
+    expect(camera.prompts, 0, reason: 'a launch check never prompts');
+    expect(camera.initializations, 0, reason: 'nor opens the camera');
+  });
+
+  test("the camera check needs the event's own lens", () async {
+    camera.cameras = const [frontCamera];
+    expect(await probe.camera(front), isA<CapabilityReady>());
+    expect(problem(await probe.camera(rear)), 'CAMERA_LENS_UNAVAILABLE');
+    camera.cameras = const [
+      CameraDescriptor(
+        id: 'usb',
+        lens: CameraLens.external,
+        sensorOrientationDegrees: 0,
+      ),
+    ];
+    expect(
+      problem(await probe.camera(front)),
+      'CAMERA_NONE',
+      reason: 'external cameras are never chosen',
+    );
+    camera.cameras = const [];
+    expect(problem(await probe.camera(rear)), 'CAMERA_NONE');
+  });
+
+  test('free space is measured against the booth budget', () async {
+    expect(await probe.freeSpace(), isA<CapabilityReady>());
+    space.free = StorageBudget.minimumFreeBytes;
+    expect(await probe.freeSpace(), isA<CapabilityReady>());
+    space.free = StorageBudget.minimumFreeBytes - 1;
+    expect(problem(await probe.freeSpace()), 'STORAGE_LOW');
+    space.free = null;
+    expect(problem(await probe.freeSpace()), 'STORAGE_FREE_UNKNOWN');
+  });
+
+  test('storage is checked for real; the kiosk lock names M10', () async {
     expect(await probe.storageWrite(), isA<CapabilityReady>());
     String? milestone(CapabilityStatus status) =>
         (status as CapabilityNotYetAvailable).milestone;
-    const capture = CaptureSettings(
-      lens: CameraLens.front,
-      mirrorPreview: true,
-      mirrorOutput: false,
-      orientation: GuestOrientationPreference.portrait,
-    );
-    expect(milestone(await probe.camera(capture)), 'M06');
-    expect(milestone(await probe.freeSpace()), 'M06');
     expect(milestone(await probe.kioskLock()), 'M10');
     expect(
       Directory('${harness.root.path}/outputs').listSync(),

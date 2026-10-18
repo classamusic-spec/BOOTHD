@@ -47,9 +47,9 @@ BoothEvent _event({
   templates: templates,
 );
 
-/// What the M04 build reports on a working tablet: storage, the renderer
-/// and template assets are checked for real.
-const _m04Device = DeviceFacts(
+/// A build that cannot check the camera or free space yet (as before M06):
+/// storage, the renderer and template assets are checked for real.
+const _uncheckedDevice = DeviceFacts(
   camera: CapabilityNotYetAvailable('M06'),
   storageWrite: CapabilityReady(),
   freeSpace: CapabilityNotYetAvailable('M06'),
@@ -90,9 +90,9 @@ void main() {
     expect(report[PreflightCheckId.printer].status, PreflightStatus.info);
   });
 
-  test('in this build, unchecked capabilities are "not yet available" and '
+  test('capabilities a build cannot check are "not yet available" and '
       'block launch; none is reported as passed', () {
-    final report = _evaluate(_event(), device: _m04Device);
+    final report = _evaluate(_event(), device: _uncheckedDevice);
     expect(report.canLaunch, isFalse);
     for (final (id, milestone) in [
       (PreflightCheckId.camera, 'M06'),

@@ -24,7 +24,8 @@ camera or signing.
 3. **Record the inventory:** `mkdir -p docs/device_tests && tool/toolchain_inventory.sh > docs/device_tests/mac-inventory-$(date +%F).txt`
 4. **Static checks:** `tool/check.sh` (must pass, as on Linux).
 5. **Unsigned build:** `tool/build_ios.sh release`; record the exit code.
-   Since M01 the app has plugins (`camera`, `path_provider`). Flutter
+   Since M01 the app has plugins (`camera`, `path_provider`, and since M06
+   `permission_handler`). Flutter
    3.47.7 integrates them with Swift Package Manager, so the first Mac
    build may add that wiring to `ios/Runner.xcodeproj`; commit the change.
 6. **Simulator launch (AC-0004):** boot an iPad simulator
@@ -37,6 +38,30 @@ camera or signing.
    then `flutter run -d <ipad-id>` and
    `flutter test integration_test -d <ipad-id>`. Record model, iPadOS
    version, build mode and results.
+
+## Camera permission builds (M06, ADR-0012)
+
+`permission_handler` decides at build time which permissions exist. With
+Swift Package Manager it finds `NSCameraUsageDescription` in
+`ios/Runner/Info.plist` only when the build starts in the project
+directory: `flutter run`, `flutter build ios`, `flutter build ipa` and
+`xcodebuild` from the repository qualify. **A build or archive started
+from Xcode.app compiles the camera permission out, and the booth then
+reads camera access as refused on every iPad.** Archive with
+`flutter build ipa`, or before using Xcode.app run once:
+
+```sh
+launchctl setenv PERMISSION_HANDLER_INFO_PLIST "$PWD/ios/Runner/Info.plist"
+rm -rf ~/Library/Developer/Xcode/DerivedData
+```
+
+If a build ever falls back to CocoaPods (a generated `ios/Podfile`), add
+`'PERMISSION_CAMERA=1'` to `GCC_PREPROCESSOR_DEFINITIONS` in the
+Podfile's `post_install` block (see the plugin's README) and commit it.
+To confirm a build, delete the app, install it and open Diagnostics >
+Camera test > Allow camera: the system prompt must appear (M06 device
+procedure, step 1). `PERMISSION_HANDLER_VERBOSE=1` makes the command-line
+build log which permissions were enabled.
 
 ## What to record
 

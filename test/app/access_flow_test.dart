@@ -367,6 +367,7 @@ void main() {
         RoutePaths.gallery,
         RoutePaths.settingsSection('booth'),
         RoutePaths.diagnostics,
+        RoutePaths.cameraTest,
         RoutePaths.guestPreview,
         RoutePaths.componentGallery,
         RoutePaths.setup,

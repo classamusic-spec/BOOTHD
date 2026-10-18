@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import '../../core/design_system/porcelain_icons.dart';
 import '../../domain/models/booth_event.dart';
 import '../../domain/models/event_rules.dart';
+import '../../domain/services/booth_capabilities.dart';
 import '../../domain/services/camera_service.dart';
 import '../../domain/services/preflight.dart';
 import '../../domain/value_objects/orientation.dart';
@@ -241,10 +242,47 @@ abstract final class EventCopy {
         "A template's files are missing or damaged "
             '(${check.problemCode}). Import the template again.',
       ],
+      PreflightCheckId.camera when check.status == PreflightStatus.pass => [
+        'Camera access is allowed and the tablet has a '
+            '${lens(event.capture.lens).toLowerCase()}. Diagnostics > Camera '
+            'test shows its picture and saves a test photo.',
+      ],
+      PreflightCheckId.camera when !notYet => [
+        switch (check.problemCode) {
+          'CAMERA_PERMISSION_NOT_ASKED' =>
+            "The booth hasn't asked for camera access yet. Open Diagnostics "
+                '> Camera test and allow it.',
+          'CAMERA_PERMISSION_RESTRICTED' =>
+            'Device management or Screen Time blocks the camera on this '
+                "tablet. Ask the tablet's administrator to allow it.",
+          'CAMERA_PERMISSION_DENIED' ||
+          'CAMERA_PERMISSION_PERMANENTLY_DENIED' =>
+            'Camera access is turned off. Diagnostics > Camera test shows '
+                'how to turn it back on.',
+          'CAMERA_NONE' => 'This tablet reports no built-in camera.',
+          'CAMERA_LENS_UNAVAILABLE' =>
+            'This tablet has no ${lens(event.capture.lens).toLowerCase()}. '
+                "Choose the other camera in the event's Camera settings.",
+          final code => "The camera couldn't be checked ($code).",
+        },
+      ],
       PreflightCheckId.camera when notYet => [
         'Camera permission and the ${lens(event.capture.lens).toLowerCase()} '
             'are checked once the production camera service arrives '
             '($milestone).',
+      ],
+      PreflightCheckId.freeSpace when check.status == PreflightStatus.pass => [
+        'At least '
+            '${StorageBudget.minimumFreeBytes ~/ (1024 * 1024 * 1024)} GB '
+            'free. Diagnostics shows the exact amount.',
+      ],
+      PreflightCheckId.freeSpace when !notYet => [
+        check.problemCode == 'STORAGE_LOW'
+            ? 'Less than '
+                  '${StorageBudget.minimumFreeBytes ~/ (1024 * 1024 * 1024)} '
+                  'GB free. Free up space on the tablet before guests arrive.'
+            : "The tablet didn't say how much space is free "
+                  '(${check.problemCode}).',
       ],
       PreflightCheckId.freeSpace when notYet => [
         'Measuring free space arrives with device diagnostics ($milestone).',

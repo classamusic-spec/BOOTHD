@@ -157,6 +157,13 @@ void main() {
     }
   }
 
+  test('viewfinder messages are readable in every theme', () {
+    expect(
+      contrastRatio(PorcelainViewfinder.ink, PorcelainViewfinder.background),
+      greaterThanOrEqualTo(ContrastTargets.guestPrimaryText),
+    );
+  });
+
   test('high contrast never lowers contrast', () {
     for (final profile in PorcelainThemeProfile.values) {
       final standard = PorcelainPalettes.of(profile);

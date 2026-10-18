@@ -28,7 +28,7 @@ final class BoothDatabase extends _$BoothDatabase {
 
   /// Bump together with a migration step, a schema dump
   /// (`dart run drift_dev make-migrations`) and a seeded fixture.
-  static const currentSchemaVersion = 3;
+  static const currentSchemaVersion = 4;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -89,6 +89,13 @@ final class BoothDatabase extends _$BoothDatabase {
       );
       await migrator.create(schema.assetContentIsImmutable);
       await migrator.createTable(schema.templateDrafts);
+    },
+    // M06: camera originals and the journal of commits in progress.
+    from3To4: (migrator, schema) async {
+      await migrator.createTable(schema.originalPhotos);
+      await migrator.create(schema.originalPhotosByTime);
+      await migrator.create(schema.originalPhotosAreImmutable);
+      await migrator.createTable(schema.pendingOriginalCommits);
     },
   );
 

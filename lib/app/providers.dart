@@ -10,6 +10,7 @@ import '../core/platform/app_environment.dart';
 import '../core/routing/route_paths.dart';
 import '../infrastructure/camera/camera_driver.dart';
 import '../infrastructure/camera/managed_camera_service.dart';
+import '../infrastructure/camera/permission_handler_camera_permissions.dart';
 import '../infrastructure/composition/dart_ui_composition_renderer.dart';
 import '../infrastructure/database/booth_database.dart';
 import '../infrastructure/database/database_connection.dart';
@@ -18,6 +19,7 @@ import '../infrastructure/database/drift_event_repository.dart';
 import '../infrastructure/database/drift_operator_access_repository.dart';
 import '../infrastructure/database/drift_template_catalog.dart';
 import '../infrastructure/device/device_capability_probe.dart';
+import '../infrastructure/device/platform_device_storage.dart';
 import '../infrastructure/file_store/file_export_service.dart';
 import '../infrastructure/file_store/managed_storage.dart';
 import '../infrastructure/file_store/original_store.dart';
@@ -56,9 +58,17 @@ final _cameraDriverProvider = Provider<PluginCameraDriver>(
   (ref) => PluginCameraDriver(),
 );
 
-final _originalStoreProvider = Provider<OriginalStore>(
-  (ref) => OriginalStore(root: getApplicationSupportDirectory),
-);
+/// Camera originals: files in managed storage, records in the booth
+/// database (M06, A-11).
+final _originalStoreProvider = Provider<OriginalStore>((ref) {
+  final storage = ref.watch(_managedStorageProvider);
+  return OriginalStore(
+    database: ref.watch(_boothDatabaseProvider),
+    root: getApplicationSupportDirectory,
+    writer: storage.writer,
+    clock: ref.watch(clockProvider),
+  );
+});
 
 /// Managed storage under the app's private support directory (A-11).
 final _managedStorageProvider = Provider<FileManagedStorage>(
@@ -87,6 +97,7 @@ List<Override> productionOverrides() => [
   cameraServiceProvider.overrideWith((ref) {
     final service = ManagedCameraService(
       driver: ref.watch(_cameraDriverProvider),
+      permissions: const PermissionHandlerCameraPermissions(),
       store: ref.watch(_originalStoreProvider),
     );
     ref.onDispose(service.dispose);
@@ -148,12 +159,15 @@ List<Override> productionOverrides() => [
       ids: ref.watch(idGeneratorProvider),
     ),
   ),
+  deviceStorageInfoProvider.overrideWithValue(const PlatformDeviceStorage()),
   boothCapabilityProbeProvider.overrideWith(
     (ref) => DeviceCapabilityProbe(
       ref.watch(_managedStorageProvider),
       renderer: ref.watch(compositionRendererProvider),
       templates: ref.watch(templateRepositoryProvider),
       assets: ref.watch(assetRepositoryProvider),
+      camera: ref.watch(cameraServiceProvider),
+      space: ref.watch(deviceStorageInfoProvider),
     ),
   ),
 ];

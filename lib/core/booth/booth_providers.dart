@@ -7,11 +7,15 @@ import '../../domain/value_objects/appearance.dart';
 import '../di/service_providers.dart';
 
 /// Startup (UX-04): prepares managed storage, opens and migrates the
-/// database and reads the booth. Errors (storage unavailable, data from a
-/// newer app version) surface here, before any screen depends on them.
+/// database, reads the booth and finishes or undoes photo saves the app
+/// never finished (A-11), before anything can take a photo. Errors (storage
+/// unavailable, data from a newer app version) surface here, before any
+/// screen depends on them.
 final startupProvider = FutureProvider<BoothState>((ref) async {
   await ref.watch(managedStorageProvider).prepare();
-  return ref.watch(boothSettingsRepositoryProvider).load();
+  final booth = await ref.watch(boothSettingsRepositoryProvider).load();
+  await ref.watch(capturedStillStoreProvider).reconcile();
+  return booth;
 });
 
 /// The appearance stored with the booth, once startup has read it.

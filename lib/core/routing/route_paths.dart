@@ -57,8 +57,11 @@ abstract final class RoutePaths {
   /// Operator preview of the guest welcome screen (not Booth Mode).
   static const guestPreview = '/preview/guest-welcome';
 
+  /// The camera test (S18, M06): permission, preview, mirroring and a saved
+  /// test photo. In every build.
+  static const cameraTest = '$diagnostics/camera';
+
   /// Developer tools, registered only outside release builds.
   static const renderLab = '/dev/render-lab';
-  static const cameraSpike = '/dev/camera-spike';
   static const componentGallery = '/dev/components';
 }

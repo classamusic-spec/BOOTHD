@@ -5,6 +5,7 @@ import '../../domain/models/booth_event.dart';
 import '../../domain/models/template_revision_summary.dart';
 import '../../domain/repositories/template_store.dart';
 import '../../domain/services/booth_capabilities.dart';
+import '../../domain/services/camera_service.dart';
 import '../../domain/services/composition_renderer.dart';
 import '../../domain/services/managed_storage.dart';
 import '../../domain/template/geometry.dart';
@@ -15,33 +16,59 @@ import '../../domain/template/template_layers.dart';
 import '../codecs/jpeg_encoder.dart';
 import '../templates/store_render_source.dart';
 
-/// The launch checks this build can actually make. Storage writes, the
-/// renderer and template assets are tested for real (M03, M04); everything
-/// else names the milestone that adds the check and is never reported as
-/// ready.
+/// The launch checks this build can actually make. Storage writes, free
+/// space, the camera, the renderer and template assets are tested for real
+/// (M03, M04, M06); the kiosk lock names the milestone that adds its check
+/// and is never reported as ready.
 final class DeviceCapabilityProbe implements BoothCapabilityProbe {
   DeviceCapabilityProbe(
     this._storage, {
     required this._renderer,
     required this._templates,
     required this._assets,
+    required this._camera,
+    required this._space,
   });
 
   final ManagedStorage _storage;
   final CompositionRenderer _renderer;
   final TemplateRepository _templates;
   final AssetRepository _assets;
+  final CameraService _camera;
+  final DeviceStorageInfo _space;
 
+  /// Permission (read, never asked here) and a built-in camera of the
+  /// event's lens. Opening the camera is the camera test's job (S18).
   @override
-  Future<CapabilityStatus> camera(CaptureSettings capture) async =>
-      const CapabilityNotYetAvailable('M06');
+  Future<CapabilityStatus> camera(CaptureSettings capture) async {
+    final List<CameraDescriptor> cameras;
+    try {
+      if ((await _camera.permission()).problemCode case final code?) {
+        return CapabilityProblem(code);
+      }
+      cameras = await _camera.availableCameras();
+    } on CameraFailure catch (failure) {
+      return CapabilityProblem(failure.code.diagnostic);
+    }
+    final choice = CameraChoice.of(cameras, capture.lens);
+    if (choice.camera == null) return const CapabilityProblem('CAMERA_NONE');
+    if (choice.fellBack) {
+      return const CapabilityProblem('CAMERA_LENS_UNAVAILABLE');
+    }
+    return const CapabilityReady();
+  }
 
   @override
   Future<CapabilityStatus> storageWrite() => _storage.probeWrite();
 
   @override
-  Future<CapabilityStatus> freeSpace() async =>
-      const CapabilityNotYetAvailable('M06');
+  Future<CapabilityStatus> freeSpace() async {
+    final free = await _space.freeBytes();
+    if (free == null) return const CapabilityProblem('STORAGE_FREE_UNKNOWN');
+    return free < StorageBudget.minimumFreeBytes
+        ? const CapabilityProblem('STORAGE_LOW')
+        : const CapabilityReady();
+  }
 
   /// Renders every template at full print size in the event's format, with
   /// a stand-in photo in each slot, and checks the file decodes at the page

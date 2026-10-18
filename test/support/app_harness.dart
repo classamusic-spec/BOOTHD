@@ -10,6 +10,7 @@ import 'package:porcelain_photo_booth/app/providers.dart';
 import 'package:porcelain_photo_booth/core/access/access_controller.dart';
 import 'package:porcelain_photo_booth/core/design_system/appearance.dart';
 import 'package:porcelain_photo_booth/core/di/service_providers.dart';
+import 'package:porcelain_photo_booth/core/diagnostics/device_self_test.dart';
 import 'package:porcelain_photo_booth/core/platform/app_environment.dart';
 import 'package:porcelain_photo_booth/core/routing/route_paths.dart';
 import 'package:porcelain_photo_booth/domain/services/booth_capabilities.dart';
@@ -25,6 +26,7 @@ import 'package:porcelain_photo_booth/infrastructure/database/drift_template_cat
 
 import 'fakes.dart';
 import 'memory_template_store.dart';
+import 'simulated_camera.dart';
 import 'test_database.dart';
 
 const debugAndroid = AppEnvironment(
@@ -80,6 +82,8 @@ final class TestBooth {
     required this.recoveryCode,
     required this.templates,
     required this.files,
+    required this.camera,
+    required this.space,
   });
 
   final BoothDatabase db;
@@ -96,6 +100,13 @@ final class TestBooth {
 
   /// The document picker and share sheet.
   final FakeOperatorFiles files;
+
+  /// The camera, with no camera, and its committed originals.
+  final SimulatedCameraService camera;
+  SimulatedStillStore get stills => camera.store;
+
+  /// Free space as the tablet reports it.
+  final FakeDeviceStorage space;
 
   late final ProviderContainer container;
 
@@ -157,6 +168,8 @@ Future<TestBooth> pumpApp(
   Future<void> Function(BoothDatabase db)? seed,
   MemoryTemplateStore? templates,
   Future<void> Function(MemoryTemplateStore templates)? seedTemplates,
+  SimulatedCameraService? camera,
+  FakeDeviceStorage? space,
 }) async {
   final testClock = clock ?? FakeClock();
   final db = database ?? memoryDatabase(clock: testClock);
@@ -189,6 +202,8 @@ Future<TestBooth> pumpApp(
     recoveryCode: recoveryCode,
     templates: library,
     files: FakeOperatorFiles(),
+    camera: camera ?? SimulatedCameraService(),
+    space: space ?? FakeDeviceStorage(),
   );
 
   await tester.pumpWidget(
@@ -218,6 +233,18 @@ Future<TestBooth> pumpApp(
         templatePackagesProvider.overrideWithValue(library.packages),
         templateDraftRepositoryProvider.overrideWithValue(library.drafts),
         operatorFilesProvider.overrideWithValue(booth.files),
+        cameraServiceProvider.overrideWithValue(booth.camera),
+        capturedStillStoreProvider.overrideWithValue(booth.stills),
+        cameraPreviewBuilderProvider.overrideWithValue(simulatedPreview),
+        deviceStorageInfoProvider.overrideWithValue(booth.space),
+        deviceSelfTestProvider.overrideWith(
+          (ref) => DeviceSelfTest(
+            camera: booth.camera,
+            storage: booth.storage,
+            space: booth.space,
+            stopwatch: FixedStopwatch.new,
+          ),
+        ),
         // Engine work (rendering, decoding) completes only in real time:
         // see settleRendering().
         compositionRendererProvider.overrideWithValue(

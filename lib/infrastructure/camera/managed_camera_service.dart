@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math';
-import 'dart:typed_data';
 
 import 'package:flutter/widgets.dart';
 
@@ -8,13 +7,13 @@ import '../../domain/services/camera_service.dart';
 import '../file_store/original_store.dart';
 import 'camera_driver.dart';
 
-/// Maps a plugin error [code] to a failure code and, for permission errors,
+/// Maps a driver error [code] to a failure code and, for permission errors,
 /// the permission state it reveals. [operationFailure] covers other codes.
 ///
 /// iOS reports `CameraAccessDeniedWithoutPrompt` and `CameraAccessRestricted`;
 /// Android CameraX reports only `CameraAccessDenied` or
-/// `CameraPermissionsError`, so "denied forever" is indistinguishable there
-/// (ADR-0007).
+/// `CameraPermissionsError` (ADR-0007). The codes `cameraInUse`,
+/// `cameraInterrupted` and the rest come from [classifyCameraErrorDescription].
 (CameraFailureCode, CameraPermission?) classifyCameraError(
   String code, {
   required CameraFailureCode operationFailure,
@@ -24,51 +23,76 @@ import 'camera_driver.dart';
     CameraPermission.denied,
   ),
   'CameraAccessDeniedWithoutPrompt' => (
-    CameraFailureCode.permissionDenied,
+    CameraFailureCode.permissionPermanentlyDenied,
     CameraPermission.permanentlyDenied,
   ),
   'CameraAccessRestricted' => (
     CameraFailureCode.permissionRestricted,
     CameraPermission.restricted,
   ),
-  'cameraNotFound' => (CameraFailureCode.cameraUnavailable, null),
+  'cameraNotFound' ||
+  'doNotDisturb' ||
+  'cameraDisabled' ||
+  'cameraFatal' => (CameraFailureCode.cameraUnavailable, null),
+  'cameraInUse' => (CameraFailureCode.cameraInUse, null),
+  'cameraInterrupted' => (CameraFailureCode.interrupted, null),
+  'notOpen' => (CameraFailureCode.notReady, null),
   _ => (operationFailure, null),
 };
 
-/// [CameraService] that owns the camera lifecycle (ADR-0002). Spike-grade.
+/// The failure that a permission other than granted means.
+CameraFailure permissionFailure(CameraPermission permission) =>
+    CameraFailure(switch (permission) {
+      CameraPermission.permanentlyDenied =>
+        CameraFailureCode.permissionPermanentlyDenied,
+      CameraPermission.restricted => CameraFailureCode.permissionRestricted,
+      _ => CameraFailureCode.permissionDenied,
+    });
+
+/// [CameraService] that owns the camera lifecycle (ADR-0002, ADR-0012).
 ///
 /// Every operation runs one at a time in call order. A second capture while
-/// one is in flight is refused with [CameraFailureCode.captureBusy] rather
-/// than queued, so double taps cannot take extra photos. Captures are
-/// refused while the app is not active, and a still is returned only after
-/// [OriginalStore] has validated and committed it.
+/// one is in flight is refused at once with [CameraFailureCode.captureBusy]
+/// rather than queued, so double taps cannot take extra photos. Captures
+/// are refused while the app is not active, and a still is returned only
+/// after [OriginalStore] has validated and committed it. Permission is
+/// checked before the camera opens; it is asked for only if never asked.
+/// When the open camera reports an error by itself (an interruption,
+/// another app), it is closed and the status says why; [resume] opens it
+/// again and never takes a photo.
 final class ManagedCameraService implements CameraService {
   ManagedCameraService({
     required this._driver,
+    required this._permissions,
     required this._store,
     bool Function()? isAppActive,
     DateTime Function()? clock,
     String Function()? newId,
   }) : _isAppActive = isAppActive ?? _appIsResumed,
        _clock = clock ?? DateTime.now,
-       _newId = newId ?? _randomId;
+       _newId = newId ?? _randomId {
+    _driverErrors = _driver.errors.listen(_onDriverError);
+  }
 
   final CameraDriver _driver;
+  final CameraPermissions _permissions;
   final OriginalStore _store;
   final bool Function() _isAppActive;
   final DateTime Function() _clock;
   final String Function() _newId;
+  late final StreamSubscription<CameraDriverException> _driverErrors;
 
-  final _changes = StreamController<CameraLifecycle>.broadcast();
-  var _state = CameraLifecycle.uninitialized;
-  var _permission = CameraPermission.notDetermined;
-  CameraRequest? _request;
-  CameraDescriptor? _camera;
+  final _changes = StreamController<CameraStatus>.broadcast();
+  var _status = CameraStatus.initial;
   Future<void> _tail = Future.value();
   var _capturing = false;
 
-  static bool _appIsResumed() =>
-      WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
+  /// Before the first lifecycle report the app is starting in the
+  /// foreground.
+  static bool _appIsResumed() {
+    final state = WidgetsBinding.instance.lifecycleState;
+    return state == null || state == AppLifecycleState.resumed;
+  }
 
   static String _randomId() {
     final now = DateTime.now().toUtc().toIso8601String().replaceAll(
@@ -79,11 +103,14 @@ final class ManagedCameraService implements CameraService {
     return '$now-${random.padLeft(8, '0')}';
   }
 
-  /// Subscribes to changes synchronously on listen, so no transition that
-  /// follows the current state can be missed.
   @override
-  Stream<CameraLifecycle> get lifecycle => Stream.multi((listener) {
-    listener.add(_state);
+  CameraStatus get status => _status;
+
+  /// Subscribes to changes synchronously on listen, so no transition that
+  /// follows the current status can be missed.
+  @override
+  Stream<CameraStatus> get statusChanges => Stream.multi((listener) {
+    listener.add(_status);
     final subscription = _changes.stream.listen(
       listener.add,
       onDone: listener.close,
@@ -92,7 +119,34 @@ final class ManagedCameraService implements CameraService {
   });
 
   @override
-  Future<CameraPermission> permission() async => _permission;
+  Future<CameraPermission> permission() => _readPermission(_permissions.status);
+
+  /// Serialised, so a prompt never overlaps another or a camera opening.
+  @override
+  Future<CameraPermission> requestPermission() =>
+      _serial(() => _readPermission(_permissions.request));
+
+  Future<CameraPermission> _readPermission(
+    Future<CameraPermission> Function() read,
+  ) async {
+    final CameraPermission permission;
+    try {
+      permission = await read();
+    } on Object catch (error) {
+      throw _unexpected(error, CameraFailureCode.initializationFailed);
+    }
+    _update(permission: permission);
+    return permission;
+  }
+
+  @override
+  Future<bool> openPermissionSettings() async {
+    try {
+      return await _permissions.openSettings();
+    } on Object {
+      return false;
+    }
+  }
 
   @override
   Future<List<CameraDescriptor>> availableCameras() => _serial(() async {
@@ -106,60 +160,98 @@ final class ManagedCameraService implements CameraService {
   });
 
   @override
-  Future<void> initialize(CameraRequest request) =>
-      _serial(() => _open(request));
+  Future<CameraCapabilities> initialize(CameraRequest request) =>
+      _serial(() async {
+        final capabilities = _status.capabilities;
+        if (_status.isReady &&
+            _status.request == request &&
+            capabilities != null) {
+          return capabilities;
+        }
+        return _open(request, mayAsk: true);
+      });
 
-  Future<void> _open(CameraRequest request) async {
-    _set(CameraLifecycle.initializing);
+  Future<CameraCapabilities> _open(
+    CameraRequest request, {
+    required bool mayAsk,
+  }) async {
+    _set(
+      CameraStatus(
+        lifecycle: CameraLifecycle.initializing,
+        permission: _status.permission,
+        request: request,
+      ),
+    );
     try {
+      var permission = await _permissions.status();
+      if (mayAsk && permission == CameraPermission.notDetermined) {
+        permission = await _permissions.request();
+      }
+      _update(permission: permission);
+      if (permission != CameraPermission.granted) {
+        throw permissionFailure(permission);
+      }
       final cameras = await _driver.listCameras();
       final camera = cameras.where((c) => c.id == request.cameraId).firstOrNull;
       if (camera == null) {
-        throw const CameraFailure(CameraFailureCode.cameraUnavailable);
+        throw CameraFailure(
+          cameras.isEmpty
+              ? CameraFailureCode.noCamera
+              : CameraFailureCode.cameraUnavailable,
+        );
       }
-      await _driver.open(camera);
-      _permission = CameraPermission.granted;
-      _request = request;
-      _camera = camera;
-      _set(CameraLifecycle.ready);
-    } on CameraFailure {
-      _set(CameraLifecycle.failed);
+      final capabilities = await _driver.open(camera);
+      _set(
+        CameraStatus(
+          lifecycle: CameraLifecycle.ready,
+          permission: CameraPermission.granted,
+          request: request,
+          capabilities: capabilities,
+        ),
+      );
+      return capabilities;
+    } on CameraFailure catch (failure) {
+      _fail(failure);
       rethrow;
     } on CameraDriverException catch (error) {
-      _set(CameraLifecycle.failed);
-      throw _failure(error, CameraFailureCode.initializationFailed);
+      final failure = _failure(error, CameraFailureCode.initializationFailed);
+      _fail(failure);
+      throw failure;
     } on Object catch (error) {
-      _set(CameraLifecycle.failed);
-      throw _unexpected(error, CameraFailureCode.initializationFailed);
+      final failure = _unexpected(
+        error,
+        CameraFailureCode.initializationFailed,
+      );
+      _fail(failure);
+      throw failure;
     }
   }
 
   @override
-  Future<CapturedStill> captureStill() {
+  Future<CapturedStill> captureStill({
+    CaptureOrigin origin = CaptureOrigin.session,
+  }) {
     if (_capturing) {
       return Future.error(const CameraFailure(CameraFailureCode.captureBusy));
     }
     _capturing = true;
     return _serial(() async {
       try {
-        final request = _request;
-        final camera = _camera;
-        if (_state != CameraLifecycle.ready ||
+        final request = _status.request;
+        final capabilities = _status.capabilities;
+        if (_status.lifecycle != CameraLifecycle.ready ||
             request == null ||
-            camera == null) {
-          throw const CameraFailure(
-            CameraFailureCode.cameraUnavailable,
-            detail: 'camera not ready',
-          );
+            capabilities == null) {
+          throw const CameraFailure(CameraFailureCode.notReady);
         }
         if (!_isAppActive()) {
           throw const CameraFailure(CameraFailureCode.appNotActive);
         }
-        _set(CameraLifecycle.capturing);
+        _update(lifecycle: CameraLifecycle.capturing);
         final capturedAt = _clock();
-        final Uint8List bytes;
+        final DriverStill still;
         try {
-          bytes = await _driver.capture();
+          still = await _driver.capture();
         } on CameraDriverException catch (error) {
           throw _failure(error, CameraFailureCode.captureFailed);
         } on Object catch (error) {
@@ -168,13 +260,16 @@ final class ManagedCameraService implements CameraService {
         try {
           return await _store.commit(
             id: _newId(),
-            bytes: bytes,
+            bytes: still.bytes,
             context: CaptureContext(
-              lens: camera.lens,
-              sensorOrientationDegrees: camera.sensorOrientationDegrees,
+              lens: capabilities.camera.lens,
+              sensorOrientationDegrees:
+                  capabilities.camera.sensorOrientationDegrees,
               mirrorPreviewRequested: request.mirrorPreview,
               mirrorOutputRequested: request.mirrorOutput,
               capturedAtUtc: capturedAt,
+              deviceOrientation: still.orientation,
+              origin: origin,
             ),
           );
         } on OriginalCommitException catch (error) {
@@ -183,12 +278,12 @@ final class ManagedCameraService implements CameraService {
             detail: error.reason,
           );
         } on Object catch (error) {
-          // For example a full disk: nothing was committed (OriginalStore
-          // removes its staged files), and the caller learns so.
           throw _unexpected(error, CameraFailureCode.originalNotPersisted);
         }
       } finally {
-        if (_state == CameraLifecycle.capturing) _set(CameraLifecycle.ready);
+        if (_status.lifecycle == CameraLifecycle.capturing) {
+          _update(lifecycle: CameraLifecycle.ready);
+        }
         _capturing = false;
       }
     });
@@ -196,28 +291,81 @@ final class ManagedCameraService implements CameraService {
 
   @override
   Future<void> suspend() => _serial(() async {
-    if (_state == CameraLifecycle.ready ||
-        _state == CameraLifecycle.initializing ||
-        _state == CameraLifecycle.failed) {
-      await _driver.close();
-      _set(CameraLifecycle.suspended);
+    switch (_status.lifecycle) {
+      case CameraLifecycle.initializing ||
+          CameraLifecycle.ready ||
+          CameraLifecycle.capturing ||
+          CameraLifecycle.failed:
+        await _close();
+        _set(
+          CameraStatus(
+            lifecycle: CameraLifecycle.suspended,
+            permission: _status.permission,
+            request: _status.request,
+            failure: _status.failure,
+          ),
+        );
+      case CameraLifecycle.uninitialized ||
+          CameraLifecycle.suspended ||
+          CameraLifecycle.disposed:
+        break;
     }
   });
 
   @override
   Future<void> resume() => _serial(() async {
-    final request = _request;
-    if (_state == CameraLifecycle.suspended && request != null) {
-      await _open(request);
+    final request = _status.request;
+    final lifecycle = _status.lifecycle;
+    if (request == null ||
+        (lifecycle != CameraLifecycle.suspended &&
+            lifecycle != CameraLifecycle.failed)) {
+      return;
+    }
+    try {
+      // Never prompts: a permission changed in Settings is simply read.
+      await _open(request, mayAsk: false);
+    } on CameraFailure {
+      // The status says why.
     }
   });
 
   @override
   Future<void> dispose() => _serial(() async {
-    await _driver.close();
-    _set(CameraLifecycle.disposed);
+    await _driverErrors.cancel();
+    await _close();
+    _set(
+      CameraStatus(
+        lifecycle: CameraLifecycle.disposed,
+        permission: _status.permission,
+      ),
+    );
     await _changes.close();
   });
+
+  Future<void> _close() async {
+    try {
+      await _driver.close();
+    } on Object {
+      // Closing is best effort; the plugin may already have released it.
+    }
+  }
+
+  /// The open camera reported an error by itself: close it and say why.
+  void _onDriverError(CameraDriverException error) {
+    final lifecycle = _status.lifecycle;
+    if (lifecycle != CameraLifecycle.ready &&
+        lifecycle != CameraLifecycle.capturing) {
+      return;
+    }
+    final failure = _failure(error, CameraFailureCode.interrupted);
+    unawaited(
+      _serial(() async {
+        if (_status.lifecycle != CameraLifecycle.ready) return;
+        await _close();
+        _fail(failure);
+      }),
+    );
+  }
 
   CameraFailure _failure(
     CameraDriverException error,
@@ -227,7 +375,7 @@ final class ManagedCameraService implements CameraService {
       error.code,
       operationFailure: fallback,
     );
-    if (permission != null) _permission = permission;
+    if (permission != null) _update(permission: permission);
     return CameraFailure(code, detail: error.code);
   }
 
@@ -237,9 +385,29 @@ final class ManagedCameraService implements CameraService {
   static CameraFailure _unexpected(Object error, CameraFailureCode code) =>
       CameraFailure(code, detail: '${error.runtimeType}');
 
-  void _set(CameraLifecycle state) {
-    _state = state;
-    if (!_changes.isClosed) _changes.add(state);
+  void _fail(CameraFailure failure) => _set(
+    CameraStatus(
+      lifecycle: CameraLifecycle.failed,
+      permission: _status.permission,
+      request: _status.request,
+      failure: failure,
+    ),
+  );
+
+  void _update({CameraLifecycle? lifecycle, CameraPermission? permission}) =>
+      _set(
+        CameraStatus(
+          lifecycle: lifecycle ?? _status.lifecycle,
+          permission: permission ?? _status.permission,
+          request: _status.request,
+          capabilities: _status.capabilities,
+          failure: _status.failure,
+        ),
+      );
+
+  void _set(CameraStatus status) {
+    _status = status;
+    if (!_changes.isClosed) _changes.add(status);
   }
 
   Future<T> _serial<T>(Future<T> Function() action) {

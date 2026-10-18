@@ -29,6 +29,24 @@ final class CapabilityNotYetAvailable extends CapabilityStatus {
   final String milestone;
 }
 
+/// Free space on the volume that holds the booth's files. Dart has no API
+/// for it; a narrow platform channel answers (ADR-0012).
+abstract interface class DeviceStorageInfo {
+  /// Bytes available to the app, or null when the platform cannot say.
+  Future<int?> freeBytes();
+}
+
+/// How much free space a booth needs (A-11): a conservative estimate per
+/// guest session (up to four 12 MP originals and a print-size output) and
+/// the least that lets an event start.
+abstract final class StorageBudget {
+  static const bytesPerSession = 40 * 1024 * 1024;
+  static const minimumFreeBytes = 1024 * 1024 * 1024;
+
+  /// About how many sessions [freeBytes] holds.
+  static int sessionsFor(int freeBytes) => freeBytes ~/ bytesPerSession;
+}
+
 /// Device checks behind the launch checklist (S19, A-14).
 abstract interface class BoothCapabilityProbe {
   /// Camera permission and the event's lens.

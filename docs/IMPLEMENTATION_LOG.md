@@ -3,6 +3,114 @@
 Newest milestone first. Each entry: scope, plan, changes, commands and exit
 codes, platform results, spec issues raised, risks, next step.
 
+## M06: production camera service and Diagnostics camera test
+
+- Date: 2026-10-18 (UTC)
+- Authorised by: the same owner instruction as M05 ("when complete start
+  M05- M06 also polish the U/UX…"): M06 follows M05's report. No guest
+  multi-shot orchestration (M07).
+- Quality bar: CR-001 for the camera test, the Diagnostics self-test and
+  the Settings camera rows; CR-002 where the boards apply (list rows now
+  end with their value or control, as on the S14 settings board).
+- Host: the same Linux cloud session as M00 to M05. No tablet, no Mac.
+
+### Plan (as executed)
+
+1. Contract: typed permission, lifecycle, capabilities, request, status,
+   failures (13 `CAMERA_*` codes), lens choice, capture origin and
+   orientation; an originals store interface with startup recovery.
+2. Permissions: decide between deriving state from camera errors, a
+   permission plugin and a bridge (ADR-0012: `permission_handler` behind
+   `CameraPermissions`).
+3. Driver and service: open/capture/close with measured capabilities,
+   errors the open camera reports itself, mirroring that means what it
+   says on both lenses, one queue, busy refusal, foreground rule.
+4. Originals: schema v4 (`original_photos`, `pending_original_commits`),
+   journaled commits, complete-JPEG check, startup reconciliation with
+   adoption of the M01 spike's files.
+5. Lifecycle controller for screens (suspend when hidden, reopen on
+   return, no late shutter, open after access is granted in Settings).
+6. Diagnostics: camera test screen (S18) replacing the spike, the
+   measured self-test, Settings camera rows, real launch checks for the
+   camera and free space (narrow free-space channel).
+7. Tests: service over a fake driver with the real store, store crash
+   recovery, migration v4, screen and lifecycle tests on a simulated
+   camera, screen catalog and goldens.
+8. ADR-0012, device procedure, iOS build note, licences, checks, Android
+   builds, evidence.
+
+### Changes
+
+- Domain: `services/camera_service.dart` rewritten (final contract);
+  `booth_capabilities.dart` gains `DeviceStorageInfo` and `StorageBudget`;
+  `CameraPermission.problemCode`.
+- Core: `camera/camera_session.dart` (`CameraSessionController`,
+  `CaptureOutcome`); `diagnostics/device_self_test.dart`;
+  `PorcelainViewfinder` colour tokens; providers for the still store,
+  preview builder, free space and self-test.
+- Infrastructure: `camera/camera_driver.dart` (plugin driver, preview
+  flip, error sorting, capture orientation),
+  `managed_camera_service.dart`,
+  `permission_handler_camera_permissions.dart`;
+  `file_store/original_store.dart` (journal, validation, recovery,
+  legacy adoption); schema v4 with dumps and migration steps;
+  `device/platform_device_storage.dart`; the probe checks the camera and
+  free space.
+- Native: `MainActivity.kt` and `AppDelegate.swift` register the
+  `porcelain/device_storage` channel (free bytes only).
+- Features: `diagnostics/camera_test_screen.dart`, `camera_copy.dart`,
+  `self_test_copy.dart`; the Diagnostics hub runs the self-test and links
+  the camera test; Settings > Camera lists the tablet's cameras and links
+  the test; launch-check copy for the new codes. Removed: the M01 camera
+  spike screen and route.
+- Shared: `PorcelainListRow` puts its trailing value or control at the
+  row's end (it sat mid-row).
+- Startup reconciles originals before anything can capture.
+- Packages: `permission_handler` 13.0.2 (and five platform packages);
+  licence report regenerated.
+- Tests: `managed_camera_service_test.dart`, `original_store_test.dart`
+  rewritten; `camera_test_screen_test.dart` new; probe, migration,
+  preflight and contrast tests extended; `seed_v4.sql`; support:
+  `SimulatedCameraService`, `SimulatedStillStore`, `FakeDeviceStorage`,
+  `FixedStopwatch`, bound in the app harness; five new catalog screens.
+- Docs: ADR-0012, `docs/device_tests/M06_DEVICE_PROCEDURE.md`, iOS
+  camera-permission build note, ADR index.
+
+### Problems met and how they were handled
+
+- The camera test waited for ever in tests: it read the booth settings
+  once from a stream nobody listened to, and Riverpod pauses unlistened
+  providers. The screen now subscribes for as long as it is open.
+- A tablet with one built-in lens crashed the lens picker (a segmented
+  control needs two segments): one lens is now stated in words.
+- A permission turned on in Settings before the booth ever asked did not
+  open the camera on return: the screen controller keeps the camera it
+  wants and opens it when access appears.
+- Goldens of the self-test would have shown real elapsed milliseconds and
+  the wall-clock time: the self-test takes an injectable stopwatch and the
+  screen uses the app clock.
+- Hidden apps draw no frames, so a test that looked for the "Paused"
+  message while backgrounded could not see it; tests ask the service.
+- Portrait put a viewfinder taller than the screen above the permission
+  repair: the viewfinder is capped to leave the controls in reach and the
+  repair card comes first. At 200% text on a compact tablet the capped
+  viewfinder's message then overflowed (found by the screen checks): the
+  message scrolls inside the viewfinder when it cannot fit.
+- The launch-check flow test expected the camera and free-space rows to
+  read "Not yet available"; they are real checks now, and the test reads
+  their passing copy (the domain test keeps the not-yet rule).
+- `permission_handler` on iOS compiles permissions in from `Info.plist`
+  only for builds started in the project directory; a build from
+  Xcode.app would ship a booth whose camera reads as refused. Recorded in
+  ADR-0012 and `docs/IOS_VALIDATION.md` with the fix.
+- The design rule's exemption for the spike folder is gone with the
+  spike.
+
+### Spec issues raised
+
+- None new. ADR-0007's open device questions move to ADR-0012 section 10
+  and the device procedure.
+
 ## M05: full layered Template Studio and template library
 
 - Date: 2026-10-18 (UTC)

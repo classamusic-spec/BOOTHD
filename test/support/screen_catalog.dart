@@ -1,12 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:porcelain_photo_booth/core/design_system/appearance.dart';
 import 'package:porcelain_photo_booth/core/routing/route_paths.dart';
+import 'package:porcelain_photo_booth/domain/services/camera_service.dart';
 import 'package:porcelain_photo_booth/features/template_studio/editor_canvas.dart';
 import 'package:porcelain_photo_booth/features/template_studio/layers_panel.dart';
 import 'package:porcelain_photo_booth/shared/operator_access/access_copy.dart';
 
 import 'app_harness.dart';
 import 'seed.dart';
+import 'simulated_camera.dart';
 import 'tablet_viewports.dart';
 
 /// How to reach a screen.
@@ -18,6 +20,7 @@ final class ScreenSpec {
     this.library = false,
     this.renders = false,
     this.boothEventId,
+    this.camera,
     this.then,
   });
 
@@ -34,6 +37,9 @@ final class ScreenSpec {
   /// real time (settleRendering) before the screen settles.
   final bool renders;
   final String? boothEventId;
+
+  /// The simulated camera, when the screen needs a particular one.
+  final SimulatedCameraService Function()? camera;
 
   /// Steps after the app starts, e.g. to reach a later setup step.
   final Future<void> Function(WidgetTester tester)? then;
@@ -159,6 +165,31 @@ final screens = <String, ScreenSpec>{
   'settings booth': const ScreenSpec('/studio/settings?section=booth'),
   'settings about': const ScreenSpec('/studio/settings?section=about'),
   'diagnostics': const ScreenSpec('/studio/diagnostics'),
+  'diagnostics self-test': ScreenSpec(
+    '/studio/diagnostics',
+    then: (tester) => _tap(tester, 'Run self-test'),
+  ),
+  'camera test': const ScreenSpec(RoutePaths.cameraTest),
+  'camera test permission': ScreenSpec(
+    RoutePaths.cameraTest,
+    camera: () => SimulatedCameraService(
+      systemPermission: CameraPermission.notDetermined,
+    ),
+  ),
+  'camera test refused': ScreenSpec(
+    RoutePaths.cameraTest,
+    camera: () => SimulatedCameraService(
+      systemPermission: CameraPermission.permanentlyDenied,
+    ),
+  ),
+  'camera test saved': ScreenSpec(
+    RoutePaths.cameraTest,
+    then: (tester) async {
+      await _tap(tester, 'Take test photo');
+      await settleRendering(tester);
+      await tester.pumpAndSettle();
+    },
+  ),
   'guest preview': const ScreenSpec('/preview/guest-welcome'),
   'not found': ScreenSpec(
     RoutePaths.dashboard,
@@ -231,6 +262,7 @@ Future<void> show(
         : spec.seeded
         ? seedTemplateDocuments
         : null,
+    camera: spec.camera?.call(),
     settle: settles(name) && !spec.renders,
   );
   if (spec.renders) {
