@@ -242,3 +242,94 @@ on `9e368d5`, GitHub-hosted `ubuntu-24.04` runners:
   has exactly one control. Booth Mode isolation and the PIN come in
   M03 and M07.
 - No guest data is created or stored by M02.
+
+## M03: offline storage, event configurations and operator access
+
+```text
+Milestone: M03 | code commit 46a61708dd0133723607c0de3c0216e8c9ea229b | build 0.1.0+1
+Host: same Linux cloud VM as M00 to M02 (no KVM, no macOS, no attached devices)
+Flutter 3.47.7 / Dart 3.13.5; new: drift 2.35.2, drift_flutter 0.3.1, sqlite3 3.5.2
+  (bundled SQLite from its build hook), flutter_secure_storage 11.2.0;
+  dev: drift_dev 2.35.1, build_runner 2.16.2
+iPad: BLOCKED (no physical iPad, no Mac); flows verified in the test renderer
+Android: builds PASS; no physical tablet
+Owner approval requested: YES
+Owner review page (private): https://claude.ai/artifact/FvYeKfJTHs48WAsa4G6R5m
+```
+
+### Commands and exit codes (2026-10-18 UTC)
+
+Rows 1 to 4 ran on a clean working tree at `46a6170`; row 7 ran on the
+working tree just before that commit, with the same check script.
+
+| # | Command | Exit | Result |
+| --- | --- | --- | --- |
+| 1 | `tool/check.sh` | 0 | Generated code current (build_runner and `drift_dev make-migrations` changed nothing). Format: 197 files, 0 changed. Analyze: no issues. Tests: 1,194 passed, 1 skipped (M01 device comparison, no device results). Licence report current: 87 runtime and 38 dev packages, 0 needing review |
+| 2 | Test breakdown (`flutter test --reporter json` at `46a6170`) | 0 | architecture 163; domain 74 (event rules 15, event service 9, auth service 11, PIN and code policy 10, launch checks 9, M01 document 12, orientation 8); persistence 14; migrations 4; infrastructure 37 (security adapters 9, managed storage 5, M01 camera and files 23); core 12 (route guard 9); design system 18; app flows 42 (access 16, events 10, router 16); components 24; screens 593; guest isolation 19; spike screens 4; rendering 13 (+1 skip); goldens 177 |
+| 3 | `tool/build_android.sh release` | 0 | `app-release.apk`, 65,335,192 bytes, SHA-256 `d58ddced48a923f5060ee37cd5d3adc6519d9c54f376639957aaa4104ea7bf6d` (byte-identical to the pre-commit build). `aapt2`: permissions unchanged from M02 (`CAMERA`, `ACCESS_NETWORK_STATE`, AndroidX internal receiver permission); `allowBackup=false`, `fullBackupContent=false`, `dataExtractionRules` present and excluding root, file, database, sharedpref and external from cloud backup and device transfer; `libsqlite3.so` bundled for arm64-v8a, armeabi-v7a and x86_64 |
+| 4 | `tool/build_android.sh debug` | 0 | `app-debug.apk`, 239,874,210 bytes, SHA-256 `f820cc7a8f4a3d7bf93c11a2bbe874741246a201602224ffd1e4d7acf6403dd0`; adds only `INTERNET` (Flutter debug tooling), as in M00 to M02 |
+| 5 | `tool/build_ios.sh release` | 3 | BLOCKED: Linux host |
+| 6 | `flutter test integration_test/app_launch_test.dart -d <device>` | not run | BLOCKED: no device. Updated: a fresh install shows setup, later launches the PIN screen |
+| 7 | Mutation guards | 1 (expected) | Generated-code check: an edited CHECK limit in the schema fails (`drift_dev`: schema v1 differs, bump the version); a hand-edited `booth_database.g.dart` fails with the checksum diff. Both restored. Inside row 1: the dead-control audit still catches a disabled control without a reason |
+| 8 | Device procedure, `docs/device_tests/M03_DEVICE_PROCEDURE.md` | not run | BLOCKED: no device. Covers setup, unlock time, lockout across restart and clock change, recovery, persistence across force-stop and power cycle, back on the PIN screen, no plaintext secrets and refused backup (Android). Booth Mode cannot be launched on an M03 build (no templates, camera and renderer checks not yet available), so its device checks move to the first build that can launch an event |
+
+### Acceptance items
+
+| AC | Status | Evidence |
+| --- | --- | --- |
+| AC-0301 First-run operator PIN setup, verification and rate limit tested; no plaintext PIN stored | PASS (host); on-device secure storage BLOCKED | `operator_auth_service_test.dart` (11): slow salted verifiers only, guessable PIN refused with nothing stored, countdown then growing lockouts, lockout survives restart, serialised attempts, unreadable PIN never accepted, recovery resets and replaces the code, stricter recovery lockout, fresh proof needed for changes, weaker verifier upgraded. `security_adapters_test.dart` (9): RFC 7914 vectors, constant-time compare, verifier holds scheme and work but never the PIN, isolate, tampered verifiers fail, Keychain "this device only" and no silent Android reset. `access_flow_test.dart`: setup end to end, refusals, interrupted setup, cold start asks for the PIN, lockout countdown in the UI and after restart, recovery, unreadable PIN offers the code. `operator_secrets_test.dart` (10): PIN and code policy. Keychain and Keystore themselves need a device (M11) |
+| AC-0302 Events create, edit, duplicate, archive and reopen offline and persist across restarts | PASS (host); device restart BLOCKED | `events_flow_test.dart`: an event built in the editor is stored exactly and survives a restart onto the same database file; duplicate, archive and reopen from the list; archived read-only until reopened; unsaved-changes guard. `event_service_test.dart` (9) lifecycle rules; `booth_database_test.dart`: events, settings and setup survive closing and reopening the file. No network is used anywhere in these flows |
+| AC-0303 Capture settings, template selection, theme override and orientation persist | PASS (host) | Same restart test checks the stored event field by field: rear camera, saved-photo mirroring, landscape guest orientation, 2 shots, 5 s countdown, whole-session retakes and limit, allowed and default template, Light Oak theme override, delete after 30 days. `events_flow_test.dart` "settings" tests: camera, output and orientation defaults shape new events; booth name, PIN and recovery code changes persist |
+| AC-0304 Drift migration and referential-integrity tests pass on seeded old/new DBs | PASS for schema v1; upgrade from an older version N/A until schema v2 exists | `migration_test.dart` (4): every version has a dump and a seed and the newest is the app's; a fresh database matches the dump exactly; a seeded v1 file opens with every value intact; a newer database is refused and left untouched. `booth_database_test.dart` (14): foreign keys on and WAL; out-of-range values, inconsistent archive fields, a second default, deleting a revision in use, editing a revision, escaping manifest paths, unknown enum names and extra settings rows are all refused by SQLite; an event and its templates save atomically; deleting an event removes only its own links. `tool/check.sh` fails on any schema change without a version bump (row 7) |
+| AC-0305 Guest route guards prevent access to Studio and gallery on back and deep-route attempts | PASS (host); hardware back and OS gestures on devices BLOCKED | `access_redirect_test.dart` (9): in Booth Mode all 20 attempted locations (Studio pages, setup, unlock, developer routes, unknown and foreign-host URLs) lead to the guest welcome; locked, operator, setup and startup phases reach only their own routes. `access_flow_test.dart`: back and 14 deep links in Booth Mode, a platform route push, a restart during Booth Mode, the three-second hidden hold and PIN as the only exit, idle return to guests, the hidden corner absent from the accessibility tree, Lock Studio then back and deep link. `guest_isolation_test.dart`: in Booth Mode at all 6 tablet sizes the screen exposes one actionable node, Start, and no back, close, menu or forbidden words |
+| AC-0306 Draft, missing-template and invalid settings block or warn at preflight | PASS | `preflight_test.dart` (9): draft and archived events block; no template, a missing template or a slot mismatch block; invalid stored settings block; an archived template and an orientation mismatch only warn; a failed storage probe or missing PIN blocks; capabilities this build cannot check are "Not yet available" and block, and none is reported as passed. `events_flow_test.dart`: the launch-check screen for a draft, the not-yet-available items, a warning-only orientation case, and Start Booth Mode enabled only when every check passes (with ready fakes) |
+
+### CR-001 items re-run for the new screens (AC-0207 to AC-0211)
+
+| AC | Status | Evidence |
+| --- | --- | --- |
+| AC-0207 Token-pair contrast in every theme | PASS | Palettes unchanged; `contrast_test.dart` passes in row 1 |
+| AC-0208 Every screen passes tap-target, labelled-tap-target and text-contrast guidelines in portrait and landscape | PASS | `screens_test.dart` now covers 37 screens and states (every setup step, PIN and recovery, events, all six editor tabs, draft, archived and new events, launch checks, Booth Mode welcome and exit): all four guidelines at iPad and Android portrait and landscape, text contrast in Light Oak and Darkroom Walnut, overflow at 6 sizes and at 200% text, dead-control audit (593 tests) |
+| AC-0209 Goldens for every screen in portrait and landscape at the defined sizes; owner verdict | Goldens PASS; owner verdict requested | 177 goldens. Every route (setup, unlock, events, editor, launch checks and the M02 screens) in Porcelain Studio at iPad and Android sizes and in Light Oak and Darkroom Walnut at iPad sizes; further steps, tabs and states in Porcelain Studio at iPad portrait and landscape; Booth Mode, which wears the event's theme, at all four sizes. Compared exactly locally and in CI. Review page above |
+| AC-0210 No guest-visible print, save, share, settings, back or escape controls | PASS | `guest_isolation_test.dart` (19): the real Booth Mode screen at all 6 sizes exposes only Start; the hidden exit is outside the accessibility tree (`access_flow_test.dart`) |
+| AC-0211 Licences and provenance; no board artwork or sample people | PASS | No new fonts, icons or artwork; new packages in the licence report (0 needing review); seeded test events use invented titles only in tests |
+
+### M03 exit gate
+
+| Gate | Status |
+| --- | --- |
+| Offline events persist across restart | PASS on the host (file database reopened); physical-device restart BLOCKED |
+| PIN gate tested | PASS on the host; device Keychain and Keystore BLOCKED |
+| Migrations and route isolation pass | PASS (schema v1 baseline; route guard, back, deep links, restart) |
+
+### CI (GitHub Actions run #8)
+
+[Run 39100674354](https://github.com/classamusic-spec/BOOTHD/actions/runs/39100674354)
+on `46a6170`, GitHub-hosted `ubuntu-24.04` runners:
+
+| Job | Conclusion | Notes |
+| --- | --- | --- |
+| Format, analyze, test, licences | success | Generated code current; 1,194 passed, 1 skipped, as locally; all 177 goldens matched exactly on a second machine |
+| Android release smoke build | success | 65,335,192 bytes, the same size as locally; SHA-256 `edafec30afd42e0bd7ab61d9f78056e2a278a7f6500164598509ffcc47d9b7de` differs only because each machine signs with its own debug key. The SQLite build hook ran on a clean runner (first build needs network, as recorded in ADR-0009) |
+| iPadOS unsigned build | skipped | Manual dispatch only, by design |
+
+### Security and privacy notes (M03)
+
+- Neither the PIN nor the recovery code is stored or logged. The PIN
+  verifier (PBKDF2-HMAC-SHA256, 120,000 iterations, random 16-byte salt)
+  lives in Keychain or Keystore-backed storage; the code's verifier and the
+  attempt counters live in the private database. Errors carry codes, never
+  secrets or paths.
+- A six-digit PIN cannot be protected offline by hashing alone; the
+  protection is the sandbox, secure storage, backup exclusion and the
+  persisted rate limit (about 24 guesses a day once saturated). The 80-bit
+  recovery code is strong offline. ADR-0009 section 4.
+- Android app data is excluded from cloud backup and device transfer
+  (row 3). iPadOS file backup exclusion is planned for M10 (risk).
+- No new permissions, no network use at runtime. SQLite is bundled at
+  build time (the sqlite3 build hook downloads it with a pinned hash).
+- Booth Mode keeps guests on one screen with one control; the operator
+  exit is hidden, needs a three-second hold and the PIN, and returns to
+  guests after 45 s untouched.
+- No guest photos or personal data exist yet; event notes and names are
+  operator data kept on the device.
