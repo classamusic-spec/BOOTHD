@@ -3,6 +3,103 @@
 Newest milestone first. Each entry: scope, plan, changes, commands and exit
 codes, platform results, spec issues raised, risks, next step.
 
+## M01: cross-platform render and camera feasibility spike
+
+- Date: 2026-10-18 (UTC)
+- Authorised by: owner ("approved, start M01"), after the M00 report said
+  that no physical iPad, Android tablet or Mac was available here, so the
+  device subgates would be BLOCKED.
+- Host: the same Linux cloud session as M00 (`docs/TOOLCHAIN_INVENTORY.md`).
+
+### Plan (as executed)
+
+1. Pure-Dart template model and scene compiler (page units and DPI,
+   normalised geometry, photo slot and image layers, z-order, cover crop).
+2. `dart:ui` painter and offscreen renderer (export and editor workspace).
+3. Procedural fixtures through a pure-Dart PNG writer; FIX-01 pixel checks,
+   z-order variant, FIX-04 halo probes, failure probes, goldens, metrics.
+4. Camera: `camera` 0.12.1 behind `CameraService` via a driver seam;
+   original store with staged, validated, atomic commits; EXIF reader.
+5. Platform permissions: iOS usage string; strip unneeded Android
+   permissions the plugin adds.
+6. Dev-only render and camera spike screens behind non-release routes;
+   DI providers bound in the composition root.
+7. Device integration test, driver, host comparison test and procedure.
+8. ADR-0007; format, analyze, tests, Android builds; evidence.
+
+### Changes
+
+- Domain: `lib/domain/template/` (new), `composition_renderer.dart` (new
+  draft contract), `camera_service.dart` (`CapturedStill` gains id,
+  checksum, byte length, EXIF and capture-time mirroring settings;
+  `CapturedStillStore` added).
+- Infrastructure: `composition/` (painter, renderer), `camera/` (driver
+  seam, managed service), `file_store/` (original store, EXIF reader).
+- App wiring: `lib/core/di/service_providers.dart`, `productionOverrides()`
+  in `lib/app/providers.dart`, spike routes only when the build mode is not
+  release, baseline screen links in debug and profile.
+- Spike UI and fixtures: `lib/features/diagnostics/spikes/`.
+- Platform: `ios/Runner/Info.plist` (`NSCameraUsageDescription`),
+  `android/app/src/main/AndroidManifest.xml` (remove `RECORD_AUDIO`,
+  `WRITE_EXTERNAL_STORAGE`).
+- Dependencies: camera ^0.12.1, path_provider ^2.1.6, crypto ^3.0.7.
+- Tests: `test/domain/document_scene_test.dart`, `test/rendering/` (5
+  files), `test/infrastructure/` (3 files), `test/widgets/spike_screens_test.dart`,
+  router and baseline updates; `integration_test/render_spike_test.dart`,
+  `test_driver/integration_test.dart`.
+- Fixtures: `test_assets/` (two Pillow-made JPEGs, two host goldens,
+  provenance README).
+- Docs: ADR-0007, `docs/device_tests/M01_DEVICE_PROCEDURE.md`, inventory,
+  iPad guide, README, licence report.
+- Migrations: none.
+
+### Problems met and how they were handled
+
+- Plugin manifests add `RECORD_AUDIO` and `WRITE_EXTERNAL_STORAGE`, and the
+  merger implies `READ_EXTERNAL_STORAGE`; all removed with
+  `tools:node="remove"` (audio is never enabled). The release APK audit
+  also showed a required rear camera implied by `CAMERA`, now declared
+  optional, and `ACCESS_NETWORK_STATE` from `androidx.media3`, kept and
+  flagged for M10 (ADR-0007).
+- The first Android build auto-installed SDK Platform 35 and CMake 3.22.1
+  (plugins compile against API 35; `path_provider_android` builds JNI
+  code). Recorded in the inventory; CI's runner does the same.
+- Tests caught a real bug: the camera lifecycle stream, written as
+  `async*`, dropped the `initializing` event emitted just after a
+  listener subscribed. Rewritten with `Stream.multi`.
+- The halo probe was first written so that partly transparent edge pixels
+  carried the hidden colour, which would make a dark fringe legitimate.
+  Fixed before any result was recorded; a separate test now proves the
+  probe fails on exactly that kind of bad input.
+- Reading `ProcessInfo.maxRss` after the 12 MP run confounded the drift
+  measurement; drift is now measured first.
+
+### Spec issues raised
+
+1. ARCHITECTURE A-03 lists `test_assets/transparent_pngs/`; transparent
+   fixtures are generated in code instead, so hosts and devices render
+   identical inputs without bundling binaries. The directory stays absent.
+2. FLUTTER_PLATFORM_STRATEGY §3 says to keep the spike in
+   `lib/features/diagnostics/spikes/`. Only the demo UI and fixtures live
+   there; core functions went to their target layers so M04/M06 can
+   promote them (ADR-0007). Layer rules forbid features from importing
+   plugins or `dart:io`, so this was the only compliant option.
+3. Still pending from M00: confirmation of ADR-0004 (orientation without
+   "Requires Full Screen"), the board image file, and device models.
+
+### Risks carried forward
+
+- AC-0104 cross-platform comparison, AC-0106 and AC-0107 are BLOCKED until
+  a physical iPad (with a Mac) and an Android tablet run the procedure.
+- JPEG output encoder and decode-size policy are open for M04 (ADR-0007).
+- Permission pre-checks and "denied forever" on Android are open for M06.
+
+### Next
+
+Owner review of M01, including explicit approval to proceed to M02 with
+the device subgates still BLOCKED (MASTER_PROMPT §D), or a pause to run the
+device procedure first.
+
 ## M00: dual-target toolchain, repository and CI baseline
 
 - Date: 2026-10-17/18 (UTC)

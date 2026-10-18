@@ -24,6 +24,8 @@ final class _FakeDriver implements CameraDriver {
 
   Uint8List photo;
   String? openError;
+  Error? openThrows;
+  Error? captureThrows;
   Completer<void>? captureGate;
   int opens = 0;
   int closes = 0;
@@ -36,12 +38,14 @@ final class _FakeDriver implements CameraDriver {
   Future<void> open(CameraDescriptor camera) async {
     opens++;
     if (openError case final code?) throw CameraDriverException(code);
+    if (openThrows case final error?) throw error;
   }
 
   @override
   Future<Uint8List> capture() async {
     captures++;
     await captureGate?.future;
+    if (captureThrows case final error?) throw error;
     return photo;
   }
 
@@ -212,6 +216,25 @@ void main() {
       expect((await service.captureStill()).id, 'shot-1');
     },
   );
+
+  test('unexpected platform errors still become typed failures', () async {
+    driver.openThrows = StateError('channel down');
+    await expectLater(
+      service.initialize(_request),
+      failsWith(CameraFailureCode.initializationFailed),
+    );
+    driver.openThrows = null;
+    await service.initialize(_request);
+
+    driver.captureThrows = StateError('sensor gone');
+    await expectLater(
+      service.captureStill(),
+      failsWith(CameraFailureCode.captureFailed),
+    );
+    // The service stays usable afterwards.
+    driver.captureThrows = null;
+    expect((await service.captureStill()).id, 'shot-1');
+  });
 
   test('operations run in call order without awaiting each other', () async {
     final init = service.initialize(_request);

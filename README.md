@@ -4,9 +4,12 @@ Offline-first photo booth for iPadOS and Android tablets, built as one
 Flutter/Dart app. Operators design layered print templates in Studio Mode;
 guests use a locked, simple Booth Mode with the tablet's built-in camera.
 
-**Status: M00 (toolchain and project baseline) complete, awaiting owner
-review.** The app currently shows an engineering baseline screen only. See
-`docs/IMPLEMENTATION_LOG.md` and `docs/ACCEPTANCE_EVIDENCE.md`.
+**Status: M01 (render and camera feasibility spike) complete on the host,
+awaiting owner review; physical-device checks are BLOCKED until an iPad and
+an Android tablet are available.** The app shows an engineering baseline
+screen; debug and profile builds add developer spike screens. See
+`docs/IMPLEMENTATION_LOG.md`, `docs/ACCEPTANCE_EVIDENCE.md` and
+`docs/device_tests/M01_DEVICE_PROCEDURE.md`.
 
 ## Start here
 
@@ -31,7 +34,8 @@ tool/build_android.sh release    # Android APK smoke build (debug-signed)
 tool/build_ios.sh release        # unsigned iPadOS build; macOS only, else BLOCKED
 tool/toolchain_inventory.sh      # host and toolchain inventory
 dart run tool/dependency_licenses.dart   # refresh docs/DEPENDENCY_LICENSES.md
-flutter test integration_test -d <device> # launch smoke test on a device or simulator
+flutter test integration_test/app_launch_test.dart -d <device>  # launch smoke test
+flutter test --update-goldens test/rendering/   # only after an intentional render change
 ```
 
 CI (`.github/workflows/ci.yml`) runs `tool/check.sh` and an Android release

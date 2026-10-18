@@ -40,9 +40,10 @@ and M06 promote them instead of rewriting them. Only the demo UI sits in
    55 ms, rasterise about 63 ms, PNG encode about 69 ms. With 12 MP inputs,
    about 0.4–0.5 s. No memory drift across 30 repeated renders (+1.6 MB).
    Host numbers say nothing about tablets.
-5. **Bounded decoding barely helps for PNG.** Decoding 12 MP PNGs at the
-   drawn size peaked at +58 MB against +47 MB at full size, because PNG
-   decodes at full size before resizing. Camera JPEGs may decode scaled
+5. **Bounded decoding shows no consistent saving for PNG.** Decoding 12 MP
+   PNGs at the drawn size raised peak memory by +30 to +58 MB across runs,
+   against +47 MB at full size; PNG decodes at full size before resizing,
+   and process-wide peak memory is noisy. Camera JPEGs may decode scaled
    (DCT scaling); measure on devices before choosing the M04 policy.
 6. **JPEG output needs a decision.** `dart:ui` encodes PNG only. M04 must
    choose and measure a JPEG encoder (pure Dart or a small platform codec
@@ -65,8 +66,18 @@ and M06 promote them instead of rewriting them. Only the demo UI sits in
   decides whether a permission plugin or a narrow bridge is justified
   (needs an ADR).
 - **The plugin manifest adds `RECORD_AUDIO` and `WRITE_EXTERNAL_STORAGE`**
-  (API 28 and below). Both are removed in our manifest; audio is disabled
-  in the controller. `android.hardware.camera.any` stays required.
+  (API 28 and below), and the manifest merger then implies
+  `READ_EXTERNAL_STORAGE`. All three are removed in our manifest; audio is
+  disabled in the controller. Verified with `aapt2` on the release APK.
+- **Camera features.** The plugin requires `android.hardware.camera.any`;
+  the `CAMERA` permission would also imply a required rear camera, hiding
+  the app from front-camera-only tablets, so `android.hardware.camera` is
+  declared optional.
+- **`ACCESS_NETWORK_STATE` remains**, contributed by
+  `androidx.media3:media3-common` through the CameraX plugin. It grants no
+  network access (`INTERNET` is absent from release builds). Removing a
+  library's permission without a device to exercise its code paths could
+  crash, so it stays until the M10 permission audit (AC-1007) tests it.
 - The plugin writes captures to a temporary file; the driver deletes it
   after reading, so guest photos exist only in managed storage.
 - Hardware flash is turned off; the booth will use a screen flash (M07).

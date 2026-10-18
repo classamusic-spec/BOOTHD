@@ -79,6 +79,9 @@ final class PluginCameraDriver implements CameraDriver {
     } on CameraException catch (error) {
       await controller.dispose();
       throw CameraDriverException(error.code, error.description);
+    } on Object {
+      await controller.dispose();
+      rethrow;
     }
     try {
       // The booth flashes the screen instead; many front cameras have no

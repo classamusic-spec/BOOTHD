@@ -29,6 +29,7 @@ Recorded for M00 (AC-0002) on 2026-10-17 UTC. Regenerate the raw data with
 | Android platform | android-36 (r02) | sdkmanager |
 | Android NDK | 28.2.13676358 (r28c) | sdkmanager (Flutter default `ndkVersion`) |
 | Android platform-tools | 37.0.1 | sdkmanager |
+| Android platform 35, CMake 3.22.1 | auto-installed by AGP during the first M01 build (plugins compile against API 35; JNI-based `path_provider_android` builds native code) | AGP |
 | Android command-line tools | 23.0.0 ("Android CLI" 1.0.16625370; `sdkmanager` is now a deprecated wrapper) | dl.google.com |
 | iOS deployment target | 15.0 | Flutter 3.47.7 template |
 | Xcode required by Flutter 3.47.7 | 15 or newer (16 recommended); CocoaPods 1.10+ (1.16.2 recommended) | `flutter_tools` source |
@@ -37,15 +38,16 @@ Note: AGP 9.1.0 warns that the SDK metadata written by command-line tools 23
 uses XML version 4 while it understands up to 3. The build succeeds; revisit
 when AGP is upgraded.
 
-## Plugin compatibility (dry runs, not added to the app)
+## Plugin compatibility
 
-`flutter pub add <package> --dry-run` against Flutter 3.47.7 on 2026-10-17:
+Dry runs against Flutter 3.47.7 on 2026-10-17; `camera`, `path_provider` and
+`crypto` 3.0.7 were added in M01 (2026-10-18) at the versions below:
 
 | Package | Resolves to | Milestone that adds it |
 | --- | --- | --- |
-| camera | 0.12.1, with camera_android_camerax 0.7.5+1 and camera_avfoundation 0.10.3+1 | M01 |
+| camera | 0.12.1, with camera_android_camerax 0.7.5+1 (minSdk 23) and camera_avfoundation 0.10.3+1 (iOS 13.0+) | added M01 |
 | drift | 2.35.2 | M03 |
-| path_provider | 2.1.6 | M01/M03 |
+| path_provider | 2.1.6 (path_provider_android 2.3.1 uses JNI) | added M01 |
 | flutter_secure_storage | 11.2.0 | M03 |
 
 ## Signing

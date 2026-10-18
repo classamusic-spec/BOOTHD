@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:flutter/widgets.dart';
 
@@ -99,6 +100,8 @@ final class ManagedCameraService implements CameraService {
       return await _driver.listCameras();
     } on CameraDriverException catch (error) {
       throw _failure(error, CameraFailureCode.cameraUnavailable);
+    } on Object catch (error) {
+      throw _unexpected(error, CameraFailureCode.cameraUnavailable);
     }
   });
 
@@ -119,12 +122,15 @@ final class ManagedCameraService implements CameraService {
       _request = request;
       _camera = camera;
       _set(CameraLifecycle.ready);
-    } on CameraDriverException catch (error) {
-      _set(CameraLifecycle.failed);
-      throw _failure(error, CameraFailureCode.initializationFailed);
     } on CameraFailure {
       _set(CameraLifecycle.failed);
       rethrow;
+    } on CameraDriverException catch (error) {
+      _set(CameraLifecycle.failed);
+      throw _failure(error, CameraFailureCode.initializationFailed);
+    } on Object catch (error) {
+      _set(CameraLifecycle.failed);
+      throw _unexpected(error, CameraFailureCode.initializationFailed);
     }
   }
 
@@ -151,9 +157,14 @@ final class ManagedCameraService implements CameraService {
         }
         _set(CameraLifecycle.capturing);
         final capturedAt = _clock();
-        final bytes = await _driver.capture().onError<CameraDriverException>(
-          (error, _) => throw _failure(error, CameraFailureCode.captureFailed),
-        );
+        final Uint8List bytes;
+        try {
+          bytes = await _driver.capture();
+        } on CameraDriverException catch (error) {
+          throw _failure(error, CameraFailureCode.captureFailed);
+        } on Object catch (error) {
+          throw _unexpected(error, CameraFailureCode.captureFailed);
+        }
         try {
           return await _store.commit(
             id: _newId(),
@@ -171,6 +182,10 @@ final class ManagedCameraService implements CameraService {
             CameraFailureCode.originalNotPersisted,
             detail: error.reason,
           );
+        } on Object catch (error) {
+          // For example a full disk: nothing was committed (OriginalStore
+          // removes its staged files), and the caller learns so.
+          throw _unexpected(error, CameraFailureCode.originalNotPersisted);
         }
       } finally {
         if (_state == CameraLifecycle.capturing) _set(CameraLifecycle.ready);
@@ -215,6 +230,12 @@ final class ManagedCameraService implements CameraService {
     if (permission != null) _permission = permission;
     return CameraFailure(code, detail: error.code);
   }
+
+  /// Errors outside the plugin's own (platform channel failures, file
+  /// system errors) still become typed failures; only the error type is
+  /// kept, so no paths or photo data reach logs.
+  static CameraFailure _unexpected(Object error, CameraFailureCode code) =>
+      CameraFailure(code, detail: '${error.runtimeType}');
 
   void _set(CameraLifecycle state) {
     _state = state;

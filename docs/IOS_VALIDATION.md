@@ -24,6 +24,9 @@ camera or signing.
 3. **Record the inventory:** `mkdir -p docs/device_tests && tool/toolchain_inventory.sh > docs/device_tests/mac-inventory-$(date +%F).txt`
 4. **Static checks:** `tool/check.sh` (must pass, as on Linux).
 5. **Unsigned build:** `tool/build_ios.sh release`; record the exit code.
+   Since M01 the app has plugins (`camera`, `path_provider`). Flutter
+   3.47.7 integrates them with Swift Package Manager, so the first Mac
+   build may add that wiring to `ios/Runner.xcodeproj`; commit the change.
 6. **Simulator launch (AC-0004):** boot an iPad simulator
    (`open -a Simulator`, choose an iPad), then
    `flutter test integration_test -d <simulator-id>`. Repeat in portrait and
