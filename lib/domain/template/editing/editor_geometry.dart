@@ -93,6 +93,28 @@ final class LayerGeometry {
     height: rect.height / page.heightPx,
   );
 
+  /// This geometry turning about [fraction] of its frame instead, with the
+  /// frame shifted so the layer draws exactly where it did: matching the
+  /// turned corners needs a shift of (R - I)(p1 - p0).
+  LayerGeometry withPivot(NormalizedPoint fraction) {
+    final p0 = pivot;
+    final p1 = rect.pointAt(fraction);
+    final cos = math.cos(radians);
+    final sin = math.sin(radians);
+    final dx = p1.x - p0.x;
+    final dy = p1.y - p0.y;
+    return LayerGeometry(
+      rect: PixelRect(
+        left: rect.left + (dx * cos - dy * sin) - dx,
+        top: rect.top + (dx * sin + dy * cos) - dy,
+        width: rect.width,
+        height: rect.height,
+      ),
+      rotationDegrees: rotationDegrees,
+      pivotFraction: fraction,
+    );
+  }
+
   LayerGeometry withRect(PixelRect rect) => LayerGeometry(
     rect: rect,
     rotationDegrees: rotationDegrees,

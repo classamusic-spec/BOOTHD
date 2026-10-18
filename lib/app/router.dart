@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../core/access/access_controller.dart';
 import '../core/routing/access_redirect.dart';
 import '../core/routing/route_paths.dart';
+import '../domain/template/template_document.dart';
 import '../features/booth/booth_operator_screen.dart';
 import '../features/booth/booth_welcome_screen.dart';
 import '../features/booth/guest_preview_screen.dart';
@@ -22,6 +23,8 @@ import '../features/operator_access/unlock_screen.dart';
 import '../features/settings/settings_screen.dart';
 import '../features/studio_shell/studio_shell.dart';
 import '../features/template_library/template_library_screen.dart';
+import '../features/template_studio/template_editor_screen.dart';
+import '../features/template_studio/template_preview_screen.dart';
 import 'route_not_found_screen.dart';
 import 'startup_screens.dart';
 
@@ -119,9 +122,31 @@ GoRouter buildRouter({
           ),
           StatefulShellBranch(
             routes: [
-              section(
-                RoutePaths.templates,
-                (_, _) => const TemplateLibraryScreen(),
+              GoRoute(
+                path: RoutePaths.templates,
+                builder: (_, _) => const TemplateLibraryScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':templateId',
+                    parentNavigatorKey: root,
+                    builder: (_, state) => TemplateEditorScreen(
+                      templateId: state.pathParameters['templateId']!,
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: 'preview',
+                        parentNavigatorKey: root,
+                        builder: (_, state) => TemplatePreviewScreen(
+                          templateId: state.pathParameters['templateId']!,
+                          document: switch (state.extra) {
+                            final TemplateDocument document => document,
+                            _ => null,
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),

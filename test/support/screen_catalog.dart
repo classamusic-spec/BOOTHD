@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:porcelain_photo_booth/core/design_system/appearance.dart';
 import 'package:porcelain_photo_booth/core/routing/route_paths.dart';
+import 'package:porcelain_photo_booth/features/template_studio/editor_canvas.dart';
 import 'package:porcelain_photo_booth/shared/operator_access/access_copy.dart';
 
 import 'app_harness.dart';
@@ -13,6 +14,8 @@ final class ScreenSpec {
     this.location, {
     this.startAs = StartAs.operator,
     this.seeded = false,
+    this.library = false,
+    this.renders = false,
     this.boothEventId,
     this.then,
   });
@@ -22,6 +25,13 @@ final class ScreenSpec {
 
   /// Start with templates and an active, a draft and an archived event.
   final bool seeded;
+
+  /// Start with the five designs in the template library.
+  final bool library;
+
+  /// The screen draws templates with the print renderer, which runs in
+  /// real time (settleRendering) before the screen settles.
+  final bool renders;
   final String? boothEventId;
 
   /// Steps after the app starts, e.g. to reach a later setup step.
@@ -74,6 +84,7 @@ final screens = <String, ScreenSpec>{
     'event $tab': ScreenSpec(
       RoutePaths.event(SeedIds.active, tab: tab),
       seeded: true,
+      renders: tab == 'templates',
     ),
   'event draft': ScreenSpec(RoutePaths.event(SeedIds.draft), seeded: true),
   'event archived': ScreenSpec(
@@ -90,6 +101,52 @@ final screens = <String, ScreenSpec>{
     seeded: true,
   ),
   'templates': const ScreenSpec('/studio/templates'),
+  'templates library': const ScreenSpec(
+    '/studio/templates',
+    library: true,
+    renders: true,
+  ),
+  'new template': ScreenSpec(
+    '/studio/templates',
+    library: true,
+    renders: true,
+    then: (tester) async {
+      await _tap(tester, 'New template');
+      await settleRendering(tester, rounds: 10);
+      await tester.pumpAndSettle();
+    },
+  ),
+  'template editor': ScreenSpec(
+    RoutePaths.templateEditor(SeedIds.floralTemplate),
+    library: true,
+    renders: true,
+  ),
+  'template editor selected': ScreenSpec(
+    RoutePaths.templateEditor(SeedIds.floralTemplate),
+    library: true,
+    renders: true,
+    then: (tester) async {
+      tester
+          .widget<EditorCanvas>(find.byType(EditorCanvas))
+          .controller
+          .select('blossoms-top');
+      await tester.pumpAndSettle();
+    },
+  ),
+  'template editor layers': ScreenSpec(
+    RoutePaths.templateEditor(SeedIds.floralTemplate),
+    library: true,
+    renders: true,
+    then: (tester) async {
+      await tester.tap(find.bySemanticsLabel('Layers').last);
+      await tester.pumpAndSettle();
+    },
+  ),
+  'template preview': ScreenSpec(
+    RoutePaths.templatePreview(SeedIds.floralTemplate),
+    library: true,
+    renders: true,
+  ),
   'gallery': const ScreenSpec('/studio/gallery'),
   'settings': const ScreenSpec('/studio/settings'),
   'settings appearance': const ScreenSpec(
@@ -166,8 +223,17 @@ Future<void> show(
     startAs: spec.startAs,
     boothEventId: spec.boothEventId,
     seed: spec.seeded ? (db) => seedEvents(db) : null,
-    settle: settles(name),
+    seedTemplates: spec.library
+        ? seedStarterLibrary
+        : spec.seeded
+        ? seedTemplateDocuments
+        : null,
+    settle: settles(name) && !spec.renders,
   );
+  if (spec.renders) {
+    await settleRendering(tester, rounds: 10);
+    await tester.pumpAndSettle();
+  }
   if (!settles(name)) await tester.pump(const Duration(seconds: 1));
   await spec.then?.call(tester);
 }

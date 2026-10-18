@@ -148,7 +148,7 @@ class DashboardScreen extends ConsumerWidget {
                   icon: PorcelainIcons.templates,
                   title: 'Templates',
                   status: switch (templates?.length) {
-                    null || 0 => 'Page formats and designs',
+                    null || 0 => 'No templates yet',
                     1 => '1 template',
                     final count => '$count templates',
                   },

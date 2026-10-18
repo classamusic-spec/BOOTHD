@@ -81,9 +81,10 @@ void main() {
   testWidgets('dashboard cards open their sections', (tester) async {
     useViewport(tester, TabletViewport.ipadLandscape);
     await pumpApp(tester);
-    await tapVisible(tester, find.text('Page formats and designs'));
+    await tapVisible(tester, find.text('No templates yet'));
     expect(find.byType(TemplateLibraryScreen), findsOneWidget);
-    expect(find.text('Page formats'), findsOneWidget);
+    // The library's own empty state, with its two ways to begin.
+    expect(find.text('Import a package'), findsOneWidget);
   });
 
   testWidgets('Start Booth stays disabled and says why when tapped', (

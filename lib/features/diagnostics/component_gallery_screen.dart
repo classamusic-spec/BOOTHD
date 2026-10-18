@@ -22,7 +22,6 @@ import '../../shared/widgets/responsive_grid.dart';
 import '../../shared/widgets/skeleton.dart';
 import '../../shared/widgets/status_badge.dart';
 import '../../shared/widgets/studio_page.dart';
-import '../../shared/widgets/template_thumbnail.dart';
 import '../../shared/widgets/tone.dart';
 
 /// Developer catalogue of every Porcelain component in every state
@@ -457,26 +456,6 @@ class _ComponentGalleryScreenState extends State<ComponentGalleryScreen> {
               runSpacing: PorcelainSpace.xl,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: const [
-                TemplateThumbnail(
-                  pageWidth: 2,
-                  pageHeight: 6,
-                  semanticLabel: 'Strip',
-                  slots: [
-                    Rect.fromLTWH(0.1, 0.05, 0.8, 0.26),
-                    Rect.fromLTWH(0.1, 0.34, 0.8, 0.26),
-                    Rect.fromLTWH(0.1, 0.63, 0.8, 0.26),
-                  ],
-                ),
-                TemplateThumbnail(
-                  pageWidth: 6,
-                  pageHeight: 4,
-                  height: 120,
-                  semanticLabel: 'Landscape',
-                  slots: [
-                    Rect.fromLTWH(0.05, 0.1, 0.44, 0.72),
-                    Rect.fromLTWH(0.51, 0.1, 0.44, 0.72),
-                  ],
-                ),
                 BotanicalOrnament.sprig(width: 140, height: 140),
                 BotanicalOrnament.wreath(diameter: 180),
                 BotanicalOrnament.flourish(),

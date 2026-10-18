@@ -7,14 +7,15 @@ import '../../../core/booth/booth_providers.dart';
 import '../../../core/design_system/porcelain_icons.dart';
 import '../../../core/design_system/porcelain_metrics.dart';
 import '../../../core/design_system/porcelain_theme.dart';
+import '../../../core/templates/template_thumbnails.dart';
 import '../../../domain/models/event_rules.dart';
 import '../../../domain/models/template_revision_summary.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/porcelain_button.dart';
 import '../../../shared/widgets/porcelain_switch.dart';
+import '../../../shared/widgets/rendered_thumbnail.dart';
 import '../../../shared/widgets/skeleton.dart';
 import '../../../shared/widgets/status_badge.dart';
-import '../../../shared/widgets/template_thumbnail.dart';
 import '../../../shared/widgets/tone.dart';
 import '../event_copy.dart';
 import 'editor_parts.dart';
@@ -332,8 +333,7 @@ class _LibraryTemplate extends StatelessWidget {
   }
 }
 
-/// The template's page shape above its photo-slot count; the rendered
-/// preview arrives with the template library (M05).
+/// The template drawn as it prints, above its photo-slot count.
 class _PageShape extends StatelessWidget {
   const _PageShape({required this.template});
 
@@ -354,13 +354,14 @@ class _PageShape extends StatelessWidget {
           SizedBox(
             height: pageHeight,
             child: Center(
-              child: TemplateThumbnail(
-                pageWidth: template.pageWidthPx.toDouble(),
-                pageHeight: template.pageHeightPx.toDouble(),
-                slots: const [],
-                semanticLabel: template.templateName,
+              child: SizedBox(
                 // Landscape pages fit the width instead.
                 height: math.min(pageHeight, width / aspect),
+                child: RenderedThumbnail(
+                  thumbnail: templateThumbnailProvider(template.revisionId),
+                  aspectRatio: aspect,
+                  semanticLabel: template.templateName,
+                ),
               ),
             ),
           ),

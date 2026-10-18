@@ -21,10 +21,12 @@ const slotPlaceholderPhotoId = 'slot-placeholder';
 /// Square, so a slot of any shape crops it around the centred camera.
 const slotPlaceholderSizePx = 960;
 
-Future<Uint8List>? _png;
+// The drawn bytes, not a future: a completed future resumes its awaiters
+// in the zone it was created in, which may be gone by the next caller.
+Uint8List? _png;
 
 /// PNG bytes of the placeholder, drawn once per process.
-Future<Uint8List> slotPlaceholderPng() => _png ??= _draw();
+Future<Uint8List> slotPlaceholderPng() async => _png ??= await _draw();
 
 /// [document] with the placeholder in every photo slot and its artwork
 /// read from [assets]: what the library, editor and template preview
@@ -149,4 +151,28 @@ Future<Uint8List> _draw() async {
   } finally {
     image.dispose();
   }
+}
+
+ui.Image? _missingTile;
+
+/// A grey hatched tile the editor draws in place of an image whose file
+/// cannot be read, so the layer stays visible and selectable. Shared:
+/// callers clone it.
+Future<ui.Image> missingImageTile() async =>
+    _missingTile ??= await _drawMissingTile();
+
+Future<ui.Image> _drawMissingTile() {
+  final recorder = ui.PictureRecorder();
+  final canvas = ui.Canvas(recorder)
+    ..drawRect(
+      const ui.Rect.fromLTWH(0, 0, 32, 32),
+      ui.Paint()..color = const ui.Color(0xFFE4DDD3),
+    );
+  final line = ui.Paint()
+    ..color = const ui.Color(0xFFB4A898)
+    ..strokeWidth = 3;
+  for (var x = -32.0; x < 64; x += 8) {
+    canvas.drawLine(ui.Offset(x, 32), ui.Offset(x + 32, 0), line);
+  }
+  return recorder.endRecording().toImage(32, 32);
 }

@@ -3,6 +3,7 @@
 // snapping, hit testing) and snapping. Pure Dart.
 import 'dart:math' as math;
 
+import 'package:collection/collection.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:porcelain_photo_booth/domain/template/editing/document_edits.dart';
 import 'package:porcelain_photo_booth/domain/template/editing/edit_history.dart';
@@ -266,6 +267,33 @@ void main() {
 
   group('geometry', () {
     const page = PageSpec.fourBySixPortrait; // 1200 x 1800
+
+    test('a new rotation pivot keeps the turned layer in place', () {
+      const turned = LayerGeometry(
+        rect: PixelRect(left: 200, top: 300, width: 400, height: 200),
+        rotationDegrees: 30,
+      );
+      for (final fraction in const [
+        NormalizedPoint(0, 0),
+        NormalizedPoint(1, 1),
+        NormalizedPoint(0.25, 0.8),
+      ]) {
+        final moved = turned.withPivot(fraction);
+        expect(moved.pivotFraction, fraction);
+        for (final (a, b) in IterableZip([
+          moved.corners,
+          turned.corners,
+        ]).map((pair) => (pair[0], pair[1]))) {
+          expect(a.x, closeTo(b.x, 1e-9));
+          expect(a.y, closeTo(b.y, 1e-9));
+        }
+      }
+      // Upright layers do not move at all.
+      const upright = LayerGeometry(
+        rect: PixelRect(left: 10, top: 20, width: 30, height: 40),
+      );
+      expect(upright.withPivot(const NormalizedPoint(0, 0)).rect, upright.rect);
+    });
 
     test('hit testing respects rotation, visibility and paint order', () {
       var d = _blank();

@@ -1,6 +1,7 @@
+import 'dart:io';
 import 'dart:math';
 
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -15,6 +16,7 @@ import 'package:porcelain_photo_booth/domain/services/booth_capabilities.dart';
 import 'package:porcelain_photo_booth/domain/services/managed_storage.dart';
 import 'package:porcelain_photo_booth/domain/services/operator_auth_service.dart';
 import 'package:porcelain_photo_booth/domain/services/operator_secrets.dart';
+import 'package:porcelain_photo_booth/infrastructure/composition/dart_ui_composition_renderer.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/booth_database.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_booth_settings_repository.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_event_repository.dart';
@@ -22,6 +24,7 @@ import 'package:porcelain_photo_booth/infrastructure/database/drift_operator_acc
 import 'package:porcelain_photo_booth/infrastructure/database/drift_template_catalog.dart';
 
 import 'fakes.dart';
+import 'memory_template_store.dart';
 import 'test_database.dart';
 
 const debugAndroid = AppEnvironment(
@@ -75,6 +78,8 @@ final class TestBooth {
     required this.storage,
     required this.clock,
     required this.recoveryCode,
+    required this.templates,
+    required this.files,
   });
 
   final BoothDatabase db;
@@ -85,6 +90,12 @@ final class TestBooth {
 
   /// The recovery code created at setup, or null for a fresh install.
   final String? recoveryCode;
+
+  /// The template library, in memory.
+  final MemoryTemplateStore templates;
+
+  /// The document picker and share sheet.
+  final FakeOperatorFiles files;
 
   late final ProviderContainer container;
 
@@ -144,6 +155,8 @@ Future<TestBooth> pumpApp(
   bool alreadySetUp = false,
   String? boothEventId,
   Future<void> Function(BoothDatabase db)? seed,
+  MemoryTemplateStore? templates,
+  Future<void> Function(MemoryTemplateStore templates)? seedTemplates,
 }) async {
   final testClock = clock ?? FakeClock();
   final db = database ?? memoryDatabase(clock: testClock);
@@ -165,6 +178,8 @@ Future<TestBooth> pumpApp(
     ).setBoothEvent(boothEventId!);
   }
 
+  final library = templates ?? MemoryTemplateStore(clock: testClock);
+  if (seedTemplates != null) await seedTemplates(library);
   final booth = TestBooth._(
     db: db,
     pins: store,
@@ -172,6 +187,8 @@ Future<TestBooth> pumpApp(
     storage: storage ?? FakeManagedStorage(),
     clock: testClock,
     recoveryCode: recoveryCode,
+    templates: library,
+    files: FakeOperatorFiles(),
   );
 
   await tester.pumpWidget(
@@ -196,6 +213,20 @@ Future<TestBooth> pumpApp(
         pinVerifierStoreProvider.overrideWithValue(store),
         pinHasherProvider.overrideWithValue(FastTestHasher()),
         boothCapabilityProbeProvider.overrideWithValue(booth.probe),
+        assetRepositoryProvider.overrideWithValue(library.assets),
+        templateRepositoryProvider.overrideWithValue(library.templates),
+        templatePackagesProvider.overrideWithValue(library.packages),
+        templateDraftRepositoryProvider.overrideWithValue(library.drafts),
+        operatorFilesProvider.overrideWithValue(booth.files),
+        // Engine work (rendering, decoding) completes only in real time:
+        // see settleRendering().
+        compositionRendererProvider.overrideWithValue(
+          DartUiCompositionRenderer(),
+        ),
+        // The bundle, read from disk without platform messages.
+        bundledAssetLoaderProvider.overrideWithValue(
+          (path) async => File(path).readAsBytesSync(),
+        ),
       ],
       child: const PorcelainApp(),
     ),
@@ -232,4 +263,22 @@ Future<void> enterPin(WidgetTester tester, String pin) async {
     await tester.pump(const Duration(milliseconds: 50));
   }
   await tester.pumpAndSettle();
+}
+
+/// Lets engine work finish in real time (rendering and image decoding do
+/// not advance under the test's fake clock), then decodes every image on
+/// screen the same way and rebuilds.
+Future<void> settleRendering(WidgetTester tester, {int rounds = 6}) async {
+  for (var i = 0; i < rounds; i++) {
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 40)),
+    );
+    await tester.pump();
+  }
+  await tester.runAsync(() async {
+    for (final element in find.byType(Image).evaluate()) {
+      await precacheImage((element.widget as Image).image, element);
+    }
+  });
+  await tester.pump();
 }

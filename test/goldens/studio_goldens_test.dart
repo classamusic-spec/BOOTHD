@@ -1,7 +1,8 @@
 // AC-0209: golden screenshots of every implemented screen in portrait and
 // landscape at the defined tablet sizes, in every implemented theme; M03
 // adds first-run setup, the PIN screens, the event list and editor, the
-// launch checks and Booth Mode.
+// launch checks and Booth Mode; M05 the template library, the new-template
+// chooser, the Template Studio and the template preview.
 //
 // Rendered at 1x to keep the repository small; text and blur rasterise
 // differently on macOS and Windows, so goldens are compared on Linux only
@@ -29,6 +30,8 @@ const themed = [
   'event general',
   'preflight',
   'templates',
+  'templates library',
+  'template editor',
   'gallery',
   'settings appearance',
   'settings camera',
@@ -56,6 +59,10 @@ const states = [
   'new event',
   'new event templates empty',
   'preflight draft',
+  'new template',
+  'template editor selected',
+  'template editor layers',
+  'template preview',
   'setup privacy',
   'setup pin',
   'setup recovery code',

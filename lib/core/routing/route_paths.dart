@@ -42,6 +42,14 @@ abstract final class RoutePaths {
   /// The launch checklist for an event (S05, S19).
   static String preflight(String eventId) => '$events/$eventId/preflight';
 
+  /// The Template Studio for one template (S07).
+  static String templateEditor(String templateId) => '$templates/$templateId';
+
+  /// A template rendered as it prints (S11): the editor's current document
+  /// when opened from the editor, otherwise the newest saved revision.
+  static String templatePreview(String templateId) =>
+      '$templates/$templateId/preview';
+
   /// A Settings section, kept in the location so it survives rotation and
   /// works in both the two-pane and the single-pane layout.
   static String settingsSection(String section) => '$settings?section=$section';

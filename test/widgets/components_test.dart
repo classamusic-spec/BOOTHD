@@ -22,7 +22,6 @@ import 'package:porcelain_photo_booth/shared/widgets/porcelain_text_field.dart';
 import 'package:porcelain_photo_booth/shared/widgets/porcelain_toast.dart';
 import 'package:porcelain_photo_booth/shared/widgets/responsive_grid.dart';
 import 'package:porcelain_photo_booth/shared/widgets/tactile_surface.dart';
-import 'package:porcelain_photo_booth/shared/widgets/template_thumbnail.dart';
 
 Future<void> pumpComponent(
   WidgetTester tester,
@@ -619,23 +618,6 @@ void main() {
         tester.getTopLeft(find.byKey(const Key('2'))).dy,
         greaterThan(first.dy),
       );
-    });
-
-    testWidgets('template thumbnails keep the exact page ratio', (
-      tester,
-    ) async {
-      await pumpComponent(
-        tester,
-        const TemplateThumbnail(
-          pageWidth: 2,
-          pageHeight: 6,
-          height: 180,
-          slots: [Rect.fromLTWH(0.1, 0.1, 0.8, 0.3)],
-          semanticLabel: 'Strip',
-        ),
-      );
-      final size = tester.getSize(find.byType(TemplateThumbnail));
-      expect(size.width / size.height, closeTo(2 / 6, 1e-9));
     });
 
     testWidgets('navigation reports the selected section', (tester) async {
