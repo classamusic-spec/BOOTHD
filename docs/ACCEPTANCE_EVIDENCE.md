@@ -228,7 +228,7 @@ on `9e368d5`, GitHub-hosted `ubuntu-24.04` runners:
 | Job | Conclusion | Notes |
 | --- | --- | --- |
 | Format, analyze, test, licences | success | 559 passed, 1 skipped, as locally; all 103 widget goldens matched exactly on a second machine |
-| Android release smoke build | in progress when this was recorded | Result added in the next commit |
+| Android release smoke build | success | 56,093,766 bytes, the same size as locally; SHA-256 `0cbf4feb58c31f62d2012c01daafb8eac8841e50afedef7e626fdaecaf339199` differs only because each machine signs with its own debug key. Same icon tree shaking (Rounded font 15,073,408 to 139,836 bytes). The log still warns that `CupertinoIcons` glyphs are not bundled, as in M00; the app references no Cupertino icons |
 | iPadOS unsigned build | skipped | Manual dispatch only, by design |
 
 ### Security and privacy notes (M02)
