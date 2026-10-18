@@ -76,6 +76,15 @@ must send the operator to Settings when asking is no longer possible.
   the device procedure checks the first-run prompt.
 - **No new Android permission:** the plugin declares none; the merged
   release manifest is unchanged (aapt2, evidence).
+- **Android compile SDK 37:** `permission_handler_android` 14 compiles
+  against API 37 and requires apps that use it to do the same, so the app
+  sets `compileSdk = 37`; `targetSdk` stays Flutter's default (36), so
+  runtime behaviour, including Android 17's large-screen orientation rules
+  (ADR-0004), does not change. AGP 9.1.0 is tested up to 36 and warns;
+  `android.suppressUnsupportedCompileSdk=37` records the decision. AGP can
+  download the platform during a build but then fails that build, so
+  `tool/build_android.sh` installs `platforms;android-37.0` first on a
+  fresh SDK (CI included).
 - **Flow (S18, AC-0601):** never asked: the camera test explains first and
   asks only on "Allow camera". Refused: "Allow camera" again (Android may
   still ask) and the Settings steps. Refused for good: the Settings steps
@@ -191,7 +200,8 @@ on either.
 
 - The app gains six `permission_handler` packages (MIT; recorded in
   `docs/DEPENDENCY_LICENSES.md`) and a few lines of Kotlin and Swift for
-  free space.
+  free space, and compiles against Android API 37 (section 2) until an AGP
+  release supports it officially.
 - The iOS build path matters: archiving from Xcode.app without the
   environment variable ships a booth whose camera reads as refused.
 - Schema version 4 is additive; versions 1 to 3 migrate with every value

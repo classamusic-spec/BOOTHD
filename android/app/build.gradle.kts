@@ -6,7 +6,10 @@ plugins {
 
 android {
     namespace = "com.example.porcelain_photo_booth"
-    compileSdk = flutter.compileSdkVersion
+    // permission_handler_android 14 compiles against API 37 and requires
+    // apps using it to do the same (ADR-0012). Compile SDK only: targetSdk
+    // stays Flutter's default, so runtime behaviour does not change.
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

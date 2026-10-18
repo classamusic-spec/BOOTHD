@@ -58,6 +58,9 @@ codes, platform results, spec issues raised, risks, next step.
   free space.
 - Native: `MainActivity.kt` and `AppDelegate.swift` register the
   `porcelain/device_storage` channel (free bytes only).
+- Android build: `compileSdk = 37` (target unchanged),
+  `android.suppressUnsupportedCompileSdk=37`, and `tool/build_android.sh`
+  installs `platforms;android-37.0` on a fresh SDK.
 - Features: `diagnostics/camera_test_screen.dart`, `camera_copy.dart`,
   `self_test_copy.dart`; the Diagnostics hub runs the self-test and links
   the camera test; Settings > Camera lists the tablet's cameras and links
@@ -105,6 +108,12 @@ codes, platform results, spec issues raised, risks, next step.
   ADR-0012 and `docs/IOS_VALIDATION.md` with the fix.
 - The design rule's exemption for the spike folder is gone with the
   spike.
+- The Android build failed: `permission_handler_android` 14 compiles
+  against API 37, whose only platform package is `android-37.0`; AGP
+  9.1.0 downloaded it mid-build and then failed that build, and on the
+  next run refused an app compiled against 36. The app now compiles
+  against 37 (target stays 36) and the build script installs the platform
+  first; a release build from an SDK without it passes (ADR-0012).
 
 ### Spec issues raised
 

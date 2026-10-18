@@ -26,7 +26,7 @@ Recorded for M00 (AC-0002) on 2026-10-17 UTC. Regenerate the raw data with
 | Kotlin Gradle Plugin | 2.4.0 | Flutter 3.47.7 template |
 | Android compileSdk / targetSdk / minSdk | 36 / 36 / 24 | Flutter 3.47.7 defaults |
 | Android build-tools | 36.0.0 | sdkmanager |
-| Android platform | android-36 (r02) | sdkmanager |
+| Android platform | android-36 (r02); android-37.0 (r02) since M06, installed by `tool/build_android.sh` | sdkmanager |
 | Android NDK | 28.2.13676358 (r28c) | sdkmanager (Flutter default `ndkVersion`) |
 | Android platform-tools | 37.0.1 | sdkmanager |
 | Android platform 35, CMake 3.22.1 | auto-installed by AGP during the first M01 build (plugins compile against API 35; JNI-based `path_provider_android` builds native code) | AGP |
