@@ -7,7 +7,7 @@ DEVICE gates are never satisfied by CI, emulators, simulators or mocks.
 ## M00: toolchain, project baseline
 
 ```text
-Milestone: M00 | code commit: see "Evidence commit" below | build 0.1.0+1
+Milestone: M00 | code commit dba6ce4e26044313b486a93f867ba10b975545c2 | build 0.1.0+1
 Host: Ubuntu 24.04.5 LTS (Linux 6.18.44, cloud VM, no KVM, no macOS)
 Flutter 3.47.7 stable / Dart 3.13.5 / AGP 9.1.0 / Gradle 9.3.1 / Kotlin 2.4.0
 Packages: flutter_riverpod 3.4.3, go_router 18.1.0 (exact set: pubspec.lock)
@@ -17,6 +17,11 @@ Owner approval requested: YES (do not start M01 automatically)
 ```
 
 ### Commands and exit codes (2026-10-18 UTC, host above)
+
+Rows 4–9 and 13 were re-run on a clean checkout of commit `dba6ce4` with
+identical results. APK SHA-256 (identical across two builds):
+debug `1a3f52fd7fc28e8397dc9bfceaafe93d173bed35669f09ddefd99f426918a67c`,
+release `e0c12c229f51f6fa8b0e948c1aa59a902d297833ebb6988f65146ddf939c06f4`.
 
 | # | Command | Exit | Result |
 | --- | --- | --- | --- |
