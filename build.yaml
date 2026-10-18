@@ -1,0 +1,13 @@
+# Code generation for the booth database (ADR-0009). Generated files are
+# committed; tool/check.sh regenerates them and fails if anything differs.
+targets:
+  $default:
+    builders:
+      drift_dev:
+        options:
+          databases:
+            booth: lib/infrastructure/database/booth_database.dart
+          schema_dir: drift_schemas/
+          test_dir: test/drift/
+          # ISO-8601 text keeps milliseconds and stays readable in backups.
+          store_date_time_values_as_text: true

@@ -1,9 +1,11 @@
 import 'package:flutter/widgets.dart';
 
 import '../../core/design_system/porcelain_depth.dart';
+import '../../core/design_system/porcelain_icons.dart';
 import '../../core/design_system/porcelain_metrics.dart';
 import '../../core/design_system/porcelain_motion.dart';
 import '../../core/design_system/porcelain_theme.dart';
+import 'porcelain_toast.dart';
 import 'pressable.dart';
 import 'tactile_surface.dart';
 
@@ -27,11 +29,15 @@ class PorcelainSegmentedControl<T> extends StatelessWidget {
     required this.segments,
     required this.selected,
     required this.onChanged,
+    this.disabledReason,
   }) : assert(segments.length >= 2);
 
   final List<PorcelainSegment<T>> segments;
   final T selected;
+
+  /// Null disables every segment; give a [disabledReason] then.
   final ValueChanged<T>? onChanged;
+  final String? disabledReason;
 
   @override
   Widget build(BuildContext context) {
@@ -94,6 +100,14 @@ class PorcelainSegmentedControl<T> extends StatelessWidget {
                         semanticLabel: segment.label,
                         selected: segment.value == selected,
                         inMutuallyExclusiveGroup: true,
+                        disabledReason: disabledReason,
+                        onDisabledTap: disabledReason == null
+                            ? null
+                            : () => PorcelainToast.show(
+                                context,
+                                disabledReason!,
+                                icon: PorcelainIcons.locked,
+                              ),
                         builder: (context, state) {
                           final isSelected = segment.value == selected;
                           final color = !state.enabled

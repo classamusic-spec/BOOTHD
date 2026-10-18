@@ -1,0 +1,180 @@
+-- Porcelain Photo Booth database schema (ADR-0009). Version 1 (M03).
+--
+-- Rules enforced here as well as in the domain, so a defect elsewhere can
+-- never store an invalid event: foreign keys with explicit actions, CHECK
+-- constraints mirroring EventLimits, one default template per event and
+-- immutable template revisions. Changing anything here needs a schema
+-- version bump, a migration step, a new schema dump and a seeded fixture
+-- (tool/check.sh and test/drift enforce this).
+
+import '../../domain/models/booth_event.dart';
+import '../../domain/services/camera_service.dart';
+import '../../domain/value_objects/appearance.dart';
+import '../../domain/value_objects/orientation.dart';
+import 'converters.dart';
+
+-- This device's booth (A-05 BoothProfile). One row, created with the
+-- database.
+CREATE TABLE booth_profiles (
+  id TEXT NOT NULL PRIMARY KEY CHECK (length(id) = 36),
+  name TEXT NOT NULL CHECK (length(trim(name)) BETWEEN 1 AND 40),
+  -- Mapped explicitly: SQLite reads any type name containing "INT" (as in
+  -- "PorcelainThemeProfile") as an integer, so ENUMNAME would store indexes.
+  theme_profile TEXT NOT NULL MAPPED BY `themeProfileByName`
+    CHECK (theme_profile IN ('porcelainStudio', 'lightOak', 'darkroomWalnut')),
+  contrast_preference ENUMNAME(ContrastPreference) NOT NULL
+    CHECK (contrast_preference IN ('system', 'standard', 'high')),
+  motion_preference ENUMNAME(MotionPreference) NOT NULL
+    CHECK (motion_preference IN ('system', 'reduced')),
+  default_lens ENUMNAME(CameraLens) NOT NULL
+    CHECK (default_lens IN ('front', 'back', 'external')),
+  default_mirror_preview BOOLEAN NOT NULL
+    CHECK (default_mirror_preview IN (0, 1)),
+  default_mirror_output BOOLEAN NOT NULL
+    CHECK (default_mirror_output IN (0, 1)),
+  default_orientation ENUMNAME(GuestOrientationPreference) NOT NULL
+    CHECK (default_orientation IN ('portrait', 'landscape')),
+  default_output_format ENUMNAME(OutputFormat) NOT NULL
+    CHECK (default_output_format IN ('jpeg', 'png')),
+  default_jpeg_quality INTEGER NOT NULL
+    CHECK (default_jpeg_quality BETWEEN 80 AND 100),
+  created_at DATETIME NOT NULL,
+  updated_at DATETIME NOT NULL
+) AS BoothProfileRow;
+
+-- App-wide state. Exactly one row (id = 1), created with the database.
+CREATE TABLE app_settings (
+  id INTEGER NOT NULL PRIMARY KEY CHECK (id = 1),
+  booth_profile_id TEXT NOT NULL
+    REFERENCES booth_profiles (id) ON DELETE RESTRICT,
+  -- Null until first-run setup finishes.
+  setup_completed_at DATETIME,
+  -- The event Booth Mode is running; null while the Studio is in use.
+  booth_event_id TEXT REFERENCES events (id) ON DELETE SET NULL
+) AS AppSettingsRow;
+
+-- Operator access (A-12): the recovery code's slow, salted verifier and the
+-- failed-attempt counters behind lockouts. The PIN's own verifier is kept
+-- in platform secure storage, not here. Exactly one row (id = 1).
+CREATE TABLE operator_access (
+  id INTEGER NOT NULL PRIMARY KEY CHECK (id = 1),
+  recovery_verifier TEXT,
+  pin_failures INTEGER NOT NULL DEFAULT 0 CHECK (pin_failures >= 0),
+  pin_last_failure_at DATETIME,
+  recovery_failures INTEGER NOT NULL DEFAULT 0 CHECK (recovery_failures >= 0),
+  recovery_last_failure_at DATETIME
+) AS OperatorAccessRow;
+
+-- Templates (A-05). Written by the template library from M04/M05.
+CREATE TABLE templates (
+  id TEXT NOT NULL PRIMARY KEY CHECK (length(id) = 36),
+  display_name TEXT NOT NULL
+    CHECK (length(trim(display_name)) BETWEEN 1 AND 80),
+  category TEXT CHECK (category IS NULL OR length(category) <= 40),
+  created_at DATETIME NOT NULL,
+  updated_at DATETIME NOT NULL,
+  archived_at DATETIME
+) AS TemplateRow;
+
+-- Immutable template revisions (A-05, A-15). Page size and photo slot count
+-- summarise the revision's manifest, so events can be validated without
+-- parsing it. The manifest path is relative to managed storage.
+CREATE TABLE template_revisions (
+  id TEXT NOT NULL PRIMARY KEY CHECK (length(id) = 36),
+  template_id TEXT NOT NULL REFERENCES templates (id) ON DELETE RESTRICT,
+  revision_number INTEGER NOT NULL CHECK (revision_number >= 1),
+  document_schema_version INTEGER NOT NULL
+    CHECK (document_schema_version >= 1),
+  manifest_path TEXT NOT NULL
+    CHECK (length(manifest_path) BETWEEN 1 AND 255
+      AND manifest_path NOT LIKE '/%'
+      AND manifest_path NOT LIKE '%..%'
+      AND instr(manifest_path, char(92)) = 0),
+  checksum TEXT NOT NULL CHECK (length(checksum) = 64),
+  page_width_px INTEGER NOT NULL CHECK (page_width_px BETWEEN 1 AND 20000),
+  page_height_px INTEGER NOT NULL CHECK (page_height_px BETWEEN 1 AND 20000),
+  photo_slot_count INTEGER NOT NULL CHECK (photo_slot_count BETWEEN 0 AND 8),
+  created_at DATETIME NOT NULL,
+  UNIQUE (template_id, revision_number)
+) AS TemplateRevisionRow;
+
+CREATE TRIGGER template_revisions_are_immutable
+  BEFORE UPDATE ON template_revisions
+BEGIN
+  SELECT RAISE(ABORT, 'template revisions are immutable');
+END;
+
+-- Events (P-05, A-05). Limits mirror EventLimits.
+CREATE TABLE events (
+  id TEXT NOT NULL PRIMARY KEY CHECK (length(id) = 36),
+  booth_profile_id TEXT NOT NULL
+    REFERENCES booth_profiles (id) ON DELETE RESTRICT,
+  title TEXT NOT NULL CHECK (length(trim(title)) BETWEEN 1 AND 80),
+  event_date TEXT MAPPED BY `const CalendarDateConverter()`
+    CHECK (event_date IS NULL
+      OR event_date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'),
+  venue TEXT CHECK (venue IS NULL OR length(venue) <= 80),
+  notes TEXT CHECK (notes IS NULL OR length(notes) <= 1000),
+  status ENUMNAME(EventStatus) NOT NULL
+    CHECK (status IN ('draft', 'active', 'archived')),
+  lens ENUMNAME(CameraLens) NOT NULL
+    CHECK (lens IN ('front', 'back', 'external')),
+  mirror_preview BOOLEAN NOT NULL CHECK (mirror_preview IN (0, 1)),
+  mirror_output BOOLEAN NOT NULL CHECK (mirror_output IN (0, 1)),
+  guest_orientation ENUMNAME(GuestOrientationPreference) NOT NULL
+    CHECK (guest_orientation IN ('portrait', 'landscape')),
+  shot_count INTEGER NOT NULL CHECK (shot_count BETWEEN 1 AND 4),
+  countdown_seconds INTEGER NOT NULL CHECK (countdown_seconds BETWEEN 2 AND 10),
+  shot_interval_seconds INTEGER NOT NULL
+    CHECK (shot_interval_seconds BETWEEN 1 AND 10),
+  retake_policy ENUMNAME(RetakePolicy) NOT NULL
+    CHECK (retake_policy IN ('none', 'perShot', 'wholeSession')),
+  retake_limit INTEGER NOT NULL,
+  welcome_title TEXT CHECK (welcome_title IS NULL OR length(welcome_title) <= 60),
+  welcome_message TEXT
+    CHECK (welcome_message IS NULL OR length(welcome_message) <= 200),
+  consent_text TEXT CHECK (consent_text IS NULL OR length(consent_text) <= 400),
+  guest_chooses_template BOOLEAN NOT NULL
+    CHECK (guest_chooses_template IN (0, 1)),
+  finish_timeout_seconds INTEGER NOT NULL
+    CHECK (finish_timeout_seconds BETWEEN 10 AND 120),
+  theme_override TEXT MAPPED BY `themeProfileByName`
+    CHECK (theme_override IS NULL
+      OR theme_override IN ('porcelainStudio', 'lightOak', 'darkroomWalnut')),
+  output_format ENUMNAME(OutputFormat) NOT NULL
+    CHECK (output_format IN ('jpeg', 'png')),
+  jpeg_quality INTEGER NOT NULL CHECK (jpeg_quality BETWEEN 80 AND 100),
+  retention_mode ENUMNAME(RetentionMode) NOT NULL
+    CHECK (retention_mode IN ('keepUntilDeleted', 'deleteAfterDays')),
+  retention_days INTEGER,
+  created_at DATETIME NOT NULL,
+  updated_at DATETIME NOT NULL,
+  archived_at DATETIME,
+  CHECK ((retake_policy = 'none' AND retake_limit = 0)
+    OR (retake_policy <> 'none' AND retake_limit BETWEEN 1 AND 5)),
+  CHECK ((retention_mode = 'keepUntilDeleted' AND retention_days IS NULL)
+    OR (retention_mode = 'deleteAfterDays'
+      AND retention_days BETWEEN 1 AND 365)),
+  CHECK ((status = 'archived') = (archived_at IS NOT NULL))
+) AS EventRow;
+
+CREATE INDEX events_by_status ON events (status, updated_at);
+
+-- The template revisions an event offers guests, in order (A-05
+-- EventTemplate). At most 12, at most one default; deleting an event
+-- removes its rows, while a referenced revision cannot be deleted.
+CREATE TABLE event_templates (
+  event_id TEXT NOT NULL REFERENCES events (id) ON DELETE CASCADE,
+  template_revision_id TEXT NOT NULL
+    REFERENCES template_revisions (id) ON DELETE RESTRICT,
+  position INTEGER NOT NULL CHECK (position BETWEEN 0 AND 11),
+  is_default BOOLEAN NOT NULL CHECK (is_default IN (0, 1)),
+  PRIMARY KEY (event_id, template_revision_id),
+  UNIQUE (event_id, position)
+) AS EventTemplateRow;
+
+CREATE UNIQUE INDEX event_templates_one_default
+  ON event_templates (event_id) WHERE is_default = 1;
+
+CREATE INDEX event_templates_by_revision
+  ON event_templates (template_revision_id);

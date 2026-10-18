@@ -1,51 +1,15 @@
 // AC-0203 (no dead controls), AC-0204 (portrait and landscape tablet
 // layouts without overflow), AC-0205 and AC-0208 (contrast, labels and
-// touch targets on every screen in both orientations).
+// touch targets on every screen in both orientations), for every screen
+// including M03's setup, PIN, event, launch-check and Booth Mode screens.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:porcelain_photo_booth/core/design_system/appearance.dart';
 import 'package:porcelain_photo_booth/core/design_system/theme_profiles.dart';
 import 'package:porcelain_photo_booth/shared/widgets/pressable.dart';
 
-import '../support/app_harness.dart';
+import '../support/screen_catalog.dart';
 import '../support/tablet_viewports.dart';
-
-/// Every implemented screen, by name and location.
-const screens = {
-  'dashboard': '/studio',
-  'events': '/studio/events',
-  'templates': '/studio/templates',
-  'gallery': '/studio/gallery',
-  'settings': '/studio/settings',
-  'settings appearance': '/studio/settings?section=appearance',
-  'settings camera': '/studio/settings?section=camera',
-  'settings output': '/studio/settings?section=output',
-  'settings booth': '/studio/settings?section=booth',
-  'settings about': '/studio/settings?section=about',
-  'diagnostics': '/studio/diagnostics',
-  'guest preview': '/preview/guest-welcome',
-  'not found': '/no-such-page',
-  'component gallery': '/dev/components',
-};
-
-/// The component gallery shows a spinner and skeleton that never settle.
-bool settles(String name) => name != 'component gallery';
-
-Future<void> show(
-  WidgetTester tester,
-  String name, {
-  TabletViewport viewport = TabletViewport.ipadLandscape,
-  AppearanceSettings appearance = const AppearanceSettings(),
-}) async {
-  useViewport(tester, viewport);
-  await pumpApp(
-    tester,
-    location: screens[name]!,
-    appearance: appearance,
-    settle: settles(name),
-  );
-  if (!settles(name)) await tester.pump(const Duration(seconds: 1));
-}
 
 void main() {
   for (final name in screens.keys) {

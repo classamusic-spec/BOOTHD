@@ -9,6 +9,9 @@ import 'porcelain_button.dart';
 /// Whole-number stepper (for example shots per session or countdown
 /// seconds): minus, the value in tabular figures, plus. The value is also
 /// adjustable through accessibility increase and decrease actions.
+///
+/// At a limit the matching button is disabled; [minimumReason] and
+/// [maximumReason] say why when it is tapped (AC-0203).
 class PorcelainStepper extends StatelessWidget {
   const PorcelainStepper({
     super.key,
@@ -19,14 +22,21 @@ class PorcelainStepper extends StatelessWidget {
     required this.onChanged,
     required this.decreaseLabel,
     required this.increaseLabel,
+    this.step = 1,
     this.formatValue,
     this.disabledReason,
-  }) : assert(min <= max);
+    this.minimumReason,
+    this.maximumReason,
+  }) : assert(min <= max),
+       assert(step > 0);
 
   final String label;
   final int value;
   final int min;
   final int max;
+
+  /// The change per press, clamped to [min] and [max].
+  final int step;
   final ValueChanged<int>? onChanged;
 
   /// Accessible names of the minus and plus buttons.
@@ -36,6 +46,8 @@ class PorcelainStepper extends StatelessWidget {
   /// Renders the value, for example `3 s`; defaults to the number.
   final String Function(int value)? formatValue;
   final String? disabledReason;
+  final String? minimumReason;
+  final String? maximumReason;
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +56,8 @@ class PorcelainStepper extends StatelessWidget {
     final onChanged = this.onChanged;
     final canDecrease = onChanged != null && value > min;
     final canIncrease = onChanged != null && value < max;
+    final lower = (value - step).clamp(min, max);
+    final higher = (value + step).clamp(min, max);
     String show(int v) => formatValue?.call(v) ?? '$v';
 
     return Row(
@@ -52,16 +66,16 @@ class PorcelainStepper extends StatelessWidget {
         PorcelainIconButton(
           icon: PorcelainIcons.remove,
           semanticLabel: decreaseLabel,
-          onPressed: canDecrease ? () => onChanged(value - 1) : null,
-          disabledReason: onChanged == null ? disabledReason : null,
+          onPressed: canDecrease ? () => onChanged(lower) : null,
+          disabledReason: onChanged == null ? disabledReason : minimumReason,
         ),
         Semantics(
           label: label,
           value: show(value),
-          increasedValue: canIncrease ? show(value + 1) : null,
-          decreasedValue: canDecrease ? show(value - 1) : null,
-          onIncrease: canIncrease ? () => onChanged(value + 1) : null,
-          onDecrease: canDecrease ? () => onChanged(value - 1) : null,
+          increasedValue: canIncrease ? show(higher) : null,
+          decreasedValue: canDecrease ? show(lower) : null,
+          onIncrease: canIncrease ? () => onChanged(higher) : null,
+          onDecrease: canDecrease ? () => onChanged(lower) : null,
           child: ExcludeSemantics(
             child: ConstrainedBox(
               constraints: const BoxConstraints(minWidth: 72),
@@ -84,8 +98,8 @@ class PorcelainStepper extends StatelessWidget {
         PorcelainIconButton(
           icon: PorcelainIcons.add,
           semanticLabel: increaseLabel,
-          onPressed: canIncrease ? () => onChanged(value + 1) : null,
-          disabledReason: onChanged == null ? disabledReason : null,
+          onPressed: canIncrease ? () => onChanged(higher) : null,
+          disabledReason: onChanged == null ? disabledReason : maximumReason,
         ),
         const SizedBox(width: PorcelainSpace.xxs),
       ],

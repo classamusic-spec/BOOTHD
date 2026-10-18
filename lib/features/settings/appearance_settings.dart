@@ -3,16 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design_system/appearance.dart';
-import '../../core/design_system/porcelain_depth.dart';
 import '../../core/design_system/porcelain_icons.dart';
 import '../../core/design_system/porcelain_metrics.dart';
 import '../../core/design_system/porcelain_theme.dart';
 import '../../core/design_system/porcelain_theme_data.dart';
 import '../../core/design_system/theme_profiles.dart';
 import '../../core/routing/route_paths.dart';
+import '../../shared/formatters/theme_profile_names.dart';
 import '../../shared/guest/guest_welcome.dart';
 import '../../shared/guest/guest_welcome_sample.dart';
-import '../../shared/widgets/botanical_ornament.dart';
 import '../../shared/widgets/page_header.dart';
 import '../../shared/widgets/porcelain_button.dart';
 import '../../shared/widgets/porcelain_card.dart';
@@ -20,25 +19,8 @@ import '../../shared/widgets/porcelain_segmented_control.dart';
 import '../../shared/widgets/porcelain_toast.dart';
 import '../../shared/widgets/status_badge.dart';
 import '../../shared/widgets/tablet_frame.dart';
+import '../../shared/widgets/theme_profile_card.dart';
 import '../../shared/widgets/tone.dart';
-
-/// Operator-facing names of the theme profiles.
-extension ThemeProfileCopy on PorcelainThemeProfile {
-  String get title => switch (this) {
-    PorcelainThemeProfile.porcelainStudio => 'Porcelain Studio',
-    PorcelainThemeProfile.lightOak => 'Light Oak',
-    PorcelainThemeProfile.darkroomWalnut => 'Darkroom Walnut',
-  };
-
-  String get description => switch (this) {
-    PorcelainThemeProfile.porcelainStudio =>
-      'Warm ivory and champagne gold. The default.',
-    PorcelainThemeProfile.lightOak =>
-      'Pale oak, honey gold and sage, for light wood kiosks.',
-    PorcelainThemeProfile.darkroomWalnut =>
-      'Deep walnut and brass, for dim venues.',
-  };
-}
 
 /// Appearance settings (S17): preview a theme before applying it, plus
 /// contrast and motion preferences that apply immediately.
@@ -46,8 +28,12 @@ class AppearanceSettings extends ConsumerStatefulWidget {
   const AppearanceSettings({super.key});
 
   static const persistenceNote =
-      'Choices apply to this tablet until the app restarts. Saving them per '
-      'booth arrives with booth storage in M03.';
+      'Saved with this booth and kept when the app restarts. Events can '
+      'give their guest screens a different theme.';
+
+  static const saveFailed =
+      "This choice couldn't be saved on the tablet. It applies until the "
+      'app restarts.';
 
   @override
   ConsumerState<AppearanceSettings> createState() => _AppearanceSettingsState();
@@ -55,6 +41,24 @@ class AppearanceSettings extends ConsumerStatefulWidget {
 
 class _AppearanceSettingsState extends ConsumerState<AppearanceSettings> {
   PorcelainThemeProfile? _preview;
+
+  /// Applies a choice at once and reports if it could not be stored.
+  Future<void> _save(Future<void> Function() change, {String? applied}) async {
+    try {
+      await change();
+      if (applied != null && mounted) {
+        PorcelainToast.show(context, applied, tone: PorcelainTone.success);
+      }
+    } on Exception {
+      if (mounted) {
+        PorcelainToast.show(
+          context,
+          AppearanceSettings.saveFailed,
+          tone: PorcelainTone.warning,
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,10 +81,17 @@ class _AppearanceSettingsState extends ConsumerState<AppearanceSettings> {
         for (final profile in PorcelainThemeProfile.values)
           Padding(
             padding: const EdgeInsets.only(bottom: PorcelainSpace.sm),
-            child: _ThemeCard(
+            child: ThemeProfileCard(
               profile: profile,
+              title: profile.title,
+              description: profile.description,
               selected: profile == preview,
-              inUse: profile == applied,
+              badge: profile == applied
+                  ? const StatusBadge(
+                      label: 'In use',
+                      tone: PorcelainTone.success,
+                    )
+                  : null,
               onPressed: () => setState(() => _preview = profile),
             ),
           ),
@@ -98,12 +109,10 @@ class _AppearanceSettingsState extends ConsumerState<AppearanceSettings> {
               variant: PorcelainButtonVariant.primary,
               onPressed: previewing
                   ? () {
-                      controller.setProfile(preview);
                       setState(() => _preview = null);
-                      PorcelainToast.show(
-                        context,
-                        '${preview.title} is now in use.',
-                        tone: PorcelainTone.success,
+                      _save(
+                        () => controller.setProfile(preview),
+                        applied: '${preview.title} is now in use.',
                       );
                     }
                   : null,
@@ -140,7 +149,8 @@ class _AppearanceSettingsState extends ConsumerState<AppearanceSettings> {
                     'Guest text already meets at least 7:1 in every theme.',
                 control: PorcelainSegmentedControl<ContrastPreference>(
                   selected: appearance.contrast,
-                  onChanged: controller.setContrast,
+                  onChanged: (value) =>
+                      _save(() => controller.setContrast(value)),
                   segments: const [
                     PorcelainSegment(
                       value: ContrastPreference.system,
@@ -165,7 +175,8 @@ class _AppearanceSettingsState extends ConsumerState<AppearanceSettings> {
                     'It always applies when the tablet asks for it.',
                 control: PorcelainSegmentedControl<MotionPreference>(
                   selected: appearance.motion,
-                  onChanged: controller.setMotion,
+                  onChanged: (value) =>
+                      _save(() => controller.setMotion(value)),
                   segments: const [
                     PorcelainSegment(
                       value: MotionPreference.system,
@@ -222,141 +233,6 @@ class _Preference extends StatelessWidget {
         const SizedBox(height: PorcelainSpace.md),
         SingleChildScrollView(scrollDirection: Axis.horizontal, child: control),
       ],
-    );
-  }
-}
-
-class _ThemeCard extends StatelessWidget {
-  const _ThemeCard({
-    required this.profile,
-    required this.selected,
-    required this.inUse,
-    required this.onPressed,
-  });
-
-  final PorcelainThemeProfile profile;
-  final bool selected;
-  final bool inUse;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = context.porcelain;
-    return PorcelainCard(
-      selected: selected,
-      onPressed: onPressed,
-      padding: const EdgeInsets.all(PorcelainSpace.md),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 136,
-            child: Theme(
-              data: porcelainThemeData(
-                profile,
-                highContrast: theme.highContrast,
-              ),
-              child: const _Swatch(),
-            ),
-          ),
-          const SizedBox(width: PorcelainSpace.lg),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(profile.title, style: theme.text.titleMedium),
-                const SizedBox(height: PorcelainSpace.xxs),
-                Text(
-                  profile.description,
-                  style: theme.text.bodyMedium.copyWith(
-                    color: theme.colors.inkMuted,
-                  ),
-                ),
-                if (inUse) ...[
-                  const SizedBox(height: PorcelainSpace.sm),
-                  const StatusBadge(
-                    label: 'In use',
-                    tone: PorcelainTone.success,
-                  ),
-                ],
-              ],
-            ),
-          ),
-          // Room for the selected mark in the corner.
-          const SizedBox(width: PorcelainSpace.xl),
-        ],
-      ),
-    );
-  }
-}
-
-/// A small still life of a theme: its canvas, a raised card, a gold pill and
-/// a sprig, drawn with that theme's own tokens.
-class _Swatch extends StatelessWidget {
-  const _Swatch();
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.porcelain.colors;
-    return ExcludeSemantics(
-      child: Container(
-        height: 88,
-        decoration: BoxDecoration(
-          color: colors.canvas,
-          borderRadius: PorcelainRadius.controlAll,
-          border: Border.all(color: colors.hairline),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Stack(
-          children: [
-            const Positioned(
-              right: -6,
-              bottom: -8,
-              child: BotanicalOrnament.sprig(width: 72, height: 72, leaves: 6),
-            ),
-            Positioned(
-              left: 12,
-              top: 12,
-              right: 40,
-              child: Container(
-                height: 30,
-                decoration: BoxDecoration(
-                  color: colors.surface,
-                  borderRadius: const BorderRadius.all(Radius.circular(10)),
-                  border: Border.all(color: colors.hairline),
-                  boxShadow: PorcelainDepth.shadows(colors, 1),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                alignment: Alignment.centerLeft,
-                child: Container(
-                  height: 6,
-                  width: 44,
-                  decoration: BoxDecoration(
-                    color: colors.ink,
-                    borderRadius: const BorderRadius.all(Radius.circular(3)),
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              left: 12,
-              bottom: 12,
-              child: Container(
-                width: 64,
-                height: 22,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [colors.primaryTop, colors.primaryBottom],
-                  ),
-                  borderRadius: const BorderRadius.all(Radius.circular(12)),
-                  border: Border.all(color: colors.primaryEdge),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

@@ -1,17 +1,20 @@
-// AC-0210: guest screens have no print, save-to-gallery, share, settings,
-// back or escape controls. The welcome skeleton has exactly one control.
+// AC-0210 and AC-0305: guest screens have no print, save-to-gallery,
+// share, settings, back or escape controls. The welcome skeleton, and the
+// whole Booth Mode screen, have exactly one control.
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:porcelain_photo_booth/core/design_system/porcelain_theme_data.dart';
 import 'package:porcelain_photo_booth/core/design_system/theme_profiles.dart';
 import 'package:porcelain_photo_booth/core/routing/route_paths.dart';
+import 'package:porcelain_photo_booth/features/booth/booth_welcome_screen.dart';
 import 'package:porcelain_photo_booth/shared/guest/guest_layout.dart';
 import 'package:porcelain_photo_booth/shared/guest/guest_welcome.dart';
 import 'package:porcelain_photo_booth/shared/guest/guest_welcome_sample.dart';
 import 'package:porcelain_photo_booth/shared/widgets/pressable.dart';
 
 import '../support/app_harness.dart';
+import '../support/seed.dart';
 import '../support/tablet_viewports.dart';
 
 /// Words a guest control must never carry in release 1.
@@ -158,6 +161,45 @@ void main() {
     ].join(' ');
     expect(words.toLowerCase(), isNot(contains('print')));
   });
+
+  for (final viewport in TabletViewport.values) {
+    testWidgets('Booth Mode at ${viewport.name}: the whole screen offers '
+        'guests only Start', (tester) async {
+      final semantics = tester.ensureSemantics();
+      useViewport(tester, viewport);
+      await pumpApp(
+        tester,
+        startAs: StartAs.booth,
+        boothEventId: SeedIds.active,
+        seed: (db) => seedEvents(db),
+      );
+      expect(tester.takeException(), isNull);
+
+      // The operator's hidden corner is not a guest control.
+      final screen = tester.getSemantics(find.byType(BoothWelcomeScreen));
+      expect(actionable(screen).map((n) => n.label), ['Start']);
+      for (final type in [
+        BackButton,
+        CloseButton,
+        IconButton,
+        PopupMenuButton,
+        Drawer,
+        AppBar,
+      ]) {
+        expect(find.byType(type), findsNothing, reason: '$type');
+      }
+      final visibleText = tester
+          .widgetList<Text>(find.byType(Text))
+          .map((t) => t.data ?? '')
+          .join(' ');
+      expect(
+        forbiddenWords.hasMatch(visibleText),
+        isFalse,
+        reason: visibleText,
+      );
+      semantics.dispose();
+    });
+  }
 
   testWidgets('in the operator preview, the guest area itself has only '
       'Start', (tester) async {

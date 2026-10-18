@@ -7,7 +7,7 @@ Licence names come from a text heuristic over each package's LICENSE file and
 are a starting point for the release audit (AC-1204), not a legal opinion.
 SDK packages report version 0.0.0 and are pinned by the Flutter SDK version.
 
-## Runtime dependency graph: treat as shipped (70)
+## Runtime dependency graph: treat as shipped (87)
 
 Everything reachable from the app's non-dev dependencies. Deliberately
 conservative: release compilation drops unused code, but the licence audit
@@ -26,19 +26,31 @@ covers this whole set.
 | characters | 1.4.1 | hosted |  | BSD-3-Clause |
 | clock | 1.1.3 | hosted |  | Apache-2.0 |
 | code_assets | 1.2.1 | hosted |  | BSD-3-Clause |
-| collection | 1.19.1 | hosted |  | BSD-3-Clause |
+| collection | 1.19.1 | hosted | yes | BSD-3-Clause |
+| convert | 3.1.2 | hosted |  | BSD-3-Clause |
 | cross_file | 0.3.5+5 | hosted |  | BSD-3-Clause |
 | crypto | 3.0.7 | hosted | yes | BSD-3-Clause |
 | cupertino_ui | 1.1.3 | hosted |  | BSD-3-Clause |
+| drift | 2.35.2 | hosted | yes | MIT |
+| drift_flutter | 0.3.1 | hosted | yes | MIT |
 | fake_async | 1.3.3 | hosted |  | Apache-2.0 |
 | ffi | 2.2.0 | hosted |  | BSD-3-Clause |
+| ffi_leak_tracker | 0.1.2 | hosted |  | BSD-3-Clause |
+| file | 7.0.1 | hosted |  | BSD-3-Clause |
 | fixnum | 1.1.1 | hosted |  | BSD-3-Clause |
 | flutter | 0.0.0 | sdk | yes | BSD-3-Clause |
 | flutter_localizations | 0.0.0 | sdk |  | BSD-3-Clause |
 | flutter_plugin_android_lifecycle | 2.0.35 | hosted |  | BSD-3-Clause |
 | flutter_riverpod | 3.4.3 | hosted | yes | MIT |
+| flutter_secure_storage | 11.2.0 | hosted | yes | BSD-3-Clause |
+| flutter_secure_storage_darwin | 0.4.3 | hosted |  | BSD-3-Clause |
+| flutter_secure_storage_linux | 3.0.3 | hosted |  | BSD-3-Clause |
+| flutter_secure_storage_platform_interface | 2.1.1 | hosted |  | BSD-3-Clause |
+| flutter_secure_storage_web | 2.1.1 | hosted |  | BSD-3-Clause |
+| flutter_secure_storage_windows | 4.2.2 | hosted |  | BSD-3-Clause |
 | flutter_test | 0.0.0 | sdk | yes | BSD-3-Clause |
 | flutter_web_plugins | 0.0.0 | sdk |  | BSD-3-Clause |
+| glob | 2.2.0 | hosted |  | BSD-3-Clause |
 | go_router | 18.1.0 | hosted | yes | BSD-3-Clause |
 | hooks | 2.0.2 | hosted |  | BSD-3-Clause |
 | intl | 0.20.3 | hosted |  | BSD-3-Clause |
@@ -54,7 +66,8 @@ covers this whole set.
 | material_color_utilities | 0.13.0 | hosted |  | Apache-2.0 |
 | material_symbols_icons | 4.2960.0 | hosted | yes | Apache-2.0 |
 | material_ui | 1.7.0 | hosted |  | BSD-3-Clause |
-| meta | 1.18.3 | hosted |  | BSD-3-Clause |
+| meta | 1.18.3 | hosted | yes | BSD-3-Clause |
+| native_toolchain_c | 0.19.2 | hosted |  | BSD-3-Clause |
 | objective_c | 9.5.0 | hosted |  | BSD-3-Clause |
 | package_config | 3.0.0 | hosted |  | BSD-3-Clause |
 | path | 1.9.1 | hosted |  | BSD-3-Clause |
@@ -71,6 +84,9 @@ covers this whole set.
 | riverpod | 3.4.3 | hosted |  | MIT |
 | sky_engine | 0.0.0 | sdk |  | Multiple (Flutter engine with bundled third-party notices) |
 | source_span | 1.10.2 | hosted |  | BSD-3-Clause |
+| sqlcipher_flutter_libs | 0.7.0+eol | hosted |  | Apache-2.0 |
+| sqlite3 | 3.5.2 | hosted | yes | MIT |
+| sqlite3_flutter_libs | 0.6.0+eol | hosted |  | MIT |
 | stack_trace | 1.12.2 | hosted |  | BSD-3-Clause |
 | state_notifier | 1.0.0 | hosted |  | MIT |
 | stream_channel | 2.1.4 | hosted |  | BSD-3-Clause |
@@ -83,22 +99,52 @@ covers this whole set.
 | vector_math | 2.4.0 | hosted |  | BSD-3-Clause |
 | vm_service | 15.4.0 | hosted |  | BSD-3-Clause |
 | web | 1.1.1 | hosted |  | BSD-3-Clause |
+| win32 | 6.4.0 | hosted |  | BSD-3-Clause |
 | xdg_directories | 1.1.0 | hosted |  | BSD-3-Clause |
 | yaml | 3.1.4 | hosted |  | MIT |
 
-## Development and test tooling only (9)
+## Development and test tooling only (38)
 
 | Package | Version | Source | Direct | Licence (detected) |
 | --- | --- | --- | --- | --- |
-| file | 7.0.1 | hosted |  | BSD-3-Clause |
+| _fe_analyzer_shared | 109.0.0 | hosted |  | BSD-3-Clause |
+| analyzer | 14.5.0 | hosted |  | BSD-3-Clause |
+| build | 4.0.11 | hosted |  | BSD-3-Clause |
+| build_config | 1.3.3 | hosted |  | BSD-3-Clause |
+| build_daemon | 4.1.7 | hosted |  | BSD-3-Clause |
+| build_runner | 2.16.2 | hosted | yes | BSD-3-Clause |
+| built_collection | 5.1.2 | hosted |  | BSD-3-Clause |
+| built_value | 8.13.0 | hosted |  | BSD-3-Clause |
+| charcode | 1.4.0 | hosted |  | BSD-3-Clause |
+| checked_yaml | 2.0.4 | hosted |  | BSD-3-Clause |
+| cli_util | 0.6.0 | hosted |  | BSD-3-Clause |
+| dart_style | 3.1.14 | hosted |  | BSD-3-Clause |
+| drift_dev | 2.35.1 | hosted | yes | MIT |
 | flutter_driver | 0.0.0 | sdk |  | BSD-3-Clause |
 | flutter_lints | 6.0.0 | hosted | yes | BSD-3-Clause |
 | fuchsia_remote_debug_protocol | 0.0.0 | sdk |  | BSD-3-Clause |
+| graphs | 2.3.2 | hosted |  | BSD-3-Clause |
+| http_multi_server | 3.2.2 | hosted |  | BSD-3-Clause |
+| http_parser | 4.1.2 | hosted |  | BSD-3-Clause |
 | integration_test | 0.0.0 | sdk | yes | BSD-3-Clause |
+| io | 1.1.0 | hosted |  | BSD-3-Clause |
+| json_annotation | 4.12.0 | hosted |  | BSD-3-Clause |
 | lints | 6.1.0 | hosted |  | BSD-3-Clause |
+| mime | 2.1.0 | hosted |  | BSD-3-Clause |
+| pool | 1.5.3 | hosted |  | BSD-3-Clause |
 | process | 5.0.6 | hosted |  | BSD-3-Clause |
+| pubspec_parse | 1.6.0 | hosted |  | BSD-3-Clause |
+| recase | 4.1.0 | hosted |  | BSD-2-Clause |
+| shelf | 1.4.3 | hosted |  | BSD-3-Clause |
+| shelf_web_socket | 3.0.0 | hosted |  | BSD-3-Clause |
+| source_gen | 4.3.1 | hosted |  | BSD-3-Clause |
+| sqlparser | 0.45.0 | hosted |  | MIT |
 | sync_http | 0.3.1 | hosted |  | BSD-3-Clause |
+| watcher | 1.2.1 | hosted |  | BSD-3-Clause |
+| web_socket | 1.0.1 | hosted |  | BSD-3-Clause |
+| web_socket_channel | 3.0.3 | hosted |  | BSD-3-Clause |
 | webdriver | 3.2.0 | hosted |  | Apache-2.0 |
+| yaml_edit | 2.2.4 | hosted |  | BSD-3-Clause |
 
 ## Needs manual review (0)
 

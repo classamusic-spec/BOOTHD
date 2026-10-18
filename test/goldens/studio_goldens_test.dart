@@ -1,5 +1,7 @@
 // AC-0209: golden screenshots of every implemented screen in portrait and
-// landscape at the defined tablet sizes, in every implemented theme.
+// landscape at the defined tablet sizes, in every implemented theme; M03
+// adds first-run setup, the PIN screens, the event list and editor, the
+// launch checks and Booth Mode.
 //
 // Rendered at 1x to keep the repository small; text and blur rasterise
 // differently on macOS and Windows, so goldens are compared on Linux only
@@ -17,76 +19,110 @@ import 'package:porcelain_photo_booth/core/design_system/appearance.dart';
 import 'package:porcelain_photo_booth/core/design_system/theme_profiles.dart';
 
 import '../support/app_harness.dart';
+import '../support/screen_catalog.dart';
 import '../support/tablet_viewports.dart';
 
-const screens = {
-  'dashboard': '/studio',
-  'events': '/studio/events',
-  'templates': '/studio/templates',
-  'gallery': '/studio/gallery',
-  'settings_appearance': '/studio/settings?section=appearance',
-  'settings_camera': '/studio/settings?section=camera',
-  'settings_output': '/studio/settings?section=output',
-  'settings_booth': '/studio/settings?section=booth',
-  'settings_about': '/studio/settings?section=about',
-  'diagnostics': '/studio/diagnostics',
-  'guest_welcome_preview': '/preview/guest-welcome',
-  'not_found': '/no-such-page',
-};
+/// Screens shown in every theme, in portrait and landscape.
+const themed = [
+  'dashboard',
+  'events',
+  'event general',
+  'preflight',
+  'templates',
+  'gallery',
+  'settings appearance',
+  'settings camera',
+  'settings output',
+  'settings booth',
+  'settings about',
+  'diagnostics',
+  'guest preview',
+  'not found',
+  'setup welcome',
+  'unlock',
+];
+
+/// Further states and steps, in the default theme at the iPad size.
+const states = [
+  'dashboard with events',
+  'events empty',
+  'event templates',
+  'event capture',
+  'event guest',
+  'event output',
+  'event privacy',
+  'event draft',
+  'event archived',
+  'new event',
+  'new event templates empty',
+  'preflight draft',
+  'setup privacy',
+  'setup pin',
+  'setup recovery code',
+  'setup booth',
+  'unlock recovery',
+];
+
+/// Booth Mode, guest and operator screens alike, wears the event's theme
+/// (the seeded event's is Darkroom Walnut) whatever the Studio's is, so it
+/// is shown once per size.
+const booth = ['booth welcome', 'booth operator'];
 
 /// The default theme at both certified-size candidates; the other profiles
 /// at the iPad size.
 Map<PorcelainThemeProfile, List<TabletViewport>> get matrix => {
-  PorcelainThemeProfile.porcelainStudio: [
-    TabletViewport.ipadPortrait,
-    TabletViewport.ipadLandscape,
-    TabletViewport.androidPortrait,
-    TabletViewport.androidLandscape,
-  ],
-  PorcelainThemeProfile.lightOak: [
-    TabletViewport.ipadPortrait,
-    TabletViewport.ipadLandscape,
-  ],
-  PorcelainThemeProfile.darkroomWalnut: [
-    TabletViewport.ipadPortrait,
-    TabletViewport.ipadLandscape,
-  ],
+  PorcelainThemeProfile.porcelainStudio: allSizes,
+  PorcelainThemeProfile.lightOak: ipadSizes,
+  PorcelainThemeProfile.darkroomWalnut: ipadSizes,
 };
+
+const ipadSizes = [TabletViewport.ipadPortrait, TabletViewport.ipadLandscape];
+
+const allSizes = [
+  ...ipadSizes,
+  TabletViewport.androidPortrait,
+  TabletViewport.androidLandscape,
+];
 
 final skipOffLinux = !Platform.isLinux;
 
+String fileName(String screen) => screen.replaceAll(' ', '_');
+
+/// A golden of [name] with the Studio in [profile], kept in [directory]
+/// (the profile's name by default).
+void golden(
+  String name,
+  PorcelainThemeProfile profile,
+  TabletViewport viewport, {
+  String? directory,
+}) {
+  testWidgets('${profile.name} $name ${viewport.name}', (tester) async {
+    await show(
+      tester,
+      name,
+      viewport: viewport,
+      appearance: AppearanceSettings(profile: profile),
+      pixelRatio: 1,
+    );
+    await expectLater(
+      find.byType(PorcelainApp),
+      matchesGoldenFile(
+        '${directory ?? profile.name}/${fileName(name)}_${viewport.name}.png',
+      ),
+    );
+  }, skip: skipOffLinux);
+}
+
 void main() {
   for (final MapEntry(key: profile, value: viewports) in matrix.entries) {
-    for (final MapEntry(key: name, value: location) in screens.entries) {
+    for (final name in themed) {
       for (final viewport in viewports) {
-        testWidgets('${profile.name} $name ${viewport.name}', (tester) async {
-          useViewport(tester, viewport, pixelRatio: 1);
-          await pumpApp(
-            tester,
-            location: location,
-            appearance: AppearanceSettings(profile: profile),
-          );
-          await expectLater(
-            find.byType(PorcelainApp),
-            matchesGoldenFile('${profile.name}/${name}_${viewport.name}.png'),
-          );
-        }, skip: skipOffLinux);
+        golden(name, profile, viewport);
       }
     }
 
     // The settings list on its own (portrait shows it before a section).
-    testWidgets('${profile.name} settings_list ipadPortrait', (tester) async {
-      useViewport(tester, TabletViewport.ipadPortrait, pixelRatio: 1);
-      await pumpApp(
-        tester,
-        location: '/studio/settings',
-        appearance: AppearanceSettings(profile: profile),
-      );
-      await expectLater(
-        find.byType(PorcelainApp),
-        matchesGoldenFile('${profile.name}/settings_list_ipadPortrait.png'),
-      );
-    }, skip: skipOffLinux);
+    golden('settings', profile, TabletViewport.ipadPortrait);
 
     // Every component in every state, on one tall page.
     testWidgets('${profile.name} component gallery', (tester) async {
@@ -108,6 +144,23 @@ void main() {
         matchesGoldenFile('${profile.name}/component_gallery.png'),
       );
     }, skip: skipOffLinux);
+  }
+
+  for (final name in states) {
+    for (final viewport in ipadSizes) {
+      golden(name, PorcelainThemeProfile.porcelainStudio, viewport);
+    }
+  }
+
+  for (final name in booth) {
+    for (final viewport in allSizes) {
+      golden(
+        name,
+        PorcelainThemeProfile.porcelainStudio,
+        viewport,
+        directory: 'boothMode',
+      );
+    }
   }
 
   testWidgets('porcelainStudio high contrast dashboard', (tester) async {

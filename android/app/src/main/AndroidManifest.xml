@@ -10,10 +10,17 @@
          without this, the CAMERA permission implies a required rear camera
          and app stores would hide the app from front-camera-only tablets. -->
     <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <!-- No Android backup or device transfer of booth data (ADR-0009):
+         allowBackup covers Android 11 and earlier, dataExtractionRules
+         Android 12 and later, where allowBackup alone still permits
+         device-to-device transfer. -->
     <application
         android:label="Porcelain Photo Booth"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:dataExtractionRules="@xml/data_extraction_rules">
         <activity
             android:name=".MainActivity"
             android:exported="true"

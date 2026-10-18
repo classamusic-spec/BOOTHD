@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 
 import '../../core/design_system/porcelain_depth.dart';
 import '../../core/design_system/porcelain_metrics.dart';
@@ -9,10 +11,13 @@ import '../../core/design_system/porcelain_theme.dart';
 import 'tactile_surface.dart';
 import 'tone.dart';
 
-/// Brief, non-blocking messages. Shown through [ScaffoldMessenger], so they
-/// are announced to screen readers and never stack up.
+/// Brief, non-blocking messages, above everything (sheets included) and
+/// never in the way: taps pass through a toast to whatever is beneath it.
+/// Announced to screen readers; a new toast replaces the current one.
 abstract final class PorcelainToast {
   static const displayDuration = Duration(seconds: 4);
+
+  static OverlayEntry? _current;
 
   static void show(
     BuildContext context,
@@ -20,25 +25,115 @@ abstract final class PorcelainToast {
     PorcelainTone tone = PorcelainTone.info,
     IconData? icon,
   }) {
-    final messenger = ScaffoldMessenger.maybeOf(context);
-    if (messenger == null) return;
+    final overlay = Overlay.maybeOf(context, rootOverlay: true);
+    if (overlay == null) return;
+    final previous = _current;
+    if (previous != null && previous.mounted) previous.remove();
+    final reduced = PorcelainMotion.of(context).isReduced;
+    // The caller's theme, which may differ from the overlay's: Booth Mode
+    // wears the event's.
+    final theme = Theme.of(context);
     final width = math.min(560.0, MediaQuery.sizeOf(context).width - 48);
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: PorcelainToastCard(message: message, tone: tone, icon: icon),
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          padding: EdgeInsets.zero,
-          behavior: SnackBarBehavior.floating,
+    late final OverlayEntry entry;
+    void done() {
+      if (identical(_current, entry)) _current = null;
+      if (entry.mounted) entry.remove();
+    }
+
+    entry = OverlayEntry(
+      builder: (_) => Theme(
+        data: theme,
+        child: _ToastPresenter(
           width: width,
-          duration: displayDuration,
+          reduceMotion: reduced,
+          onDone: done,
+          onDisposed: () {
+            if (identical(_current, entry)) _current = null;
+          },
+          child: PorcelainToastCard(message: message, tone: tone, icon: icon),
         ),
-        snackBarAnimationStyle: PorcelainMotion.of(context).isReduced
-            ? AnimationStyle.noAnimation
-            : null,
-      );
+      ),
+    );
+    _current = entry;
+    overlay.insert(entry);
+    unawaited(
+      SemanticsService.sendAnnouncement(
+        View.of(context),
+        message,
+        Directionality.of(context),
+      ),
+    );
+  }
+}
+
+/// Fades a toast in near the bottom, holds it for
+/// [PorcelainToast.displayDuration], fades it out and removes it. The hold
+/// timer is cancelled if the overlay goes away first.
+class _ToastPresenter extends StatefulWidget {
+  const _ToastPresenter({
+    required this.width,
+    required this.reduceMotion,
+    required this.onDone,
+    required this.onDisposed,
+    required this.child,
+  });
+
+  final double width;
+  final bool reduceMotion;
+  final VoidCallback onDone;
+  final VoidCallback onDisposed;
+  final Widget child;
+
+  @override
+  State<_ToastPresenter> createState() => _ToastPresenterState();
+}
+
+class _ToastPresenterState extends State<_ToastPresenter>
+    with SingleTickerProviderStateMixin {
+  late final _fade = AnimationController(
+    vsync: this,
+    duration: widget.reduceMotion
+        ? Duration.zero
+        : const Duration(milliseconds: 200),
+  );
+  Timer? _hold;
+
+  @override
+  void initState() {
+    super.initState();
+    _fade.forward();
+    _hold = Timer(PorcelainToast.displayDuration, () {
+      if (!mounted) return;
+      _fade.reverse().whenComplete(() {
+        if (mounted) widget.onDone();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _hold?.cancel();
+    _fade.dispose();
+    widget.onDisposed();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final padding = MediaQuery.viewPaddingOf(context);
+    return Positioned(
+      left: PorcelainSpace.xl,
+      right: PorcelainSpace.xl,
+      bottom: PorcelainSpace.xl + padding.bottom,
+      child: IgnorePointer(
+        child: Center(
+          child: FadeTransition(
+            opacity: _fade,
+            child: SizedBox(width: widget.width, child: widget.child),
+          ),
+        ),
+      ),
+    );
   }
 }
 

@@ -3,6 +3,164 @@
 Newest milestone first. Each entry: scope, plan, changes, commands and exit
 codes, platform results, spec issues raised, risks, next step.
 
+## M03: offline storage, event configurations and operator access
+
+- Date: 2026-10-18 (UTC)
+- Authorised by: owner ("approved, start M03"). The M02 report asked for
+  approval of M02 including the AC-0209 "exceeds the board" verdict and the
+  palette changes in ADR-0008; this reply is recorded as granting both
+  (ADR-0008 status). The owner can overrule that reading.
+- Quality bar: CR-001 for every new screen.
+- Host: the same Linux cloud session as M00 to M02.
+
+### Plan (as executed)
+
+1. Pure-Dart domain: booth profile, events (capture, guest, output,
+   retention and template selection), stable random IDs, clock, calendar
+   date, event rules with blocking and warning issues, event lifecycle
+   service, launch-check (preflight) model, operator PIN policy, recovery
+   codes, attempt policy and the operator auth service.
+2. Storage: Drift SQL-first schema v1 with CHECK constraints, explicit
+   foreign-key actions, an immutable-revision trigger and one default per
+   event; WAL and full sync; schema dump, generated migration schemas and a
+   seeded v1 fixture; refusal of newer or unsupported databases; managed
+   file areas with a write probe.
+3. Security adapters: PBKDF2-HMAC-SHA256 hasher on an isolate (RFC 7914
+   vectors), PIN verifier in Keychain or Keystore-backed storage, recovery
+   verifier and attempt counters in the database.
+4. Access: startup, setup, locked, operator and Booth Mode phases; one pure
+   redirect function guarding every navigation; first-run setup; PIN and
+   recovery screens; Studio lock; Booth Mode welcome with a hidden
+   three-second exit to a PIN pad.
+5. Events UI: list with filters and search, six-tab editor with unsaved
+   changes guard, duplicate, archive, reopen, activate, return to drafts;
+   launch checks with truthful "Not yet available" items; Settings defaults
+   for new events, booth name, PIN change, new recovery code.
+6. Tests: domain, persistence, migration, security vectors, route guard,
+   end-to-end access and events flows, every new screen in the screen
+   audits, goldens for every new screen and state.
+7. ADR-0009, Android backup exclusion, generated-code check in
+   `tool/check.sh`, licence report; format, analyze, tests, Android builds;
+   evidence.
+
+### Changes
+
+- Domain (`lib/domain/`): models `booth_event.dart`, `booth_profile.dart`,
+  `event_rules.dart`, `template_revision_summary.dart`; repositories (event,
+  booth settings, template catalogue, operator access, storage errors);
+  services `event_service.dart`, `preflight.dart`, `booth_capabilities.dart`,
+  `managed_storage.dart`, `operator_auth_service.dart`,
+  `operator_secrets.dart`; value objects `appearance.dart` (moved from core
+  so the domain can store it), `calendar_date.dart`, `clock.dart`,
+  `entity_id.dart`.
+- Infrastructure: `database/` (schema, database, converters, connection
+  setup, constraint mapping, four Drift repositories), `security/` (PBKDF2,
+  hasher, secure verifier store), `file_store/managed_storage.dart`,
+  `device/device_capability_probe.dart`.
+- Core: `access/access_controller.dart`, `routing/access_redirect.dart`,
+  `booth/booth_providers.dart`; DI bindings for every new service
+  (`di/service_providers.dart`), including `recoveryCodeGeneratorProvider`;
+  appearance now persists through the booth settings repository.
+- App: startup and startup-problem screens, routes for setup, unlock,
+  Booth Mode, event editor and launch checks; production bindings.
+- Features: `onboarding/setup_screen.dart`, `operator_access/unlock_screen.dart`,
+  `booth/` (welcome, operator exit, hidden corner, event theme),
+  `events/` (list, editor and six tabs, actions, copy, launch checks),
+  dashboard and settings now data-aware, Studio shell Lock button and live
+  booth status.
+- Shared: `widgets/pin_pad.dart`, `widgets/theme_profile_card.dart`,
+  `operator_access/` (PIN creation, unlock, recovery, layout, copy,
+  countdown), `formatters/`, `guest/event_welcome_copy.dart`; the toast is
+  now a root-overlay entry; stepper, segmented control and text field gained
+  reasons, counters and multi-line support.
+- Android: `allowBackup="false"`, `fullBackupContent="false"` and
+  `res/xml/data_extraction_rules.xml` (no cloud backup or device
+  transfer).
+- Build: `build.yaml` (drift_dev), `analysis_options.yaml` excludes the
+  generated migration schemas, dependencies drift, drift_flutter, sqlite3,
+  flutter_secure_storage, collection, meta, drift_dev, build_runner;
+  `tool/check.sh` checks generated code.
+- Tests: `test/domain/` (5 new files), `test/persistence/`,
+  `test/drift/booth/` (migration test, seed, generated schemas),
+  `test/infrastructure/` (managed storage, security adapters),
+  `test/core/access_redirect_test.dart`, `test/app/access_flow_test.dart`,
+  `test/app/events_flow_test.dart`; support (`fakes.dart`,
+  `test_database.dart`, `seed.dart`, `screen_catalog.dart`, harness);
+  screen audits, guest isolation and goldens extended (177 images).
+- Docs: ADR-0009, ADR-0008 status, ADR index, README, licence report.
+- Migrations: schema version 1 is the first; there is no earlier database
+  to migrate.
+
+### Problems met and how they were handled
+
+- build_runner 2.17.0 is retracted and 2.17.1 needs `build` 5, which
+  drift_dev 2.35.1 does not support; build_runner stays at 2.16.2.
+- Drift inferred integer affinity for the `PorcelainThemeProfile` enum (its
+  name contains "INT") and stored it by index; it is mapped by name.
+- Drift runs `onUpgrade` for downgrades too; the newer-database guard
+  checks the direction itself.
+- Riverpod 3 pauses providers without listeners, so awaiting a stream
+  provider's future from a callback never completed (the new-event editor
+  waited forever); one-off reads go through repositories.
+- Drift's stream timers outlived widget tests; tests use a connection that
+  closes streams synchronously and never await a stream's first value under
+  fake time.
+- A deep link requested during startup was lost; the waiting location now
+  carries it (`/starting?from=`) and the next phase judges it.
+- Contrast tests sampled colours mid-way through a cold-start theme fade;
+  the theme animates only after startup (also nicer on device).
+- The SnackBar toast inside the Studio's Scaffold covered a sheet's Done
+  button; replaced by a root-overlay toast that lets taps through, with a
+  timer rather than an animation for its hold so tests settle.
+- Golden review: PIN screens were cut off in landscape (side-by-side PIN
+  layout); setup's Back sat below the fold and later met the corner
+  ornament on wide or compact screens (Back and progress moved into the
+  card); the strip template's slot label spilled out of its thumbnail and
+  landscape pages would have overflowed (pages fitted to a fixed box, count
+  beneath); Booth Mode's operator PIN screen and toasts used the bright
+  Studio theme during a dark-themed event (the whole Booth Mode now wears
+  the event theme).
+- Recovery codes are random, so a screenshot of one changed every run; the
+  generator is injectable and seeded in tests.
+
+### Spec issues raised
+
+1. AC-0304 says "seeded old/new DBs". Schema version 1 is the first, so no
+   old version exists yet: M03 tests that a seeded v1 file opens intact and
+   matches a fresh schema, that newer files are refused untouched, and that
+   the harness requires a dump and seed for every version. The first real
+   upgrade test comes with schema version 2.
+2. Templates: the prompt asks for "default/allowed template revision"
+   settings, but the template library arrives in M04/M05, so a production
+   build has no templates and no event can be activated yet. Tests seed
+   templates directly.
+3. Retention: the per-event policy (keep until deleted, or delete after 1
+   to 365 days) is stored and validated; deleting photos on schedule is
+   M10.
+4. Recovery protocol: a one-time 16-character code shown at setup; without
+   PIN or code the only way back is clearing the app's data. Owner to
+   confirm this is acceptable for venues.
+5. Still pending from M00 to M02: confirmation of ADR-0004, the concept
+   board image at `reference/15_screen_concept_reference.png`, and the
+   device models (and whether a Mac is available).
+
+### Risks carried forward
+
+- On iPadOS the app's files are included in iCloud and computer backups
+  until M10 excludes them (ADR-0009 section 9).
+- Device behaviour is unproven: Keychain and Keystore storage, PBKDF2
+  timing on tablet CPUs, persistence across a real process restart,
+  orientation facts from real windows. All BLOCKED without hardware.
+- No OS kiosk lock yet (M10): a guest could leave the app with system
+  gestures; launch checks warn about it.
+- Goldens now take about 30 MB (177 images). Git LFS or a smaller matrix
+  is the owner's call.
+
+### Next
+
+Owner review of M03, then M04 (production document model and shared
+composition engine) when approved.
+
 ## M02: Porcelain design system and adaptive Studio shell
 
 - Date: 2026-10-18 (UTC)

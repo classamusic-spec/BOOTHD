@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/access/access_controller.dart';
+import '../../core/booth/booth_providers.dart';
 import '../../core/design_system/porcelain_icons.dart';
 import '../../core/design_system/porcelain_metrics.dart';
 import '../../core/design_system/porcelain_motion.dart';
 import '../../core/design_system/porcelain_theme.dart';
 import '../../core/platform/app_info.dart';
+import '../../domain/models/booth_event.dart';
+import '../../shared/widgets/porcelain_button.dart';
 import '../../shared/widgets/porcelain_navigation.dart';
 import '../../shared/widgets/status_badge.dart';
 import '../../shared/widgets/tone.dart';
@@ -24,14 +29,17 @@ const studioDestinations = [
 /// The adaptive Studio frame (UX-03): a full sidebar when the window is at
 /// least [PorcelainBreakpoints.sidebar] wide, a compact rail otherwise,
 /// whichever way the tablet is held. Each section keeps its own navigation
-/// stack and scroll position.
-class StudioShell extends StatelessWidget {
+/// stack and scroll position. Lock Studio is always one tap away.
+class StudioShell extends ConsumerWidget {
   const StudioShell({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
+  static const lockLabel = 'Lock Studio';
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    void lock() => ref.read(accessControllerProvider.notifier).lock();
     final extended =
         MediaQuery.sizeOf(context).width >= PorcelainBreakpoints.sidebar;
     return Scaffold(
@@ -52,7 +60,28 @@ class StudioShell extends StatelessWidget {
               semanticLabel: '${AppInfo.name} Studio',
               compact: !extended,
             ),
-            footer: extended ? const _BoothStatus() : null,
+            footer: extended
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const _BoothStatus(),
+                      const SizedBox(height: PorcelainSpace.lg),
+                      PorcelainButton(
+                        label: lockLabel,
+                        icon: PorcelainIcons.lockNow,
+                        size: PorcelainButtonSize.compact,
+                        expand: true,
+                        onPressed: lock,
+                      ),
+                    ],
+                  )
+                : Center(
+                    child: PorcelainIconButton(
+                      icon: PorcelainIcons.lockNow,
+                      semanticLabel: lockLabel,
+                      onPressed: lock,
+                    ),
+                  ),
           ),
           Expanded(child: navigationShell),
         ],
@@ -61,23 +90,31 @@ class StudioShell extends StatelessWidget {
   }
 }
 
-/// Honest booth readiness in the sidebar: nothing can launch yet.
-class _BoothStatus extends StatelessWidget {
+/// Honest booth readiness in the sidebar: whether an event is active, and
+/// that launch checks still decide.
+class _BoothStatus extends ConsumerWidget {
   const _BoothStatus();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = context.porcelain;
+    final events = ref.watch(eventsProvider).value ?? const <BoothEvent>[];
+    final active = events.where((e) => e.status == EventStatus.active).length;
     return MergeSemantics(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('BOOTH', style: theme.text.eyebrow),
           const SizedBox(height: PorcelainSpace.xs),
-          const StatusBadge(label: 'Not ready', tone: PorcelainTone.neutral),
+          StatusBadge(
+            label: active == 0 ? 'Not ready' : '$active active',
+            tone: active == 0 ? PorcelainTone.neutral : PorcelainTone.success,
+          ),
           const SizedBox(height: PorcelainSpace.xs),
           Text(
-            'No event is set up to launch yet.',
+            active == 0
+                ? 'No event is active yet.'
+                : 'Run the launch checks to start the booth.',
             style: theme.text.bodyMedium.copyWith(color: theme.colors.inkMuted),
           ),
         ],

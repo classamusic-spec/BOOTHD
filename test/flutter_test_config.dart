@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:drift/drift.dart' show driftRuntimeOptions;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -11,6 +12,8 @@ import 'package:flutter_test/flutter_test.dart';
 /// glyphs instead of the test font.
 Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   TestWidgetsFlutterBinding.ensureInitialized();
+  // Every widget test opens its own in-memory booth database.
+  driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
   await loadAppFonts();
   await testMain();
 }

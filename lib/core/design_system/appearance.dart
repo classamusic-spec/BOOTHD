@@ -1,82 +1,42 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'theme_profiles.dart';
+import '../../domain/value_objects/appearance.dart';
+import '../booth/booth_providers.dart';
+import '../di/service_providers.dart';
 
-/// Whether to follow the platform's increased-contrast setting or override
-/// it (S17).
-enum ContrastPreference { system, standard, high }
+// The appearance values are stored with the booth profile (M03), so they live
+// in the domain; re-exported for the design system's users.
+export '../../domain/value_objects/appearance.dart'
+    show AppearanceSettings, ContrastPreference, MotionPreference;
 
-/// Whether to follow the platform's reduced-motion setting or always reduce
-/// motion (S17). There is deliberately no "always animate": the platform
-/// setting is an accessibility need the app must not override.
-enum MotionPreference { system, reduced }
-
-/// Booth appearance choices (UX-02, S17).
+/// The appearance in effect for the whole app (S17).
 ///
-/// Held in memory until booth storage arrives (M03), which will persist it
-/// per booth with an optional event override.
-@immutable
-final class AppearanceSettings {
-  const AppearanceSettings({
-    this.profile = PorcelainThemeProfile.porcelainStudio,
-    this.contrast = ContrastPreference.system,
-    this.motion = MotionPreference.system,
-  });
-
-  final PorcelainThemeProfile profile;
-  final ContrastPreference contrast;
-  final MotionPreference motion;
-
-  bool useHighContrast({required bool platformHighContrast}) =>
-      switch (contrast) {
-        ContrastPreference.system => platformHighContrast,
-        ContrastPreference.standard => false,
-        ContrastPreference.high => true,
-      };
-
-  bool reduceMotion({required bool platformReducesMotion}) =>
-      platformReducesMotion || motion == MotionPreference.reduced;
-
-  AppearanceSettings copyWith({
-    PorcelainThemeProfile? profile,
-    ContrastPreference? contrast,
-    MotionPreference? motion,
-  }) => AppearanceSettings(
-    profile: profile ?? this.profile,
-    contrast: contrast ?? this.contrast,
-    motion: motion ?? this.motion,
-  );
-
-  @override
-  bool operator ==(Object other) =>
-      other is AppearanceSettings &&
-      other.profile == profile &&
-      other.contrast == contrast &&
-      other.motion == motion;
-
-  @override
-  int get hashCode => Object.hash(profile, contrast, motion);
-}
-
+/// Starts from the booth's stored appearance and saves every change back to
+/// the booth profile, so choices survive restarts (M03). [initial] lets a
+/// test start from a known appearance without a stored booth.
 final class AppearanceController extends Notifier<AppearanceSettings> {
-  /// [initial] lets tests (and, from M03, stored booth settings) start from
-  /// a known appearance.
-  AppearanceController([this.initial = const AppearanceSettings()]);
+  AppearanceController([this.initial]);
 
-  final AppearanceSettings initial;
+  final AppearanceSettings? initial;
 
   @override
-  AppearanceSettings build() => initial;
+  AppearanceSettings build() => initial ?? ref.watch(storedAppearanceProvider);
 
-  void setProfile(PorcelainThemeProfile profile) =>
-      state = state.copyWith(profile: profile);
+  /// Applies [profile] now and stores it. The returned future fails if the
+  /// choice could not be saved; the theme stays applied for this run.
+  Future<void> setProfile(PorcelainThemeProfile profile) =>
+      _apply(state.copyWith(profile: profile));
 
-  void setContrast(ContrastPreference contrast) =>
-      state = state.copyWith(contrast: contrast);
+  Future<void> setContrast(ContrastPreference contrast) =>
+      _apply(state.copyWith(contrast: contrast));
 
-  void setMotion(MotionPreference motion) =>
-      state = state.copyWith(motion: motion);
+  Future<void> setMotion(MotionPreference motion) =>
+      _apply(state.copyWith(motion: motion));
+
+  Future<void> _apply(AppearanceSettings next) {
+    state = next;
+    return ref.read(boothSettingsRepositoryProvider).saveAppearance(next);
+  }
 }
 
 /// The appearance in effect for the whole app.

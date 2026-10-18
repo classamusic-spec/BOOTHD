@@ -1,12 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 
+import '../../domain/value_objects/appearance.dart';
 import 'porcelain_colors.dart';
 
-/// The named appearance profiles (UX-02). Porcelain Studio is the complete
-/// default; Light Oak and Darkroom Walnut use the same roles, so switching
-/// profile changes no feature code (AC-0206).
-enum PorcelainThemeProfile { porcelainStudio, lightOak, darkroomWalnut }
+// The profile identifiers are stored with the booth profile, so they live in
+// the domain (M03); re-exported for the design system's users.
+export '../../domain/value_objects/appearance.dart' show PorcelainThemeProfile;
 
 /// Palettes for each profile, in standard and high-contrast variants.
 ///

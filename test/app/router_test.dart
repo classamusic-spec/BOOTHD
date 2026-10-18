@@ -70,7 +70,7 @@ void main() {
   ) async {
     useViewport(tester, TabletViewport.ipadLandscape);
     await pumpApp(tester, location: RoutePaths.events);
-    await tester.tap(find.text('Drafts'));
+    await tester.tap(find.text('Drafts · 0'));
     await tester.pumpAndSettle();
     expect(find.text('No drafts'), findsOneWidget);
     await openSection(tester, 'Templates');
@@ -94,7 +94,7 @@ void main() {
     await tester.tap(find.text('Start Booth'));
     await tester.pump();
     // Shown inline and, after the tap, as a toast.
-    expect(find.text(DashboardScreen.startBoothReason), findsNWidgets(2));
+    expect(find.text(DashboardScreen.noEventReason), findsNWidgets(2));
     expect(find.byType(GuestWelcome), findsOneWidget, reason: 'miniature');
     expect(find.byType(GuestPreviewScreen), findsNothing);
   });
@@ -231,7 +231,9 @@ void main() {
     tester,
   ) async {
     useViewport(tester, TabletViewport.ipadLandscape);
-    await pumpApp(tester, location: '/no-such-page');
+    await pumpApp(tester);
+    routerOf(tester).go('/no-such-page');
+    await tester.pumpAndSettle();
     expect(find.text("This page isn't available"), findsOneWidget);
     expect(find.textContaining('no-such-page'), findsNothing);
     expect(find.textContaining('Exception'), findsNothing);

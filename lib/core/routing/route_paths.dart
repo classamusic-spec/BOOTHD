@@ -2,9 +2,26 @@
 ///
 /// Kept in core so features can navigate without importing the app layer.
 abstract final class RoutePaths {
-  /// Entry point. Redirects to the Studio dashboard until first-run setup
-  /// and the operator PIN arrive (M03), which will gate it.
+  /// Entry point; the access guard sends it wherever the app's phase
+  /// allows (UX-04).
   static const home = '/';
+
+  /// Shown while storage opens, and if it cannot.
+  static const starting = '/starting';
+  static const startupProblem = '/startup-problem';
+
+  /// First-run setup (S01).
+  static const setup = '/setup';
+
+  /// Operator unlock (S28 for the Studio).
+  static const unlock = '/unlock';
+
+  /// Booth Mode: the isolated guest subtree (UX-04). Only reachable while
+  /// the booth runs, and nothing else is reachable then.
+  static const booth = '/booth';
+
+  /// The operator's way out of Booth Mode (S28): PIN, then Exit Booth.
+  static const boothOperator = '/booth/operator';
 
   /// Studio sections (UX-04), one navigation branch each.
   static const dashboard = '/studio';
@@ -13,6 +30,17 @@ abstract final class RoutePaths {
   static const gallery = '/studio/gallery';
   static const settings = '/studio/settings';
   static const diagnostics = '/studio/diagnostics';
+
+  /// The event editor for a new event (S04).
+  static const newEvent = '/studio/events/new';
+
+  /// The event editor (S04), optionally open at [tab] (an EventEditorTab
+  /// name).
+  static String event(String eventId, {String? tab}) =>
+      tab == null ? '$events/$eventId' : '$events/$eventId?tab=$tab';
+
+  /// The launch checklist for an event (S05, S19).
+  static String preflight(String eventId) => '$events/$eventId/preflight';
 
   /// A Settings section, kept in the location so it survives rotation and
   /// works in both the two-pane and the single-pane layout.

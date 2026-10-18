@@ -29,6 +29,10 @@ class PorcelainTextField extends StatefulWidget {
     this.inputFormatters,
     this.maxLength,
     this.autofocus = false,
+    this.maxLines = 1,
+    this.minLines,
+    this.textCapitalization = TextCapitalization.none,
+    this.showCounter = false,
   });
 
   final String label;
@@ -47,6 +51,14 @@ class PorcelainTextField extends StatefulWidget {
   final List<TextInputFormatter>? inputFormatters;
   final int? maxLength;
   final bool autofocus;
+
+  /// More than one line for notes and longer messages.
+  final int? maxLines;
+  final int? minLines;
+  final TextCapitalization textCapitalization;
+
+  /// Shows `used / maxLength` under the field (needs [controller]).
+  final bool showCounter;
 
   @override
   State<PorcelainTextField> createState() => _PorcelainTextFieldState();
@@ -80,6 +92,24 @@ class _PorcelainTextFieldState extends State<PorcelainTextField> {
     final error = widget.error;
     final enabled = widget.enabled;
     final note = error ?? (enabled ? widget.helper : widget.disabledReason);
+    final controller = widget.controller;
+    final maxLength = widget.maxLength;
+    final counter =
+        widget.showCounter && controller != null && maxLength != null
+        ? Padding(
+            padding: const EdgeInsetsDirectional.only(start: PorcelainSpace.sm),
+            child: ListenableBuilder(
+              listenable: controller,
+              builder: (context, _) => Text(
+                '${controller.text.runes.length} / $maxLength',
+                style: theme.text.bodySmall.copyWith(
+                  color: colors.inkMuted,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+            ),
+          )
+        : null;
 
     final border = !enabled
         ? colors.hairline
@@ -130,6 +160,9 @@ class _PorcelainTextFieldState extends State<PorcelainTextField> {
                     textInputAction: widget.textInputAction,
                     inputFormatters: widget.inputFormatters,
                     maxLength: widget.maxLength,
+                    maxLines: widget.maxLines,
+                    minLines: widget.minLines,
+                    textCapitalization: widget.textCapitalization,
                     style: theme.text.bodyLarge.copyWith(
                       color: enabled ? colors.ink : colors.inkDisabled,
                     ),
@@ -152,7 +185,7 @@ class _PorcelainTextFieldState extends State<PorcelainTextField> {
               ),
             ),
           ),
-          if (note != null) ...[
+          if (note != null || counter != null) ...[
             const SizedBox(height: PorcelainSpace.xs),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -168,12 +201,13 @@ class _PorcelainTextFieldState extends State<PorcelainTextField> {
                 ],
                 Expanded(
                   child: Text(
-                    note,
+                    note ?? '',
                     style: theme.text.bodySmall.copyWith(
                       color: error != null ? colors.danger : colors.inkMuted,
                     ),
                   ),
                 ),
+                ?counter,
               ],
             ),
           ],

@@ -269,6 +269,8 @@ class _ComponentGalleryScreenState extends State<ComponentGalleryScreen> {
                     max: 4,
                     decreaseLabel: 'Fewer photos',
                     increaseLabel: 'More photos',
+                    minimumReason: 'A session takes at least 1 photo.',
+                    maximumReason: 'A session takes at most 4 photos.',
                     onChanged: (value) => setState(() => _shots = value),
                   ),
                 ),

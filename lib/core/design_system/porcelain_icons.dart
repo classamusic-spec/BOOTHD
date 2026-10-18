@@ -55,6 +55,13 @@ abstract final class PorcelainIcons {
   static const IconData expand = Symbols.open_in_full_rounded;
   static const IconData back = Symbols.arrow_back_rounded;
   static const IconData close = Symbols.close_rounded;
+  static const IconData backspace = Symbols.backspace_rounded;
+  static const IconData moveUp = Symbols.arrow_upward_rounded;
+  static const IconData moveDown = Symbols.arrow_downward_rounded;
+  static const IconData duplicate = Symbols.content_copy_rounded;
+  static const IconData edit = Symbols.edit_rounded;
+  static const IconData restore = Symbols.unarchive_rounded;
+  static const IconData lockNow = Symbols.lock_person_rounded;
   static const IconData chevron = Symbols.chevron_right_rounded;
   static const IconData check = Symbols.check_rounded;
 

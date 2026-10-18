@@ -1,7 +1,9 @@
 # ADR-0008: Porcelain design system, theme profiles and adaptive Studio shell
 
-- Status: Accepted (M02, 2026-10-18). Owner sign-off on the visual result
-  (AC-0209 "exceeds the board") is pending.
+- Status: Accepted (M02, 2026-10-18). Owner approval: "approved, start
+  M03" (2026-10-18), given in reply to the M02 report that asked for the
+  AC-0209 "exceeds the board" verdict and confirmation of the palette
+  changes below; recorded as both. The owner can still overrule either.
 - Implements: UX-01, UX-02, UX-03, UX-07, S02, S17 (part), CR-001 items 1–8.
 - Covers: AC-0201..AC-0211. Evidence: `docs/ACCEPTANCE_EVIDENCE.md` (M02).
 - Widens a layer allow-list (ADR-0005): `core` may import

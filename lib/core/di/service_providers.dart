@@ -1,8 +1,19 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../domain/repositories/booth_settings_repository.dart';
+import '../../domain/repositories/event_repository.dart';
+import '../../domain/repositories/operator_access_repository.dart';
+import '../../domain/repositories/template_catalog.dart';
+import '../../domain/services/booth_capabilities.dart';
 import '../../domain/services/camera_service.dart';
 import '../../domain/services/composition_renderer.dart';
+import '../../domain/services/event_service.dart';
+import '../../domain/services/managed_storage.dart';
+import '../../domain/services/operator_auth_service.dart';
+import '../../domain/services/operator_secrets.dart';
+import '../../domain/value_objects/clock.dart';
+import '../../domain/value_objects/entity_id.dart';
 
 /// Service providers that features depend on, typed by domain interfaces.
 ///
@@ -34,4 +45,68 @@ typedef CameraPreviewBuilder = Widget Function(
 
 final cameraPreviewBuilderProvider = Provider<CameraPreviewBuilder>(
   (ref) => _unbound('cameraPreviewBuilderProvider'),
+);
+
+// Storage and security (M03, ADR-0009).
+
+final managedStorageProvider = Provider<ManagedStorage>(
+  (ref) => _unbound('managedStorageProvider'),
+);
+
+final eventRepositoryProvider = Provider<EventRepository>(
+  (ref) => _unbound('eventRepositoryProvider'),
+);
+
+final boothSettingsRepositoryProvider = Provider<BoothSettingsRepository>(
+  (ref) => _unbound('boothSettingsRepositoryProvider'),
+);
+
+final templateCatalogProvider = Provider<TemplateCatalog>(
+  (ref) => _unbound('templateCatalogProvider'),
+);
+
+final operatorAccessRepositoryProvider = Provider<OperatorAccessRepository>(
+  (ref) => _unbound('operatorAccessRepositoryProvider'),
+);
+
+final pinVerifierStoreProvider = Provider<PinVerifierStore>(
+  (ref) => _unbound('pinVerifierStoreProvider'),
+);
+
+final pinHasherProvider = Provider<PinHasher>(
+  (ref) => _unbound('pinHasherProvider'),
+);
+
+final boothCapabilityProbeProvider = Provider<BoothCapabilityProbe>(
+  (ref) => _unbound('boothCapabilityProbeProvider'),
+);
+
+/// Pure-Dart defaults; tests override them for predictable values.
+final clockProvider = Provider<Clock>((ref) => const SystemClock());
+
+final idGeneratorProvider = Provider<IdGenerator>((ref) => RandomIdGenerator());
+
+/// Makes each new operator recovery code.
+final recoveryCodeGeneratorProvider = Provider<String Function()>(
+  (ref) => RecoveryCodes.generate,
+);
+
+/// Domain services composed from the bindings above.
+final operatorAuthServiceProvider = Provider<OperatorAuthService>(
+  (ref) => OperatorAuthService(
+    pins: ref.watch(pinVerifierStoreProvider),
+    access: ref.watch(operatorAccessRepositoryProvider),
+    hasher: ref.watch(pinHasherProvider),
+    clock: ref.watch(clockProvider),
+    newRecoveryCode: ref.watch(recoveryCodeGeneratorProvider),
+  ),
+);
+
+final eventServiceProvider = Provider<EventService>(
+  (ref) => EventService(
+    events: ref.watch(eventRepositoryProvider),
+    templates: ref.watch(templateCatalogProvider),
+    clock: ref.watch(clockProvider),
+    ids: ref.watch(idGeneratorProvider),
+  ),
 );
