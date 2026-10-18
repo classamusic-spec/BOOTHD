@@ -84,3 +84,87 @@ CI is not device evidence and does not change AC-0004's BLOCKED status.
 - No secrets, keys or personal data in the repository. Release builds use
   the Android debug key until M12.
 - The unknown-route screen shows no route, error or exception text.
+
+## M01: cross-platform render and camera feasibility spike
+
+```text
+Milestone: M01 | code commit af018c73ed07738cd749d3976c2045a59fb6a752 | build 0.1.0+1
+Host: same Linux cloud VM as M00 (no KVM, no macOS, no attached devices)
+Flutter 3.47.7 / Dart 3.13.5; camera 0.12.1 (camera_android_camerax 0.7.5+1,
+  camera_avfoundation 0.10.3+1), path_provider 2.1.6, crypto 3.0.7
+iPad: BLOCKED (no physical iPad, no Mac)
+Android: builds PASS; no physical tablet (an emulator would not count either)
+Owner approval requested: YES, including whether to continue to M02 with the
+  device subgates BLOCKED (MASTER_PROMPT §D)
+```
+
+### Commands and exit codes (2026-10-18 UTC)
+
+Rows 1–4 ran on a clean working tree at `af018c7`.
+
+| # | Command | Exit | Result |
+| --- | --- | --- | --- |
+| 1 | `tool/check.sh` | 0 | Format: 0 files changed. Analyze: no issues. Tests: 117 passed, 1 skipped (device comparison; no device results). Licence report current: 69 runtime and 9 dev packages, 0 needing review |
+| 2 | Golden comparison (inside row 1) | 0 | Export and workspace both max delta 0 against the committed host goldens |
+| 3 | `tool/build_android.sh debug` | 0 | `app-debug.apk`, 203,486,560 bytes |
+| 4 | `tool/build_android.sh release` | 0 | `app-release.apk`, 52,237,076 bytes, SHA-256 `02f5bd33379a870d45597189eb075e2424b86e0b29e98a40191757b40ab99897`. `aapt2`: permissions `CAMERA` and `ACCESS_NETWORK_STATE` plus the AndroidX internal one; `android.hardware.camera.any` required, `android.hardware.camera` optional |
+| 5 | Mutation checks before commit (painter restored byte-identical) | 1, 1 | Removing the slot clip fails "slot B rounded corner clips its photo"; reversing rotation fails all three marker checks |
+| 6 | Decoder probes before commit | 0 | JPEG with EXIF orientation 6 decodes as 480x640, correctly rotated; PNG and JPEG truncated at 1–95% fail to decode (ADR-0007) |
+| 7 | `tool/build_ios.sh release` | 3 | BLOCKED: Linux host |
+| 8 | `flutter drive … integration_test/render_spike_test.dart` | not run | BLOCKED: no device |
+| 9 | Camera procedure, `docs/device_tests/M01_DEVICE_PROCEDURE.md` §2 | not run | BLOCKED: no device |
+
+### Host render metrics (row 1, `build/m01/host_render_metrics.json`)
+
+Informative only: a 4-vCPU cloud VM with Flutter's test rasteriser says
+nothing about tablet performance. GPU memory is not observable from Dart.
+
+| Scenario | Median total | Decode | Rasterise | PNG encode | Memory |
+| --- | --- | --- | --- | --- | --- |
+| FIX-01 1200x1800 (inputs 1600x1200, 1200x1600), 10 runs | 191 ms (183–228) | 58 ms | 63 ms | 70 ms | +1.5 MB resident after 30 more renders |
+| FIX-01 with 12 MP inputs, bounded decode, 3 runs | 413 ms | 277 ms | 67 ms | 69 ms | peak +56.6 MB (+30 to +58 MB across all runs) |
+| FIX-01 with 12 MP inputs, full decode, 3 runs | 371 ms | 238 ms | 63 ms | 68 ms | peak +46.7 MB |
+
+### Acceptance items
+
+| AC | Status | Evidence |
+| --- | --- | --- |
+| AC-0101 Fixture 4x6 renders at 1200x1800 from image assets, not a screenshot | PASS (host) | `test/rendering/fix01_render_test.dart`: offscreen `PictureRecorder` render from PNG-encoded inputs decoded by the platform codec; output PNG re-decodes at 1200x1800 |
+| AC-0102 Slot masks clip photos; transparent overlay crosses both slot edges unclipped | PASS (host) | FIX-01 checks: rounded-corner clip, flower disc over slot A's bottom edge, in the gap and over slot B's top edge, translucent petals over photo and page; mutation check (row 5) |
+| AC-0103 Rotated and off-page decoration: z-order, per-layer transforms, page crop | PASS (host) | Marker rotated 90° (both halves and empty unrotated footprint), cropped at x=1199 in export but visible beyond the page in the workspace; flower-below-slots variant hidden only inside slots |
+| AC-0104 Output decodes at target size on both runtimes, platform comparison, bounded tolerance | BLOCKED | Host half done: decodes at 1200x1800; tolerance written down (geometry samples within 3 per channel; whole image at most 0.5% of pixels over 8 and mean at most 1.0, provisional; ADR-0007). iPad and Android runs impossible here. Tooling ready: `integration_test/render_spike_test.dart`, `test_driver/integration_test.dart`, `test/rendering/device_render_comparison_test.dart` |
+| AC-0105 Render time, memory, alpha edges and failure behaviour measured | PASS (host) | Metrics above; FIX-04 halos within 2 per channel for both polarities, and the probe fails on deliberately bad edges; failure probes: missing asset → `missingAsset`, corrupt and truncated PNG → `assetDecodeFailed`, duplicate ids and unbound slot → `invalidDocument`. No claim of an optimised renderer. Device figures come with AC-0104 |
+| AC-0106 DEVICE/iPad real front-camera preview and saved, reopened still | BLOCKED | No iPad and no Mac. Ready: `PluginCameraDriver`, `ManagedCameraService`, `OriginalStore`, camera spike screen; 23 host tests of the EXIF reader, original store and camera service with a fake driver (not device evidence). Owner steps: device procedure §2 |
+| AC-0107 DEVICE/Android same capture test | BLOCKED | No Android tablet. Same code and procedure; the Android build includes CameraX (row 4) |
+| AC-0108 Dev-only diagnostics and an ADR on limits, risks, blockers and refactor plan | PASS | Spike screens exist only outside release builds (`test/app/router_test.dart`: "release builds cannot reach the developer spikes"); ADR-0007 |
+
+### M01 exit gate
+
+| Gate | Status |
+| --- | --- |
+| Evidence-backed 1200x1800 overlay render | PASS (host) |
+| Physical capture validated on both platforms, or explicitly BLOCKED pending hardware | BLOCKED pending an iPad (with a Mac) and an Android tablet |
+
+### CI (GitHub Actions run #3)
+
+[Run 39085230790](https://github.com/classamusic-spec/BOOTHD/actions/runs/39085230790)
+on `af018c7`, GitHub-hosted `ubuntu-24.04` runners:
+
+| Job | Conclusion | Notes |
+| --- | --- | --- |
+| Format, analyze, test, licences | success | 117 passed, 1 skipped; both goldens max delta 0 on a second machine (cross-host determinism) |
+| Android release smoke build | success | about 5 min, including SDK Platform 35, CMake and JNI compilation on a fresh runner |
+| iPadOS unsigned build | skipped | Manual dispatch only, by design |
+
+### Security and privacy notes (M01)
+
+- Release builds request `CAMERA` only for app functions. `RECORD_AUDIO`,
+  `WRITE_EXTERNAL_STORAGE` and the implied `READ_EXTERNAL_STORAGE` are
+  removed. `ACCESS_NETWORK_STATE` comes from `androidx.media3` and grants
+  no network access (`INTERNET` is absent); flagged for M10 (AC-1007).
+- iOS declares `NSCameraUsageDescription`; no microphone string, since
+  audio is never enabled.
+- The plugin's temporary capture file is deleted after reading; originals
+  live only in app support storage with SHA-256 checksums, and metadata
+  holds no guest data.
+- The spike screens are unreachable in release builds.

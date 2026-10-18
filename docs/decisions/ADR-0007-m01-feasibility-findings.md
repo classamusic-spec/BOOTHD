@@ -34,11 +34,13 @@ and M06 promote them instead of rewriting them. Only the demo UI sits in
 2. **No alpha halos.** FIX-04 discs scaled by 0.73 and rotated 17° leave
    white-on-white and black-on-black pages untouched (max delta within 2),
    and the probe fails when edge colours are deliberately wrong.
-3. **Deterministic on one host.** Re-rendering matches the committed golden
-   with max delta 0. Host-to-host results come from CI.
+3. **Deterministic across hosts.** Re-rendering matches the committed
+   goldens with max delta 0, here and on a GitHub-hosted runner (CI run
+   39085230790), so same-version Linux hosts render identically.
 4. **Cost on this host.** FIX-01 export median about 0.2 s: decode about
    55 ms, rasterise about 63 ms, PNG encode about 69 ms. With 12 MP inputs,
-   about 0.4–0.5 s. No memory drift across 30 repeated renders (+1.6 MB).
+   about 0.4–0.5 s. No memory drift across 30 repeated renders (+1.5 to
+   +2.0 MB across runs).
    Host numbers say nothing about tablets.
 5. **Bounded decoding shows no consistent saving for PNG.** Decoding 12 MP
    PNGs at the drawn size raised peak memory by +30 to +58 MB across runs,
