@@ -836,7 +836,7 @@ Owner approval requested: YES (after M10, as instructed: "approve start M08-M10"
 | 8 | `tool/scan_binary_secrets.sh build/app/outputs/flutter-apk/app-release.apk` (row 5's APK) | 0 | 111 files, 300,742 strings: no Twilio account or key ids, no Twilio API host, no Supabase secret or service-role key, no JSON web token, no private key block, no backend secret names. The same scan on an archive with planted samples finds all three planted patterns and exits 1, so the scan is not vacuous. CI now runs it on every release build |
 | 9 | M09 device procedure (`docs/device_tests/M09_DEVICE_PROCEDURE.md`) | not run | BLOCKED: no tablet, no deployed backend, no sender, no registration, no test phone |
 | 10 | GitHub Actions CI #32 on `b4327ec` | 1 | Delivery backend job failed: 66 passed, 1 failed. "logs never carry numbers or tokens" redacts a random UUID each run, and this run's (`5b023d90-9418-408a-…`) held a digit run the phone pattern matched: a real defect (ids support needs were being mangled), not a flake. The pattern no longer starts or ends inside an identifier and UUIDs are set aside before redaction; the test now also checks two such UUIDs and 2,000 random ones. `backend/tool/test.sh` after the fix: exit 0, 67 passed. Superseded by row 11 before its Flutter jobs finished |
-| 11 | CI on the fix commit | CI33_EXIT | CI33_RESULT |
+| 11 | GitHub Actions CI #33 on `131b8f1` (run 39210454764) | 0 | Success: Delivery backend (Deno, Postgres) passed (`backend/tool/test.sh`); Format, analyze, test, licences passed (`tool/check.sh`, 17 min 33 s); Android release smoke build passed, including `tool/scan_binary_secrets.sh` on the release APK; iPadOS unsigned build skipped (macOS runner not enabled, as in every run) |
 
 ### Acceptance items
 
