@@ -18,6 +18,7 @@ import '../features/events/event_editor_screen.dart';
 import '../features/events/events_screen.dart';
 import '../features/events/preflight_screen.dart';
 import '../features/gallery/gallery_screen.dart';
+import '../features/gallery/session_detail_screen.dart';
 import '../features/onboarding/setup_screen.dart';
 import '../features/operator_access/unlock_screen.dart';
 import '../features/settings/settings_screen.dart';
@@ -152,7 +153,20 @@ GoRouter buildRouter({
           ),
           StatefulShellBranch(
             routes: [
-              section(RoutePaths.gallery, (_, _) => const GalleryScreen()),
+              GoRoute(
+                path: RoutePaths.gallery,
+                builder: (_, state) =>
+                    GalleryScreen(eventId: state.uri.queryParameters['event']),
+                routes: [
+                  GoRoute(
+                    path: ':sessionId',
+                    parentNavigatorKey: root,
+                    builder: (_, state) => SessionDetailScreen(
+                      sessionId: state.pathParameters['sessionId']!,
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
           StatefulShellBranch(

@@ -123,9 +123,10 @@ class _PrivacyTabState extends State<PrivacyTab> {
             const EditorNote(
               icon: PorcelainIcons.info,
               text:
-                  'Automatic deletion starts with the gallery (M08). Until '
-                  'then nothing is deleted automatically, and archiving an '
-                  'event never deletes photos.',
+                  'Sessions past this period are listed in the gallery for '
+                  'you to review and delete; nothing is deleted without '
+                  'your confirmation, and archiving an event never deletes '
+                  'photos.',
             ),
           ],
         ),

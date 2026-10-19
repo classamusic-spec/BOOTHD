@@ -39,6 +39,12 @@ abstract final class RoutePaths {
   static String event(String eventId, {String? tab}) =>
       tab == null ? '$events/$eventId' : '$events/$eventId?tab=$tab';
 
+  /// The gallery opened on one event.
+  static String galleryEvent(String eventId) => '$gallery?event=$eventId';
+
+  /// One session in the gallery (S14).
+  static String gallerySession(String sessionId) => '$gallery/$sessionId';
+
   /// The launch checklist for an event (S05, S19).
   static String preflight(String eventId) => '$events/$eventId/preflight';
 

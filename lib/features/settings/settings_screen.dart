@@ -14,6 +14,7 @@ import 'appearance_settings.dart';
 import 'booth_settings.dart';
 import 'camera_settings.dart';
 import 'output_settings.dart';
+import 'storage_settings.dart';
 
 /// Settings sections; [id] is the value of the `section` query parameter.
 enum SettingsSection {
@@ -34,6 +35,12 @@ enum SettingsSection {
     'Output and printing',
     'Print sizes, file formats and printer',
     PorcelainIcons.outputFormat,
+  ),
+  storage(
+    'storage',
+    'Storage',
+    'Space photos use, upkeep and clean-up',
+    PorcelainIcons.storage,
   ),
   booth(
     'booth',
@@ -152,6 +159,7 @@ class _SectionDetail extends StatelessWidget {
       SettingsSection.appearance => const AppearanceSettings(),
       SettingsSection.camera => const CameraSettings(),
       SettingsSection.output => const OutputSettings(),
+      SettingsSection.storage => const StorageSettings(),
       SettingsSection.booth => const BoothSettings(),
       SettingsSection.about => const AboutSettings(),
     };

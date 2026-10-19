@@ -8,6 +8,7 @@ import 'package:porcelain_photo_booth/domain/services/camera_service.dart';
 import 'package:porcelain_photo_booth/infrastructure/camera/managed_camera_service.dart';
 import 'package:porcelain_photo_booth/infrastructure/codecs/jpeg_encoder.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/booth_database.dart';
+import 'package:porcelain_photo_booth/infrastructure/file_store/original_store.dart';
 
 /// A tablet's front and rear cameras, as Android and iPadOS report them.
 const frontCamera = CameraDescriptor(
@@ -407,9 +408,21 @@ final class SimulatedStillStore implements CapturedStillStore {
   /// Makes [still] read back as missing or changed.
   void damage(CapturedStill still) => _bytes.remove(still.id);
 
+  /// Originals this store did not take but the database records (seeded
+  /// gallery sessions), found there and read as the stand-in photo.
   @override
-  Future<CapturedStill?> find(String id) async =>
-      _stills.where((s) => s.id == id).firstOrNull;
+  Future<CapturedStill?> find(String id) async {
+    final taken = _stills.where((s) => s.id == id).firstOrNull;
+    if (taken != null) return taken;
+    final db = database;
+    if (db == null) return null;
+    final row = await (db.select(
+      db.originalPhotos,
+    )..where((o) => o.id.equals(id))).getSingleOrNull();
+    if (row == null) return null;
+    _bytes.putIfAbsent(id, () => photoBytes);
+    return OriginalStore.stillOf(row);
+  }
 
   @override
   Future<List<CapturedStill>> listCommitted({int? limit}) async {

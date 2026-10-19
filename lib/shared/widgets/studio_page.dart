@@ -60,3 +60,55 @@ class StudioPage extends StatelessWidget {
     );
   }
 }
+
+/// [StudioPage] for long, lazily built content (the gallery grid): the
+/// same margins, maximum width and spacing, with [slivers] below the
+/// [header] so only what is on screen is built.
+class StudioSliverPage extends StatelessWidget {
+  const StudioSliverPage({
+    super.key,
+    required this.header,
+    required this.slivers,
+    this.spacing = PorcelainSpace.xxxl,
+    this.controller,
+  });
+
+  final Widget header;
+  final List<Widget> slivers;
+  final double spacing;
+  final ScrollController? controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final margin = StudioPage.marginFor(constraints.maxWidth);
+        final side =
+            constraints.maxWidth - 2 * margin >
+                PorcelainBreakpoints.maxContentWidth
+            ? (constraints.maxWidth - PorcelainBreakpoints.maxContentWidth) / 2
+            : margin;
+        return SafeArea(
+          left: false,
+          child: CustomScrollView(
+            controller: controller,
+            slivers: [
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(side, margin, side, 0),
+                sliver: SliverToBoxAdapter(child: header),
+              ),
+              for (final sliver in slivers)
+                SliverPadding(
+                  padding: EdgeInsets.fromLTRB(side, spacing, side, 0),
+                  sliver: sliver,
+                ),
+              SliverToBoxAdapter(
+                child: SizedBox(height: margin + PorcelainSpace.md),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}

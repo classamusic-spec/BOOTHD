@@ -6,9 +6,11 @@ import '../../core/booth/booth_providers.dart';
 import '../../core/design_system/porcelain_icons.dart';
 import '../../core/design_system/porcelain_metrics.dart';
 import '../../core/design_system/porcelain_theme.dart';
+import '../../core/gallery/gallery_providers.dart';
 import '../../core/routing/route_paths.dart';
 import '../../domain/models/booth_event.dart';
 import '../../shared/formatters/date_format.dart';
+import '../../shared/gallery/gallery_actions.dart';
 import '../../shared/widgets/empty_state.dart';
 import '../../shared/widgets/page_header.dart';
 import '../../shared/widgets/porcelain_button.dart';
@@ -324,6 +326,42 @@ class EventCard extends ConsumerWidget {
                   semanticHint: event.title,
                   onPressed: () => EventActions.archive(context, ref, event),
                 ),
+              if (archived) ...[
+                PorcelainButton(
+                  label: 'Photos',
+                  icon: PorcelainIcons.gallery,
+                  variant: PorcelainButtonVariant.quiet,
+                  size: PorcelainButtonSize.compact,
+                  semanticHint: event.title,
+                  onPressed: () =>
+                      context.go(RoutePaths.galleryEvent(event.id)),
+                ),
+                PorcelainButton(
+                  label: 'Delete',
+                  icon: PorcelainIcons.delete,
+                  variant: PorcelainButtonVariant.danger,
+                  size: PorcelainButtonSize.compact,
+                  semanticHint: event.title,
+                  onPressed: () async {
+                    final summaries = await ref.read(
+                      galleryEventsProvider.future,
+                    );
+                    if (!context.mounted) return;
+                    await GalleryActions.deleteEvent(
+                      context,
+                      ref,
+                      eventId: event.id,
+                      title: event.title,
+                      sessionCount:
+                          summaries
+                              .where((e) => e.eventId == event.id)
+                              .firstOrNull
+                              ?.sessionCount ??
+                          0,
+                    );
+                  },
+                ),
+              ],
             ],
           ),
         ],

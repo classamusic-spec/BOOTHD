@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:porcelain_photo_booth/domain/gallery/export_plan.dart';
 import 'package:porcelain_photo_booth/domain/services/gallery_services.dart';
 import 'package:porcelain_photo_booth/domain/services/operator_files.dart';
+import 'package:porcelain_photo_booth/infrastructure/codecs/jpeg_encoder.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/booth_database.dart';
 
 import 'fake_export.dart';
@@ -157,3 +158,39 @@ final class FakeGalleryExporter implements GalleryExporter {
   @override
   Future<void> discardPrepared() async => discarded++;
 }
+
+/// A finished-photo stand-in at print size: 1200 x 1800 pixels tagged 300
+/// dpi (4 x 6 inches), ivory paper with two warm photo spaces and a gold
+/// rule, as the Two-up classic template lays them out. Made once.
+final Uint8List printStandIn = () {
+  const width = 1200;
+  const height = 1800;
+  final rgba = Uint8List(width * height * 4);
+  for (var y = 0; y < height; y++) {
+    final v = y / height;
+    final inTop = v >= 0.06 && v < 0.47;
+    final inBottom = v >= 0.53 && v < 0.94;
+    final rule = v >= 0.497 && v < 0.503;
+    for (var x = 0; x < width; x++) {
+      final u = x / width;
+      final i = (y * width + x) * 4;
+      var r = 251, g = 248, b = 243;
+      if ((inTop || inBottom) && u >= 0.08 && u < 0.92) {
+        final t = inTop ? (v - 0.06) / 0.41 : (v - 0.53) / 0.41;
+        r = (196 + 40 * u).round();
+        g = (160 + 50 * t).round();
+        b = inTop ? 132 : 150;
+      } else if (rule && u >= 0.3 && u < 0.7) {
+        r = 201;
+        g = 168;
+        b = 106;
+      }
+      rgba
+        ..[i] = r
+        ..[i + 1] = g
+        ..[i + 2] = b
+        ..[i + 3] = 255;
+    }
+  }
+  return encodeJpeg(rgba, width: width, height: height, quality: 85);
+}();

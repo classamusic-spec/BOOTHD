@@ -223,8 +223,9 @@ final class OutputProfile {
   int get hashCode => Object.hash(format, jpegQuality);
 }
 
-/// How long photos are kept once taken (P-05, P-13). Enforcement arrives
-/// with the gallery (M08); until then nothing is deleted automatically.
+/// How long photos are kept once taken (P-05, P-13). The gallery lists
+/// sessions past it for the operator to delete (M08, AC-0805); nothing is
+/// deleted without the operator's confirmation.
 @immutable
 final class RetentionPolicy {
   const RetentionPolicy.keepUntilDeleted()

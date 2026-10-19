@@ -4,7 +4,8 @@
 // launch checks and Booth Mode; M05 the template library, the new-template
 // chooser, the Template Studio and the template preview; M06 the camera
 // test (on the simulated camera) and the Diagnostics self-test; M07 every
-// step of a guest session.
+// step of a guest session; M08 the gallery, its selection, export and
+// deletion sheets, a session's details and Storage.
 //
 // Rendered at 1x to keep the repository small; text and blur rasterise
 // differently on macOS and Windows, so goldens are compared on Linux only
@@ -35,6 +36,8 @@ const themed = [
   'templates library',
   'template editor',
   'gallery',
+  'gallery sessions',
+  'session detail',
   'settings appearance',
   'settings camera',
   'settings output',
@@ -75,6 +78,14 @@ const states = [
   'setup recovery code',
   'setup booth',
   'unlock recovery',
+  'events archived',
+  'gallery select',
+  'gallery export',
+  'gallery export report',
+  'gallery delete',
+  'gallery retention',
+  'session detail not finished',
+  'settings storage',
 ];
 
 /// Booth Mode, guest and operator screens alike, wears the event's theme

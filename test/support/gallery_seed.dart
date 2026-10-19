@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:drift/drift.dart';
@@ -93,14 +92,17 @@ Future<List<String>> seedGallery(
   DateTime? firstStart,
   SeededOutcome Function(int number) outcome = mixedOutcome,
   Directory? filesRoot,
+  Uint8List? outputBytes,
+  int firstNumber = 1,
 }) async {
   final start = firstStart ?? DateTime.utc(2026, 11, 14, 18);
   final planJson = jsonEncode(galleryPlan(eventId).toJson());
   final photoBytes = SimulatedStillStore.photoBytes;
   final photoSha = crypto.sha256.convert(photoBytes).toString();
-  final outputBytes = finishedStandIn;
-  final outputSha = crypto.sha256.convert(outputBytes).toString();
+  final output = outputBytes ?? finishedStandIn;
+  final outputSha = crypto.sha256.convert(output).toString();
   final real = filesRoot != null;
+  final realOutputs = real || outputBytes != null;
 
   final sessions = <CaptureSessionsCompanion>[];
   final photos = <SessionPhotosCompanion>[];
@@ -108,10 +110,10 @@ Future<List<String>> seedGallery(
   final outputs = <SessionOutputsCompanion>[];
   final ids = <String>[];
 
-  for (var number = 1; number <= count; number++) {
+  for (var number = firstNumber; number < firstNumber + count; number++) {
     final id = GalleryIds.session(number, event: eventIndex);
     ids.add(id);
-    final began = start.add(Duration(minutes: number - 1));
+    final began = start.add(Duration(minutes: number - firstNumber));
     final ended = began.add(const Duration(seconds: 60));
     final kind = outcome(number);
     final complete = kind != SeededOutcome.abandonedIncomplete;
@@ -177,8 +179,8 @@ Future<List<String>> seedGallery(
           id: outputId,
           sessionId: id,
           relativePath: 'outputs/$outputId.jpg',
-          sha256: real ? outputSha : 'e' * 64,
-          byteLength: real ? outputBytes.length : 812345,
+          sha256: realOutputs ? outputSha : 'e' * 64,
+          byteLength: realOutputs ? output.length : 812345,
           widthPx: 1200,
           heightPx: 1800,
           format: OutputFormat.jpeg,
@@ -191,7 +193,7 @@ Future<List<String>> seedGallery(
           ),
         ),
       );
-      if (real) _write(filesRoot, 'outputs/$outputId.jpg', outputBytes);
+      if (real) _write(filesRoot, 'outputs/$outputId.jpg', output);
     }
     final (status, reason) = switch (kind) {
       SeededOutcome.completed ||

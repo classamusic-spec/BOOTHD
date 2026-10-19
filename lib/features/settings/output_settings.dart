@@ -5,9 +5,16 @@ import '../../core/booth/booth_providers.dart';
 import '../../core/design_system/porcelain_icons.dart';
 import '../../core/design_system/porcelain_metrics.dart';
 import '../../core/di/service_providers.dart';
+import '../../core/gallery/gallery_providers.dart';
+import '../../domain/gallery/gallery_models.dart';
 import '../../domain/models/booth_event.dart';
 import '../../domain/models/booth_profile.dart';
 import '../../domain/models/event_rules.dart';
+import '../../domain/services/booth_capabilities.dart';
+import '../../domain/services/print_service.dart';
+import '../../domain/template/page_spec.dart';
+import '../../domain/value_objects/orientation.dart';
+import '../../shared/gallery/gallery_copy.dart';
 import '../../shared/widgets/page_header.dart';
 import '../../shared/widgets/porcelain_card.dart';
 import '../../shared/widgets/porcelain_list_row.dart';
@@ -19,8 +26,9 @@ import '../../shared/widgets/status_badge.dart';
 import '../../shared/widgets/tone.dart';
 
 /// Output and printing (S16): the file format new events start with, the
-/// print sizes the renderer produces, and the printer, shown as not
-/// configured rather than offered until a printer is chosen.
+/// printer as the print service reports it (not configured: no print
+/// control exists, AC-0806), the print sizes with their exact pixels and
+/// resolution (AC-0807), and the space a session's photos use.
 class OutputSettings extends ConsumerWidget {
   const OutputSettings({super.key});
 
@@ -30,6 +38,8 @@ class OutputSettings extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final defaults = ref.watch(boothProfileProvider).value?.defaults;
+    final printer = ref.watch(printCapabilitiesProvider).value;
+    final usage = ref.watch(storageUsageProvider(null)).value;
 
     Future<void> save(EventDefaults next) async {
       try {
@@ -101,15 +111,23 @@ class OutputSettings extends ConsumerWidget {
           title: 'Printer',
           subtitle: 'This release saves print-ready files; it does not print.',
         ),
-        const PorcelainCard(
+        PorcelainCard(
           child: PorcelainListRow(
             icon: PorcelainIcons.printerOff,
             title: 'Printer',
-            subtitle:
+            subtitle: switch (printer) {
+              PrintCapabilities(configured: false) || null =>
                 'Printing is added after a printer model is chosen and '
-                'tested. Finished photos are saved at full print resolution.',
+                    'tested. Finished photos are saved at full print '
+                    'resolution and can be exported from the gallery.',
+              PrintCapabilities(:final adapterName) =>
+                adapterName ?? 'Configured',
+            },
+            showChevron: false,
             trailing: StatusBadge(
-              label: 'Not configured',
+              label: printer?.configured ?? false
+                  ? 'Configured'
+                  : 'Not configured',
               tone: PorcelainTone.neutral,
             ),
           ),
@@ -117,16 +135,39 @@ class OutputSettings extends ConsumerWidget {
         const SizedBox(height: PorcelainSpace.xxxl),
         const SectionHeader(
           title: 'Print sizes',
-          subtitle: 'Exported at 300 dpi. Each template sets its own size.',
+          subtitle:
+              'Each template sets its page; finished photos are exported '
+              'at exactly that size, tagged with their print resolution.',
         ),
-        const PorcelainCard(
+        PorcelainCard(
           child: Column(
             children: [
-              _Size(name: '2 × 6 strip', pixels: '600 × 1800 px'),
-              _Size(name: '4 × 6 portrait', pixels: '1200 × 1800 px'),
-              _Size(name: '6 × 4 landscape', pixels: '1800 × 1200 px'),
-              _Size(name: '4 × 4 square', pixels: '1200 × 1200 px'),
+              for (final preset in PagePreset.all) _Size(preset: preset),
             ],
+          ),
+        ),
+        const SizedBox(height: PorcelainSpace.xxxl),
+        const SectionHeader(
+          title: 'Space per session',
+          subtitle: 'Measured from the photos on this tablet.',
+        ),
+        PorcelainCard(
+          child: PorcelainListRow(
+            icon: PorcelainIcons.storage,
+            title: 'Finished photo',
+            subtitle: switch (usage) {
+              StorageUsage(:final finishedCount, :final finishedBytes)
+                  when finishedCount > 0 =>
+                'About ${GalleryCopy.bytes(finishedBytes ~/ finishedCount)} '
+                    'each, over $finishedCount finished photos. Camera '
+                    'photos add more.',
+              StorageUsage() =>
+                'No finished photos yet to measure. A booth reserves about '
+                    '${GalleryCopy.bytes(StorageBudget.bytesPerSession)} per '
+                    'session, camera photos included.',
+              null => 'Measuring…',
+            },
+            showChevron: false,
           ),
         ),
       ],
@@ -135,17 +176,26 @@ class OutputSettings extends ConsumerWidget {
 }
 
 class _Size extends StatelessWidget {
-  const _Size({required this.name, required this.pixels});
+  const _Size({required this.preset});
 
-  final String name;
-  final String pixels;
+  final PagePreset preset;
 
   @override
   Widget build(BuildContext context) {
+    final page = preset.page;
     return PorcelainListRow(
-      icon: PorcelainIcons.outputFormat,
-      title: name,
-      trailing: StatusBadge(label: pixels, tone: PorcelainTone.info),
+      icon: switch (page.orientation) {
+        PageOrientation.portrait => PorcelainIcons.portrait,
+        PageOrientation.landscape => PorcelainIcons.landscape,
+        PageOrientation.square => PorcelainIcons.square,
+      },
+      title: preset.name,
+      subtitle: '${page.orientation.name}, ${page.dpi} dpi',
+      showChevron: false,
+      trailing: StatusBadge(
+        label: '${page.widthPx} × ${page.heightPx} px',
+        tone: PorcelainTone.info,
+      ),
     );
   }
 }

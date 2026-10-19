@@ -14,9 +14,14 @@ import 'package:porcelain_photo_booth/features/booth/guest_review.dart';
 import 'package:porcelain_photo_booth/features/booth/hidden_operator_exit.dart';
 import 'package:porcelain_photo_booth/features/template_studio/editor_canvas.dart';
 import 'package:porcelain_photo_booth/features/template_studio/layers_panel.dart';
+import 'package:porcelain_photo_booth/infrastructure/database/booth_database.dart';
+import 'package:porcelain_photo_booth/shared/gallery/gallery_copy.dart';
 import 'package:porcelain_photo_booth/shared/operator_access/access_copy.dart';
 
 import 'app_harness.dart';
+import 'fake_export.dart';
+import 'fake_gallery.dart';
+import 'gallery_seed.dart';
 import 'seed.dart';
 import 'simulated_camera.dart';
 import 'tablet_viewports.dart';
@@ -34,6 +39,7 @@ final class ScreenSpec {
     this.event,
     this.then,
     this.session,
+    this.gallery,
   });
 
   final String location;
@@ -61,6 +67,11 @@ final class ScreenSpec {
 
   /// Steps of a guest session, with the fakes behind the booth.
   final Future<void> Function(WidgetTester tester, TestBooth booth)? session;
+
+  /// Gallery sessions to add before the app starts, with their finished
+  /// photos' bytes registered in [exports].
+  final Future<void> Function(BoothDatabase db, FakeExportService exports)?
+  gallery;
 }
 
 Future<void> _tap(WidgetTester tester, String text) async {
@@ -174,12 +185,129 @@ final screens = <String, ScreenSpec>{
     renders: true,
   ),
   'gallery': const ScreenSpec('/studio/gallery'),
+  'gallery sessions': const ScreenSpec(
+    RoutePaths.gallery,
+    seeded: true,
+    renders: true,
+    gallery: _gallerySessions,
+  ),
+  'gallery select': ScreenSpec(
+    RoutePaths.gallery,
+    seeded: true,
+    renders: true,
+    gallery: _gallerySessions,
+    then: (tester) async {
+      await _tap(tester, GalleryCopy.select);
+      await _tapSession(tester, 18);
+      await _tapSession(tester, 17);
+    },
+  ),
+  'gallery export': ScreenSpec(
+    RoutePaths.gallery,
+    seeded: true,
+    renders: true,
+    gallery: _gallerySessions,
+    then: (tester) async {
+      await _tap(tester, GalleryCopy.select);
+      await _tapSession(tester, 18);
+      await _tapSession(tester, 15);
+      await _tap(tester, GalleryCopy.export);
+    },
+  ),
+  'gallery export report': ScreenSpec(
+    RoutePaths.gallery,
+    seeded: true,
+    renders: true,
+    gallery: _gallerySessions,
+    then: (tester) async {
+      await _tap(tester, GalleryCopy.select);
+      await _tapSession(tester, 18);
+      await _tapSession(tester, 15);
+      await _tap(tester, GalleryCopy.export);
+      await _tap(tester, GalleryCopy.chooseDestination);
+    },
+  ),
+  'gallery delete': ScreenSpec(
+    RoutePaths.gallery,
+    seeded: true,
+    renders: true,
+    gallery: _gallerySessions,
+    then: (tester) async {
+      await _tap(tester, GalleryCopy.select);
+      await _tapSession(tester, 18);
+      await _tap(tester, GalleryCopy.deleteConfirm);
+    },
+  ),
+  'gallery retention': ScreenSpec(
+    RoutePaths.gallery,
+    seeded: true,
+    renders: true,
+    event: (event) =>
+        event.copyWith(retention: const RetentionPolicy.deleteAfterDays(30)),
+    gallery: (db, exports) async {
+      await seedGallery(
+        db,
+        count: 4,
+        firstStart: DateTime.utc(2026, 8, 22, 19),
+        outputBytes: printStandIn,
+      );
+      await seedGallery(
+        db,
+        count: 4,
+        firstNumber: 5,
+        firstStart: DateTime.utc(2026, 10, 17, 19),
+        outputBytes: printStandIn,
+      );
+      await _registerOutputs(db, exports);
+    },
+  ),
+  'gallery search': ScreenSpec(
+    RoutePaths.gallery,
+    seeded: true,
+    renders: true,
+    gallery: _gallerySessions,
+    then: (tester) async {
+      await _scrollTo(tester, find.byType(EditableText));
+      await tester.enterText(find.byType(EditableText).first, '#12');
+      await tester.pumpAndSettle();
+      await settleRendering(tester, rounds: 4);
+      await tester.pumpAndSettle();
+    },
+  ),
+  'session detail': ScreenSpec(
+    RoutePaths.gallerySession(GalleryIds.session(8)),
+    seeded: true,
+    renders: true,
+    gallery: _gallerySessions,
+  ),
+  'session detail not finished': ScreenSpec(
+    RoutePaths.gallerySession(GalleryIds.session(5)),
+    seeded: true,
+    renders: true,
+    gallery: _gallerySessions,
+  ),
+  'session detail failed': ScreenSpec(
+    RoutePaths.gallerySession(GalleryIds.session(3)),
+    seeded: true,
+    renders: true,
+    gallery: _gallerySessions,
+  ),
+  'events archived': ScreenSpec(
+    '/studio/events',
+    seeded: true,
+    then: (tester) => _tap(tester, 'Archived · 1'),
+  ),
   'settings': const ScreenSpec('/studio/settings'),
   'settings appearance': const ScreenSpec(
     '/studio/settings?section=appearance',
   ),
   'settings camera': const ScreenSpec('/studio/settings?section=camera'),
   'settings output': const ScreenSpec('/studio/settings?section=output'),
+  'settings storage': const ScreenSpec(
+    '/studio/settings?section=storage',
+    seeded: true,
+    gallery: _gallerySessions,
+  ),
   'settings booth': const ScreenSpec('/studio/settings?section=booth'),
   'settings about': const ScreenSpec('/studio/settings?section=about'),
   'diagnostics': const ScreenSpec('/studio/diagnostics'),
@@ -508,6 +636,54 @@ Future<void> _settlePhotos(WidgetTester tester) async {
   await tester.pump(const Duration(milliseconds: 400));
 }
 
+/// Eighteen sessions of the seeded wedding, the evening before the test
+/// clock: print-ready finished photos, retakes, a failed render, sessions
+/// the guest left and one waiting to be finished.
+Future<void> _gallerySessions(
+  BoothDatabase db,
+  FakeExportService exports,
+) async {
+  await seedGallery(
+    db,
+    count: 18,
+    firstStart: DateTime.utc(2026, 10, 17, 19),
+    outputBytes: printStandIn,
+  );
+  await _registerOutputs(db, exports);
+}
+
+/// The finished photos' bytes, readable through the stand-in export.
+Future<void> _registerOutputs(
+  BoothDatabase db,
+  FakeExportService exports,
+) async {
+  for (final output in await db.select(db.sessionOutputs).get()) {
+    exports.files[output.relativePath] = printStandIn;
+  }
+}
+
+/// The gallery page's own scroll view (not the event row's).
+Finder get _galleryScroll => find
+    .descendant(
+      of: find.byType(CustomScrollView),
+      matching: find.byType(Scrollable),
+    )
+    .first;
+
+/// Scrolls the gallery until [target] is built and on screen.
+Future<void> _scrollTo(WidgetTester tester, Finder target) async {
+  await tester.scrollUntilVisible(target, 200, scrollable: _galleryScroll);
+  await tester.pumpAndSettle();
+}
+
+/// Taps the gallery tile of session [number].
+Future<void> _tapSession(WidgetTester tester, int number) async {
+  final tile = find.byKey(ValueKey(GalleryIds.session(number)));
+  await _scrollTo(tester, tile);
+  await tester.tap(tile);
+  await tester.pumpAndSettle();
+}
+
 /// The component gallery shows a spinner and skeleton that never settle.
 bool settles(String name) => name != 'component gallery';
 
@@ -521,13 +697,20 @@ Future<void> show(
 }) async {
   final spec = screens[name] ?? boothSessionScreens[name]!;
   useViewport(tester, viewport, pixelRatio: pixelRatio);
+  final exports = FakeExportService();
   final booth = await pumpApp(
     tester,
     location: spec.location,
     appearance: appearance,
     startAs: spec.startAs,
     boothEventId: spec.boothEventId,
-    seed: spec.seeded ? (db) => seedEvents(db, active: spec.event) : null,
+    exports: exports,
+    seed: spec.seeded
+        ? (db) async {
+            await seedEvents(db, active: spec.event);
+            await spec.gallery?.call(db, exports);
+          }
+        : null,
     seedTemplates: spec.library
         ? seedStarterLibrary
         : spec.seeded
