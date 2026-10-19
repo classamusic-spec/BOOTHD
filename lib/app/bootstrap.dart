@@ -1,12 +1,11 @@
 import 'package:flutter/widgets.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 
 import '../core/design_system/bundled_licences.dart';
-import 'app.dart';
+import 'restartable_app.dart';
 
-/// Starts the app inside the root [ProviderScope], after registering the
-/// bundled fonts' licences.
+/// Starts the app inside [RestartableApp]'s provider scope, after
+/// registering the bundled fonts' licences.
 ///
 /// [overrides] is the composition root's hook: later milestones bind domain
 /// service interfaces to their infrastructure adapters here, and tests bind
@@ -14,5 +13,5 @@ import 'app.dart';
 void bootstrap({List<Override> overrides = const []}) {
   WidgetsFlutterBinding.ensureInitialized();
   registerBundledLicences();
-  runApp(ProviderScope(overrides: overrides, child: const PorcelainApp()));
+  runApp(RestartableApp(overrides: overrides));
 }

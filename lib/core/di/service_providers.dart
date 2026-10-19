@@ -10,6 +10,7 @@ import '../../domain/repositories/operator_access_repository.dart';
 import '../../domain/repositories/session_repository.dart';
 import '../../domain/repositories/template_catalog.dart';
 import '../../domain/repositories/template_store.dart';
+import '../../domain/services/backup_service.dart';
 import '../../domain/services/booth_capabilities.dart';
 import '../../domain/services/camera_service.dart';
 import '../../domain/services/composition_renderer.dart';
@@ -127,6 +128,19 @@ final deviceStorageInfoProvider = Provider<DeviceStorageInfo>(
 
 final managedStorageProvider = Provider<ManagedStorage>(
   (ref) => _unbound('managedStorageProvider'),
+);
+
+// Backup and restore (M10, ADR-0016).
+
+final backupServiceProvider = Provider<BackupService>(
+  (ref) => _unbound('backupServiceProvider'),
+);
+
+/// Starts the app again from its storage: every service is closed (the
+/// database first), a staged restore is swapped in, and everything is read
+/// again as at a cold start. Bound by the app shell; tests record calls.
+final appRestartProvider = Provider<Future<void> Function()>(
+  (ref) => _unbound('appRestartProvider'),
 );
 
 final eventRepositoryProvider = Provider<EventRepository>(

@@ -7,7 +7,8 @@
 // step of a guest session; M08 the gallery, its selection, export and
 // deletion sheets, a session's details and Storage; M09 texting a photo
 // (S30 to S32) and the operator's texting settings, texts and pairing
-// (S34 to S36).
+// (S34 to S36); M10 Settings > Backup and restoring a backup on the first
+// screen.
 //
 // Rendered at 1x to keep the repository small; text and blur rasterise
 // differently on macOS and Windows, so goldens are compared on Linux only
@@ -94,6 +95,12 @@ const states = [
   'session detail text unknown',
   'settings delivery',
   'settings delivery paired',
+  'settings backup',
+  'settings backup made',
+  'setup restore',
+  'setup restore checked',
+  'setup restore refused',
+  'setup restored',
 ];
 
 /// Booth Mode, guest and operator screens alike, wears the event's theme

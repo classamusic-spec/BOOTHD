@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import '../../domain/repositories/storage_errors.dart';
 import '../../domain/services/booth_capabilities.dart';
 import '../../domain/services/managed_storage.dart';
+import '../backup/pending_restore.dart';
 import 'atomic_file_writer.dart';
 
 /// Top-level directories of managed storage, under the app's private
@@ -25,7 +26,10 @@ enum ManagedArea {
   outgoing('outgoing'),
 
   /// Files being written; renamed into place only once complete (A-11).
-  staging('staging');
+  staging('staging'),
+
+  /// A validated backup waiting to be swapped in at the next start (M10).
+  restore('restore');
 
   const ManagedArea(this.directoryName);
 
@@ -46,6 +50,9 @@ final class FileManagedStorage implements ManagedStorage {
   Future<Directory> directory(ManagedArea area) async =>
       Directory('${(await _root()).path}/${area.directoryName}');
 
+  /// The directory every area lives in.
+  Future<Directory> rootDirectory() => _root();
+
   /// The booth database file.
   Future<File> databaseFile() async =>
       File('${(await directory(ManagedArea.database)).path}/$databaseFileName');
@@ -58,6 +65,16 @@ final class FileManagedStorage implements ManagedStorage {
       }
     } on FileSystemException {
       throw const ManagedStorageException('STORAGE_UNAVAILABLE');
+    }
+    // A restore marked ready is swapped in before anything opens the
+    // database; one never marked ready is discarded (M10, AC-1006).
+    try {
+      await PendingRestore(await _root()).applyIfReady(
+        databaseRelativePath:
+            '${ManagedArea.database.directoryName}/$databaseFileName',
+      );
+    } on FileSystemException {
+      throw const ManagedStorageException('RESTORE_INCOMPLETE');
     }
     // Startup reconciliation (A-11): nothing writes before startup, so a
     // staged file now belongs to a write the app never finished.

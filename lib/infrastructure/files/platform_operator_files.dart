@@ -35,16 +35,23 @@ final class PlatformOperatorFiles implements OperatorFiles {
     uniformTypeIdentifiers: ['public.zip-archive', 'public.data'],
   );
 
+  // Backups are tar files (M10).
+  static const _backups = picker.XTypeGroup(
+    label: 'Booth backups',
+    extensions: ['tar'],
+    mimeTypes: ['application/x-tar', 'application/octet-stream'],
+    uniformTypeIdentifiers: ['public.tar-archive', 'public.data'],
+  );
+
+  static picker.XTypeGroup _group(PickableFile kind) => switch (kind) {
+    PickableFile.image => _images,
+    PickableFile.templatePackage => _packages,
+    PickableFile.backup => _backups,
+  };
+
   @override
   Future<PickedFile?> pick(PickableFile kind, {required int maxBytes}) async {
-    final file = await picker.openFile(
-      acceptedTypeGroups: [
-        switch (kind) {
-          PickableFile.image => _images,
-          PickableFile.templatePackage => _packages,
-        },
-      ],
-    );
+    final file = await picker.openFile(acceptedTypeGroups: [_group(kind)]);
     if (file == null) return null;
     final Uint8List bytes;
     try {
@@ -89,6 +96,28 @@ final class PlatformOperatorFiles implements OperatorFiles {
       ShareResultStatus.unavailable => ShareOutcome.unknown,
     };
   }
+
+  @override
+  Future<PickedStream?> pickStream(PickableFile kind) async {
+    final file = await picker.openFile(acceptedTypeGroups: [_group(kind)]);
+    if (file == null) return null;
+    try {
+      return PickedStream(
+        name: file.name,
+        length: await file.length(),
+        open: file.openRead,
+      );
+    } on Object {
+      throw const FilePickException(FilePickFailure.unreadable);
+    }
+  }
+
+  @override
+  Future<ShareReport> shareFile(
+    String path, {
+    required String mimeType,
+    required ShareAnchor anchor,
+  }) => shareFilesWithPlatformSheet([(path: path, mimeType: mimeType)], anchor);
 }
 
 /// Offers files already on disk to the platform share sheet (M08 gallery

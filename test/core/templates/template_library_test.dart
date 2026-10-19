@@ -51,6 +51,17 @@ final class _TemporaryCopyPicker implements OperatorFiles {
     required String mimeType,
     required ShareAnchor anchor,
   }) async => ShareOutcome.shared;
+
+  @override
+  Future<PickedStream?> pickStream(PickableFile kind) =>
+      throw UnimplementedError('templates are picked whole');
+
+  @override
+  Future<ShareReport> shareFile(
+    String path, {
+    required String mimeType,
+    required ShareAnchor anchor,
+  }) => throw UnimplementedError('templates are shared as bytes');
 }
 
 void main() {

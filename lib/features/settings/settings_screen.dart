@@ -11,6 +11,7 @@ import '../../shared/widgets/porcelain_list_row.dart';
 import '../../shared/widgets/studio_page.dart';
 import 'about_settings.dart';
 import 'appearance_settings.dart';
+import 'backup_settings.dart';
 import 'booth_settings.dart';
 import 'camera_settings.dart';
 import 'delivery_settings.dart';
@@ -42,6 +43,12 @@ enum SettingsSection {
     'Storage',
     'Space photos use, upkeep and clean-up',
     PorcelainIcons.storage,
+  ),
+  backup(
+    'backup',
+    'Backup',
+    'One file to set this booth up again elsewhere',
+    PorcelainIcons.backup,
   ),
   delivery(
     'delivery',
@@ -167,6 +174,7 @@ class _SectionDetail extends StatelessWidget {
       SettingsSection.camera => const CameraSettings(),
       SettingsSection.output => const OutputSettings(),
       SettingsSection.storage => const StorageSettings(),
+      SettingsSection.backup => const BackupSettings(),
       SettingsSection.delivery => const DeliverySettings(),
       SettingsSection.booth => const BoothSettings(),
       SettingsSection.about => const AboutSettings(),

@@ -147,4 +147,9 @@ abstract final class PorcelainIcons {
   static const IconData alignMiddle = Symbols.vertical_align_center_rounded;
   static const IconData alignBottom = Symbols.vertical_align_bottom_rounded;
   static const IconData transparent = Symbols.texture_rounded;
+
+  // Backup, restore and kiosk readiness (M10).
+  static const IconData backup = Symbols.folder_zip_rounded;
+  static const IconData restoreBackup = Symbols.settings_backup_restore_rounded;
+  static const IconData kiosk = Symbols.phonelink_lock_rounded;
 }

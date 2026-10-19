@@ -29,6 +29,7 @@ import 'package:porcelain_photo_booth/infrastructure/database/drift_operator_acc
 import 'package:porcelain_photo_booth/infrastructure/database/drift_session_repository.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_template_catalog.dart';
 
+import 'fake_backup.dart';
 import 'fake_delivery.dart';
 import 'fake_export.dart';
 import 'fake_gallery.dart';
@@ -99,6 +100,7 @@ final class TestBooth {
     required this.delivery,
     required this.secrets,
     required this.previews,
+    required this.backups,
   });
 
   final BoothDatabase db;
@@ -133,6 +135,11 @@ final class TestBooth {
 
   /// Phone delivery (M09): the service, secure storage and previews.
   final FakeDeliveryApi delivery;
+
+  /// Backups and restores (M10), and how many times the app was asked to
+  /// start again (after a restore is staged).
+  final FakeBackupService backups;
+  var restarts = 0;
   final MemoryDeliverySecrets secrets;
   final FakePreviewMaker previews;
 
@@ -216,6 +223,7 @@ Future<TestBooth> pumpApp(
   FakeGalleryExporter? exporter,
   FakeDeliveryApi? delivery,
   MemoryDeliverySecrets? secrets,
+  FakeBackupService? backups,
 }) async {
   final testClock = clock ?? FakeClock();
   final db = database ?? memoryDatabase(clock: testClock);
@@ -257,6 +265,7 @@ Future<TestBooth> pumpApp(
     delivery: delivery ?? FakeDeliveryApi(),
     secrets: secrets ?? MemoryDeliverySecrets(),
     previews: FakePreviewMaker(),
+    backups: backups ?? FakeBackupService(),
   );
   booth.thumbnails.exports ??= booth.exports;
   // Sessions refer to originals, which the real store records in the
@@ -302,6 +311,8 @@ Future<TestBooth> pumpApp(
         galleryExporterProvider.overrideWithValue(booth.exporter),
         storageCleanupProvider.overrideWithValue(booth.cleanup),
         deliveryRepositoryProvider.overrideWith((ref) => booth.deliveries),
+        backupServiceProvider.overrideWithValue(booth.backups),
+        appRestartProvider.overrideWithValue(() async => booth.restarts++),
         deliveryApiProvider.overrideWithValue(booth.delivery),
         deliverySecretsProvider.overrideWithValue(booth.secrets),
         previewMakerProvider.overrideWithValue(booth.previews),

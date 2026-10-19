@@ -114,7 +114,10 @@ final class AccessController extends Notifier<AccessState> {
   }
 
   /// Tries to open storage again after a startup failure.
-  void retryStartup() => ref.invalidate(startupProvider);
+  void retryStartup() => ref
+    ..invalidate(storageReadyProvider)
+    ..invalidate(restoreReportProvider)
+    ..invalidate(startupProvider);
 
   void _require(AccessPhase phase) {
     if (state.phase != phase) {

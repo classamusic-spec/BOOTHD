@@ -8,6 +8,7 @@ import '../core/access/access_controller.dart';
 import '../core/di/service_providers.dart';
 import '../core/platform/app_environment.dart';
 import '../core/routing/route_paths.dart';
+import '../infrastructure/backup/file_backup_service.dart';
 import '../infrastructure/camera/camera_driver.dart';
 import '../infrastructure/camera/managed_camera_service.dart';
 import '../infrastructure/camera/permission_handler_camera_permissions.dart';
@@ -40,6 +41,7 @@ import '../infrastructure/templates/drift_asset_repository.dart';
 import '../infrastructure/templates/drift_template_draft_repository.dart';
 import '../infrastructure/templates/drift_template_repository.dart';
 import '../infrastructure/templates/zip_template_packages.dart';
+import 'restartable_app.dart';
 import 'router.dart';
 
 /// Where the router starts. Tests override it to open a given screen; the
@@ -92,7 +94,7 @@ final _boothDatabaseProvider = Provider<BoothDatabase>((ref) {
     ids: ref.watch(idGeneratorProvider),
     clock: ref.watch(clockProvider),
   );
-  ref.onDispose(database.close);
+  ref.onDispose(() => DatabaseClosing.track(database.close()));
   return database;
 });
 
@@ -196,6 +198,14 @@ List<Override> productionOverrides() => [
   ),
   thumbnailStoreProvider.overrideWith(
     (ref) => ManagedThumbnailStore(storage: ref.watch(_managedStorageProvider)),
+  ),
+  backupServiceProvider.overrideWith(
+    (ref) => FileBackupService(
+      database: ref.watch(_boothDatabaseProvider),
+      storage: ref.watch(_managedStorageProvider),
+      space: ref.watch(deviceStorageInfoProvider),
+      clock: ref.watch(clockProvider),
+    ),
   ),
   storageCleanupProvider.overrideWith(
     (ref) => ManagedStorageCleanup(

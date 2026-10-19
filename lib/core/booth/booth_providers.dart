@@ -4,6 +4,7 @@ import 'package:meta/meta.dart';
 import '../../domain/models/booth_event.dart';
 import '../../domain/models/booth_profile.dart';
 import '../../domain/models/template_revision_summary.dart';
+import '../../domain/services/backup_service.dart';
 import '../../domain/session/guest_flow.dart';
 import '../../domain/value_objects/appearance.dart';
 import '../delivery/delivery_providers.dart';
@@ -18,8 +19,23 @@ import 'session_recovery.dart';
 /// delivery queue (M09), which never holds startup up. Errors (storage
 /// unavailable, data from a newer app version) surface here, before any
 /// screen depends on them.
+/// Managed storage made ready, once per start: areas created, a staged
+/// restore swapped in, unfinished writes discarded (A-11, M10).
+final storageReadyProvider = FutureProvider<void>(
+  (ref) => ref.watch(managedStorageProvider).prepare(),
+);
+
+/// What a restore swapped in at this start brought back, after its
+/// clean-up (operator PIN state, texting pairing and waiting texts reset);
+/// null when no restore was applied (M10, AC-1006).
+final restoreReportProvider = FutureProvider<RestoreReport?>((ref) async {
+  await ref.watch(storageReadyProvider.future);
+  return ref.watch(backupServiceProvider).finishRestore();
+});
+
 final startupProvider = FutureProvider<BoothState>((ref) async {
-  await ref.watch(managedStorageProvider).prepare();
+  await ref.watch(storageReadyProvider.future);
+  await ref.watch(restoreReportProvider.future);
   final booth = await ref.watch(boothSettingsRepositoryProvider).load();
   await ref.watch(capturedStillStoreProvider).reconcile();
   await SessionRecovery(ref.watch(sessionRepositoryProvider)).reconcile();

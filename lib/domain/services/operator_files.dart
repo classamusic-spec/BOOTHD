@@ -13,6 +13,9 @@ enum PickableFile {
 
   /// A `.porcelain-template` package.
   templatePackage,
+
+  /// A booth backup (`.tar`, M10).
+  backup,
 }
 
 /// A chosen file, already read into memory. Nothing refers back to the
@@ -24,6 +27,22 @@ final class PickedFile {
   /// The file's name as the picker reported it, for display only.
   final String name;
   final Uint8List bytes;
+}
+
+/// A chosen file too large to read into memory (a backup): its name and
+/// size, and its contents as a stream to copy into managed storage at
+/// once, before the platform deletes its temporary copy.
+final class PickedStream {
+  const PickedStream({
+    required this.name,
+    required this.length,
+    required this.open,
+  });
+
+  /// The file's name as the picker reported it, for display only.
+  final String name;
+  final int length;
+  final Stream<List<int>> Function() open;
 }
 
 enum FilePickFailure {
@@ -84,6 +103,19 @@ abstract interface class OperatorFiles {
   Future<ShareOutcome> share(
     Uint8List bytes, {
     required String fileName,
+    required String mimeType,
+    required ShareAnchor anchor,
+  });
+
+  /// Lets the operator choose one large file for [kind] (a backup) without
+  /// reading it into memory; null when they cancel. Throws
+  /// [FilePickException] when the platform's file cannot be read.
+  Future<PickedStream?> pickStream(PickableFile kind);
+
+  /// Offers the file at [path] (in the app's outgoing area) to the
+  /// platform share sheet and reports what it said.
+  Future<ShareReport> shareFile(
+    String path, {
     required String mimeType,
     required ShareAnchor anchor,
   });

@@ -4,11 +4,14 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:porcelain_photo_booth/core/design_system/appearance.dart';
 import 'package:porcelain_photo_booth/core/routing/route_paths.dart';
+import 'package:porcelain_photo_booth/domain/backup/backup_manifest.dart';
 import 'package:porcelain_photo_booth/domain/delivery/consent.dart';
 import 'package:porcelain_photo_booth/domain/delivery/delivery_intent.dart';
 import 'package:porcelain_photo_booth/domain/delivery/delivery_settings.dart';
 import 'package:porcelain_photo_booth/domain/models/booth_event.dart';
+import 'package:porcelain_photo_booth/domain/services/backup_service.dart';
 import 'package:porcelain_photo_booth/domain/services/camera_service.dart';
+import 'package:porcelain_photo_booth/domain/services/operator_files.dart';
 import 'package:porcelain_photo_booth/domain/session/guest_flow.dart';
 import 'package:porcelain_photo_booth/features/booth/booth_copy.dart';
 import 'package:porcelain_photo_booth/features/booth/delivery_copy.dart';
@@ -23,6 +26,7 @@ import 'package:porcelain_photo_booth/shared/gallery/gallery_copy.dart';
 import 'package:porcelain_photo_booth/shared/operator_access/access_copy.dart';
 
 import 'app_harness.dart';
+import 'fake_backup.dart';
 import 'fake_delivery.dart';
 import 'fake_export.dart';
 import 'fake_gallery.dart';
@@ -49,6 +53,7 @@ final class ScreenSpec {
     this.paired = false,
     this.offline = false,
     this.texts,
+    this.backups,
   });
 
   final String location;
@@ -96,6 +101,9 @@ final class ScreenSpec {
     MemoryDeliverySecrets secrets,
   )?
   texts;
+
+  /// Backups and restores, when the screen needs a particular state (M10).
+  final FakeBackupService Function()? backups;
 }
 
 Future<void> _tap(WidgetTester tester, String text) async {
@@ -116,6 +124,20 @@ Future<void> _toRecoveryStep(WidgetTester tester) async {
   await _toPinStep(tester);
   await enterPin(tester, testPin);
   await enterPin(tester, testPin);
+}
+
+Future<void> _toRestore(WidgetTester tester) =>
+    _tap(tester, 'Restore from a backup');
+
+/// Chooses a backup on the first screen; [FakeBackupService] checks it.
+Future<void> _chooseBackup(WidgetTester tester, TestBooth booth) async {
+  await _toRestore(tester);
+  booth.files.nextStream = PickedStream(
+    name: 'porcelain-backup-20261114-2341.tar',
+    length: 1887436800,
+    open: () => const Stream.empty(),
+  );
+  await _tap(tester, 'Choose backup file');
 }
 
 Future<void> _toBoothStep(WidgetTester tester) async {
@@ -364,6 +386,11 @@ final screens = <String, ScreenSpec>{
     paired: true,
     texts: _texts,
   ),
+  'settings backup': const ScreenSpec('/studio/settings?section=backup'),
+  'settings backup made': ScreenSpec(
+    '/studio/settings?section=backup',
+    then: (tester) => _tap(tester, 'Make a backup'),
+  ),
   'settings booth': const ScreenSpec('/studio/settings?section=booth'),
   'settings about': const ScreenSpec('/studio/settings?section=about'),
   'diagnostics': const ScreenSpec('/studio/diagnostics'),
@@ -417,6 +444,35 @@ final screens = <String, ScreenSpec>{
     '/',
     startAs: StartAs.setup,
     then: _toBoothStep,
+  ),
+  'setup restore': const ScreenSpec(
+    '/',
+    startAs: StartAs.setup,
+    then: _toRestore,
+  ),
+  'setup restore checked': const ScreenSpec(
+    '/',
+    startAs: StartAs.setup,
+    session: _chooseBackup,
+  ),
+  'setup restore refused': ScreenSpec(
+    '/',
+    startAs: StartAs.setup,
+    backups: () =>
+        FakeBackupService()
+          ..nextFailure = const BackupException(BackupProblem.unsafeArchive),
+    session: _chooseBackup,
+  ),
+  'setup restored': ScreenSpec(
+    '/',
+    startAs: StartAs.setup,
+    backups: () => FakeBackupService()
+      ..pendingReport = RestoreReport(
+        createdAtUtc: FakeBackupService.made,
+        boothName: 'Front entrance',
+        counts: FakeBackupService.counts,
+        closedDeliveries: 2,
+      ),
   ),
   'unlock': const ScreenSpec('/', startAs: StartAs.locked),
   'unlock recovery': ScreenSpec(
@@ -976,6 +1032,7 @@ Future<void> show(
         ? seedTemplateDocuments
         : null,
     camera: spec.camera?.call(),
+    backups: spec.backups?.call(),
     settle: settles(name) && !spec.renders,
   );
   if (spec.renders) {

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/access/access_controller.dart';
+import '../../core/booth/booth_providers.dart';
 import '../../core/design_system/appearance.dart';
 import '../../core/design_system/porcelain_icons.dart';
 import '../../core/design_system/porcelain_metrics.dart';
@@ -12,6 +13,8 @@ import '../../core/design_system/theme_profiles.dart';
 import '../../core/di/service_providers.dart';
 import '../../domain/models/booth_profile.dart';
 import '../../domain/services/operator_auth_service.dart';
+import '../../shared/backup/backup_copy.dart';
+import '../../shared/formatters/date_format.dart';
 import '../../shared/formatters/theme_profile_names.dart';
 import '../../shared/guest/guest_layout.dart';
 import '../../shared/operator_access/create_pin_flow.dart';
@@ -24,6 +27,7 @@ import '../../shared/widgets/porcelain_toast.dart';
 import '../../shared/widgets/theme_profile_card.dart';
 import '../../shared/widgets/tone.dart';
 import '../../shared/widgets/wordmark.dart';
+import 'restore_backup_panel.dart';
 
 enum SetupStep { welcome, privacy, pin, recovery, booth }
 
@@ -50,9 +54,16 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
   var _theme = PorcelainThemeProfile.porcelainStudio;
   var _finishing = false;
 
+  /// The welcome step shows the restore panel instead (M10).
+  var _restoring = false;
+
   @override
   void initState() {
     super.initState();
+    // After a restore, the restored booth's name (setup runs again for a
+    // new PIN and recovery code).
+    final restored = ref.read(startupProvider).value?.profile.name;
+    if (restored != null && restored.trim().isNotEmpty) _name.text = restored;
     _name.addListener(() => setState(() {}));
   }
 
@@ -130,7 +141,12 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop && previous != null) _go(previous);
+        if (didPop) return;
+        if (_restoring) {
+          setState(() => _restoring = false);
+        } else if (previous != null) {
+          _go(previous);
+        }
       },
       child: Scaffold(
         body: GuestBackdrop(
@@ -160,25 +176,29 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Row(
-                              children: [
-                                SizedBox(
-                                  height: PorcelainSize.buttonCompact,
-                                  child: previous == null || _finishing
-                                      ? null
-                                      : PorcelainButton(
-                                          label: 'Back',
-                                          icon: PorcelainIcons.back,
-                                          variant: PorcelainButtonVariant.quiet,
-                                          size: PorcelainButtonSize.compact,
-                                          onPressed: () => _go(previous),
-                                        ),
-                                ),
-                                const SizedBox(width: PorcelainSpace.md),
-                                Expanded(child: _Progress(step: _step)),
-                              ],
-                            ),
-                            const SizedBox(height: PorcelainSpace.xl),
+                            // A restore is not one of setup's steps.
+                            if (!_restoring) ...[
+                              Row(
+                                children: [
+                                  SizedBox(
+                                    height: PorcelainSize.buttonCompact,
+                                    child: previous == null || _finishing
+                                        ? null
+                                        : PorcelainButton(
+                                            label: 'Back',
+                                            icon: PorcelainIcons.back,
+                                            variant:
+                                                PorcelainButtonVariant.quiet,
+                                            size: PorcelainButtonSize.compact,
+                                            onPressed: () => _go(previous),
+                                          ),
+                                  ),
+                                  const SizedBox(width: PorcelainSpace.md),
+                                  Expanded(child: _Progress(step: _step)),
+                                ],
+                              ),
+                              const SizedBox(height: PorcelainSpace.xl),
+                            ],
                             AnimatedSize(
                               duration: const Duration(milliseconds: 200),
                               alignment: Alignment.topCenter,
@@ -204,7 +224,12 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
   Widget _content(PorcelainTheme theme) {
     final colors = theme.colors;
     switch (_step) {
+      case SetupStep.welcome when _restoring:
+        return RestoreBackupPanel(
+          onCancel: () => setState(() => _restoring = false),
+        );
       case SetupStep.welcome:
+        final restored = ref.watch(restoreReportProvider).value;
         return Column(
           children: [
             const PorcelainWordmark(
@@ -217,28 +242,43 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
             Semantics(
               header: true,
               child: Text(
-                'Welcome',
+                restored == null ? 'Welcome' : 'Backup restored',
                 textAlign: TextAlign.center,
                 style: theme.text.displaySmall,
               ),
             ),
             const SizedBox(height: PorcelainSpace.sm),
             Text(
-              "Let's set this tablet up as your photo booth. It takes a "
-              'couple of minutes and needs no internet connection or '
-              'account.',
+              restored == null
+                  ? "Let's set this tablet up as your photo booth. It takes a "
+                        'couple of minutes and needs no internet connection '
+                        'or account.'
+                  : '${BackupCopy.contents(restored.counts)} are back, from '
+                        'the backup made '
+                        '${formatTimestamp(restored.createdAtUtc.toLocal())}. '
+                        'Choose a new PIN and recovery code to finish.'
+                        '${restored.closedDeliveries == 0 ? '' : ' Texts that were waiting were closed: their numbers are never in a backup.'}',
               textAlign: TextAlign.center,
               style: theme.text.bodyLarge.copyWith(color: colors.inkMuted),
             ),
             const SizedBox(height: PorcelainSpace.xxl),
             PorcelainButton(
-              label: 'Begin setup',
+              label: restored == null ? 'Begin setup' : 'Continue',
               icon: PorcelainIcons.start,
               variant: PorcelainButtonVariant.primary,
               size: PorcelainButtonSize.large,
               autofocus: true,
               onPressed: () => _go(SetupStep.privacy),
             ),
+            if (restored == null) ...[
+              const SizedBox(height: PorcelainSpace.md),
+              PorcelainButton(
+                label: 'Restore from a backup',
+                icon: PorcelainIcons.restoreBackup,
+                variant: PorcelainButtonVariant.quiet,
+                onPressed: () => setState(() => _restoring = true),
+              ),
+            ],
           ],
         );
       case SetupStep.privacy:

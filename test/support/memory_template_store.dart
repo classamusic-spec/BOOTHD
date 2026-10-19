@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:porcelain_photo_booth/domain/models/template_revision_summary.dart';
@@ -496,5 +497,37 @@ final class FakeOperatorFiles implements OperatorFiles {
   }) async {
     shared.add((fileName: fileName, mimeType: mimeType, bytes: bytes));
     return shareOutcome;
+  }
+
+  /// What the next [pickStream] returns (null: the operator cancelled).
+  PickedStream? nextStream;
+
+  /// Files offered by path, with their contents when offered.
+  final sharedFiles = <({String path, String mimeType, int bytes})>[];
+
+  @override
+  Future<PickedStream?> pickStream(PickableFile kind) async {
+    picks.add(kind);
+    final error = nextPickError;
+    nextPickError = null;
+    if (error != null) throw error;
+    final file = nextStream;
+    nextStream = null;
+    return file;
+  }
+
+  @override
+  Future<ShareReport> shareFile(
+    String path, {
+    required String mimeType,
+    required ShareAnchor anchor,
+  }) async {
+    final file = File(path);
+    sharedFiles.add((
+      path: path,
+      mimeType: mimeType,
+      bytes: file.existsSync() ? file.lengthSync() : -1,
+    ));
+    return ShareReport(shareOutcome);
   }
 }
