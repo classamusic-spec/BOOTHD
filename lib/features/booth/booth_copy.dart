@@ -37,7 +37,7 @@ abstract final class BoothCopy {
       count == 1 ? '1 retake left' : '$count retakes left';
   static String photoNumber(int number) => 'Photo $number';
   static const confirmRetakeTitle = 'Take them all again?';
-  static const goBack = 'Go back';
+  static const cancel = 'Cancel';
   static const confirmRetakeBody =
       'These photos will be replaced by the new ones.';
 
@@ -58,10 +58,10 @@ abstract final class BoothCopy {
   static const pausedSafe = 'Your photos so far are safe.';
   static const pausedBody = "Tap Continue when you're ready.";
 
-  // S29 Problems: plain words, Try again or a way back to the start.
+  // S29 Problems: plain words, Try again or a way back to the welcome.
   static const tryAgain = 'Try again';
   static const startOver = 'Start over';
-  static const backToStart = 'Back to start';
+  static const done = 'Done';
 
   static (String, String) problem(
     GuestProblemKind kind, {

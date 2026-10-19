@@ -89,10 +89,13 @@ class _GuestReviewState extends State<GuestReview> {
                         : null,
                   );
                   if (landscape) {
+                    // Wider on the right, clear of the garland there.
                     return Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: scale(PorcelainSpace.huge),
-                        vertical: scale(PorcelainSpace.xl),
+                      padding: EdgeInsets.fromLTRB(
+                        scale(PorcelainSpace.huge),
+                        scale(PorcelainSpace.xl),
+                        scale(PorcelainSpace.giant + PorcelainSpace.xxl),
+                        scale(PorcelainSpace.xl),
                       ),
                       child: Row(
                         children: [
@@ -464,7 +467,7 @@ class _ConfirmRetakeAll extends StatelessWidget {
                               runSpacing: scale(PorcelainSpace.md),
                               children: [
                                 PorcelainButton(
-                                  label: BoothCopy.goBack,
+                                  label: BoothCopy.cancel,
                                   size: PorcelainButtonSize.guest,
                                   caps: true,
                                   onPressed: onCancel,

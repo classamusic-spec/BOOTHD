@@ -1,7 +1,8 @@
 // AC-0203 (no dead controls), AC-0204 (portrait and landscape tablet
 // layouts without overflow), AC-0205 and AC-0208 (contrast, labels and
 // touch targets on every screen in both orientations), for every screen
-// including M03's setup, PIN, event, launch-check and Booth Mode screens.
+// including M03's setup, PIN, event, launch-check and Booth Mode screens
+// and M07's guest session screens.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:porcelain_photo_booth/core/design_system/appearance.dart';
@@ -12,7 +13,11 @@ import '../support/screen_catalog.dart';
 import '../support/tablet_viewports.dart';
 
 void main() {
-  for (final name in screens.keys) {
+  for (final name in [
+    ...screens.keys,
+    // M07's guest session screens; the dark variants are for goldens.
+    ...boothSessionScreens.keys.where((name) => !name.endsWith(' dark')),
+  ]) {
     group(name, () {
       for (final viewport in TabletViewport.values) {
         testWidgets('lays out without overflow at ${viewport.name}', (

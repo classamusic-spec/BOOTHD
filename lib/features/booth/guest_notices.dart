@@ -102,7 +102,7 @@ class GuestProblemNotice extends StatelessWidget {
             ]
           : [
               PorcelainButton(
-                label: BoothCopy.backToStart,
+                label: BoothCopy.done,
                 variant: PorcelainButtonVariant.primary,
                 size: PorcelainButtonSize.guest,
                 caps: true,

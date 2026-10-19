@@ -6,7 +6,11 @@ import 'package:porcelain_photo_booth/core/design_system/appearance.dart';
 import 'package:porcelain_photo_booth/core/routing/route_paths.dart';
 import 'package:porcelain_photo_booth/domain/models/booth_event.dart';
 import 'package:porcelain_photo_booth/domain/services/camera_service.dart';
+import 'package:porcelain_photo_booth/domain/session/guest_flow.dart';
 import 'package:porcelain_photo_booth/features/booth/booth_copy.dart';
+import 'package:porcelain_photo_booth/features/booth/guest_camera_stage.dart';
+import 'package:porcelain_photo_booth/features/booth/guest_finished.dart';
+import 'package:porcelain_photo_booth/features/booth/guest_review.dart';
 import 'package:porcelain_photo_booth/features/template_studio/editor_canvas.dart';
 import 'package:porcelain_photo_booth/features/template_studio/layers_panel.dart';
 import 'package:porcelain_photo_booth/shared/operator_access/access_copy.dart';
@@ -266,6 +270,7 @@ final boothSessionScreens = <String, ScreenSpec>{
       await _start(tester);
       await settleRendering(tester, rounds: 10);
       await tester.pumpAndSettle();
+      expect(find.bySemanticsLabel(BoothCopy.chooseTitle), findsOneWidget);
     },
   ),
   'booth get ready': ScreenSpec(
@@ -275,7 +280,10 @@ final boothSessionScreens = <String, ScreenSpec>{
     renders: true,
     boothEventId: SeedIds.active,
     event: _porcelain,
-    session: (tester, booth) => _start(tester),
+    session: (tester, booth) async {
+      await _start(tester);
+      expect(find.byType(GuestCameraStage), findsOneWidget);
+    },
   ),
   'booth get ready dark': ScreenSpec(
     RoutePaths.booth,
@@ -283,7 +291,10 @@ final boothSessionScreens = <String, ScreenSpec>{
     seeded: true,
     renders: true,
     boothEventId: SeedIds.active,
-    session: (tester, booth) => _start(tester),
+    session: (tester, booth) async {
+      await _start(tester);
+      expect(find.byType(GuestCameraStage), findsOneWidget);
+    },
   ),
   'booth snap': ScreenSpec(
     RoutePaths.booth,
@@ -298,6 +309,7 @@ final boothSessionScreens = <String, ScreenSpec>{
       await _countdown(tester);
       // Part-way through the flash.
       await tester.pump(const Duration(milliseconds: 300));
+      expect(find.text(BoothCopy.snap), findsOneWidget);
     },
   ),
   'booth photo saved': ScreenSpec(
@@ -311,6 +323,7 @@ final boothSessionScreens = <String, ScreenSpec>{
       await _start(tester);
       await _countdown(tester);
       await _settlePhotos(tester);
+      expect(find.text(BoothCopy.nextPhotoSoon), findsOneWidget);
     },
   ),
   'booth review': ScreenSpec(
@@ -323,6 +336,7 @@ final boothSessionScreens = <String, ScreenSpec>{
     session: (tester, booth) async {
       await _toReview(tester);
       await _settlePhotos(tester);
+      expect(find.byType(GuestReview), findsOneWidget);
     },
   ),
   'booth review retake all': ScreenSpec(
@@ -336,8 +350,9 @@ final boothSessionScreens = <String, ScreenSpec>{
     ),
     session: (tester, booth) async {
       await _toReview(tester);
-      await tester.tap(find.bySemanticsLabel(BoothCopy.retakeAll));
+      await _press(tester, BoothCopy.retakeAll);
       await _settlePhotos(tester);
+      expect(find.text(BoothCopy.confirmRetakeTitle), findsOneWidget);
     },
   ),
   'booth creating': ScreenSpec(
@@ -350,9 +365,10 @@ final boothSessionScreens = <String, ScreenSpec>{
     session: (tester, booth) async {
       booth.exports.gate = Completer<void>();
       await _toReview(tester);
-      await tester.tap(find.bySemanticsLabel(BoothCopy.keepThese));
+      await _press(tester, BoothCopy.keepThese);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text(BoothCopy.creatingTitle), findsOneWidget);
     },
   ),
   'booth finished': ScreenSpec(
@@ -364,9 +380,10 @@ final boothSessionScreens = <String, ScreenSpec>{
     event: _porcelain,
     session: (tester, booth) async {
       await _toReview(tester);
-      await tester.tap(find.bySemanticsLabel(BoothCopy.keepThese));
+      await _press(tester, BoothCopy.keepThese);
       await tester.pump();
       await _settlePhotos(tester);
+      expect(find.byType(GuestFinished), findsOneWidget);
     },
   ),
   'booth finished dark': ScreenSpec(
@@ -377,9 +394,10 @@ final boothSessionScreens = <String, ScreenSpec>{
     boothEventId: SeedIds.active,
     session: (tester, booth) async {
       await _toReview(tester);
-      await tester.tap(find.bySemanticsLabel(BoothCopy.keepThese));
+      await _press(tester, BoothCopy.keepThese);
       await tester.pump();
       await _settlePhotos(tester);
+      expect(find.byType(GuestFinished), findsOneWidget);
     },
   ),
   'booth paused': ScreenSpec(
@@ -396,6 +414,7 @@ final boothSessionScreens = <String, ScreenSpec>{
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
       await tester.pumpAndSettle();
+      expect(find.text(BoothCopy.pausedTitle), findsOneWidget);
     },
   ),
   'booth problem': ScreenSpec(
@@ -411,6 +430,10 @@ final boothSessionScreens = <String, ScreenSpec>{
       );
       await _start(tester);
       await tester.pumpAndSettle();
+      expect(
+        find.text(BoothCopy.problem(GuestProblemKind.camera).$1),
+        findsOneWidget,
+      );
     },
   ),
 };
@@ -419,9 +442,18 @@ final boothSessionScreens = <String, ScreenSpec>{
 BoothEvent _porcelain(BoothEvent event) =>
     event.copyWith(guest: event.guest.copyWith(themeOverride: null));
 
+/// Taps the guest control [label], scrolled into view first (large text
+/// can push it below the fold).
+Future<void> _press(WidgetTester tester, String label) async {
+  final control = find.bySemanticsLabel(label).last;
+  await tester.ensureVisible(control);
+  await tester.pump();
+  await tester.tap(control);
+}
+
 /// Start on the welcome, then the camera opens and the countdown shows 3.
 Future<void> _start(WidgetTester tester) async {
-  await tester.tap(find.bySemanticsLabel('Start'));
+  await _press(tester, 'Start');
   for (var i = 0; i < 6; i++) {
     await tester.pump(const Duration(milliseconds: 50));
   }

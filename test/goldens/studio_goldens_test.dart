@@ -3,7 +3,8 @@
 // adds first-run setup, the PIN screens, the event list and editor, the
 // launch checks and Booth Mode; M05 the template library, the new-template
 // chooser, the Template Studio and the template preview; M06 the camera
-// test (on the simulated camera) and the Diagnostics self-test.
+// test (on the simulated camera) and the Diagnostics self-test; M07 every
+// step of a guest session.
 //
 // Rendered at 1x to keep the repository small; text and blur rasterise
 // differently on macOS and Windows, so goldens are compared on Linux only
@@ -80,6 +81,30 @@ const states = [
 /// (the seeded event's is Darkroom Walnut) whatever the Studio's is, so it
 /// is shown once per size.
 const booth = ['booth welcome', 'booth operator'];
+
+/// Guest sessions (M07): every step at the iPad sizes in the booth's own
+/// theme, as on the owner's reference boards, two of them in the event's
+/// dark theme; the camera, review and finished screens at the Android
+/// sizes too.
+const boothSessionIpad = [
+  'booth template choice',
+  'booth get ready',
+  'booth get ready dark',
+  'booth snap',
+  'booth photo saved',
+  'booth review',
+  'booth review retake all',
+  'booth creating',
+  'booth finished',
+  'booth finished dark',
+  'booth paused',
+  'booth problem',
+];
+const boothSessionAndroid = [
+  'booth get ready',
+  'booth review',
+  'booth finished',
+];
 
 /// The default theme at both certified-size candidates; the other profiles
 /// at the iPad size.
@@ -167,6 +192,23 @@ void main() {
 
   for (final name in booth) {
     for (final viewport in allSizes) {
+      golden(
+        name,
+        PorcelainThemeProfile.porcelainStudio,
+        viewport,
+        directory: 'boothMode',
+      );
+    }
+  }
+
+  for (final name in boothSessionIpad) {
+    for (final viewport in [
+      ...ipadSizes,
+      if (boothSessionAndroid.contains(name)) ...[
+        TabletViewport.androidPortrait,
+        TabletViewport.androidLandscape,
+      ],
+    ]) {
       golden(
         name,
         PorcelainThemeProfile.porcelainStudio,
