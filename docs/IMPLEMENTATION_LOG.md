@@ -3,6 +3,150 @@
 Newest milestone first. Each entry: scope, plan, changes, commands and exit
 codes, platform results, spec issues raised, risks, next step.
 
+## M07: end-to-end guest booth and persistent session state machine
+
+- Date: 2026-10-18 to 2026-10-19 (UTC)
+- Authorised by: the owner's instruction "M07" after the M05/M06 report.
+  M07 only: no gallery, re-render or export UI (M08), no phone delivery
+  (M09), no kiosk lock (M10), no printing.
+- Quality bar: CR-001 for every guest screen; CR-002: the guest session
+  follows the owner's guest-flow board (portrait) and the landscape
+  board's S02 to S07 and S11.
+- Host: the same Linux cloud session as M00 to M06. No tablet, no Mac.
+
+### Plan (as executed)
+
+1. Domain: the guest flow as an immutable state machine; the session
+   plan frozen at start (event, template revision, photo-space order,
+   capture and output settings); photos with attempts and rounds, retake
+   rules and slot bindings; a session repository interface.
+2. Schema v5: sessions, their photos and finished photos, with checks and
+   immutability triggers; migration 4 to 5 and a seeded v5 fixture.
+3. Controller: camera, countdown, capture, review, render with a
+   checkpoint, verified save, timeouts, watchdogs, reset; startup
+   recovery and idle finishing of renders left behind.
+4. Guest screens S21 to S27 and S29 from the boards, portrait and
+   landscape, replacing the M03 placeholder Start.
+5. Tests: flow rules, repository, recovery, migration, controller on the
+   simulated camera, end-to-end widget flows at every tablet size, the
+   real renderer and file export, the screen catalog and goldens; a
+   scripted device session for the owner.
+6. ADR-0013, device procedure, CR-002 status, evidence, checks, Android
+   builds, CI.
+
+### Changes
+
+- Domain: `session/guest_flow.dart` (`GuestFlow`, `GuestStage`,
+  `GuestProblem`), `session/session_plan.dart`,
+  `session/session_shots.dart`; `repositories/session_repository.dart`;
+  `services/finished_photos.dart`; `CapturedStillStore.find`;
+  `StorageBudget.minimumSessionFreeBytes`.
+- Infrastructure: schema v5 (`capture_sessions`, `session_photos`,
+  `session_outputs`) with dumps, steps and test schemas;
+  `database/drift_session_repository.dart`;
+  `file_store/managed_finished_photos.dart`; `OriginalStore.find`.
+- Core: `booth/booth_session_controller.dart`,
+  `booth/session_recovery.dart` (run at startup);
+  `composition/store_render_source.dart` (moved from infrastructure so
+  core can render sessions); `CameraSessionController.release`;
+  providers for sessions, finished photos and template summaries.
+- Features: `booth/booth_screen.dart` (was `booth_welcome_screen.dart`;
+  hosts `BoothSessionView`), `booth_copy.dart`, `guest_parts.dart`,
+  `guest_template_choice.dart`, `guest_camera_stage.dart`,
+  `guest_review.dart`, `guest_finished.dart`, `guest_notices.dart`; the
+  Booth Mode operator screen shows the last problem a guest met (what,
+  where to repair it, code, time) once unlocked; the operator preview's
+  Start message no longer mentions M07.
+- Shared and design system: `PorcelainButton.caps` (spaced capitals,
+  plain label for screen readers); guest icons (retake, next guest,
+  paused).
+- Tests: `domain/guest_session_test.dart`,
+  `persistence/session_repository_test.dart`,
+  `core/booth_session_controller_test.dart`,
+  `core/session_recovery_test.dart`,
+  `widgets/booth_session_flow_test.dart`,
+  `rendering/booth_render_test.dart`; migration test and `seed_v5.sql`;
+  the access, events and isolation tests follow the rename and the real
+  Start; support: `FakeExportService`, simulated camera gates and
+  database recording, an event hook in the seed, `TrackedRenderer` (tests
+  wait for renders in flight), thirteen guest session states in the
+  screen catalog (screen checks; 30 goldens).
+- Device: `integration_test/guest_session_test.dart` (one offline session
+  with the production camera, stores, renderer and export).
+- Docs: ADR-0013, `docs/device_tests/M07_DEVICE_PROCEDURE.md`, CR-002
+  status, ADR index.
+
+### Problems met and how they were handled
+
+- `plan` is an SQLite keyword and broke the generated triggers: the
+  column is `plan_json`.
+- The first run of the real screens on the simulated camera showed "The
+  camera needs a moment" at once: readiness was read from the screen
+  controller's copy of the camera status, which follows the service a
+  moment later. The controller reads the service's own status.
+- A session started while the app was going to the background could
+  still start its countdown once the camera opened: preparing now pauses
+  too, and the controller checks the foreground before counting.
+- The finished photo was first read back after the session was recorded
+  as completed; a damaged file would still have been called saved. The
+  order is now render, export, read back against the checksum, record.
+- The first photo of a whole-set retake was refused by the database: a
+  new round existed only in memory. The record now starts a round with
+  its first photo (`SessionShots.record`).
+- A camera that never opens, or a photo that never arrives, would have
+  left a guest on a spinner and blocked the operator's exit: watchdogs
+  turn both into problems with Try again; a late photo is kept unused.
+- Widget tests: the in-memory template store had no documents for the
+  seeded events (the guest saw "The booth isn't quite ready"); fake time
+  fires zero-length timers only when the clock moves
+  (`pump(Duration.zero)`); the lifecycle listener asserts real
+  transitions (tests step through inactive and hidden).
+- The 200% text checks of the new screens were passing without reaching
+  them: Start sat below the fold and the tap missed with only a warning.
+  The catalog now scrolls each control into view and every state asserts
+  the screen it reached.
+- Guest controls first read "Back to start" and "Go back", which the
+  guest-isolation vocabulary rightly refuses: they read "Done" and
+  "Cancel".
+- Landscape review's title ran into the edge garland on Android sizes:
+  the right margin clears it.
+- A full `tool/check.sh` run failed one Studio golden (the template
+  library) whose thumbnail had not finished rendering: tests waited a
+  fixed real time for the renderer, and M07's extra tests running in
+  parallel slowed it. The harness now counts renders in flight
+  (`TrackedRenderer`) and waits until none are left; goldens unchanged.
+- A guest retaking photos again and again would have kept every
+  full-size photo in memory: the controller keeps only the photos in use
+  (the others stay in storage).
+
+### Spec issues raised
+
+- A-10 names `preview`, `resetting`, `recoverableFailure` and
+  `terminalFailure` as states; they map onto `preparing`, the reset step
+  and `failed` with `recoverable` (ADR-0013 section 1).
+- S22 "cancellation only if event allows": events have no such setting;
+  not offered (owner question, ADR-0013 section 11).
+- AC-0702 "pauses/cancels": built as a pause that only the guest's
+  Continue ends, with a fresh countdown.
+- The review timeout's outcome is not specified: built as keep and
+  finish (owner question).
+
+### Risks carried forward
+
+- No physical tablet: the exit gate, AC-0708 and every device half stay
+  BLOCKED; the scripted session and the procedure are ready.
+- Render time and memory with 12 MP originals on the certified tablets
+  are unmeasured (the host renders the strip in about half a second from
+  small stand-in photos).
+- Originals of abandoned sessions and late photos accumulate until M08's
+  gallery and retention tools.
+- iPadOS has still not been compiled (no Mac; CI's manual job not run).
+
+### Next
+
+Owner review of M07. On approval: M08 (operator gallery, export-ready
+workflow and printer boundary).
+
 ## M06: production camera service and Diagnostics camera test
 
 - Date: 2026-10-18 (UTC)

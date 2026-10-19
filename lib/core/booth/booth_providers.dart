@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meta/meta.dart';
 
 import '../../domain/models/booth_event.dart';
 import '../../domain/models/booth_profile.dart';
 import '../../domain/models/template_revision_summary.dart';
+import '../../domain/session/guest_flow.dart';
 import '../../domain/value_objects/appearance.dart';
 import '../di/service_providers.dart';
 import 'session_recovery.dart';
@@ -56,4 +58,31 @@ final templateSummaryProvider =
       (ref, revisionId) async => (await ref
           .watch(templateCatalogProvider)
           .findRevisions([revisionId]))[revisionId],
+    );
+
+/// The last problem a guest met in Booth Mode, and when.
+@immutable
+final class GuestProblemReport {
+  const GuestProblemReport(this.problem, this.atUtc);
+
+  final GuestProblem problem;
+  final DateTime atUtc;
+}
+
+/// Kept for the operator's screen in Booth Mode (S28, S29 operator
+/// recovery): the guest screens never show a code, so this is where the
+/// operator learns what went wrong. Cleared when Booth Mode ends.
+final class LastGuestProblem extends Notifier<GuestProblemReport?> {
+  @override
+  GuestProblemReport? build() => null;
+
+  void report(GuestProblem problem, DateTime atUtc) =>
+      state = GuestProblemReport(problem, atUtc);
+
+  void clear() => state = null;
+}
+
+final lastGuestProblemProvider =
+    NotifierProvider<LastGuestProblem, GuestProblemReport?>(
+      LastGuestProblem.new,
     );

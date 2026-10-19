@@ -13,7 +13,9 @@ import 'package:porcelain_photo_booth/core/di/service_providers.dart';
 import 'package:porcelain_photo_booth/core/diagnostics/device_self_test.dart';
 import 'package:porcelain_photo_booth/core/platform/app_environment.dart';
 import 'package:porcelain_photo_booth/core/routing/route_paths.dart';
+import 'package:porcelain_photo_booth/domain/models/booth_event.dart';
 import 'package:porcelain_photo_booth/domain/services/booth_capabilities.dart';
+import 'package:porcelain_photo_booth/domain/services/composition_renderer.dart';
 import 'package:porcelain_photo_booth/domain/services/managed_storage.dart';
 import 'package:porcelain_photo_booth/domain/services/operator_auth_service.dart';
 import 'package:porcelain_photo_booth/domain/services/operator_secrets.dart';
@@ -266,7 +268,7 @@ Future<TestBooth> pumpApp(
         // Engine work (rendering, decoding) completes only in real time:
         // see settleRendering().
         compositionRendererProvider.overrideWithValue(
-          DartUiCompositionRenderer(),
+          TrackedRenderer(DartUiCompositionRenderer()),
         ),
         // The bundle, read from disk without platform messages.
         bundledAssetLoaderProvider.overrideWithValue(
@@ -310,15 +312,78 @@ Future<void> enterPin(WidgetTester tester, String pin) async {
   await tester.pumpAndSettle();
 }
 
+/// A renderer that counts the renders in flight, so tests can wait for
+/// them rather than for a fixed time (a busy machine renders slower).
+final class TrackedRenderer implements CompositionRenderer {
+  TrackedRenderer(this._inner) {
+    current = this;
+  }
+
+  final CompositionRenderer _inner;
+
+  /// The renderer of the app pumped last. Each app counts its own renders:
+  /// a render a finished test left behind never completes under its fake
+  /// clock, and must not hold up the next test.
+  static TrackedRenderer? current;
+
+  /// Renders started and not yet finished.
+  var inFlight = 0;
+
+  Future<T> _track<T>(Future<T> Function() render) async {
+    inFlight++;
+    try {
+      return await render();
+    } finally {
+      inFlight--;
+    }
+  }
+
+  @override
+  Future<RenderArtifact> renderExport(
+    TemplateRender render, {
+    OutputProfile output = const OutputProfile(),
+    int flattenArgb = 0xFFFFFFFF,
+    bool includePixels = false,
+  }) => _track(
+    () => _inner.renderExport(
+      render,
+      output: output,
+      flattenArgb: flattenArgb,
+      includePixels: includePixels,
+    ),
+  );
+
+  @override
+  Future<RenderArtifact> renderPreview(
+    TemplateRender render, {
+    required int maxWidthPx,
+    required int maxHeightPx,
+    double workspaceMargin = 0,
+    bool includePixels = false,
+  }) => _track(
+    () => _inner.renderPreview(
+      render,
+      maxWidthPx: maxWidthPx,
+      maxHeightPx: maxHeightPx,
+      workspaceMargin: workspaceMargin,
+      includePixels: includePixels,
+    ),
+  );
+}
+
 /// Lets engine work finish in real time (rendering and image decoding do
-/// not advance under the test's fake clock), then decodes every image on
-/// screen the same way and rebuilds.
+/// not advance under the test's fake clock): at least [rounds] short
+/// rounds, then until no render has been in flight for three rounds in a
+/// row (at most about ten seconds), then decodes every image on screen
+/// the same way and rebuilds.
 Future<void> settleRendering(WidgetTester tester, {int rounds = 6}) async {
-  for (var i = 0; i < rounds; i++) {
+  var idle = 0;
+  for (var i = 0; i < rounds || (idle < 3 && i < rounds + 250); i++) {
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 40)),
     );
     await tester.pump();
+    idle = (TrackedRenderer.current?.inFlight ?? 0) == 0 ? idle + 1 : 0;
   }
   await tester.runAsync(() async {
     for (final element in find.byType(Image).evaluate()) {

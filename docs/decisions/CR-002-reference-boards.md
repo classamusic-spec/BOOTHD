@@ -57,6 +57,42 @@ Still open for the owner: the four experiences the app does not have
 (above), countdown styles and sounds (M07), "Black & White" (needs a photo
 filter), and whether a back step inside a guest session is wanted (M07).
 
+## Status after M07 (2026-10-19)
+
+The guest session is built from the guest-flow board (portrait) and the
+landscape board's S02 to S07 and S11, in both orientations, with goldens
+in `test/goldens/boothMode/` (ADR-0013 section 9):
+
+- Choose your style (2, S02): "CHOOSE YOUR STYLE" in spaced capitals,
+  "Pick a design for your photos", the event's templates as rendered
+  cards, the chosen one gold-edged with a check, a wide gold CONTINUE.
+  The board's category chips and carousel arrows are not built: an event
+  offers a few templates, all visible at once.
+- Get ready and countdown (3, 4, S03, S04): "Get ready!" over the live
+  picture in a porcelain frame, the numeral on a pearl plaque with an
+  engraved line, the session's photos as marks below (landscape: beside,
+  as on S06, with "Photo 2 of 3").
+- Capturing (5, S05): a soft flash over the picture and "SNAP!" under a
+  gold-ringed camera on the plaque (no flash with reduced motion).
+- Next shot (S06): "Lovely!", the saved photo's thumbnail in the marks.
+- Review (6, S07): "How do they look?" with the photos as slightly turned
+  prints, RETAKE under each with the retakes left (S25), a gold KEEP
+  THESE; with whole-set retakes, RETAKE ALL asks first. Landscape puts the
+  title and actions beside the photos, as on S07.
+- Finished (8, S11): the finished photo as a turned print, still gold
+  confetti, "Your photos are ready!", a heart, "Saved to the booth
+  gallery." and a pearl NEXT GUEST. The board's "Check your phone" line
+  belongs to phone delivery (M09) and is not shown.
+
+Decided in M07: no back or close control on any guest screen (the board's
+chevrons and X): a guest cannot step back inside a session; retakes and
+the timeouts cover a change of mind. The operator's way out stays the
+hidden hold.
+
+Still open for the owner: countdown styles and sounds (S14), the four
+experiences the app does not have, "Black & White", and the review
+timeout (keep and finish, built, or end unrendered).
+
 ## Verification
 
 Goldens of the changed screens in both orientations next to the boards; the

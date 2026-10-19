@@ -125,6 +125,7 @@ class _BoothSessionViewState extends ConsumerState<BoothSessionView> {
       clock: ref.read(clockProvider),
       ids: ref.read(idGeneratorProvider),
     );
+    _session.addListener(_reportProblem);
     // Finished photos an earlier run could not finish (AC-0707).
     unawaited(_session.finishPending());
     // A request only: the OS may keep another orientation (ADR-0004).
@@ -146,9 +147,23 @@ class _BoothSessionViewState extends ConsumerState<BoothSessionView> {
 
   @override
   void dispose() {
-    _session.dispose();
+    _session
+      ..removeListener(_reportProblem)
+      ..dispose();
     unawaited(SystemChrome.setPreferredOrientations(const []));
     super.dispose();
+  }
+
+  GuestProblem? _reported;
+
+  /// Passes a new problem on to the operator's screen, with its time.
+  void _reportProblem() {
+    final problem = _session.lastProblem;
+    if (problem == null || identical(problem, _reported)) return;
+    _reported = problem;
+    ref
+        .read(lastGuestProblemProvider.notifier)
+        .report(problem, ref.read(clockProvider).now());
   }
 
   Future<void> _leave() async {

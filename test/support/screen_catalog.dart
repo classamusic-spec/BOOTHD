@@ -11,6 +11,7 @@ import 'package:porcelain_photo_booth/features/booth/booth_copy.dart';
 import 'package:porcelain_photo_booth/features/booth/guest_camera_stage.dart';
 import 'package:porcelain_photo_booth/features/booth/guest_finished.dart';
 import 'package:porcelain_photo_booth/features/booth/guest_review.dart';
+import 'package:porcelain_photo_booth/features/booth/hidden_operator_exit.dart';
 import 'package:porcelain_photo_booth/features/template_studio/editor_canvas.dart';
 import 'package:porcelain_photo_booth/features/template_studio/layers_panel.dart';
 import 'package:porcelain_photo_booth/shared/operator_access/access_copy.dart';
@@ -434,6 +435,29 @@ final boothSessionScreens = <String, ScreenSpec>{
         find.text(BoothCopy.problem(GuestProblemKind.camera).$1),
         findsOneWidget,
       );
+    },
+  ),
+  'booth operator problem': ScreenSpec(
+    RoutePaths.booth,
+    startAs: StartAs.booth,
+    seeded: true,
+    renders: true,
+    boothEventId: SeedIds.active,
+    event: _porcelain,
+    session: (tester, booth) async {
+      booth.camera.initializeFailure = const CameraFailure(
+        CameraFailureCode.cameraUnavailable,
+      );
+      await _start(tester);
+      await tester.pumpAndSettle();
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byType(HiddenOperatorExit)),
+      );
+      await tester.pump(const Duration(milliseconds: 3100));
+      await gesture.up();
+      await tester.pumpAndSettle();
+      await enterPin(tester, testPin);
+      expect(find.text(BoothOperatorCopy.lastProblemTitle), findsOneWidget);
     },
   ),
 };

@@ -5,16 +5,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/access/access_controller.dart';
+import '../../core/booth/booth_providers.dart';
 import '../../core/design_system/porcelain_icons.dart';
 import '../../core/design_system/porcelain_metrics.dart';
 import '../../core/design_system/porcelain_theme.dart';
 import '../../core/routing/route_paths.dart';
 import '../../domain/services/operator_auth_service.dart';
+import '../../shared/formatters/date_format.dart';
 import '../../shared/guest/guest_layout.dart';
 import '../../shared/operator_access/pin_layout.dart';
 import '../../shared/operator_access/unlock_panel.dart';
 import '../../shared/widgets/porcelain_button.dart';
 import '../../shared/widgets/porcelain_card.dart';
+import 'booth_copy.dart';
 import 'booth_event_theme.dart';
 
 /// The operator's exit from Booth Mode (S28): PIN, then an explicit Exit
@@ -61,6 +64,7 @@ class _BoothOperatorScreenState extends ConsumerState<BoothOperatorScreen> {
   Future<void> _exit() async {
     setState(() => _exiting = true);
     _idle?.cancel();
+    ref.read(lastGuestProblemProvider.notifier).clear();
     await ref.read(accessControllerProvider.notifier).exitBooth(_proof!);
   }
 
@@ -149,6 +153,11 @@ class _BoothOperatorScreenState extends ConsumerState<BoothOperatorScreen> {
                                         color: colors.inkMuted,
                                       ),
                                     ),
+                                    if (ref.watch(lastGuestProblemProvider)
+                                        case final report?) ...[
+                                      const SizedBox(height: PorcelainSpace.lg),
+                                      _LastProblem(report: report),
+                                    ],
                                     const SizedBox(height: PorcelainSpace.xl),
                                     Wrap(
                                       alignment: WrapAlignment.center,
@@ -183,6 +192,63 @@ class _BoothOperatorScreenState extends ConsumerState<BoothOperatorScreen> {
                 ),
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// What went wrong for the last guest, for the operator only: guests never
+/// see codes (S28, S29 operator recovery).
+class _LastProblem extends StatelessWidget {
+  const _LastProblem({required this.report});
+
+  final GuestProblemReport report;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.porcelain;
+    final colors = theme.colors;
+    return MergeSemantics(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: colors.warningSurface,
+          borderRadius: PorcelainRadius.controlAll,
+          border: Border.all(color: colors.warning),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(PorcelainSpace.md),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(PorcelainIcons.warning, color: colors.warning),
+              const SizedBox(width: PorcelainSpace.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      BoothOperatorCopy.lastProblemTitle,
+                      style: theme.text.titleSmall,
+                    ),
+                    const SizedBox(height: PorcelainSpace.xxs),
+                    Text(
+                      BoothOperatorCopy.problem(report.problem.kind),
+                      style: theme.text.bodyMedium,
+                    ),
+                    const SizedBox(height: PorcelainSpace.xxs),
+                    Text(
+                      BoothOperatorCopy.code(
+                        report.problem.code,
+                        formatTimestamp(report.atUtc.toLocal()),
+                      ),
+                      style: theme.text.bodySmall.copyWith(color: colors.ink),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),

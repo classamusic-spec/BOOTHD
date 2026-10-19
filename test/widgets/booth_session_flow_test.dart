@@ -11,6 +11,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:porcelain_photo_booth/core/booth/booth_providers.dart';
 import 'package:porcelain_photo_booth/core/design_system/appearance.dart';
 import 'package:porcelain_photo_booth/core/routing/route_paths.dart';
 import 'package:porcelain_photo_booth/domain/models/booth_event.dart';
@@ -245,6 +246,37 @@ void main() {
     await _tap(tester, 'Back to the guest screen');
     expect(find.bySemanticsLabel('Start'), findsOneWidget);
     expect(find.byType(GuestReview), findsNothing);
+  });
+
+  testWidgets('the operator, not the guest, sees what went wrong; leaving '
+      'Booth Mode clears it', (tester) async {
+    final camera = SimulatedCameraService()
+      ..initializeFailure = const CameraFailure(
+        CameraFailureCode.cameraUnavailable,
+      );
+    final booth = await _booth(tester, camera: camera);
+    await _tap(tester, 'Start');
+    final code = CameraFailureCode.cameraUnavailable.diagnostic;
+    expect(find.textContaining(code), findsNothing, reason: 'not to guests');
+
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byType(HiddenOperatorExit)),
+    );
+    await tester.pump(const Duration(milliseconds: 3100));
+    await gesture.up();
+    await _frames(tester);
+    expect(find.text(BoothOperatorCopy.lastProblemTitle), findsNothing);
+    await enterPin(tester, testPin);
+    expect(find.text(BoothOperatorCopy.lastProblemTitle), findsOneWidget);
+    expect(
+      find.text(BoothOperatorCopy.problem(GuestProblemKind.camera)),
+      findsOneWidget,
+    );
+    expect(find.textContaining(code), findsOneWidget);
+
+    await _tap(tester, 'Exit Booth Mode');
+    expect(find.byType(StudioShell), findsOneWidget);
+    expect(booth.container.read(lastGuestProblemProvider), isNull);
   });
 
   testWidgets('the guest picks a template, and that revision is used', (

@@ -488,6 +488,7 @@ final class BoothSessionController extends ChangeNotifier {
         _stills[still.id] = still;
         _photos[still.id] = _quiet(_originals.read(still));
         _set(_flow.photoSaved(photo));
+        _forgetReplaced();
       case CaptureFailed(:final failure):
         _fail(GuestProblemKind.capture, failure.code.diagnostic);
       case CaptureIgnored():
@@ -496,6 +497,20 @@ final class BoothSessionController extends ChangeNotifier {
           CameraFailureCode.captureBusy.diagnostic,
         );
     }
+  }
+
+  /// Keeps in memory only the photos the session uses: a retaken photo's
+  /// bytes are let go (its original stays in storage), so retakes never
+  /// pile up full-size photos.
+  void _forgetReplaced() {
+    final shots = _flow.shots;
+    if (shots == null) return;
+    final used = {
+      for (var shot = 0; shot < shots.shotCount; shot++)
+        ?shots.selected(shot)?.originalId,
+    };
+    _photos.removeWhere((id, _) => !used.contains(id));
+    _stills.removeWhere((id, _) => !used.contains(id));
   }
 
   Future<void> _markReviewing() async {

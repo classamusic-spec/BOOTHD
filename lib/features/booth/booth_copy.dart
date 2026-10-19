@@ -92,3 +92,29 @@ abstract final class BoothCopy {
     ),
   };
 }
+
+/// Words for the operator about a problem guests met (S28, S29 operator
+/// recovery): what happened and where to repair it, with the code.
+abstract final class BoothOperatorCopy {
+  static const lastProblemTitle = 'The last problem a guest met';
+
+  static String problem(GuestProblemKind kind) => switch (kind) {
+    GuestProblemKind.camera =>
+      'The camera did not open or stopped working. Exit Booth Mode and '
+          'run Diagnostics > Camera test.',
+    GuestProblemKind.capture =>
+      'A photo could not be taken or saved. Exit Booth Mode, run the '
+          'camera test and check free space in Diagnostics.',
+    GuestProblemKind.render =>
+      'A finished photo could not be made or saved. The booth makes it '
+          'again while it waits for guests.',
+    GuestProblemKind.storage =>
+      'The tablet is nearly full. Free some space before the next guest.',
+    GuestProblemKind.setup =>
+      'The event or its template could not start a session. Exit Booth '
+          "Mode and open the event's launch checks.",
+  };
+
+  static String code(String? code, String time) =>
+      code == null ? time : '$code · $time';
+}
