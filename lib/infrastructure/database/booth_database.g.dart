@@ -7176,6 +7176,1860 @@ class PendingOriginalCommitsCompanion
   }
 }
 
+class CaptureSessions extends Table
+    with TableInfo<CaptureSessions, CaptureSessionRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  CaptureSessions(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL PRIMARY KEY CHECK (length(id) = 36)',
+  );
+  static const VerificationMeta _eventIdMeta = const VerificationMeta(
+    'eventId',
+  );
+  late final GeneratedColumn<String> eventId = GeneratedColumn<String>(
+    'event_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL REFERENCES events(id)ON DELETE RESTRICT',
+  );
+  static const VerificationMeta _templateRevisionIdMeta =
+      const VerificationMeta('templateRevisionId');
+  late final GeneratedColumn<String> templateRevisionId =
+      GeneratedColumn<String>(
+        'template_revision_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+        $customConstraints:
+            'NOT NULL REFERENCES template_revisions(id)ON DELETE RESTRICT',
+      );
+  static const VerificationMeta _plannedShotsMeta = const VerificationMeta(
+    'plannedShots',
+  );
+  late final GeneratedColumn<int> plannedShots = GeneratedColumn<int>(
+    'planned_shots',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (planned_shots BETWEEN 1 AND 4)',
+  );
+  static const VerificationMeta _planJsonMeta = const VerificationMeta(
+    'planJson',
+  );
+  late final GeneratedColumn<String> planJson = GeneratedColumn<String>(
+    'plan_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'NOT NULL CHECK (length(plan_json) BETWEEN 2 AND 65536)',
+  );
+  late final GeneratedColumnWithTypeConverter<SessionStatus, String> status =
+      GeneratedColumn<String>(
+        'status',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL CHECK (status IN (\'capturing\', \'reviewing\', \'rendering\', \'completed\', \'abandoned\', \'failed\'))',
+      ).withConverter<SessionStatus>(CaptureSessions.$converterstatus);
+  late final GeneratedColumnWithTypeConverter<SessionEndReason?, String>
+  endReason = GeneratedColumn<String>(
+    'end_reason',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'CHECK (end_reason IS NULL OR end_reason IN (\'interrupted\', \'timedOut\', \'operatorExit\', \'problem\', \'renderFailed\'))',
+  ).withConverter<SessionEndReason?>(CaptureSessions.$converterendReasonn);
+  static const VerificationMeta _renderAttemptsMeta = const VerificationMeta(
+    'renderAttempts',
+  );
+  late final GeneratedColumn<int> renderAttempts = GeneratedColumn<int>(
+    'render_attempts',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (render_attempts >= 0)',
+    defaultValue: const CustomExpression('0'),
+  );
+  static const VerificationMeta _outputIdMeta = const VerificationMeta(
+    'outputId',
+  );
+  late final GeneratedColumn<String> outputId = GeneratedColumn<String>(
+    'output_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'CHECK (output_id IS NULL OR length(output_id) = 36)',
+  );
+  static const VerificationMeta _startedAtMeta = const VerificationMeta(
+    'startedAt',
+  );
+  late final GeneratedColumn<DateTime> startedAt = GeneratedColumn<DateTime>(
+    'started_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _endedAtMeta = const VerificationMeta(
+    'endedAt',
+  );
+  late final GeneratedColumn<DateTime> endedAt = GeneratedColumn<DateTime>(
+    'ended_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    eventId,
+    templateRevisionId,
+    plannedShots,
+    planJson,
+    status,
+    endReason,
+    renderAttempts,
+    outputId,
+    startedAt,
+    updatedAt,
+    endedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'capture_sessions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CaptureSessionRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('event_id')) {
+      context.handle(
+        _eventIdMeta,
+        eventId.isAcceptableOrUnknown(data['event_id']!, _eventIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_eventIdMeta);
+    }
+    if (data.containsKey('template_revision_id')) {
+      context.handle(
+        _templateRevisionIdMeta,
+        templateRevisionId.isAcceptableOrUnknown(
+          data['template_revision_id']!,
+          _templateRevisionIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_templateRevisionIdMeta);
+    }
+    if (data.containsKey('planned_shots')) {
+      context.handle(
+        _plannedShotsMeta,
+        plannedShots.isAcceptableOrUnknown(
+          data['planned_shots']!,
+          _plannedShotsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_plannedShotsMeta);
+    }
+    if (data.containsKey('plan_json')) {
+      context.handle(
+        _planJsonMeta,
+        planJson.isAcceptableOrUnknown(data['plan_json']!, _planJsonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_planJsonMeta);
+    }
+    if (data.containsKey('render_attempts')) {
+      context.handle(
+        _renderAttemptsMeta,
+        renderAttempts.isAcceptableOrUnknown(
+          data['render_attempts']!,
+          _renderAttemptsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('output_id')) {
+      context.handle(
+        _outputIdMeta,
+        outputId.isAcceptableOrUnknown(data['output_id']!, _outputIdMeta),
+      );
+    }
+    if (data.containsKey('started_at')) {
+      context.handle(
+        _startedAtMeta,
+        startedAt.isAcceptableOrUnknown(data['started_at']!, _startedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_startedAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('ended_at')) {
+      context.handle(
+        _endedAtMeta,
+        endedAt.isAcceptableOrUnknown(data['ended_at']!, _endedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CaptureSessionRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CaptureSessionRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      eventId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}event_id'],
+      )!,
+      templateRevisionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}template_revision_id'],
+      )!,
+      plannedShots: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}planned_shots'],
+      )!,
+      planJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}plan_json'],
+      )!,
+      status: CaptureSessions.$converterstatus.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}status'],
+        )!,
+      ),
+      endReason: CaptureSessions.$converterendReasonn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}end_reason'],
+        ),
+      ),
+      renderAttempts: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}render_attempts'],
+      )!,
+      outputId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}output_id'],
+      ),
+      startedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}started_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      endedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}ended_at'],
+      ),
+    );
+  }
+
+  @override
+  CaptureSessions createAlias(String alias) {
+    return CaptureSessions(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<SessionStatus, String, String> $converterstatus =
+      const EnumNameConverter<SessionStatus>(SessionStatus.values);
+  static JsonTypeConverter2<SessionEndReason, String, String>
+  $converterendReason = const EnumNameConverter<SessionEndReason>(
+    SessionEndReason.values,
+  );
+  static JsonTypeConverter2<SessionEndReason?, String?, String?>
+  $converterendReasonn = JsonTypeConverter2.asNullable($converterendReason);
+  @override
+  List<String> get customConstraints => const [
+    'CHECK((status IN (\'completed\', \'abandoned\', \'failed\'))=(ended_at IS NOT NULL))',
+    'CHECK((status = \'completed\')=(output_id IS NOT NULL))',
+    'CHECK((status IN (\'abandoned\', \'failed\'))=(end_reason IS NOT NULL))',
+  ];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class CaptureSessionRow extends DataClass
+    implements Insertable<CaptureSessionRow> {
+  final String id;
+  final String eventId;
+  final String templateRevisionId;
+  final int plannedShots;
+  final String planJson;
+  final SessionStatus status;
+  final SessionEndReason? endReason;
+  final int renderAttempts;
+  final String? outputId;
+  final DateTime startedAt;
+  final DateTime updatedAt;
+  final DateTime? endedAt;
+  const CaptureSessionRow({
+    required this.id,
+    required this.eventId,
+    required this.templateRevisionId,
+    required this.plannedShots,
+    required this.planJson,
+    required this.status,
+    this.endReason,
+    required this.renderAttempts,
+    this.outputId,
+    required this.startedAt,
+    required this.updatedAt,
+    this.endedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['event_id'] = Variable<String>(eventId);
+    map['template_revision_id'] = Variable<String>(templateRevisionId);
+    map['planned_shots'] = Variable<int>(plannedShots);
+    map['plan_json'] = Variable<String>(planJson);
+    {
+      map['status'] = Variable<String>(
+        CaptureSessions.$converterstatus.toSql(status),
+      );
+    }
+    if (!nullToAbsent || endReason != null) {
+      map['end_reason'] = Variable<String>(
+        CaptureSessions.$converterendReasonn.toSql(endReason),
+      );
+    }
+    map['render_attempts'] = Variable<int>(renderAttempts);
+    if (!nullToAbsent || outputId != null) {
+      map['output_id'] = Variable<String>(outputId);
+    }
+    map['started_at'] = Variable<DateTime>(startedAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || endedAt != null) {
+      map['ended_at'] = Variable<DateTime>(endedAt);
+    }
+    return map;
+  }
+
+  CaptureSessionsCompanion toCompanion(bool nullToAbsent) {
+    return CaptureSessionsCompanion(
+      id: Value(id),
+      eventId: Value(eventId),
+      templateRevisionId: Value(templateRevisionId),
+      plannedShots: Value(plannedShots),
+      planJson: Value(planJson),
+      status: Value(status),
+      endReason: endReason == null && nullToAbsent
+          ? const Value.absent()
+          : Value(endReason),
+      renderAttempts: Value(renderAttempts),
+      outputId: outputId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(outputId),
+      startedAt: Value(startedAt),
+      updatedAt: Value(updatedAt),
+      endedAt: endedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(endedAt),
+    );
+  }
+
+  factory CaptureSessionRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CaptureSessionRow(
+      id: serializer.fromJson<String>(json['id']),
+      eventId: serializer.fromJson<String>(json['event_id']),
+      templateRevisionId: serializer.fromJson<String>(
+        json['template_revision_id'],
+      ),
+      plannedShots: serializer.fromJson<int>(json['planned_shots']),
+      planJson: serializer.fromJson<String>(json['plan_json']),
+      status: CaptureSessions.$converterstatus.fromJson(
+        serializer.fromJson<String>(json['status']),
+      ),
+      endReason: CaptureSessions.$converterendReasonn.fromJson(
+        serializer.fromJson<String?>(json['end_reason']),
+      ),
+      renderAttempts: serializer.fromJson<int>(json['render_attempts']),
+      outputId: serializer.fromJson<String?>(json['output_id']),
+      startedAt: serializer.fromJson<DateTime>(json['started_at']),
+      updatedAt: serializer.fromJson<DateTime>(json['updated_at']),
+      endedAt: serializer.fromJson<DateTime?>(json['ended_at']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'event_id': serializer.toJson<String>(eventId),
+      'template_revision_id': serializer.toJson<String>(templateRevisionId),
+      'planned_shots': serializer.toJson<int>(plannedShots),
+      'plan_json': serializer.toJson<String>(planJson),
+      'status': serializer.toJson<String>(
+        CaptureSessions.$converterstatus.toJson(status),
+      ),
+      'end_reason': serializer.toJson<String?>(
+        CaptureSessions.$converterendReasonn.toJson(endReason),
+      ),
+      'render_attempts': serializer.toJson<int>(renderAttempts),
+      'output_id': serializer.toJson<String?>(outputId),
+      'started_at': serializer.toJson<DateTime>(startedAt),
+      'updated_at': serializer.toJson<DateTime>(updatedAt),
+      'ended_at': serializer.toJson<DateTime?>(endedAt),
+    };
+  }
+
+  CaptureSessionRow copyWith({
+    String? id,
+    String? eventId,
+    String? templateRevisionId,
+    int? plannedShots,
+    String? planJson,
+    SessionStatus? status,
+    Value<SessionEndReason?> endReason = const Value.absent(),
+    int? renderAttempts,
+    Value<String?> outputId = const Value.absent(),
+    DateTime? startedAt,
+    DateTime? updatedAt,
+    Value<DateTime?> endedAt = const Value.absent(),
+  }) => CaptureSessionRow(
+    id: id ?? this.id,
+    eventId: eventId ?? this.eventId,
+    templateRevisionId: templateRevisionId ?? this.templateRevisionId,
+    plannedShots: plannedShots ?? this.plannedShots,
+    planJson: planJson ?? this.planJson,
+    status: status ?? this.status,
+    endReason: endReason.present ? endReason.value : this.endReason,
+    renderAttempts: renderAttempts ?? this.renderAttempts,
+    outputId: outputId.present ? outputId.value : this.outputId,
+    startedAt: startedAt ?? this.startedAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    endedAt: endedAt.present ? endedAt.value : this.endedAt,
+  );
+  CaptureSessionRow copyWithCompanion(CaptureSessionsCompanion data) {
+    return CaptureSessionRow(
+      id: data.id.present ? data.id.value : this.id,
+      eventId: data.eventId.present ? data.eventId.value : this.eventId,
+      templateRevisionId: data.templateRevisionId.present
+          ? data.templateRevisionId.value
+          : this.templateRevisionId,
+      plannedShots: data.plannedShots.present
+          ? data.plannedShots.value
+          : this.plannedShots,
+      planJson: data.planJson.present ? data.planJson.value : this.planJson,
+      status: data.status.present ? data.status.value : this.status,
+      endReason: data.endReason.present ? data.endReason.value : this.endReason,
+      renderAttempts: data.renderAttempts.present
+          ? data.renderAttempts.value
+          : this.renderAttempts,
+      outputId: data.outputId.present ? data.outputId.value : this.outputId,
+      startedAt: data.startedAt.present ? data.startedAt.value : this.startedAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      endedAt: data.endedAt.present ? data.endedAt.value : this.endedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CaptureSessionRow(')
+          ..write('id: $id, ')
+          ..write('eventId: $eventId, ')
+          ..write('templateRevisionId: $templateRevisionId, ')
+          ..write('plannedShots: $plannedShots, ')
+          ..write('planJson: $planJson, ')
+          ..write('status: $status, ')
+          ..write('endReason: $endReason, ')
+          ..write('renderAttempts: $renderAttempts, ')
+          ..write('outputId: $outputId, ')
+          ..write('startedAt: $startedAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('endedAt: $endedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    eventId,
+    templateRevisionId,
+    plannedShots,
+    planJson,
+    status,
+    endReason,
+    renderAttempts,
+    outputId,
+    startedAt,
+    updatedAt,
+    endedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CaptureSessionRow &&
+          other.id == this.id &&
+          other.eventId == this.eventId &&
+          other.templateRevisionId == this.templateRevisionId &&
+          other.plannedShots == this.plannedShots &&
+          other.planJson == this.planJson &&
+          other.status == this.status &&
+          other.endReason == this.endReason &&
+          other.renderAttempts == this.renderAttempts &&
+          other.outputId == this.outputId &&
+          other.startedAt == this.startedAt &&
+          other.updatedAt == this.updatedAt &&
+          other.endedAt == this.endedAt);
+}
+
+class CaptureSessionsCompanion extends UpdateCompanion<CaptureSessionRow> {
+  final Value<String> id;
+  final Value<String> eventId;
+  final Value<String> templateRevisionId;
+  final Value<int> plannedShots;
+  final Value<String> planJson;
+  final Value<SessionStatus> status;
+  final Value<SessionEndReason?> endReason;
+  final Value<int> renderAttempts;
+  final Value<String?> outputId;
+  final Value<DateTime> startedAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> endedAt;
+  final Value<int> rowid;
+  const CaptureSessionsCompanion({
+    this.id = const Value.absent(),
+    this.eventId = const Value.absent(),
+    this.templateRevisionId = const Value.absent(),
+    this.plannedShots = const Value.absent(),
+    this.planJson = const Value.absent(),
+    this.status = const Value.absent(),
+    this.endReason = const Value.absent(),
+    this.renderAttempts = const Value.absent(),
+    this.outputId = const Value.absent(),
+    this.startedAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.endedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CaptureSessionsCompanion.insert({
+    required String id,
+    required String eventId,
+    required String templateRevisionId,
+    required int plannedShots,
+    required String planJson,
+    required SessionStatus status,
+    this.endReason = const Value.absent(),
+    this.renderAttempts = const Value.absent(),
+    this.outputId = const Value.absent(),
+    required DateTime startedAt,
+    required DateTime updatedAt,
+    this.endedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       eventId = Value(eventId),
+       templateRevisionId = Value(templateRevisionId),
+       plannedShots = Value(plannedShots),
+       planJson = Value(planJson),
+       status = Value(status),
+       startedAt = Value(startedAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<CaptureSessionRow> custom({
+    Expression<String>? id,
+    Expression<String>? eventId,
+    Expression<String>? templateRevisionId,
+    Expression<int>? plannedShots,
+    Expression<String>? planJson,
+    Expression<String>? status,
+    Expression<String>? endReason,
+    Expression<int>? renderAttempts,
+    Expression<String>? outputId,
+    Expression<DateTime>? startedAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? endedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (eventId != null) 'event_id': eventId,
+      if (templateRevisionId != null)
+        'template_revision_id': templateRevisionId,
+      if (plannedShots != null) 'planned_shots': plannedShots,
+      if (planJson != null) 'plan_json': planJson,
+      if (status != null) 'status': status,
+      if (endReason != null) 'end_reason': endReason,
+      if (renderAttempts != null) 'render_attempts': renderAttempts,
+      if (outputId != null) 'output_id': outputId,
+      if (startedAt != null) 'started_at': startedAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (endedAt != null) 'ended_at': endedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CaptureSessionsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? eventId,
+    Value<String>? templateRevisionId,
+    Value<int>? plannedShots,
+    Value<String>? planJson,
+    Value<SessionStatus>? status,
+    Value<SessionEndReason?>? endReason,
+    Value<int>? renderAttempts,
+    Value<String?>? outputId,
+    Value<DateTime>? startedAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? endedAt,
+    Value<int>? rowid,
+  }) {
+    return CaptureSessionsCompanion(
+      id: id ?? this.id,
+      eventId: eventId ?? this.eventId,
+      templateRevisionId: templateRevisionId ?? this.templateRevisionId,
+      plannedShots: plannedShots ?? this.plannedShots,
+      planJson: planJson ?? this.planJson,
+      status: status ?? this.status,
+      endReason: endReason ?? this.endReason,
+      renderAttempts: renderAttempts ?? this.renderAttempts,
+      outputId: outputId ?? this.outputId,
+      startedAt: startedAt ?? this.startedAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      endedAt: endedAt ?? this.endedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (eventId.present) {
+      map['event_id'] = Variable<String>(eventId.value);
+    }
+    if (templateRevisionId.present) {
+      map['template_revision_id'] = Variable<String>(templateRevisionId.value);
+    }
+    if (plannedShots.present) {
+      map['planned_shots'] = Variable<int>(plannedShots.value);
+    }
+    if (planJson.present) {
+      map['plan_json'] = Variable<String>(planJson.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(
+        CaptureSessions.$converterstatus.toSql(status.value),
+      );
+    }
+    if (endReason.present) {
+      map['end_reason'] = Variable<String>(
+        CaptureSessions.$converterendReasonn.toSql(endReason.value),
+      );
+    }
+    if (renderAttempts.present) {
+      map['render_attempts'] = Variable<int>(renderAttempts.value);
+    }
+    if (outputId.present) {
+      map['output_id'] = Variable<String>(outputId.value);
+    }
+    if (startedAt.present) {
+      map['started_at'] = Variable<DateTime>(startedAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (endedAt.present) {
+      map['ended_at'] = Variable<DateTime>(endedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CaptureSessionsCompanion(')
+          ..write('id: $id, ')
+          ..write('eventId: $eventId, ')
+          ..write('templateRevisionId: $templateRevisionId, ')
+          ..write('plannedShots: $plannedShots, ')
+          ..write('planJson: $planJson, ')
+          ..write('status: $status, ')
+          ..write('endReason: $endReason, ')
+          ..write('renderAttempts: $renderAttempts, ')
+          ..write('outputId: $outputId, ')
+          ..write('startedAt: $startedAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('endedAt: $endedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class SessionPhotos extends Table
+    with TableInfo<SessionPhotos, SessionPhotoRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  SessionPhotos(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _sessionIdMeta = const VerificationMeta(
+    'sessionId',
+  );
+  late final GeneratedColumn<String> sessionId = GeneratedColumn<String>(
+    'session_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'NOT NULL REFERENCES capture_sessions(id)ON DELETE RESTRICT',
+  );
+  static const VerificationMeta _shotIndexMeta = const VerificationMeta(
+    'shotIndex',
+  );
+  late final GeneratedColumn<int> shotIndex = GeneratedColumn<int>(
+    'shot_index',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (shot_index BETWEEN 0 AND 3)',
+  );
+  static const VerificationMeta _attemptMeta = const VerificationMeta(
+    'attempt',
+  );
+  late final GeneratedColumn<int> attempt = GeneratedColumn<int>(
+    'attempt',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (attempt >= 1)',
+  );
+  static const VerificationMeta _roundMeta = const VerificationMeta('round');
+  late final GeneratedColumn<int> round = GeneratedColumn<int>(
+    'round',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (round >= 0 AND round < attempt)',
+  );
+  static const VerificationMeta _slotIndexMeta = const VerificationMeta(
+    'slotIndex',
+  );
+  late final GeneratedColumn<int> slotIndex = GeneratedColumn<int>(
+    'slot_index',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (slot_index BETWEEN 0 AND 7)',
+  );
+  static const VerificationMeta _originalIdMeta = const VerificationMeta(
+    'originalId',
+  );
+  late final GeneratedColumn<String> originalId = GeneratedColumn<String>(
+    'original_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'NOT NULL UNIQUE REFERENCES original_photos(id)ON DELETE RESTRICT',
+  );
+  static const VerificationMeta _capturedAtMeta = const VerificationMeta(
+    'capturedAt',
+  );
+  late final GeneratedColumn<DateTime> capturedAt = GeneratedColumn<DateTime>(
+    'captured_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    sessionId,
+    shotIndex,
+    attempt,
+    round,
+    slotIndex,
+    originalId,
+    capturedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'session_photos';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SessionPhotoRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('session_id')) {
+      context.handle(
+        _sessionIdMeta,
+        sessionId.isAcceptableOrUnknown(data['session_id']!, _sessionIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sessionIdMeta);
+    }
+    if (data.containsKey('shot_index')) {
+      context.handle(
+        _shotIndexMeta,
+        shotIndex.isAcceptableOrUnknown(data['shot_index']!, _shotIndexMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_shotIndexMeta);
+    }
+    if (data.containsKey('attempt')) {
+      context.handle(
+        _attemptMeta,
+        attempt.isAcceptableOrUnknown(data['attempt']!, _attemptMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_attemptMeta);
+    }
+    if (data.containsKey('round')) {
+      context.handle(
+        _roundMeta,
+        round.isAcceptableOrUnknown(data['round']!, _roundMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_roundMeta);
+    }
+    if (data.containsKey('slot_index')) {
+      context.handle(
+        _slotIndexMeta,
+        slotIndex.isAcceptableOrUnknown(data['slot_index']!, _slotIndexMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_slotIndexMeta);
+    }
+    if (data.containsKey('original_id')) {
+      context.handle(
+        _originalIdMeta,
+        originalId.isAcceptableOrUnknown(data['original_id']!, _originalIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_originalIdMeta);
+    }
+    if (data.containsKey('captured_at')) {
+      context.handle(
+        _capturedAtMeta,
+        capturedAt.isAcceptableOrUnknown(data['captured_at']!, _capturedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_capturedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {sessionId, shotIndex, attempt};
+  @override
+  SessionPhotoRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SessionPhotoRow(
+      sessionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}session_id'],
+      )!,
+      shotIndex: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}shot_index'],
+      )!,
+      attempt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}attempt'],
+      )!,
+      round: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}round'],
+      )!,
+      slotIndex: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}slot_index'],
+      )!,
+      originalId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}original_id'],
+      )!,
+      capturedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}captured_at'],
+      )!,
+    );
+  }
+
+  @override
+  SessionPhotos createAlias(String alias) {
+    return SessionPhotos(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const [
+    'PRIMARY KEY(session_id, shot_index, attempt)',
+  ];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class SessionPhotoRow extends DataClass implements Insertable<SessionPhotoRow> {
+  final String sessionId;
+  final int shotIndex;
+  final int attempt;
+  final int round;
+  final int slotIndex;
+  final String originalId;
+  final DateTime capturedAt;
+  const SessionPhotoRow({
+    required this.sessionId,
+    required this.shotIndex,
+    required this.attempt,
+    required this.round,
+    required this.slotIndex,
+    required this.originalId,
+    required this.capturedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['session_id'] = Variable<String>(sessionId);
+    map['shot_index'] = Variable<int>(shotIndex);
+    map['attempt'] = Variable<int>(attempt);
+    map['round'] = Variable<int>(round);
+    map['slot_index'] = Variable<int>(slotIndex);
+    map['original_id'] = Variable<String>(originalId);
+    map['captured_at'] = Variable<DateTime>(capturedAt);
+    return map;
+  }
+
+  SessionPhotosCompanion toCompanion(bool nullToAbsent) {
+    return SessionPhotosCompanion(
+      sessionId: Value(sessionId),
+      shotIndex: Value(shotIndex),
+      attempt: Value(attempt),
+      round: Value(round),
+      slotIndex: Value(slotIndex),
+      originalId: Value(originalId),
+      capturedAt: Value(capturedAt),
+    );
+  }
+
+  factory SessionPhotoRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SessionPhotoRow(
+      sessionId: serializer.fromJson<String>(json['session_id']),
+      shotIndex: serializer.fromJson<int>(json['shot_index']),
+      attempt: serializer.fromJson<int>(json['attempt']),
+      round: serializer.fromJson<int>(json['round']),
+      slotIndex: serializer.fromJson<int>(json['slot_index']),
+      originalId: serializer.fromJson<String>(json['original_id']),
+      capturedAt: serializer.fromJson<DateTime>(json['captured_at']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'session_id': serializer.toJson<String>(sessionId),
+      'shot_index': serializer.toJson<int>(shotIndex),
+      'attempt': serializer.toJson<int>(attempt),
+      'round': serializer.toJson<int>(round),
+      'slot_index': serializer.toJson<int>(slotIndex),
+      'original_id': serializer.toJson<String>(originalId),
+      'captured_at': serializer.toJson<DateTime>(capturedAt),
+    };
+  }
+
+  SessionPhotoRow copyWith({
+    String? sessionId,
+    int? shotIndex,
+    int? attempt,
+    int? round,
+    int? slotIndex,
+    String? originalId,
+    DateTime? capturedAt,
+  }) => SessionPhotoRow(
+    sessionId: sessionId ?? this.sessionId,
+    shotIndex: shotIndex ?? this.shotIndex,
+    attempt: attempt ?? this.attempt,
+    round: round ?? this.round,
+    slotIndex: slotIndex ?? this.slotIndex,
+    originalId: originalId ?? this.originalId,
+    capturedAt: capturedAt ?? this.capturedAt,
+  );
+  SessionPhotoRow copyWithCompanion(SessionPhotosCompanion data) {
+    return SessionPhotoRow(
+      sessionId: data.sessionId.present ? data.sessionId.value : this.sessionId,
+      shotIndex: data.shotIndex.present ? data.shotIndex.value : this.shotIndex,
+      attempt: data.attempt.present ? data.attempt.value : this.attempt,
+      round: data.round.present ? data.round.value : this.round,
+      slotIndex: data.slotIndex.present ? data.slotIndex.value : this.slotIndex,
+      originalId: data.originalId.present
+          ? data.originalId.value
+          : this.originalId,
+      capturedAt: data.capturedAt.present
+          ? data.capturedAt.value
+          : this.capturedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SessionPhotoRow(')
+          ..write('sessionId: $sessionId, ')
+          ..write('shotIndex: $shotIndex, ')
+          ..write('attempt: $attempt, ')
+          ..write('round: $round, ')
+          ..write('slotIndex: $slotIndex, ')
+          ..write('originalId: $originalId, ')
+          ..write('capturedAt: $capturedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    sessionId,
+    shotIndex,
+    attempt,
+    round,
+    slotIndex,
+    originalId,
+    capturedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SessionPhotoRow &&
+          other.sessionId == this.sessionId &&
+          other.shotIndex == this.shotIndex &&
+          other.attempt == this.attempt &&
+          other.round == this.round &&
+          other.slotIndex == this.slotIndex &&
+          other.originalId == this.originalId &&
+          other.capturedAt == this.capturedAt);
+}
+
+class SessionPhotosCompanion extends UpdateCompanion<SessionPhotoRow> {
+  final Value<String> sessionId;
+  final Value<int> shotIndex;
+  final Value<int> attempt;
+  final Value<int> round;
+  final Value<int> slotIndex;
+  final Value<String> originalId;
+  final Value<DateTime> capturedAt;
+  final Value<int> rowid;
+  const SessionPhotosCompanion({
+    this.sessionId = const Value.absent(),
+    this.shotIndex = const Value.absent(),
+    this.attempt = const Value.absent(),
+    this.round = const Value.absent(),
+    this.slotIndex = const Value.absent(),
+    this.originalId = const Value.absent(),
+    this.capturedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SessionPhotosCompanion.insert({
+    required String sessionId,
+    required int shotIndex,
+    required int attempt,
+    required int round,
+    required int slotIndex,
+    required String originalId,
+    required DateTime capturedAt,
+    this.rowid = const Value.absent(),
+  }) : sessionId = Value(sessionId),
+       shotIndex = Value(shotIndex),
+       attempt = Value(attempt),
+       round = Value(round),
+       slotIndex = Value(slotIndex),
+       originalId = Value(originalId),
+       capturedAt = Value(capturedAt);
+  static Insertable<SessionPhotoRow> custom({
+    Expression<String>? sessionId,
+    Expression<int>? shotIndex,
+    Expression<int>? attempt,
+    Expression<int>? round,
+    Expression<int>? slotIndex,
+    Expression<String>? originalId,
+    Expression<DateTime>? capturedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (sessionId != null) 'session_id': sessionId,
+      if (shotIndex != null) 'shot_index': shotIndex,
+      if (attempt != null) 'attempt': attempt,
+      if (round != null) 'round': round,
+      if (slotIndex != null) 'slot_index': slotIndex,
+      if (originalId != null) 'original_id': originalId,
+      if (capturedAt != null) 'captured_at': capturedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SessionPhotosCompanion copyWith({
+    Value<String>? sessionId,
+    Value<int>? shotIndex,
+    Value<int>? attempt,
+    Value<int>? round,
+    Value<int>? slotIndex,
+    Value<String>? originalId,
+    Value<DateTime>? capturedAt,
+    Value<int>? rowid,
+  }) {
+    return SessionPhotosCompanion(
+      sessionId: sessionId ?? this.sessionId,
+      shotIndex: shotIndex ?? this.shotIndex,
+      attempt: attempt ?? this.attempt,
+      round: round ?? this.round,
+      slotIndex: slotIndex ?? this.slotIndex,
+      originalId: originalId ?? this.originalId,
+      capturedAt: capturedAt ?? this.capturedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (sessionId.present) {
+      map['session_id'] = Variable<String>(sessionId.value);
+    }
+    if (shotIndex.present) {
+      map['shot_index'] = Variable<int>(shotIndex.value);
+    }
+    if (attempt.present) {
+      map['attempt'] = Variable<int>(attempt.value);
+    }
+    if (round.present) {
+      map['round'] = Variable<int>(round.value);
+    }
+    if (slotIndex.present) {
+      map['slot_index'] = Variable<int>(slotIndex.value);
+    }
+    if (originalId.present) {
+      map['original_id'] = Variable<String>(originalId.value);
+    }
+    if (capturedAt.present) {
+      map['captured_at'] = Variable<DateTime>(capturedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SessionPhotosCompanion(')
+          ..write('sessionId: $sessionId, ')
+          ..write('shotIndex: $shotIndex, ')
+          ..write('attempt: $attempt, ')
+          ..write('round: $round, ')
+          ..write('slotIndex: $slotIndex, ')
+          ..write('originalId: $originalId, ')
+          ..write('capturedAt: $capturedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class SessionOutputs extends Table
+    with TableInfo<SessionOutputs, SessionOutputRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  SessionOutputs(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL PRIMARY KEY CHECK (length(id) = 36)',
+  );
+  static const VerificationMeta _sessionIdMeta = const VerificationMeta(
+    'sessionId',
+  );
+  late final GeneratedColumn<String> sessionId = GeneratedColumn<String>(
+    'session_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'NOT NULL REFERENCES capture_sessions(id)ON DELETE RESTRICT',
+  );
+  static const VerificationMeta _relativePathMeta = const VerificationMeta(
+    'relativePath',
+  );
+  late final GeneratedColumn<String> relativePath = GeneratedColumn<String>(
+    'relative_path',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL UNIQUE CHECK (relative_path = \'outputs/\' || id || CASE format WHEN \'jpeg\' THEN \'.jpg\' ELSE \'.png\' END)',
+  );
+  static const VerificationMeta _sha256Meta = const VerificationMeta('sha256');
+  late final GeneratedColumn<String> sha256 = GeneratedColumn<String>(
+    'sha256',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (length(sha256) = 64 AND sha256 NOT GLOB \'*[^0-9a-f]*\')',
+  );
+  static const VerificationMeta _byteLengthMeta = const VerificationMeta(
+    'byteLength',
+  );
+  late final GeneratedColumn<int> byteLength = GeneratedColumn<int>(
+    'byte_length',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (byte_length >= 1)',
+  );
+  static const VerificationMeta _widthPxMeta = const VerificationMeta(
+    'widthPx',
+  );
+  late final GeneratedColumn<int> widthPx = GeneratedColumn<int>(
+    'width_px',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (width_px BETWEEN 1 AND 20000)',
+  );
+  static const VerificationMeta _heightPxMeta = const VerificationMeta(
+    'heightPx',
+  );
+  late final GeneratedColumn<int> heightPx = GeneratedColumn<int>(
+    'height_px',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (height_px BETWEEN 1 AND 20000)',
+  );
+  late final GeneratedColumnWithTypeConverter<OutputFormat, String> format =
+      GeneratedColumn<String>(
+        'format',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL CHECK (format IN (\'jpeg\', \'png\'))',
+      ).withConverter<OutputFormat>(SessionOutputs.$converterformat);
+  static const VerificationMeta _renderVersionMeta = const VerificationMeta(
+    'renderVersion',
+  );
+  late final GeneratedColumn<int> renderVersion = GeneratedColumn<int>(
+    'render_version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (render_version >= 1)',
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    sessionId,
+    relativePath,
+    sha256,
+    byteLength,
+    widthPx,
+    heightPx,
+    format,
+    renderVersion,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'session_outputs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SessionOutputRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('session_id')) {
+      context.handle(
+        _sessionIdMeta,
+        sessionId.isAcceptableOrUnknown(data['session_id']!, _sessionIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sessionIdMeta);
+    }
+    if (data.containsKey('relative_path')) {
+      context.handle(
+        _relativePathMeta,
+        relativePath.isAcceptableOrUnknown(
+          data['relative_path']!,
+          _relativePathMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_relativePathMeta);
+    }
+    if (data.containsKey('sha256')) {
+      context.handle(
+        _sha256Meta,
+        sha256.isAcceptableOrUnknown(data['sha256']!, _sha256Meta),
+      );
+    } else if (isInserting) {
+      context.missing(_sha256Meta);
+    }
+    if (data.containsKey('byte_length')) {
+      context.handle(
+        _byteLengthMeta,
+        byteLength.isAcceptableOrUnknown(data['byte_length']!, _byteLengthMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_byteLengthMeta);
+    }
+    if (data.containsKey('width_px')) {
+      context.handle(
+        _widthPxMeta,
+        widthPx.isAcceptableOrUnknown(data['width_px']!, _widthPxMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_widthPxMeta);
+    }
+    if (data.containsKey('height_px')) {
+      context.handle(
+        _heightPxMeta,
+        heightPx.isAcceptableOrUnknown(data['height_px']!, _heightPxMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_heightPxMeta);
+    }
+    if (data.containsKey('render_version')) {
+      context.handle(
+        _renderVersionMeta,
+        renderVersion.isAcceptableOrUnknown(
+          data['render_version']!,
+          _renderVersionMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_renderVersionMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SessionOutputRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SessionOutputRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      sessionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}session_id'],
+      )!,
+      relativePath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}relative_path'],
+      )!,
+      sha256: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sha256'],
+      )!,
+      byteLength: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}byte_length'],
+      )!,
+      widthPx: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}width_px'],
+      )!,
+      heightPx: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}height_px'],
+      )!,
+      format: SessionOutputs.$converterformat.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}format'],
+        )!,
+      ),
+      renderVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}render_version'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  SessionOutputs createAlias(String alias) {
+    return SessionOutputs(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<OutputFormat, String, String> $converterformat =
+      const EnumNameConverter<OutputFormat>(OutputFormat.values);
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class SessionOutputRow extends DataClass
+    implements Insertable<SessionOutputRow> {
+  final String id;
+  final String sessionId;
+  final String relativePath;
+  final String sha256;
+  final int byteLength;
+  final int widthPx;
+  final int heightPx;
+  final OutputFormat format;
+  final int renderVersion;
+  final DateTime createdAt;
+  const SessionOutputRow({
+    required this.id,
+    required this.sessionId,
+    required this.relativePath,
+    required this.sha256,
+    required this.byteLength,
+    required this.widthPx,
+    required this.heightPx,
+    required this.format,
+    required this.renderVersion,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['session_id'] = Variable<String>(sessionId);
+    map['relative_path'] = Variable<String>(relativePath);
+    map['sha256'] = Variable<String>(sha256);
+    map['byte_length'] = Variable<int>(byteLength);
+    map['width_px'] = Variable<int>(widthPx);
+    map['height_px'] = Variable<int>(heightPx);
+    {
+      map['format'] = Variable<String>(
+        SessionOutputs.$converterformat.toSql(format),
+      );
+    }
+    map['render_version'] = Variable<int>(renderVersion);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  SessionOutputsCompanion toCompanion(bool nullToAbsent) {
+    return SessionOutputsCompanion(
+      id: Value(id),
+      sessionId: Value(sessionId),
+      relativePath: Value(relativePath),
+      sha256: Value(sha256),
+      byteLength: Value(byteLength),
+      widthPx: Value(widthPx),
+      heightPx: Value(heightPx),
+      format: Value(format),
+      renderVersion: Value(renderVersion),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory SessionOutputRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SessionOutputRow(
+      id: serializer.fromJson<String>(json['id']),
+      sessionId: serializer.fromJson<String>(json['session_id']),
+      relativePath: serializer.fromJson<String>(json['relative_path']),
+      sha256: serializer.fromJson<String>(json['sha256']),
+      byteLength: serializer.fromJson<int>(json['byte_length']),
+      widthPx: serializer.fromJson<int>(json['width_px']),
+      heightPx: serializer.fromJson<int>(json['height_px']),
+      format: SessionOutputs.$converterformat.fromJson(
+        serializer.fromJson<String>(json['format']),
+      ),
+      renderVersion: serializer.fromJson<int>(json['render_version']),
+      createdAt: serializer.fromJson<DateTime>(json['created_at']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'session_id': serializer.toJson<String>(sessionId),
+      'relative_path': serializer.toJson<String>(relativePath),
+      'sha256': serializer.toJson<String>(sha256),
+      'byte_length': serializer.toJson<int>(byteLength),
+      'width_px': serializer.toJson<int>(widthPx),
+      'height_px': serializer.toJson<int>(heightPx),
+      'format': serializer.toJson<String>(
+        SessionOutputs.$converterformat.toJson(format),
+      ),
+      'render_version': serializer.toJson<int>(renderVersion),
+      'created_at': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  SessionOutputRow copyWith({
+    String? id,
+    String? sessionId,
+    String? relativePath,
+    String? sha256,
+    int? byteLength,
+    int? widthPx,
+    int? heightPx,
+    OutputFormat? format,
+    int? renderVersion,
+    DateTime? createdAt,
+  }) => SessionOutputRow(
+    id: id ?? this.id,
+    sessionId: sessionId ?? this.sessionId,
+    relativePath: relativePath ?? this.relativePath,
+    sha256: sha256 ?? this.sha256,
+    byteLength: byteLength ?? this.byteLength,
+    widthPx: widthPx ?? this.widthPx,
+    heightPx: heightPx ?? this.heightPx,
+    format: format ?? this.format,
+    renderVersion: renderVersion ?? this.renderVersion,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  SessionOutputRow copyWithCompanion(SessionOutputsCompanion data) {
+    return SessionOutputRow(
+      id: data.id.present ? data.id.value : this.id,
+      sessionId: data.sessionId.present ? data.sessionId.value : this.sessionId,
+      relativePath: data.relativePath.present
+          ? data.relativePath.value
+          : this.relativePath,
+      sha256: data.sha256.present ? data.sha256.value : this.sha256,
+      byteLength: data.byteLength.present
+          ? data.byteLength.value
+          : this.byteLength,
+      widthPx: data.widthPx.present ? data.widthPx.value : this.widthPx,
+      heightPx: data.heightPx.present ? data.heightPx.value : this.heightPx,
+      format: data.format.present ? data.format.value : this.format,
+      renderVersion: data.renderVersion.present
+          ? data.renderVersion.value
+          : this.renderVersion,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SessionOutputRow(')
+          ..write('id: $id, ')
+          ..write('sessionId: $sessionId, ')
+          ..write('relativePath: $relativePath, ')
+          ..write('sha256: $sha256, ')
+          ..write('byteLength: $byteLength, ')
+          ..write('widthPx: $widthPx, ')
+          ..write('heightPx: $heightPx, ')
+          ..write('format: $format, ')
+          ..write('renderVersion: $renderVersion, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    sessionId,
+    relativePath,
+    sha256,
+    byteLength,
+    widthPx,
+    heightPx,
+    format,
+    renderVersion,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SessionOutputRow &&
+          other.id == this.id &&
+          other.sessionId == this.sessionId &&
+          other.relativePath == this.relativePath &&
+          other.sha256 == this.sha256 &&
+          other.byteLength == this.byteLength &&
+          other.widthPx == this.widthPx &&
+          other.heightPx == this.heightPx &&
+          other.format == this.format &&
+          other.renderVersion == this.renderVersion &&
+          other.createdAt == this.createdAt);
+}
+
+class SessionOutputsCompanion extends UpdateCompanion<SessionOutputRow> {
+  final Value<String> id;
+  final Value<String> sessionId;
+  final Value<String> relativePath;
+  final Value<String> sha256;
+  final Value<int> byteLength;
+  final Value<int> widthPx;
+  final Value<int> heightPx;
+  final Value<OutputFormat> format;
+  final Value<int> renderVersion;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const SessionOutputsCompanion({
+    this.id = const Value.absent(),
+    this.sessionId = const Value.absent(),
+    this.relativePath = const Value.absent(),
+    this.sha256 = const Value.absent(),
+    this.byteLength = const Value.absent(),
+    this.widthPx = const Value.absent(),
+    this.heightPx = const Value.absent(),
+    this.format = const Value.absent(),
+    this.renderVersion = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SessionOutputsCompanion.insert({
+    required String id,
+    required String sessionId,
+    required String relativePath,
+    required String sha256,
+    required int byteLength,
+    required int widthPx,
+    required int heightPx,
+    required OutputFormat format,
+    required int renderVersion,
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       sessionId = Value(sessionId),
+       relativePath = Value(relativePath),
+       sha256 = Value(sha256),
+       byteLength = Value(byteLength),
+       widthPx = Value(widthPx),
+       heightPx = Value(heightPx),
+       format = Value(format),
+       renderVersion = Value(renderVersion),
+       createdAt = Value(createdAt);
+  static Insertable<SessionOutputRow> custom({
+    Expression<String>? id,
+    Expression<String>? sessionId,
+    Expression<String>? relativePath,
+    Expression<String>? sha256,
+    Expression<int>? byteLength,
+    Expression<int>? widthPx,
+    Expression<int>? heightPx,
+    Expression<String>? format,
+    Expression<int>? renderVersion,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (sessionId != null) 'session_id': sessionId,
+      if (relativePath != null) 'relative_path': relativePath,
+      if (sha256 != null) 'sha256': sha256,
+      if (byteLength != null) 'byte_length': byteLength,
+      if (widthPx != null) 'width_px': widthPx,
+      if (heightPx != null) 'height_px': heightPx,
+      if (format != null) 'format': format,
+      if (renderVersion != null) 'render_version': renderVersion,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SessionOutputsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? sessionId,
+    Value<String>? relativePath,
+    Value<String>? sha256,
+    Value<int>? byteLength,
+    Value<int>? widthPx,
+    Value<int>? heightPx,
+    Value<OutputFormat>? format,
+    Value<int>? renderVersion,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return SessionOutputsCompanion(
+      id: id ?? this.id,
+      sessionId: sessionId ?? this.sessionId,
+      relativePath: relativePath ?? this.relativePath,
+      sha256: sha256 ?? this.sha256,
+      byteLength: byteLength ?? this.byteLength,
+      widthPx: widthPx ?? this.widthPx,
+      heightPx: heightPx ?? this.heightPx,
+      format: format ?? this.format,
+      renderVersion: renderVersion ?? this.renderVersion,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (sessionId.present) {
+      map['session_id'] = Variable<String>(sessionId.value);
+    }
+    if (relativePath.present) {
+      map['relative_path'] = Variable<String>(relativePath.value);
+    }
+    if (sha256.present) {
+      map['sha256'] = Variable<String>(sha256.value);
+    }
+    if (byteLength.present) {
+      map['byte_length'] = Variable<int>(byteLength.value);
+    }
+    if (widthPx.present) {
+      map['width_px'] = Variable<int>(widthPx.value);
+    }
+    if (heightPx.present) {
+      map['height_px'] = Variable<int>(heightPx.value);
+    }
+    if (format.present) {
+      map['format'] = Variable<String>(
+        SessionOutputs.$converterformat.toSql(format.value),
+      );
+    }
+    if (renderVersion.present) {
+      map['render_version'] = Variable<int>(renderVersion.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SessionOutputsCompanion(')
+          ..write('id: $id, ')
+          ..write('sessionId: $sessionId, ')
+          ..write('relativePath: $relativePath, ')
+          ..write('sha256: $sha256, ')
+          ..write('byteLength: $byteLength, ')
+          ..write('widthPx: $widthPx, ')
+          ..write('heightPx: $heightPx, ')
+          ..write('format: $format, ')
+          ..write('renderVersion: $renderVersion, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$BoothDatabase extends GeneratedDatabase {
   _$BoothDatabase(QueryExecutor e) : super(e);
   $BoothDatabaseManager get managers => $BoothDatabaseManager(this);
@@ -7225,6 +9079,33 @@ abstract class _$BoothDatabase extends GeneratedDatabase {
   );
   late final PendingOriginalCommits pendingOriginalCommits =
       PendingOriginalCommits(this);
+  late final CaptureSessions captureSessions = CaptureSessions(this);
+  late final Index captureSessionsByEvent = Index(
+    'capture_sessions_by_event',
+    'CREATE INDEX capture_sessions_by_event ON capture_sessions (event_id, started_at)',
+  );
+  late final Trigger captureSessionPlansAreImmutable = Trigger(
+    'CREATE TRIGGER capture_session_plans_are_immutable BEFORE UPDATE OF id, event_id, template_revision_id, planned_shots, plan_json, started_at ON capture_sessions BEGIN SELECT RAISE (ABORT, \'a session is frozen to its plan\');END',
+    'capture_session_plans_are_immutable',
+  );
+  late final Trigger finishedSessionsAreImmutable = Trigger(
+    'CREATE TRIGGER finished_sessions_are_immutable BEFORE UPDATE ON capture_sessions WHEN OLD.status IN (\'completed\', \'abandoned\', \'failed\') BEGIN SELECT RAISE (ABORT, \'a finished session never changes\');END',
+    'finished_sessions_are_immutable',
+  );
+  late final SessionPhotos sessionPhotos = SessionPhotos(this);
+  late final Trigger sessionPhotosAreImmutable = Trigger(
+    'CREATE TRIGGER session_photos_are_immutable BEFORE UPDATE ON session_photos BEGIN SELECT RAISE (ABORT, \'session photos are immutable\');END',
+    'session_photos_are_immutable',
+  );
+  late final SessionOutputs sessionOutputs = SessionOutputs(this);
+  late final Index sessionOutputsBySession = Index(
+    'session_outputs_by_session',
+    'CREATE INDEX session_outputs_by_session ON session_outputs (session_id, created_at)',
+  );
+  late final Trigger sessionOutputsAreImmutable = Trigger(
+    'CREATE TRIGGER session_outputs_are_immutable BEFORE UPDATE ON session_outputs BEGIN SELECT RAISE (ABORT, \'finished photos are immutable\');END',
+    'session_outputs_are_immutable',
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -7250,6 +9131,15 @@ abstract class _$BoothDatabase extends GeneratedDatabase {
     originalPhotosByTime,
     originalPhotosAreImmutable,
     pendingOriginalCommits,
+    captureSessions,
+    captureSessionsByEvent,
+    captureSessionPlansAreImmutable,
+    finishedSessionsAreImmutable,
+    sessionPhotos,
+    sessionPhotosAreImmutable,
+    sessionOutputs,
+    sessionOutputsBySession,
+    sessionOutputsAreImmutable,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -7307,6 +9197,34 @@ abstract class _$BoothDatabase extends GeneratedDatabase {
     WritePropagation(
       on: TableUpdateQuery.onTableName(
         'original_photos',
+        limitUpdateKind: UpdateKind.update,
+      ),
+      result: [],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'capture_sessions',
+        limitUpdateKind: UpdateKind.update,
+      ),
+      result: [],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'capture_sessions',
+        limitUpdateKind: UpdateKind.update,
+      ),
+      result: [],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'session_photos',
+        limitUpdateKind: UpdateKind.update,
+      ),
+      result: [],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'session_outputs',
         limitUpdateKind: UpdateKind.update,
       ),
       result: [],
@@ -8027,6 +9945,27 @@ final class $EventsReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<CaptureSessions, List<CaptureSessionRow>>
+  _captureSessionsRefsTable(_$BoothDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.captureSessions,
+        aliasName: 'events__id__capture_sessions__event_id',
+      );
+
+  $CaptureSessionsProcessedTableManager get captureSessionsRefs {
+    final manager = $CaptureSessionsTableManager(
+      $_db,
+      $_db.captureSessions,
+    ).filter((f) => f.eventId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _captureSessionsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $EventsFilterComposer extends Composer<_$BoothDatabase, Events> {
@@ -8257,6 +10196,31 @@ class $EventsFilterComposer extends Composer<_$BoothDatabase, Events> {
           }) => $EventTemplatesFilterComposer(
             $db: $db,
             $table: $db.eventTemplates,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> captureSessionsRefs(
+    Expression<bool> Function($CaptureSessionsFilterComposer f) f,
+  ) {
+    final $CaptureSessionsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.captureSessions,
+      getReferencedColumn: (t) => t.eventId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $CaptureSessionsFilterComposer(
+            $db: $db,
+            $table: $db.captureSessions,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -8644,6 +10608,31 @@ class $EventsAnnotationComposer extends Composer<_$BoothDatabase, Events> {
     );
     return f(composer);
   }
+
+  Expression<T> captureSessionsRefs<T extends Object>(
+    Expression<T> Function($CaptureSessionsAnnotationComposer a) f,
+  ) {
+    final $CaptureSessionsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.captureSessions,
+      getReferencedColumn: (t) => t.eventId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $CaptureSessionsAnnotationComposer(
+            $db: $db,
+            $table: $db.captureSessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $EventsTableManager
@@ -8663,6 +10652,7 @@ class $EventsTableManager
             bool boothProfileId,
             bool appSettingsRefs,
             bool eventTemplatesRefs,
+            bool captureSessionsRefs,
           })
         > {
   $EventsTableManager(_$BoothDatabase db, Events table)
@@ -8820,12 +10810,14 @@ class $EventsTableManager
                 boothProfileId = false,
                 appSettingsRefs = false,
                 eventTemplatesRefs = false,
+                captureSessionsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (appSettingsRefs) db.appSettings,
                     if (eventTemplatesRefs) db.eventTemplates,
+                    if (captureSessionsRefs) db.captureSessions,
                   ],
                   addJoins:
                       <
@@ -8896,6 +10888,26 @@ class $EventsTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (captureSessionsRefs)
+                        await $_getPrefetchedData<
+                          EventRow,
+                          Events,
+                          CaptureSessionRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $EventsReferences
+                              ._captureSessionsRefsTable(db),
+                          managerFromTypedResult: (p0) => $EventsReferences(
+                            db,
+                            table,
+                            p0,
+                          ).captureSessionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.eventId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -8920,6 +10932,7 @@ typedef $EventsProcessedTableManager =
         bool boothProfileId,
         bool appSettingsRefs,
         bool eventTemplatesRefs,
+        bool captureSessionsRefs,
       })
     >;
 typedef $AppSettingsCreateCompanionBuilder = AppSettingsCompanion Function({
@@ -10069,6 +12082,28 @@ final class $TemplateRevisionsReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<CaptureSessions, List<CaptureSessionRow>>
+  _captureSessionsRefsTable(_$BoothDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.captureSessions,
+        aliasName:
+            'template_revisions__id__capture_sessions__template_revision_id',
+      );
+
+  $CaptureSessionsProcessedTableManager get captureSessionsRefs {
+    final manager = $CaptureSessionsTableManager($_db, $_db.captureSessions)
+        .filter(
+          (f) => f.templateRevisionId.id.sqlEquals($_itemColumn<String>('id')!),
+        );
+
+    final cache = $_typedResult.readTableOrNull(
+      _captureSessionsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $TemplateRevisionsFilterComposer
@@ -10214,6 +12249,31 @@ class $TemplateRevisionsFilterComposer
           }) => $EventTemplatesFilterComposer(
             $db: $db,
             $table: $db.eventTemplates,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> captureSessionsRefs(
+    Expression<bool> Function($CaptureSessionsFilterComposer f) f,
+  ) {
+    final $CaptureSessionsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.captureSessions,
+      getReferencedColumn: (t) => t.templateRevisionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $CaptureSessionsFilterComposer(
+            $db: $db,
+            $table: $db.captureSessions,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -10447,6 +12507,31 @@ class $TemplateRevisionsAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> captureSessionsRefs<T extends Object>(
+    Expression<T> Function($CaptureSessionsAnnotationComposer a) f,
+  ) {
+    final $CaptureSessionsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.captureSessions,
+      getReferencedColumn: (t) => t.templateRevisionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $CaptureSessionsAnnotationComposer(
+            $db: $db,
+            $table: $db.captureSessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $TemplateRevisionsTableManager
@@ -10467,6 +12552,7 @@ class $TemplateRevisionsTableManager
             bool templateRevisionAssetsRefs,
             bool templateDraftsRefs,
             bool eventTemplatesRefs,
+            bool captureSessionsRefs,
           })
         > {
   $TemplateRevisionsTableManager(_$BoothDatabase db, TemplateRevisions table)
@@ -10546,6 +12632,7 @@ class $TemplateRevisionsTableManager
                 templateRevisionAssetsRefs = false,
                 templateDraftsRefs = false,
                 eventTemplatesRefs = false,
+                captureSessionsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -10553,6 +12640,7 @@ class $TemplateRevisionsTableManager
                     if (templateRevisionAssetsRefs) db.templateRevisionAssets,
                     if (templateDraftsRefs) db.templateDrafts,
                     if (eventTemplatesRefs) db.eventTemplates,
+                    if (captureSessionsRefs) db.captureSessions,
                   ],
                   addJoins:
                       <
@@ -10649,6 +12737,27 @@ class $TemplateRevisionsTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (captureSessionsRefs)
+                        await $_getPrefetchedData<
+                          TemplateRevisionRow,
+                          TemplateRevisions,
+                          CaptureSessionRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $TemplateRevisionsReferences
+                              ._captureSessionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $TemplateRevisionsReferences(
+                                db,
+                                table,
+                                p0,
+                              ).captureSessionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.templateRevisionId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -10674,6 +12783,7 @@ typedef $TemplateRevisionsProcessedTableManager =
         bool templateRevisionAssetsRefs,
         bool templateDraftsRefs,
         bool eventTemplatesRefs,
+        bool captureSessionsRefs,
       })
     >;
 typedef $AssetsCreateCompanionBuilder = AssetsCompanion Function({
@@ -12226,6 +14336,29 @@ typedef $OriginalPhotosUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
+final class $OriginalPhotosReferences
+    extends BaseReferences<_$BoothDatabase, OriginalPhotos, OriginalPhotoRow> {
+  $OriginalPhotosReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<SessionPhotos, List<SessionPhotoRow>>
+  _sessionPhotosRefsTable(_$BoothDatabase db) => MultiTypedResultKey.fromTable(
+    db.sessionPhotos,
+    aliasName: 'original_photos__id__session_photos__original_id',
+  );
+
+  $SessionPhotosProcessedTableManager get sessionPhotosRefs {
+    final manager = $SessionPhotosTableManager(
+      $_db,
+      $_db.sessionPhotos,
+    ).filter((f) => f.originalId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_sessionPhotosRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
 class $OriginalPhotosFilterComposer
     extends Composer<_$BoothDatabase, OriginalPhotos> {
   $OriginalPhotosFilterComposer({
@@ -12312,6 +14445,31 @@ class $OriginalPhotosFilterComposer
     column: $table.committedAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  Expression<bool> sessionPhotosRefs(
+    Expression<bool> Function($SessionPhotosFilterComposer f) f,
+  ) {
+    final $SessionPhotosFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.sessionPhotos,
+      getReferencedColumn: (t) => t.originalId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $SessionPhotosFilterComposer(
+            $db: $db,
+            $table: $db.sessionPhotos,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $OriginalPhotosOrderingComposer
@@ -12471,6 +14629,31 @@ class $OriginalPhotosAnnotationComposer
     column: $table.committedAt,
     builder: (column) => column,
   );
+
+  Expression<T> sessionPhotosRefs<T extends Object>(
+    Expression<T> Function($SessionPhotosAnnotationComposer a) f,
+  ) {
+    final $SessionPhotosAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.sessionPhotos,
+      getReferencedColumn: (t) => t.originalId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $SessionPhotosAnnotationComposer(
+            $db: $db,
+            $table: $db.sessionPhotos,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $OriginalPhotosTableManager
@@ -12484,12 +14667,9 @@ class $OriginalPhotosTableManager
           $OriginalPhotosAnnotationComposer,
           $OriginalPhotosCreateCompanionBuilder,
           $OriginalPhotosUpdateCompanionBuilder,
-          (
-            OriginalPhotoRow,
-            BaseReferences<_$BoothDatabase, OriginalPhotos, OriginalPhotoRow>,
-          ),
+          (OriginalPhotoRow, $OriginalPhotosReferences),
           OriginalPhotoRow,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool sessionPhotosRefs})
         > {
   $OriginalPhotosTableManager(_$BoothDatabase db, OriginalPhotos table)
     : super(
@@ -12579,15 +14759,41 @@ class $OriginalPhotosTableManager
               .map(
                 (e) => (
                   e.readTable<OriginalPhotos, OriginalPhotoRow>(table),
-                  BaseReferences<
-                    _$BoothDatabase,
-                    OriginalPhotos,
-                    OriginalPhotoRow
-                  >(db, table, e),
+                  $OriginalPhotosReferences(db, table, e),
                 ),
               )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({sessionPhotosRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (sessionPhotosRefs) db.sessionPhotos,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (sessionPhotosRefs)
+                    await $_getPrefetchedData<
+                      OriginalPhotoRow,
+                      OriginalPhotos,
+                      SessionPhotoRow
+                    >(
+                      currentTable: table,
+                      referencedTable: $OriginalPhotosReferences
+                          ._sessionPhotosRefsTable(db),
+                      managerFromTypedResult: (p0) => $OriginalPhotosReferences(
+                        db,
+                        table,
+                        p0,
+                      ).sessionPhotosRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.originalId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
         ),
       );
 }
@@ -12602,12 +14808,9 @@ typedef $OriginalPhotosProcessedTableManager =
       $OriginalPhotosAnnotationComposer,
       $OriginalPhotosCreateCompanionBuilder,
       $OriginalPhotosUpdateCompanionBuilder,
-      (
-        OriginalPhotoRow,
-        BaseReferences<_$BoothDatabase, OriginalPhotos, OriginalPhotoRow>,
-      ),
+      (OriginalPhotoRow, $OriginalPhotosReferences),
       OriginalPhotoRow,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool sessionPhotosRefs})
     >;
 typedef $PendingOriginalCommitsCreateCompanionBuilder =
     PendingOriginalCommitsCompanion Function({
@@ -12832,6 +15035,1602 @@ typedef $PendingOriginalCommitsProcessedTableManager =
       PendingOriginalCommitRow,
       PrefetchHooks Function()
     >;
+typedef $CaptureSessionsCreateCompanionBuilder =
+    CaptureSessionsCompanion Function({
+      required String id,
+      required String eventId,
+      required String templateRevisionId,
+      required int plannedShots,
+      required String planJson,
+      required SessionStatus status,
+      Value<SessionEndReason?> endReason,
+      Value<int> renderAttempts,
+      Value<String?> outputId,
+      required DateTime startedAt,
+      required DateTime updatedAt,
+      Value<DateTime?> endedAt,
+      Value<int> rowid,
+    });
+typedef $CaptureSessionsUpdateCompanionBuilder =
+    CaptureSessionsCompanion Function({
+      Value<String> id,
+      Value<String> eventId,
+      Value<String> templateRevisionId,
+      Value<int> plannedShots,
+      Value<String> planJson,
+      Value<SessionStatus> status,
+      Value<SessionEndReason?> endReason,
+      Value<int> renderAttempts,
+      Value<String?> outputId,
+      Value<DateTime> startedAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> endedAt,
+      Value<int> rowid,
+    });
+
+final class $CaptureSessionsReferences
+    extends
+        BaseReferences<_$BoothDatabase, CaptureSessions, CaptureSessionRow> {
+  $CaptureSessionsReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static Events _eventIdTable(_$BoothDatabase db) =>
+      db.events.createAlias('capture_sessions__event_id__events__id');
+
+  $EventsProcessedTableManager get eventId {
+    final $_column = $_itemColumn<String>('event_id')!;
+
+    final manager = $EventsTableManager(
+      $_db,
+      $_db.events,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_eventIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static TemplateRevisions _templateRevisionIdTable(_$BoothDatabase db) =>
+      db.templateRevisions.createAlias(
+        'capture_sessions__template_revision_id__template_revisions__id',
+      );
+
+  $TemplateRevisionsProcessedTableManager get templateRevisionId {
+    final $_column = $_itemColumn<String>('template_revision_id')!;
+
+    final manager = $TemplateRevisionsTableManager(
+      $_db,
+      $_db.templateRevisions,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_templateRevisionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<SessionPhotos, List<SessionPhotoRow>>
+  _sessionPhotosRefsTable(_$BoothDatabase db) => MultiTypedResultKey.fromTable(
+    db.sessionPhotos,
+    aliasName: 'capture_sessions__id__session_photos__session_id',
+  );
+
+  $SessionPhotosProcessedTableManager get sessionPhotosRefs {
+    final manager = $SessionPhotosTableManager(
+      $_db,
+      $_db.sessionPhotos,
+    ).filter((f) => f.sessionId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_sessionPhotosRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<SessionOutputs, List<SessionOutputRow>>
+  _sessionOutputsRefsTable(_$BoothDatabase db) => MultiTypedResultKey.fromTable(
+    db.sessionOutputs,
+    aliasName: 'capture_sessions__id__session_outputs__session_id',
+  );
+
+  $SessionOutputsProcessedTableManager get sessionOutputsRefs {
+    final manager = $SessionOutputsTableManager(
+      $_db,
+      $_db.sessionOutputs,
+    ).filter((f) => f.sessionId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_sessionOutputsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $CaptureSessionsFilterComposer
+    extends Composer<_$BoothDatabase, CaptureSessions> {
+  $CaptureSessionsFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get plannedShots => $composableBuilder(
+    column: $table.plannedShots,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get planJson => $composableBuilder(
+    column: $table.planJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<SessionStatus, SessionStatus, String>
+  get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<SessionEndReason?, SessionEndReason, String>
+  get endReason => $composableBuilder(
+    column: $table.endReason,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<int> get renderAttempts => $composableBuilder(
+    column: $table.renderAttempts,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get outputId => $composableBuilder(
+    column: $table.outputId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get startedAt => $composableBuilder(
+    column: $table.startedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get endedAt => $composableBuilder(
+    column: $table.endedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $EventsFilterComposer get eventId {
+    final $EventsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.eventId,
+      referencedTable: $db.events,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $EventsFilterComposer(
+            $db: $db,
+            $table: $db.events,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $TemplateRevisionsFilterComposer get templateRevisionId {
+    final $TemplateRevisionsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.templateRevisionId,
+      referencedTable: $db.templateRevisions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $TemplateRevisionsFilterComposer(
+            $db: $db,
+            $table: $db.templateRevisions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> sessionPhotosRefs(
+    Expression<bool> Function($SessionPhotosFilterComposer f) f,
+  ) {
+    final $SessionPhotosFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.sessionPhotos,
+      getReferencedColumn: (t) => t.sessionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $SessionPhotosFilterComposer(
+            $db: $db,
+            $table: $db.sessionPhotos,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> sessionOutputsRefs(
+    Expression<bool> Function($SessionOutputsFilterComposer f) f,
+  ) {
+    final $SessionOutputsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.sessionOutputs,
+      getReferencedColumn: (t) => t.sessionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $SessionOutputsFilterComposer(
+            $db: $db,
+            $table: $db.sessionOutputs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $CaptureSessionsOrderingComposer
+    extends Composer<_$BoothDatabase, CaptureSessions> {
+  $CaptureSessionsOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get plannedShots => $composableBuilder(
+    column: $table.plannedShots,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get planJson => $composableBuilder(
+    column: $table.planJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get endReason => $composableBuilder(
+    column: $table.endReason,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get renderAttempts => $composableBuilder(
+    column: $table.renderAttempts,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get outputId => $composableBuilder(
+    column: $table.outputId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get startedAt => $composableBuilder(
+    column: $table.startedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get endedAt => $composableBuilder(
+    column: $table.endedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $EventsOrderingComposer get eventId {
+    final $EventsOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.eventId,
+      referencedTable: $db.events,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $EventsOrderingComposer(
+            $db: $db,
+            $table: $db.events,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $TemplateRevisionsOrderingComposer get templateRevisionId {
+    final $TemplateRevisionsOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.templateRevisionId,
+      referencedTable: $db.templateRevisions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $TemplateRevisionsOrderingComposer(
+            $db: $db,
+            $table: $db.templateRevisions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $CaptureSessionsAnnotationComposer
+    extends Composer<_$BoothDatabase, CaptureSessions> {
+  $CaptureSessionsAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get plannedShots => $composableBuilder(
+    column: $table.plannedShots,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get planJson =>
+      $composableBuilder(column: $table.planJson, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<SessionStatus, String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<SessionEndReason?, String> get endReason =>
+      $composableBuilder(column: $table.endReason, builder: (column) => column);
+
+  GeneratedColumn<int> get renderAttempts => $composableBuilder(
+    column: $table.renderAttempts,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get outputId =>
+      $composableBuilder(column: $table.outputId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get startedAt =>
+      $composableBuilder(column: $table.startedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get endedAt =>
+      $composableBuilder(column: $table.endedAt, builder: (column) => column);
+
+  $EventsAnnotationComposer get eventId {
+    final $EventsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.eventId,
+      referencedTable: $db.events,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $EventsAnnotationComposer(
+            $db: $db,
+            $table: $db.events,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $TemplateRevisionsAnnotationComposer get templateRevisionId {
+    final $TemplateRevisionsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.templateRevisionId,
+      referencedTable: $db.templateRevisions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $TemplateRevisionsAnnotationComposer(
+            $db: $db,
+            $table: $db.templateRevisions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> sessionPhotosRefs<T extends Object>(
+    Expression<T> Function($SessionPhotosAnnotationComposer a) f,
+  ) {
+    final $SessionPhotosAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.sessionPhotos,
+      getReferencedColumn: (t) => t.sessionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $SessionPhotosAnnotationComposer(
+            $db: $db,
+            $table: $db.sessionPhotos,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> sessionOutputsRefs<T extends Object>(
+    Expression<T> Function($SessionOutputsAnnotationComposer a) f,
+  ) {
+    final $SessionOutputsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.sessionOutputs,
+      getReferencedColumn: (t) => t.sessionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $SessionOutputsAnnotationComposer(
+            $db: $db,
+            $table: $db.sessionOutputs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $CaptureSessionsTableManager
+    extends
+        RootTableManager<
+          _$BoothDatabase,
+          CaptureSessions,
+          CaptureSessionRow,
+          $CaptureSessionsFilterComposer,
+          $CaptureSessionsOrderingComposer,
+          $CaptureSessionsAnnotationComposer,
+          $CaptureSessionsCreateCompanionBuilder,
+          $CaptureSessionsUpdateCompanionBuilder,
+          (CaptureSessionRow, $CaptureSessionsReferences),
+          CaptureSessionRow,
+          PrefetchHooks Function({
+            bool eventId,
+            bool templateRevisionId,
+            bool sessionPhotosRefs,
+            bool sessionOutputsRefs,
+          })
+        > {
+  $CaptureSessionsTableManager(_$BoothDatabase db, CaptureSessions table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $CaptureSessionsFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $CaptureSessionsOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $CaptureSessionsAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> eventId = const Value.absent(),
+                Value<String> templateRevisionId = const Value.absent(),
+                Value<int> plannedShots = const Value.absent(),
+                Value<String> planJson = const Value.absent(),
+                Value<SessionStatus> status = const Value.absent(),
+                Value<SessionEndReason?> endReason = const Value.absent(),
+                Value<int> renderAttempts = const Value.absent(),
+                Value<String?> outputId = const Value.absent(),
+                Value<DateTime> startedAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> endedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CaptureSessionsCompanion(
+                id: id,
+                eventId: eventId,
+                templateRevisionId: templateRevisionId,
+                plannedShots: plannedShots,
+                planJson: planJson,
+                status: status,
+                endReason: endReason,
+                renderAttempts: renderAttempts,
+                outputId: outputId,
+                startedAt: startedAt,
+                updatedAt: updatedAt,
+                endedAt: endedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String eventId,
+                required String templateRevisionId,
+                required int plannedShots,
+                required String planJson,
+                required SessionStatus status,
+                Value<SessionEndReason?> endReason = const Value.absent(),
+                Value<int> renderAttempts = const Value.absent(),
+                Value<String?> outputId = const Value.absent(),
+                required DateTime startedAt,
+                required DateTime updatedAt,
+                Value<DateTime?> endedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CaptureSessionsCompanion.insert(
+                id: id,
+                eventId: eventId,
+                templateRevisionId: templateRevisionId,
+                plannedShots: plannedShots,
+                planJson: planJson,
+                status: status,
+                endReason: endReason,
+                renderAttempts: renderAttempts,
+                outputId: outputId,
+                startedAt: startedAt,
+                updatedAt: updatedAt,
+                endedAt: endedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<CaptureSessions, CaptureSessionRow>(table),
+                  $CaptureSessionsReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                eventId = false,
+                templateRevisionId = false,
+                sessionPhotosRefs = false,
+                sessionOutputsRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (sessionPhotosRefs) db.sessionPhotos,
+                    if (sessionOutputsRefs) db.sessionOutputs,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (eventId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.eventId,
+                            referencedTable: $CaptureSessionsReferences
+                                ._eventIdTable(db),
+                            referencedColumn: $CaptureSessionsReferences
+                                ._eventIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+                        if (templateRevisionId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.templateRevisionId,
+                            referencedTable: $CaptureSessionsReferences
+                                ._templateRevisionIdTable(db),
+                            referencedColumn: $CaptureSessionsReferences
+                                ._templateRevisionIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (sessionPhotosRefs)
+                        await $_getPrefetchedData<
+                          CaptureSessionRow,
+                          CaptureSessions,
+                          SessionPhotoRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $CaptureSessionsReferences
+                              ._sessionPhotosRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $CaptureSessionsReferences(
+                                db,
+                                table,
+                                p0,
+                              ).sessionPhotosRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.sessionId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (sessionOutputsRefs)
+                        await $_getPrefetchedData<
+                          CaptureSessionRow,
+                          CaptureSessions,
+                          SessionOutputRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $CaptureSessionsReferences
+                              ._sessionOutputsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $CaptureSessionsReferences(
+                                db,
+                                table,
+                                p0,
+                              ).sessionOutputsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.sessionId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $CaptureSessionsProcessedTableManager =
+    ProcessedTableManager<
+      _$BoothDatabase,
+      CaptureSessions,
+      CaptureSessionRow,
+      $CaptureSessionsFilterComposer,
+      $CaptureSessionsOrderingComposer,
+      $CaptureSessionsAnnotationComposer,
+      $CaptureSessionsCreateCompanionBuilder,
+      $CaptureSessionsUpdateCompanionBuilder,
+      (CaptureSessionRow, $CaptureSessionsReferences),
+      CaptureSessionRow,
+      PrefetchHooks Function({
+        bool eventId,
+        bool templateRevisionId,
+        bool sessionPhotosRefs,
+        bool sessionOutputsRefs,
+      })
+    >;
+typedef $SessionPhotosCreateCompanionBuilder = SessionPhotosCompanion Function({
+  required String sessionId,
+  required int shotIndex,
+  required int attempt,
+  required int round,
+  required int slotIndex,
+  required String originalId,
+  required DateTime capturedAt,
+  Value<int> rowid,
+});
+typedef $SessionPhotosUpdateCompanionBuilder = SessionPhotosCompanion Function({
+  Value<String> sessionId,
+  Value<int> shotIndex,
+  Value<int> attempt,
+  Value<int> round,
+  Value<int> slotIndex,
+  Value<String> originalId,
+  Value<DateTime> capturedAt,
+  Value<int> rowid,
+});
+
+final class $SessionPhotosReferences
+    extends BaseReferences<_$BoothDatabase, SessionPhotos, SessionPhotoRow> {
+  $SessionPhotosReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static CaptureSessions _sessionIdTable(_$BoothDatabase db) => db
+      .captureSessions
+      .createAlias('session_photos__session_id__capture_sessions__id');
+
+  $CaptureSessionsProcessedTableManager get sessionId {
+    final $_column = $_itemColumn<String>('session_id')!;
+
+    final manager = $CaptureSessionsTableManager(
+      $_db,
+      $_db.captureSessions,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_sessionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static OriginalPhotos _originalIdTable(_$BoothDatabase db) => db
+      .originalPhotos
+      .createAlias('session_photos__original_id__original_photos__id');
+
+  $OriginalPhotosProcessedTableManager get originalId {
+    final $_column = $_itemColumn<String>('original_id')!;
+
+    final manager = $OriginalPhotosTableManager(
+      $_db,
+      $_db.originalPhotos,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_originalIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $SessionPhotosFilterComposer
+    extends Composer<_$BoothDatabase, SessionPhotos> {
+  $SessionPhotosFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get shotIndex => $composableBuilder(
+    column: $table.shotIndex,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get attempt => $composableBuilder(
+    column: $table.attempt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get round => $composableBuilder(
+    column: $table.round,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get slotIndex => $composableBuilder(
+    column: $table.slotIndex,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get capturedAt => $composableBuilder(
+    column: $table.capturedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $CaptureSessionsFilterComposer get sessionId {
+    final $CaptureSessionsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionId,
+      referencedTable: $db.captureSessions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $CaptureSessionsFilterComposer(
+            $db: $db,
+            $table: $db.captureSessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $OriginalPhotosFilterComposer get originalId {
+    final $OriginalPhotosFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.originalId,
+      referencedTable: $db.originalPhotos,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $OriginalPhotosFilterComposer(
+            $db: $db,
+            $table: $db.originalPhotos,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $SessionPhotosOrderingComposer
+    extends Composer<_$BoothDatabase, SessionPhotos> {
+  $SessionPhotosOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get shotIndex => $composableBuilder(
+    column: $table.shotIndex,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get attempt => $composableBuilder(
+    column: $table.attempt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get round => $composableBuilder(
+    column: $table.round,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get slotIndex => $composableBuilder(
+    column: $table.slotIndex,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get capturedAt => $composableBuilder(
+    column: $table.capturedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $CaptureSessionsOrderingComposer get sessionId {
+    final $CaptureSessionsOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionId,
+      referencedTable: $db.captureSessions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $CaptureSessionsOrderingComposer(
+            $db: $db,
+            $table: $db.captureSessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $OriginalPhotosOrderingComposer get originalId {
+    final $OriginalPhotosOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.originalId,
+      referencedTable: $db.originalPhotos,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $OriginalPhotosOrderingComposer(
+            $db: $db,
+            $table: $db.originalPhotos,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $SessionPhotosAnnotationComposer
+    extends Composer<_$BoothDatabase, SessionPhotos> {
+  $SessionPhotosAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get shotIndex =>
+      $composableBuilder(column: $table.shotIndex, builder: (column) => column);
+
+  GeneratedColumn<int> get attempt =>
+      $composableBuilder(column: $table.attempt, builder: (column) => column);
+
+  GeneratedColumn<int> get round =>
+      $composableBuilder(column: $table.round, builder: (column) => column);
+
+  GeneratedColumn<int> get slotIndex =>
+      $composableBuilder(column: $table.slotIndex, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get capturedAt => $composableBuilder(
+    column: $table.capturedAt,
+    builder: (column) => column,
+  );
+
+  $CaptureSessionsAnnotationComposer get sessionId {
+    final $CaptureSessionsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionId,
+      referencedTable: $db.captureSessions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $CaptureSessionsAnnotationComposer(
+            $db: $db,
+            $table: $db.captureSessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $OriginalPhotosAnnotationComposer get originalId {
+    final $OriginalPhotosAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.originalId,
+      referencedTable: $db.originalPhotos,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $OriginalPhotosAnnotationComposer(
+            $db: $db,
+            $table: $db.originalPhotos,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $SessionPhotosTableManager
+    extends
+        RootTableManager<
+          _$BoothDatabase,
+          SessionPhotos,
+          SessionPhotoRow,
+          $SessionPhotosFilterComposer,
+          $SessionPhotosOrderingComposer,
+          $SessionPhotosAnnotationComposer,
+          $SessionPhotosCreateCompanionBuilder,
+          $SessionPhotosUpdateCompanionBuilder,
+          (SessionPhotoRow, $SessionPhotosReferences),
+          SessionPhotoRow,
+          PrefetchHooks Function({bool sessionId, bool originalId})
+        > {
+  $SessionPhotosTableManager(_$BoothDatabase db, SessionPhotos table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $SessionPhotosFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $SessionPhotosOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $SessionPhotosAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> sessionId = const Value.absent(),
+                Value<int> shotIndex = const Value.absent(),
+                Value<int> attempt = const Value.absent(),
+                Value<int> round = const Value.absent(),
+                Value<int> slotIndex = const Value.absent(),
+                Value<String> originalId = const Value.absent(),
+                Value<DateTime> capturedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SessionPhotosCompanion(
+                sessionId: sessionId,
+                shotIndex: shotIndex,
+                attempt: attempt,
+                round: round,
+                slotIndex: slotIndex,
+                originalId: originalId,
+                capturedAt: capturedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String sessionId,
+                required int shotIndex,
+                required int attempt,
+                required int round,
+                required int slotIndex,
+                required String originalId,
+                required DateTime capturedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => SessionPhotosCompanion.insert(
+                sessionId: sessionId,
+                shotIndex: shotIndex,
+                attempt: attempt,
+                round: round,
+                slotIndex: slotIndex,
+                originalId: originalId,
+                capturedAt: capturedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<SessionPhotos, SessionPhotoRow>(table),
+                  $SessionPhotosReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({sessionId = false, originalId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (sessionId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.sessionId,
+                        referencedTable: $SessionPhotosReferences
+                            ._sessionIdTable(db),
+                        referencedColumn: $SessionPhotosReferences
+                            ._sessionIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+                    if (originalId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.originalId,
+                        referencedTable: $SessionPhotosReferences
+                            ._originalIdTable(db),
+                        referencedColumn: $SessionPhotosReferences
+                            ._originalIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $SessionPhotosProcessedTableManager =
+    ProcessedTableManager<
+      _$BoothDatabase,
+      SessionPhotos,
+      SessionPhotoRow,
+      $SessionPhotosFilterComposer,
+      $SessionPhotosOrderingComposer,
+      $SessionPhotosAnnotationComposer,
+      $SessionPhotosCreateCompanionBuilder,
+      $SessionPhotosUpdateCompanionBuilder,
+      (SessionPhotoRow, $SessionPhotosReferences),
+      SessionPhotoRow,
+      PrefetchHooks Function({bool sessionId, bool originalId})
+    >;
+typedef $SessionOutputsCreateCompanionBuilder =
+    SessionOutputsCompanion Function({
+      required String id,
+      required String sessionId,
+      required String relativePath,
+      required String sha256,
+      required int byteLength,
+      required int widthPx,
+      required int heightPx,
+      required OutputFormat format,
+      required int renderVersion,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $SessionOutputsUpdateCompanionBuilder =
+    SessionOutputsCompanion Function({
+      Value<String> id,
+      Value<String> sessionId,
+      Value<String> relativePath,
+      Value<String> sha256,
+      Value<int> byteLength,
+      Value<int> widthPx,
+      Value<int> heightPx,
+      Value<OutputFormat> format,
+      Value<int> renderVersion,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+final class $SessionOutputsReferences
+    extends BaseReferences<_$BoothDatabase, SessionOutputs, SessionOutputRow> {
+  $SessionOutputsReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static CaptureSessions _sessionIdTable(_$BoothDatabase db) => db
+      .captureSessions
+      .createAlias('session_outputs__session_id__capture_sessions__id');
+
+  $CaptureSessionsProcessedTableManager get sessionId {
+    final $_column = $_itemColumn<String>('session_id')!;
+
+    final manager = $CaptureSessionsTableManager(
+      $_db,
+      $_db.captureSessions,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_sessionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $SessionOutputsFilterComposer
+    extends Composer<_$BoothDatabase, SessionOutputs> {
+  $SessionOutputsFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get relativePath => $composableBuilder(
+    column: $table.relativePath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sha256 => $composableBuilder(
+    column: $table.sha256,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get byteLength => $composableBuilder(
+    column: $table.byteLength,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get widthPx => $composableBuilder(
+    column: $table.widthPx,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get heightPx => $composableBuilder(
+    column: $table.heightPx,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<OutputFormat, OutputFormat, String>
+  get format => $composableBuilder(
+    column: $table.format,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<int> get renderVersion => $composableBuilder(
+    column: $table.renderVersion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $CaptureSessionsFilterComposer get sessionId {
+    final $CaptureSessionsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionId,
+      referencedTable: $db.captureSessions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $CaptureSessionsFilterComposer(
+            $db: $db,
+            $table: $db.captureSessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $SessionOutputsOrderingComposer
+    extends Composer<_$BoothDatabase, SessionOutputs> {
+  $SessionOutputsOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get relativePath => $composableBuilder(
+    column: $table.relativePath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sha256 => $composableBuilder(
+    column: $table.sha256,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get byteLength => $composableBuilder(
+    column: $table.byteLength,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get widthPx => $composableBuilder(
+    column: $table.widthPx,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get heightPx => $composableBuilder(
+    column: $table.heightPx,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get format => $composableBuilder(
+    column: $table.format,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get renderVersion => $composableBuilder(
+    column: $table.renderVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $CaptureSessionsOrderingComposer get sessionId {
+    final $CaptureSessionsOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionId,
+      referencedTable: $db.captureSessions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $CaptureSessionsOrderingComposer(
+            $db: $db,
+            $table: $db.captureSessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $SessionOutputsAnnotationComposer
+    extends Composer<_$BoothDatabase, SessionOutputs> {
+  $SessionOutputsAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get relativePath => $composableBuilder(
+    column: $table.relativePath,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sha256 =>
+      $composableBuilder(column: $table.sha256, builder: (column) => column);
+
+  GeneratedColumn<int> get byteLength => $composableBuilder(
+    column: $table.byteLength,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get widthPx =>
+      $composableBuilder(column: $table.widthPx, builder: (column) => column);
+
+  GeneratedColumn<int> get heightPx =>
+      $composableBuilder(column: $table.heightPx, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<OutputFormat, String> get format =>
+      $composableBuilder(column: $table.format, builder: (column) => column);
+
+  GeneratedColumn<int> get renderVersion => $composableBuilder(
+    column: $table.renderVersion,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $CaptureSessionsAnnotationComposer get sessionId {
+    final $CaptureSessionsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionId,
+      referencedTable: $db.captureSessions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $CaptureSessionsAnnotationComposer(
+            $db: $db,
+            $table: $db.captureSessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $SessionOutputsTableManager
+    extends
+        RootTableManager<
+          _$BoothDatabase,
+          SessionOutputs,
+          SessionOutputRow,
+          $SessionOutputsFilterComposer,
+          $SessionOutputsOrderingComposer,
+          $SessionOutputsAnnotationComposer,
+          $SessionOutputsCreateCompanionBuilder,
+          $SessionOutputsUpdateCompanionBuilder,
+          (SessionOutputRow, $SessionOutputsReferences),
+          SessionOutputRow,
+          PrefetchHooks Function({bool sessionId})
+        > {
+  $SessionOutputsTableManager(_$BoothDatabase db, SessionOutputs table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $SessionOutputsFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $SessionOutputsOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $SessionOutputsAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> sessionId = const Value.absent(),
+                Value<String> relativePath = const Value.absent(),
+                Value<String> sha256 = const Value.absent(),
+                Value<int> byteLength = const Value.absent(),
+                Value<int> widthPx = const Value.absent(),
+                Value<int> heightPx = const Value.absent(),
+                Value<OutputFormat> format = const Value.absent(),
+                Value<int> renderVersion = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SessionOutputsCompanion(
+                id: id,
+                sessionId: sessionId,
+                relativePath: relativePath,
+                sha256: sha256,
+                byteLength: byteLength,
+                widthPx: widthPx,
+                heightPx: heightPx,
+                format: format,
+                renderVersion: renderVersion,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String sessionId,
+                required String relativePath,
+                required String sha256,
+                required int byteLength,
+                required int widthPx,
+                required int heightPx,
+                required OutputFormat format,
+                required int renderVersion,
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => SessionOutputsCompanion.insert(
+                id: id,
+                sessionId: sessionId,
+                relativePath: relativePath,
+                sha256: sha256,
+                byteLength: byteLength,
+                widthPx: widthPx,
+                heightPx: heightPx,
+                format: format,
+                renderVersion: renderVersion,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<SessionOutputs, SessionOutputRow>(table),
+                  $SessionOutputsReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({sessionId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (sessionId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.sessionId,
+                        referencedTable: $SessionOutputsReferences
+                            ._sessionIdTable(db),
+                        referencedColumn: $SessionOutputsReferences
+                            ._sessionIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $SessionOutputsProcessedTableManager =
+    ProcessedTableManager<
+      _$BoothDatabase,
+      SessionOutputs,
+      SessionOutputRow,
+      $SessionOutputsFilterComposer,
+      $SessionOutputsOrderingComposer,
+      $SessionOutputsAnnotationComposer,
+      $SessionOutputsCreateCompanionBuilder,
+      $SessionOutputsUpdateCompanionBuilder,
+      (SessionOutputRow, $SessionOutputsReferences),
+      SessionOutputRow,
+      PrefetchHooks Function({bool sessionId})
+    >;
 
 class $BoothDatabaseManager {
   final _$BoothDatabase _db;
@@ -12858,4 +16657,10 @@ class $BoothDatabaseManager {
       $OriginalPhotosTableManager(_db, _db.originalPhotos);
   $PendingOriginalCommitsTableManager get pendingOriginalCommits =>
       $PendingOriginalCommitsTableManager(_db, _db.pendingOriginalCommits);
+  $CaptureSessionsTableManager get captureSessions =>
+      $CaptureSessionsTableManager(_db, _db.captureSessions);
+  $SessionPhotosTableManager get sessionPhotos =>
+      $SessionPhotosTableManager(_db, _db.sessionPhotos);
+  $SessionOutputsTableManager get sessionOutputs =>
+      $SessionOutputsTableManager(_db, _db.sessionOutputs);
 }

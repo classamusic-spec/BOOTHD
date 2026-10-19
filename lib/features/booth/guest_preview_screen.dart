@@ -10,16 +10,16 @@ import '../../shared/guest/guest_welcome_sample.dart';
 import '../../shared/widgets/porcelain_button.dart';
 import '../../shared/widgets/porcelain_toast.dart';
 
-/// Operator preview of the guest welcome screen (S20 skeleton), full size
-/// and adapting to the window. Not Booth Mode: an operator bar above the
-/// guest area offers Close, and Start only explains that sessions arrive in
-/// M07. The guest area itself has no other controls (AC-0210).
+/// Operator preview of the guest welcome screen (S20), full size and
+/// adapting to the window. Not Booth Mode: an operator bar above the guest
+/// area offers Close, and Start only explains that sessions run in Booth
+/// Mode. The guest area itself has no other controls (AC-0210).
 class GuestPreviewScreen extends StatelessWidget {
   const GuestPreviewScreen({super.key});
 
   static const startMessage =
-      'Preview only. Guests start their session here once Booth Mode '
-      'arrives in M07.';
+      'Preview only. Guests take their photos here once an event runs in '
+      'Booth Mode.';
 
   @override
   Widget build(BuildContext context) {

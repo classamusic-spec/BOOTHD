@@ -83,6 +83,12 @@ final class CameraSessionController extends ChangeNotifier {
   }
 
   Future<void> _resumed() async {
+    if (_wanted == null) {
+      // Nothing wanted (never asked for, or released): just show a
+      // permission changed in Settings.
+      await _readPermission();
+      return;
+    }
     if (_service.status.request != null) {
       // Opens again, re-reading the permission; never prompts.
       await _service.resume();
@@ -135,6 +141,13 @@ final class CameraSessionController extends ChangeNotifier {
     }
     if (permission == CameraPermission.granted) await _openWanted();
     return permission;
+  }
+
+  /// Releases the camera and forgets the wanted one, so returning to the
+  /// app does not open it again (the booth's welcome screen).
+  Future<void> release() async {
+    _wanted = null;
+    await _service.suspend();
   }
 
   /// Opens this app's page in the system Settings; false if it could not.

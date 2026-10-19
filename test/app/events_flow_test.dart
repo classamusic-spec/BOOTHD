@@ -12,7 +12,7 @@ import 'package:porcelain_photo_booth/domain/models/booth_event.dart';
 import 'package:porcelain_photo_booth/domain/services/camera_service.dart';
 import 'package:porcelain_photo_booth/domain/value_objects/appearance.dart';
 import 'package:porcelain_photo_booth/domain/value_objects/orientation.dart';
-import 'package:porcelain_photo_booth/features/booth/booth_welcome_screen.dart';
+import 'package:porcelain_photo_booth/features/booth/booth_screen.dart';
 import 'package:porcelain_photo_booth/features/dashboard/dashboard_screen.dart';
 import 'package:porcelain_photo_booth/features/events/event_copy.dart';
 import 'package:porcelain_photo_booth/features/events/event_editor_screen.dart';
@@ -379,7 +379,7 @@ void main() {
       expect(find.byType(PreflightScreen), findsOneWidget);
       expect(find.text('Ready to start'), findsOneWidget);
       await tapText(tester, 'Start Booth Mode');
-      expect(find.byType(BoothWelcomeScreen), findsOneWidget);
+      expect(find.byType(BoothScreen), findsOneWidget);
       expect(booth.accessState.phase, AccessPhase.booth);
       expect((await booth.settings.load()).boothEventId, SeedIds.active);
     });

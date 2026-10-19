@@ -84,6 +84,11 @@ abstract final class PorcelainIcons {
   static const IconData smile = Symbols.sentiment_satisfied_rounded;
   static const IconData enjoy = Symbols.favorite_rounded;
 
+  // Guest sessions (S21 to S29).
+  static const IconData retake = Symbols.replay_rounded;
+  static const IconData nextGuest = Symbols.arrow_forward_rounded;
+  static const IconData paused = Symbols.pause_circle_rounded;
+
   // Template Studio (S07 to S12).
   static const IconData selectTool = Symbols.arrow_selector_tool_rounded;
   static const IconData panTool = Symbols.pan_tool_rounded;

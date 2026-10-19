@@ -17,10 +17,12 @@ import '../infrastructure/database/database_connection.dart';
 import '../infrastructure/database/drift_booth_settings_repository.dart';
 import '../infrastructure/database/drift_event_repository.dart';
 import '../infrastructure/database/drift_operator_access_repository.dart';
+import '../infrastructure/database/drift_session_repository.dart';
 import '../infrastructure/database/drift_template_catalog.dart';
 import '../infrastructure/device/device_capability_probe.dart';
 import '../infrastructure/device/platform_device_storage.dart';
 import '../infrastructure/file_store/file_export_service.dart';
+import '../infrastructure/file_store/managed_finished_photos.dart';
 import '../infrastructure/file_store/managed_storage.dart';
 import '../infrastructure/file_store/original_store.dart';
 import '../infrastructure/files/platform_operator_files.dart';
@@ -160,6 +162,15 @@ List<Override> productionOverrides() => [
     ),
   ),
   deviceStorageInfoProvider.overrideWithValue(const PlatformDeviceStorage()),
+  sessionRepositoryProvider.overrideWith(
+    (ref) => DriftSessionRepository(
+      ref.watch(_boothDatabaseProvider),
+      clock: ref.watch(clockProvider),
+    ),
+  ),
+  finishedPhotosProvider.overrideWithValue(
+    ManagedFinishedPhotos(root: getApplicationSupportDirectory),
+  ),
   boothCapabilityProbeProvider.overrideWith(
     (ref) => DeviceCapabilityProbe(
       ref.watch(_managedStorageProvider),

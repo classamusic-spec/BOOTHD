@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart' as crypto;
 import 'package:flutter/widgets.dart';
 import 'package:porcelain_photo_booth/domain/services/booth_capabilities.dart';
 import 'package:porcelain_photo_booth/domain/services/camera_service.dart';
 import 'package:porcelain_photo_booth/infrastructure/camera/managed_camera_service.dart';
 import 'package:porcelain_photo_booth/infrastructure/codecs/jpeg_encoder.dart';
+import 'package:porcelain_photo_booth/infrastructure/database/booth_database.dart';
 
 /// A tablet's front and rear cameras, as Android and iPadOS report them.
 const frontCamera = CameraDescriptor(
@@ -53,6 +55,9 @@ final class SimulatedCameraService implements CameraService {
 
   /// While set, a capture waits for it: a photo in flight.
   Completer<void>? captureGate;
+
+  /// While set, opening the camera waits for it: a slow or stuck camera.
+  Completer<void>? openGate;
 
   /// Whether the app counts as in front; captures are refused otherwise.
   bool appActive = true;
@@ -125,6 +130,7 @@ final class SimulatedCameraService implements CameraService {
       ),
     );
     await Future<void>.delayed(Duration.zero);
+    await openGate?.future;
     if (mayAsk && systemPermission == CameraPermission.notDetermined) {
       prompts++;
       systemPermission = promptAnswer;
@@ -193,7 +199,7 @@ final class SimulatedCameraService implements CameraService {
         captureFailure = null;
         throw failure;
       }
-      return store.commit(
+      return await store.save(
         lens: capabilities.camera.lens,
         sensorOrientationDegrees: capabilities.camera.sensorOrientationDegrees,
         mirrorPreview: request.mirrorPreview,
@@ -337,7 +343,7 @@ final class SimulatedStillStore implements CapturedStillStore {
       widthPx: 64,
       heightPx: 48,
       byteLength: photoBytes.length,
-      sha256: id.padRight(64, '0'),
+      sha256: crypto.sha256.convert(photoBytes).toString(),
       lens: lens,
       sensorOrientationDegrees: sensorOrientationDegrees,
       mirrorPreviewRequested: mirrorPreview,
@@ -351,8 +357,59 @@ final class SimulatedStillStore implements CapturedStillStore {
     return still;
   }
 
+  /// The booth database, when sessions refer to these originals: each
+  /// [save] also records the original there, as the real store does.
+  BoothDatabase? database;
+
+  /// [commit], recorded in [database] when there is one.
+  Future<CapturedStill> save({
+    required CameraLens lens,
+    required int sensorOrientationDegrees,
+    required bool mirrorPreview,
+    required bool mirrorOutput,
+    required DateTime capturedAtUtc,
+    CaptureOrigin origin = CaptureOrigin.session,
+  }) async {
+    final still = commit(
+      lens: lens,
+      sensorOrientationDegrees: sensorOrientationDegrees,
+      mirrorPreview: mirrorPreview,
+      mirrorOutput: mirrorOutput,
+      capturedAtUtc: capturedAtUtc,
+      origin: origin,
+    );
+    final db = database;
+    if (db != null) {
+      await db
+          .into(db.originalPhotos)
+          .insert(
+            OriginalPhotosCompanion.insert(
+              id: still.id,
+              relativePath: still.relativePath,
+              widthPx: still.widthPx,
+              heightPx: still.heightPx,
+              byteLength: still.byteLength,
+              sha256: still.sha256,
+              lens: still.lens,
+              sensorOrientation: still.sensorOrientationDegrees,
+              deviceOrientation: still.deviceOrientation,
+              mirrorPreview: still.mirrorPreviewRequested,
+              mirrorOutput: still.mirrorOutputRequested,
+              origin: still.origin,
+              capturedAt: still.capturedAtUtc,
+              committedAt: still.capturedAtUtc,
+            ),
+          );
+    }
+    return still;
+  }
+
   /// Makes [still] read back as missing or changed.
   void damage(CapturedStill still) => _bytes.remove(still.id);
+
+  @override
+  Future<CapturedStill?> find(String id) async =>
+      _stills.where((s) => s.id == id).firstOrNull;
 
   @override
   Future<List<CapturedStill>> listCommitted({int? limit}) async {

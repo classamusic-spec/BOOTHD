@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:porcelain_photo_booth/core/composition/store_render_source.dart';
 import 'package:porcelain_photo_booth/domain/models/booth_event.dart';
 import 'package:porcelain_photo_booth/domain/repositories/template_store.dart';
 import 'package:porcelain_photo_booth/domain/services/composition_renderer.dart';
@@ -16,7 +17,6 @@ import 'package:porcelain_photo_booth/features/diagnostics/render_lab/render_che
 import 'package:porcelain_photo_booth/features/diagnostics/render_lab/render_fixtures.dart';
 import 'package:porcelain_photo_booth/infrastructure/composition/dart_ui_composition_renderer.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_template_catalog.dart';
-import 'package:porcelain_photo_booth/infrastructure/templates/store_render_source.dart';
 
 import '../../rendering/support/pixels.dart';
 import '../../support/template_store_harness.dart';

@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import '../../core/composition/scene_images.dart';
+import '../../core/composition/store_render_source.dart';
 import '../../domain/models/booth_event.dart';
 import '../../domain/models/template_revision_summary.dart';
 import '../../domain/repositories/template_store.dart';
@@ -14,7 +15,6 @@ import '../../domain/template/template_assets.dart';
 import '../../domain/template/template_document.dart';
 import '../../domain/template/template_layers.dart';
 import '../codecs/jpeg_encoder.dart';
-import '../templates/store_render_source.dart';
 
 /// The launch checks this build can actually make. Storage writes, free
 /// space, the camera, the renderer and template assets are tested for real

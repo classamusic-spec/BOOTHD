@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../../domain/models/booth_event.dart';
 import '../../domain/models/booth_profile.dart';
+import '../../domain/repositories/session_repository.dart';
 import '../../domain/repositories/storage_errors.dart';
 import '../../domain/repositories/template_store.dart';
 import '../../domain/services/camera_service.dart';
@@ -28,7 +29,7 @@ final class BoothDatabase extends _$BoothDatabase {
 
   /// Bump together with a migration step, a schema dump
   /// (`dart run drift_dev make-migrations`) and a seeded fixture.
-  static const currentSchemaVersion = 4;
+  static const currentSchemaVersion = 5;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -96,6 +97,18 @@ final class BoothDatabase extends _$BoothDatabase {
       await migrator.create(schema.originalPhotosByTime);
       await migrator.create(schema.originalPhotosAreImmutable);
       await migrator.createTable(schema.pendingOriginalCommits);
+    },
+    // M07: guest sessions, their photos and finished photos.
+    from4To5: (migrator, schema) async {
+      await migrator.createTable(schema.captureSessions);
+      await migrator.create(schema.captureSessionsByEvent);
+      await migrator.create(schema.captureSessionPlansAreImmutable);
+      await migrator.create(schema.finishedSessionsAreImmutable);
+      await migrator.createTable(schema.sessionPhotos);
+      await migrator.create(schema.sessionPhotosAreImmutable);
+      await migrator.createTable(schema.sessionOutputs);
+      await migrator.create(schema.sessionOutputsBySession);
+      await migrator.create(schema.sessionOutputsAreImmutable);
     },
   );
 

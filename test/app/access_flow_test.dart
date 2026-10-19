@@ -14,8 +14,9 @@ import 'package:porcelain_photo_booth/core/routing/route_paths.dart';
 import 'package:porcelain_photo_booth/domain/repositories/storage_errors.dart';
 import 'package:porcelain_photo_booth/domain/services/operator_auth_service.dart';
 import 'package:porcelain_photo_booth/domain/services/operator_secrets.dart';
+import 'package:porcelain_photo_booth/features/booth/booth_copy.dart';
 import 'package:porcelain_photo_booth/features/booth/booth_operator_screen.dart';
-import 'package:porcelain_photo_booth/features/booth/booth_welcome_screen.dart';
+import 'package:porcelain_photo_booth/features/booth/booth_screen.dart';
 import 'package:porcelain_photo_booth/features/booth/hidden_operator_exit.dart';
 import 'package:porcelain_photo_booth/features/dashboard/dashboard_screen.dart';
 import 'package:porcelain_photo_booth/features/events/events_screen.dart';
@@ -339,13 +340,14 @@ void main() {
       startAs: StartAs.booth,
       boothEventId: SeedIds.active,
       seed: (db) => seedEvents(db),
+      seedTemplates: seedTemplateDocuments,
     );
 
     testWidgets("guests see the event's welcome in its own theme, and back "
         'or deep links never leave it', (tester) async {
       useViewport(tester, TabletViewport.ipadPortrait);
       final booth = await startBooth(tester);
-      expect(find.byType(BoothWelcomeScreen), findsOneWidget);
+      expect(find.byType(BoothScreen), findsOneWidget);
       expect(find.text('Welcome, friends'), findsOneWidget);
       expect(
         PorcelainTheme.of(tester.element(find.text('Welcome, friends')))
@@ -355,7 +357,7 @@ void main() {
 
       expect(await tester.binding.handlePopRoute(), isTrue);
       await tester.pumpAndSettle();
-      expect(find.byType(BoothWelcomeScreen), findsOneWidget);
+      expect(find.byType(BoothScreen), findsOneWidget);
 
       for (final location in [
         RoutePaths.dashboard,
@@ -376,25 +378,20 @@ void main() {
       ]) {
         booth.router.go(location);
         await tester.pumpAndSettle();
-        expect(
-          find.byType(BoothWelcomeScreen),
-          findsOneWidget,
-          reason: location,
-        );
+        expect(find.byType(BoothScreen), findsOneWidget, reason: location);
         expect(find.byType(StudioShell), findsNothing, reason: location);
       }
       await platformPushRoute(tester, RoutePaths.gallery);
-      expect(find.byType(BoothWelcomeScreen), findsOneWidget);
+      expect(find.byType(BoothScreen), findsOneWidget);
 
-      // Start explains, in guest-safe words, that sessions are not ready,
-      // in the event's theme too.
+      // Start begins a guest session, still in the event's theme and
+      // still in Booth Mode.
       await tester.tap(find.bySemanticsLabel('Start'));
-      await tester.pump();
-      expect(find.text(BoothWelcomeScreen.notReadyMessage), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.text(BoothCopy.getReady), findsOneWidget);
       expect(
-        PorcelainTheme.of(
-          tester.element(find.text(BoothWelcomeScreen.notReadyMessage)),
-        ).profile,
+        PorcelainTheme.of(tester.element(find.text(BoothCopy.getReady)))
+            .profile,
         PorcelainThemeProfile.darkroomWalnut,
       );
       expect(booth.accessState.phase, AccessPhase.booth);
@@ -408,7 +405,7 @@ void main() {
       await tester.tap(find.byType(HiddenOperatorExit));
       await tester.pumpAndSettle();
       await holdCorner(tester, const Duration(seconds: 1));
-      expect(find.byType(BoothWelcomeScreen), findsOneWidget);
+      expect(find.byType(BoothScreen), findsOneWidget);
 
       await holdCorner(tester, const Duration(milliseconds: 3100));
       expect(find.byType(BoothOperatorScreen), findsOneWidget);
@@ -442,11 +439,11 @@ void main() {
       expect(find.byType(BoothOperatorScreen), findsOneWidget);
       await tester.pump(BoothOperatorScreen.idleTimeout);
       await tester.pumpAndSettle();
-      expect(find.byType(BoothWelcomeScreen), findsOneWidget);
+      expect(find.byType(BoothScreen), findsOneWidget);
 
       await holdCorner(tester, const Duration(milliseconds: 3100));
       await tapText(tester, 'Back to the guest screen');
-      expect(find.byType(BoothWelcomeScreen), findsOneWidget);
+      expect(find.byType(BoothScreen), findsOneWidget);
     });
 
     testWidgets('a restart during Booth Mode returns to the guest welcome', (
@@ -462,7 +459,7 @@ void main() {
         alreadySetUp: true,
         boothEventId: SeedIds.active,
       );
-      expect(find.byType(BoothWelcomeScreen), findsOneWidget);
+      expect(find.byType(BoothScreen), findsOneWidget);
       expect(find.byType(UnlockScreen), findsNothing);
     });
 
@@ -472,7 +469,7 @@ void main() {
       final semantics = tester.ensureSemantics();
       useViewport(tester, TabletViewport.ipadPortrait);
       await startBooth(tester);
-      final root = tester.getSemantics(find.byType(BoothWelcomeScreen));
+      final root = tester.getSemantics(find.byType(BoothScreen));
       final actions = <String>[];
       void visit(SemanticsNode node) {
         final data = node.getSemanticsData();

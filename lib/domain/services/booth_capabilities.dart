@@ -43,6 +43,10 @@ abstract final class StorageBudget {
   static const bytesPerSession = 40 * 1024 * 1024;
   static const minimumFreeBytes = 1024 * 1024 * 1024;
 
+  /// Below this a guest session does not start (M07): room for its
+  /// originals, retakes and finished photo, with a margin.
+  static const minimumSessionFreeBytes = 3 * bytesPerSession;
+
   /// About how many sessions [freeBytes] holds.
   static int sessionsFor(int freeBytes) => freeBytes ~/ bytesPerSession;
 }

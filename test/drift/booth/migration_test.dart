@@ -8,6 +8,7 @@ import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift_dev/api/migrations_native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:porcelain_photo_booth/domain/models/booth_event.dart';
+import 'package:porcelain_photo_booth/domain/repositories/session_repository.dart';
 import 'package:porcelain_photo_booth/domain/repositories/storage_errors.dart';
 import 'package:porcelain_photo_booth/domain/repositories/template_store.dart';
 import 'package:porcelain_photo_booth/domain/services/camera_service.dart';
@@ -20,6 +21,7 @@ import 'package:porcelain_photo_booth/infrastructure/database/database_connectio
 import 'package:porcelain_photo_booth/infrastructure/database/drift_booth_settings_repository.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_event_repository.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_operator_access_repository.dart';
+import 'package:porcelain_photo_booth/infrastructure/database/drift_session_repository.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_template_catalog.dart';
 
 import '../../support/fakes.dart';
@@ -33,6 +35,9 @@ const _revisionA1 = 'a1000000-0000-4000-8000-0000000000a1';
 const _revisionA2 = 'a2000000-0000-4000-8000-0000000000a2';
 const _revisionB1 = 'b1000000-0000-4000-8000-0000000000b1';
 const _sessionOriginal = '20261114180500-0a1b2c3d';
+const _completedSession = 'c0000000-0000-4000-8000-000000000001';
+const _renderingSession = 'c0000000-0000-4000-8000-000000000002';
+const _sessionOutput = 'd0000000-0000-4000-8000-000000000001';
 const _legacyOriginal = 'm01-spike-still';
 
 String seedFor(int version) =>
@@ -258,8 +263,12 @@ void main() {
       )..orderBy([(o) => OrderingTerm.desc(o.capturedAt)])).get();
       final pending = await db.select(db.pendingOriginalCommits).get();
       if (from >= 4) {
-        expect(originals.map((o) => o.id), [_sessionOriginal, _legacyOriginal]);
-        final session = originals.first;
+        expect(
+          originals.map((o) => o.id),
+          containsAll([_sessionOriginal, _legacyOriginal]),
+        );
+        expect(originals, hasLength(from >= 5 ? 7 : 2));
+        final session = originals.firstWhere((o) => o.id == _sessionOriginal);
         expect(session.relativePath, 'originals/$_sessionOriginal.jpg');
         expect((session.widthPx, session.heightPx), (4032, 3024));
         expect(session.byteLength, 3145728);
@@ -273,7 +282,7 @@ void main() {
         expect(session.origin, CaptureOrigin.session);
         expect(session.capturedAt, DateTime.utc(2026, 11, 14, 18, 5));
         expect(session.committedAt, DateTime.utc(2026, 11, 14, 18, 5, 1, 250));
-        final legacy = originals.last;
+        final legacy = originals.firstWhere((o) => o.id == _legacyOriginal);
         expect(legacy.lens, CameraLens.front);
         expect(legacy.deviceOrientation, CaptureOrientation.unknown);
         expect(legacy.exifOrientation, isNull);
@@ -287,6 +296,43 @@ void main() {
       } else {
         expect(originals, isEmpty, reason: 'originals arrived with version 4');
         expect(pending, isEmpty);
+      }
+
+      final sessions = DriftSessionRepository(db, clock: FakeClock());
+      if (from >= 5) {
+        final completed = (await sessions.find(_completedSession))!;
+        expect(completed.status, SessionStatus.completed);
+        expect(completed.plan.eventId, _active);
+        expect(completed.plan.templateRevisionId, _revisionA1);
+        expect(completed.plan.capture.lens, CameraLens.back);
+        expect(completed.plan.capture.mirrorOutput, isTrue);
+        expect(completed.plan.capture.retakePolicy, RetakePolicy.perShot);
+        expect(completed.plan.output.format, OutputFormat.png);
+        expect(completed.plan.finishTimeoutSeconds, 45);
+        expect(completed.photos, hasLength(3));
+        expect(completed.shots.slotBindings, {
+          0: '20261114181000-00000001',
+          1: '20261114181030-00000003',
+        }, reason: 'the retake is used; the first attempt is kept');
+        expect(completed.outputId, _sessionOutput);
+        expect(completed.endedAtUtc, DateTime.utc(2026, 11, 14, 18, 11));
+        final output = (await sessions.output(_sessionOutput))!;
+        expect(output.relativePath, 'outputs/$_sessionOutput.png');
+        expect((output.widthPx, output.heightPx), (1200, 1800));
+        expect(output.renderVersion, 2);
+        final unfinished = await sessions.unfinished();
+        expect(unfinished.single.id, _renderingSession);
+        expect(unfinished.single.status, SessionStatus.rendering);
+        expect(unfinished.single.renderAttempts, 1);
+        expect(unfinished.single.shots.isComplete, isTrue);
+      } else {
+        expect(
+          await db.select(db.captureSessions).get(),
+          isEmpty,
+          reason: 'sessions arrived with version 5',
+        );
+        expect(await db.select(db.sessionPhotos).get(), isEmpty);
+        expect(await db.select(db.sessionOutputs).get(), isEmpty);
       }
     });
   }

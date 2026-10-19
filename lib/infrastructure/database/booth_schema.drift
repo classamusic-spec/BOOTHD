@@ -1,6 +1,8 @@
 -- Porcelain Photo Booth database schema (ADR-0009). Version 1 (M03);
 -- version 2 (M04) adds template assets and the assets each revision uses;
--- version 3 (M05) adds editor drafts and bundled assets.
+-- version 3 (M05) adds editor drafts and bundled assets; version 4 (M06)
+-- camera originals and their commit journal; version 5 (M07) guest
+-- sessions, their photos and finished photos.
 --
 -- Rules enforced here as well as in the domain, so a defect elsewhere can
 -- never store an invalid event: foreign keys with explicit actions, CHECK
@@ -10,6 +12,7 @@
 -- (tool/check.sh and test/drift enforce this).
 
 import '../../domain/models/booth_event.dart';
+import '../../domain/repositories/session_repository.dart';
 import '../../domain/repositories/template_store.dart';
 import '../../domain/services/camera_service.dart';
 import '../../domain/template/template_assets.dart';
@@ -296,3 +299,96 @@ CREATE TABLE pending_original_commits (
   metadata TEXT NOT NULL CHECK (length(metadata) BETWEEN 2 AND 65536),
   started_at DATETIME NOT NULL
 ) AS PendingOriginalCommitRow;
+
+-- Guest sessions (version 5; A-05 CaptureSession, A-10). Each is frozen to
+-- one event and one template revision when it starts; `plan_json` keeps the
+-- frozen settings (JSON). Only the status columns change afterwards, and
+-- a completed session never changes again.
+CREATE TABLE capture_sessions (
+  id TEXT NOT NULL PRIMARY KEY CHECK (length(id) = 36),
+  event_id TEXT NOT NULL REFERENCES events (id) ON DELETE RESTRICT,
+  template_revision_id TEXT NOT NULL
+    REFERENCES template_revisions (id) ON DELETE RESTRICT,
+  planned_shots INTEGER NOT NULL CHECK (planned_shots BETWEEN 1 AND 4),
+  plan_json TEXT NOT NULL CHECK (length(plan_json) BETWEEN 2 AND 65536),
+  status ENUMNAME(SessionStatus) NOT NULL
+    CHECK (status IN ('capturing', 'reviewing', 'rendering', 'completed',
+      'abandoned', 'failed')),
+  end_reason ENUMNAME(SessionEndReason)
+    CHECK (end_reason IS NULL OR end_reason IN ('interrupted', 'timedOut',
+      'operatorExit', 'problem', 'renderFailed')),
+  render_attempts INTEGER NOT NULL DEFAULT 0 CHECK (render_attempts >= 0),
+  output_id TEXT CHECK (output_id IS NULL OR length(output_id) = 36),
+  started_at DATETIME NOT NULL,
+  updated_at DATETIME NOT NULL,
+  ended_at DATETIME,
+  CHECK ((status IN ('completed', 'abandoned', 'failed'))
+    = (ended_at IS NOT NULL)),
+  CHECK ((status = 'completed') = (output_id IS NOT NULL)),
+  CHECK ((status IN ('abandoned', 'failed')) = (end_reason IS NOT NULL))
+) AS CaptureSessionRow;
+
+CREATE INDEX capture_sessions_by_event
+  ON capture_sessions (event_id, started_at);
+
+CREATE TRIGGER capture_session_plans_are_immutable
+  BEFORE UPDATE OF id, event_id, template_revision_id, planned_shots,
+    plan_json, started_at ON capture_sessions
+BEGIN
+  SELECT RAISE(ABORT, 'a session is frozen to its plan');
+END;
+
+CREATE TRIGGER finished_sessions_are_immutable
+  BEFORE UPDATE ON capture_sessions
+  WHEN OLD.status IN ('completed', 'abandoned', 'failed')
+BEGIN
+  SELECT RAISE(ABORT, 'a finished session never changes');
+END;
+
+-- Photos of a session (version 5; A-05 CapturedPhoto): one row per
+-- attempt, never changed. The photo used for a shot is its latest attempt;
+-- a retake adds a row and keeps the earlier original (AC-0703).
+CREATE TABLE session_photos (
+  session_id TEXT NOT NULL REFERENCES capture_sessions (id) ON DELETE RESTRICT,
+  shot_index INTEGER NOT NULL CHECK (shot_index BETWEEN 0 AND 3),
+  attempt INTEGER NOT NULL CHECK (attempt >= 1),
+  round INTEGER NOT NULL CHECK (round >= 0 AND round < attempt),
+  slot_index INTEGER NOT NULL CHECK (slot_index BETWEEN 0 AND 7),
+  original_id TEXT NOT NULL UNIQUE
+    REFERENCES original_photos (id) ON DELETE RESTRICT,
+  captured_at DATETIME NOT NULL,
+  PRIMARY KEY (session_id, shot_index, attempt)
+) AS SessionPhotoRow;
+
+CREATE TRIGGER session_photos_are_immutable
+  BEFORE UPDATE ON session_photos
+BEGIN
+  SELECT RAISE(ABORT, 'session photos are immutable');
+END;
+
+-- Finished photos (version 5; A-05 RenderedOutput): the verified file in
+-- managed storage and its facts. Never changed; a new render is a new row.
+CREATE TABLE session_outputs (
+  id TEXT NOT NULL PRIMARY KEY CHECK (length(id) = 36),
+  session_id TEXT NOT NULL REFERENCES capture_sessions (id) ON DELETE RESTRICT,
+  relative_path TEXT NOT NULL UNIQUE
+    CHECK (relative_path = 'outputs/' || id
+      || CASE format WHEN 'jpeg' THEN '.jpg' ELSE '.png' END),
+  sha256 TEXT NOT NULL
+    CHECK (length(sha256) = 64 AND sha256 NOT GLOB '*[^0-9a-f]*'),
+  byte_length INTEGER NOT NULL CHECK (byte_length >= 1),
+  width_px INTEGER NOT NULL CHECK (width_px BETWEEN 1 AND 20000),
+  height_px INTEGER NOT NULL CHECK (height_px BETWEEN 1 AND 20000),
+  format ENUMNAME(OutputFormat) NOT NULL CHECK (format IN ('jpeg', 'png')),
+  render_version INTEGER NOT NULL CHECK (render_version >= 1),
+  created_at DATETIME NOT NULL
+) AS SessionOutputRow;
+
+CREATE INDEX session_outputs_by_session
+  ON session_outputs (session_id, created_at);
+
+CREATE TRIGGER session_outputs_are_immutable
+  BEFORE UPDATE ON session_outputs
+BEGIN
+  SELECT RAISE(ABORT, 'finished photos are immutable');
+END;

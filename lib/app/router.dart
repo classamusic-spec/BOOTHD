@@ -7,7 +7,7 @@ import '../core/routing/access_redirect.dart';
 import '../core/routing/route_paths.dart';
 import '../domain/template/template_document.dart';
 import '../features/booth/booth_operator_screen.dart';
-import '../features/booth/booth_welcome_screen.dart';
+import '../features/booth/booth_screen.dart';
 import '../features/booth/guest_preview_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
 import '../features/diagnostics/camera_test_screen.dart';
@@ -65,7 +65,7 @@ GoRouter buildRouter({
       GoRoute(path: RoutePaths.unlock, builder: (_, _) => const UnlockScreen()),
       GoRoute(
         path: RoutePaths.booth,
-        builder: (_, _) => const BoothWelcomeScreen(),
+        builder: (_, _) => const BoothScreen(),
         routes: [
           GoRoute(
             path: 'operator',

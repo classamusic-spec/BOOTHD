@@ -202,6 +202,14 @@ final class OriginalStore implements CapturedStillStore {
   }
 
   @override
+  Future<CapturedStill?> find(String id) async {
+    final row = await (_database.select(
+      _database.originalPhotos,
+    )..where((o) => o.id.equals(id))).getSingleOrNull();
+    return row == null ? null : _still(row);
+  }
+
+  @override
   Future<Uint8List> read(CapturedStill still) async {
     final file = _file(await _root(), still.relativePath);
     final Uint8List bytes;

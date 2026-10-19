@@ -373,6 +373,9 @@ abstract interface class CapturedStillStore {
   /// Committed originals, newest first, at most [limit].
   Future<List<CapturedStill>> listCommitted({int? limit});
 
+  /// The committed original [id], or null.
+  Future<CapturedStill?> find(String id);
+
   /// The stored bytes of [still], verified against its checksum. Throws
   /// [CameraFailure] ([CameraFailureCode.originalNotPersisted]) when the
   /// file is missing or changed.

@@ -1,7 +1,12 @@
+import 'dart:async';
+
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:porcelain_photo_booth/core/design_system/appearance.dart';
 import 'package:porcelain_photo_booth/core/routing/route_paths.dart';
+import 'package:porcelain_photo_booth/domain/models/booth_event.dart';
 import 'package:porcelain_photo_booth/domain/services/camera_service.dart';
+import 'package:porcelain_photo_booth/features/booth/booth_copy.dart';
 import 'package:porcelain_photo_booth/features/template_studio/editor_canvas.dart';
 import 'package:porcelain_photo_booth/features/template_studio/layers_panel.dart';
 import 'package:porcelain_photo_booth/shared/operator_access/access_copy.dart';
@@ -21,7 +26,9 @@ final class ScreenSpec {
     this.renders = false,
     this.boothEventId,
     this.camera,
+    this.event,
     this.then,
+    this.session,
   });
 
   final String location;
@@ -41,8 +48,14 @@ final class ScreenSpec {
   /// The simulated camera, when the screen needs a particular one.
   final SimulatedCameraService Function()? camera;
 
+  /// Adjusts the seeded active event, e.g. its theme or retake policy.
+  final BoothEvent Function(BoothEvent event)? event;
+
   /// Steps after the app starts, e.g. to reach a later setup step.
   final Future<void> Function(WidgetTester tester)? then;
+
+  /// Steps of a guest session, with the fakes behind the booth.
+  final Future<void> Function(WidgetTester tester, TestBooth booth)? session;
 }
 
 Future<void> _tap(WidgetTester tester, String text) async {
@@ -237,6 +250,208 @@ final screens = <String, ScreenSpec>{
   ),
 };
 
+/// Booth Mode guest sessions (M07), in the booth's own theme as on the
+/// reference boards unless the name says otherwise.
+final boothSessionScreens = <String, ScreenSpec>{
+  'booth template choice': ScreenSpec(
+    RoutePaths.booth,
+    startAs: StartAs.booth,
+    seeded: true,
+    renders: true,
+    boothEventId: SeedIds.active,
+    event: (event) => _porcelain(event).copyWith(
+      guest: _porcelain(event).guest.copyWith(guestChoosesTemplate: true),
+    ),
+    session: (tester, booth) async {
+      await _start(tester);
+      await settleRendering(tester, rounds: 10);
+      await tester.pumpAndSettle();
+    },
+  ),
+  'booth get ready': ScreenSpec(
+    RoutePaths.booth,
+    startAs: StartAs.booth,
+    seeded: true,
+    renders: true,
+    boothEventId: SeedIds.active,
+    event: _porcelain,
+    session: (tester, booth) => _start(tester),
+  ),
+  'booth get ready dark': ScreenSpec(
+    RoutePaths.booth,
+    startAs: StartAs.booth,
+    seeded: true,
+    renders: true,
+    boothEventId: SeedIds.active,
+    session: (tester, booth) => _start(tester),
+  ),
+  'booth snap': ScreenSpec(
+    RoutePaths.booth,
+    startAs: StartAs.booth,
+    seeded: true,
+    renders: true,
+    boothEventId: SeedIds.active,
+    event: _porcelain,
+    session: (tester, booth) async {
+      booth.camera.captureGate = Completer<void>();
+      await _start(tester);
+      await _countdown(tester);
+      // Part-way through the flash.
+      await tester.pump(const Duration(milliseconds: 300));
+    },
+  ),
+  'booth photo saved': ScreenSpec(
+    RoutePaths.booth,
+    startAs: StartAs.booth,
+    seeded: true,
+    renders: true,
+    boothEventId: SeedIds.active,
+    event: _porcelain,
+    session: (tester, booth) async {
+      await _start(tester);
+      await _countdown(tester);
+      await _settlePhotos(tester);
+    },
+  ),
+  'booth review': ScreenSpec(
+    RoutePaths.booth,
+    startAs: StartAs.booth,
+    seeded: true,
+    renders: true,
+    boothEventId: SeedIds.active,
+    event: _porcelain,
+    session: (tester, booth) async {
+      await _toReview(tester);
+      await _settlePhotos(tester);
+    },
+  ),
+  'booth review retake all': ScreenSpec(
+    RoutePaths.booth,
+    startAs: StartAs.booth,
+    seeded: true,
+    renders: true,
+    boothEventId: SeedIds.active,
+    event: (event) => _porcelain(event).copyWith(
+      capture: event.capture.copyWith(retakePolicy: RetakePolicy.wholeSession),
+    ),
+    session: (tester, booth) async {
+      await _toReview(tester);
+      await tester.tap(find.bySemanticsLabel(BoothCopy.retakeAll));
+      await _settlePhotos(tester);
+    },
+  ),
+  'booth creating': ScreenSpec(
+    RoutePaths.booth,
+    startAs: StartAs.booth,
+    seeded: true,
+    renders: true,
+    boothEventId: SeedIds.active,
+    event: _porcelain,
+    session: (tester, booth) async {
+      booth.exports.gate = Completer<void>();
+      await _toReview(tester);
+      await tester.tap(find.bySemanticsLabel(BoothCopy.keepThese));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+    },
+  ),
+  'booth finished': ScreenSpec(
+    RoutePaths.booth,
+    startAs: StartAs.booth,
+    seeded: true,
+    renders: true,
+    boothEventId: SeedIds.active,
+    event: _porcelain,
+    session: (tester, booth) async {
+      await _toReview(tester);
+      await tester.tap(find.bySemanticsLabel(BoothCopy.keepThese));
+      await tester.pump();
+      await _settlePhotos(tester);
+    },
+  ),
+  'booth finished dark': ScreenSpec(
+    RoutePaths.booth,
+    startAs: StartAs.booth,
+    seeded: true,
+    renders: true,
+    boothEventId: SeedIds.active,
+    session: (tester, booth) async {
+      await _toReview(tester);
+      await tester.tap(find.bySemanticsLabel(BoothCopy.keepThese));
+      await tester.pump();
+      await _settlePhotos(tester);
+    },
+  ),
+  'booth paused': ScreenSpec(
+    RoutePaths.booth,
+    startAs: StartAs.booth,
+    seeded: true,
+    renders: true,
+    boothEventId: SeedIds.active,
+    event: _porcelain,
+    session: (tester, booth) async {
+      await _start(tester);
+      await _countdown(tester);
+      await _settlePhotos(tester);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+    },
+  ),
+  'booth problem': ScreenSpec(
+    RoutePaths.booth,
+    startAs: StartAs.booth,
+    seeded: true,
+    renders: true,
+    boothEventId: SeedIds.active,
+    event: _porcelain,
+    session: (tester, booth) async {
+      booth.camera.initializeFailure = const CameraFailure(
+        CameraFailureCode.cameraUnavailable,
+      );
+      await _start(tester);
+      await tester.pumpAndSettle();
+    },
+  ),
+};
+
+/// The seeded event in the booth's own theme (Porcelain Studio).
+BoothEvent _porcelain(BoothEvent event) =>
+    event.copyWith(guest: event.guest.copyWith(themeOverride: null));
+
+/// Start on the welcome, then the camera opens and the countdown shows 3.
+Future<void> _start(WidgetTester tester) async {
+  await tester.tap(find.bySemanticsLabel('Start'));
+  for (var i = 0; i < 6; i++) {
+    await tester.pump(const Duration(milliseconds: 50));
+  }
+  await tester.pump(const Duration(milliseconds: 300));
+}
+
+/// The rest of a three-second countdown, to the photo.
+Future<void> _countdown(WidgetTester tester) async {
+  for (var i = 0; i < 3; i++) {
+    await tester.pump(const Duration(seconds: 1));
+  }
+  await tester.pump(const Duration(milliseconds: 50));
+}
+
+/// Both photos of the seeded event, to the review.
+Future<void> _toReview(WidgetTester tester) async {
+  await _start(tester);
+  await _countdown(tester);
+  // The pause between photos, then the second countdown.
+  await tester.pump(const Duration(seconds: 3));
+  await _countdown(tester);
+  await tester.pump(const Duration(milliseconds: 400));
+}
+
+/// Decodes the photos on screen (real time) and lets the screen settle.
+Future<void> _settlePhotos(WidgetTester tester) async {
+  await settleRendering(tester, rounds: 4);
+  await tester.pump(const Duration(milliseconds: 400));
+}
+
 /// The component gallery shows a spinner and skeleton that never settle.
 bool settles(String name) => name != 'component gallery';
 
@@ -248,15 +463,15 @@ Future<void> show(
   AppearanceSettings appearance = const AppearanceSettings(),
   double pixelRatio = 2,
 }) async {
-  final spec = screens[name]!;
+  final spec = screens[name] ?? boothSessionScreens[name]!;
   useViewport(tester, viewport, pixelRatio: pixelRatio);
-  await pumpApp(
+  final booth = await pumpApp(
     tester,
     location: spec.location,
     appearance: appearance,
     startAs: spec.startAs,
     boothEventId: spec.boothEventId,
-    seed: spec.seeded ? (db) => seedEvents(db) : null,
+    seed: spec.seeded ? (db) => seedEvents(db, active: spec.event) : null,
     seedTemplates: spec.library
         ? seedStarterLibrary
         : spec.seeded
@@ -271,4 +486,5 @@ Future<void> show(
   }
   if (!settles(name)) await tester.pump(const Duration(seconds: 1));
   await spec.then?.call(tester);
+  await spec.session?.call(tester, booth);
 }

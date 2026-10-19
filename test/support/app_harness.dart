@@ -22,8 +22,10 @@ import 'package:porcelain_photo_booth/infrastructure/database/booth_database.dar
 import 'package:porcelain_photo_booth/infrastructure/database/drift_booth_settings_repository.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_event_repository.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_operator_access_repository.dart';
+import 'package:porcelain_photo_booth/infrastructure/database/drift_session_repository.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_template_catalog.dart';
 
+import 'fake_export.dart';
 import 'fakes.dart';
 import 'memory_template_store.dart';
 import 'simulated_camera.dart';
@@ -84,6 +86,7 @@ final class TestBooth {
     required this.files,
     required this.camera,
     required this.space,
+    required this.exports,
   });
 
   final BoothDatabase db;
@@ -107,6 +110,13 @@ final class TestBooth {
 
   /// Free space as the tablet reports it.
   final FakeDeviceStorage space;
+
+  /// Finished photos: a fast stand-in for the renderer and file export.
+  final FakeExportService exports;
+
+  /// Guest sessions in the booth database.
+  DriftSessionRepository get sessions =>
+      DriftSessionRepository(db, clock: clock);
 
   late final ProviderContainer container;
 
@@ -170,6 +180,7 @@ Future<TestBooth> pumpApp(
   Future<void> Function(MemoryTemplateStore templates)? seedTemplates,
   SimulatedCameraService? camera,
   FakeDeviceStorage? space,
+  FakeExportService? exports,
 }) async {
   final testClock = clock ?? FakeClock();
   final db = database ?? memoryDatabase(clock: testClock);
@@ -204,7 +215,11 @@ Future<TestBooth> pumpApp(
     files: FakeOperatorFiles(),
     camera: camera ?? SimulatedCameraService(),
     space: space ?? FakeDeviceStorage(),
+    exports: exports ?? FakeExportService(),
   );
+  // Sessions refer to originals, which the real store records in the
+  // database too.
+  booth.camera.store.database ??= db;
 
   await tester.pumpWidget(
     ProviderScope(
@@ -237,6 +252,9 @@ Future<TestBooth> pumpApp(
         capturedStillStoreProvider.overrideWithValue(booth.stills),
         cameraPreviewBuilderProvider.overrideWithValue(simulatedPreview),
         deviceStorageInfoProvider.overrideWithValue(booth.space),
+        sessionRepositoryProvider.overrideWith((ref) => booth.sessions),
+        exportServiceProvider.overrideWithValue(booth.exports),
+        finishedPhotosProvider.overrideWithValue(booth.exports.finished),
         deviceSelfTestProvider.overrideWith(
           (ref) => DeviceSelfTest(
             camera: booth.camera,

@@ -67,8 +67,13 @@ Future<void> seedTemplates(BoothDatabase db) async {
   );
 }
 
-/// Templates plus an active, a draft and an archived event.
-Future<void> seedEvents(BoothDatabase db, {FakeClock? clock}) async {
+/// Templates plus an active, a draft and an archived event; [active]
+/// adjusts the active event before it is saved and activated.
+Future<void> seedEvents(
+  BoothDatabase db, {
+  FakeClock? clock,
+  BoothEvent Function(BoothEvent event)? active,
+}) async {
   final time = clock ?? FakeClock();
   await seedTemplates(db);
   final booth = (await DriftBoothSettingsRepository(
@@ -85,28 +90,27 @@ Future<void> seedEvents(BoothDatabase db, {FakeClock? clock}) async {
   BoothEvent base(String id, String title) =>
       service.newDraft(booth).copyWith(id: id, title: title);
 
-  await service.save(
-    base(SeedIds.active, 'Hannah & Theo’s wedding').copyWith(
-      date: CalendarDate(2026, 11, 14),
-      venue: 'The Orangery',
-      capture: const CaptureSettings(
-        lens: CameraLens.front,
-        mirrorPreview: true,
-        mirrorOutput: false,
-        orientation: GuestOrientationPreference.portrait,
-        shotCount: 2,
-      ),
-      guest: const GuestSettings(
-        welcomeTitle: 'Welcome, friends',
-        welcomeMessage: 'Two photos, a little sparkle, and you are done.',
-        themeOverride: PorcelainThemeProfile.darkroomWalnut,
-      ),
-      templates: const TemplateSelection(
-        revisionIds: [TestIds.revisionA1, TestIds.revisionB1],
-        defaultRevisionId: TestIds.revisionA1,
-      ),
+  final wedding = base(SeedIds.active, 'Hannah & Theo’s wedding').copyWith(
+    date: CalendarDate(2026, 11, 14),
+    venue: 'The Orangery',
+    capture: const CaptureSettings(
+      lens: CameraLens.front,
+      mirrorPreview: true,
+      mirrorOutput: false,
+      orientation: GuestOrientationPreference.portrait,
+      shotCount: 2,
+    ),
+    guest: const GuestSettings(
+      welcomeTitle: 'Welcome, friends',
+      welcomeMessage: 'Two photos, a little sparkle, and you are done.',
+      themeOverride: PorcelainThemeProfile.darkroomWalnut,
+    ),
+    templates: const TemplateSelection(
+      revisionIds: [TestIds.revisionA1, TestIds.revisionB1],
+      defaultRevisionId: TestIds.revisionA1,
     ),
   );
+  await service.save(active?.call(wedding) ?? wedding);
   await service.activate(SeedIds.active);
   time.advance(const Duration(minutes: 1));
   await service.save(

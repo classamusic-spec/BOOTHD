@@ -7,7 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:porcelain_photo_booth/core/design_system/porcelain_theme_data.dart';
 import 'package:porcelain_photo_booth/core/design_system/theme_profiles.dart';
 import 'package:porcelain_photo_booth/core/routing/route_paths.dart';
-import 'package:porcelain_photo_booth/features/booth/booth_welcome_screen.dart';
+import 'package:porcelain_photo_booth/features/booth/booth_screen.dart';
 import 'package:porcelain_photo_booth/shared/guest/guest_layout.dart';
 import 'package:porcelain_photo_booth/shared/guest/guest_welcome.dart';
 import 'package:porcelain_photo_booth/shared/guest/guest_welcome_sample.dart';
@@ -176,7 +176,7 @@ void main() {
       expect(tester.takeException(), isNull);
 
       // The operator's hidden corner is not a guest control.
-      final screen = tester.getSemantics(find.byType(BoothWelcomeScreen));
+      final screen = tester.getSemantics(find.byType(BoothScreen));
       expect(actionable(screen).map((n) => n.label), ['Start']);
       for (final type in [
         BackButton,

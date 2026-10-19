@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/repositories/booth_settings_repository.dart';
 import '../../domain/repositories/event_repository.dart';
 import '../../domain/repositories/operator_access_repository.dart';
+import '../../domain/repositories/session_repository.dart';
 import '../../domain/repositories/template_catalog.dart';
 import '../../domain/repositories/template_store.dart';
 import '../../domain/services/booth_capabilities.dart';
@@ -12,6 +13,7 @@ import '../../domain/services/camera_service.dart';
 import '../../domain/services/composition_renderer.dart';
 import '../../domain/services/event_service.dart';
 import '../../domain/services/export_service.dart';
+import '../../domain/services/finished_photos.dart';
 import '../../domain/services/managed_storage.dart';
 import '../../domain/services/operator_auth_service.dart';
 import '../../domain/services/operator_files.dart';
@@ -51,6 +53,16 @@ typedef CameraPreviewBuilder = Widget Function(
 
 final cameraPreviewBuilderProvider = Provider<CameraPreviewBuilder>(
   (ref) => _unbound('cameraPreviewBuilderProvider'),
+);
+
+/// Guest sessions, their photos and finished photos (M07, ADR-0013).
+final sessionRepositoryProvider = Provider<SessionRepository>(
+  (ref) => _unbound('sessionRepositoryProvider'),
+);
+
+/// Finished photos read back from storage (M07).
+final finishedPhotosProvider = Provider<FinishedPhotos>(
+  (ref) => _unbound('finishedPhotosProvider'),
 );
 
 /// Free space on the booth's volume (M06, ADR-0012).

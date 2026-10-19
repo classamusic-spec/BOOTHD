@@ -61,6 +61,7 @@ class PorcelainButton extends StatelessWidget {
     this.expand = false,
     this.semanticHint,
     this.autofocus = false,
+    this.caps = false,
   });
 
   final String label;
@@ -84,6 +85,10 @@ class PorcelainButton extends StatelessWidget {
   final bool expand;
   final String? semanticHint;
   final bool autofocus;
+
+  /// Shows the label in spaced capitals, as guest actions do (CR-002);
+  /// screen readers still get [label] as written.
+  final bool caps;
 
   @override
   Widget build(BuildContext context) {
@@ -166,8 +171,13 @@ class PorcelainButton extends StatelessWidget {
                   ],
                   Flexible(
                     child: Text(
-                      text,
-                      style: style,
+                      caps ? text.toUpperCase() : text,
+                      style: caps
+                          ? style.copyWith(
+                              fontSize: style.fontSize! * 0.8,
+                              letterSpacing: 2.2,
+                            )
+                          : style,
                       textAlign: TextAlign.center,
                     ),
                   ),
