@@ -85,6 +85,8 @@ jobs:
       - run: tool/build_android.sh release
       # No messaging, storage or private key material in the app (AC-0918).
       - run: tool/scan_binary_secrets.sh build/app/outputs/flutter-apk/app-release.apk
+      # Only the permissions the booth needs, after merging (AC-1007).
+      - run: tool/audit_permissions.sh build/app/outputs/flutter-apk/app-release.apk
 
   ios:
     name: iPadOS unsigned build

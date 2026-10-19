@@ -6,6 +6,10 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" tools:node="remove" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="remove" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove" />
+    <!-- CameraX's video library brings in media3-common, which declares this
+         for media streaming. The booth records no video, streams nothing and
+         never asks the network's state (M10 permission audit). -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
     <!-- Optional phone delivery (M09, ADR-0015) talks to the operator's own
          delivery service over HTTPS. Nothing else uses the network: the
          booth works fully offline, and without a pairing it makes no
