@@ -917,7 +917,7 @@ Owner approval requested: YES (M08 to M10, as instructed: "approve start M08-M10
 | 8 | `tool/build_ios.sh` | 3 | BLOCKED by design on Linux: "iOS builds require macOS with Xcode" |
 | 9 | GitHub Actions CI #34 on `9201e2d` (M10 part 1) | 1 | 2,876 passed, 1 failed, 4 skipped: `managed_storage_test` still listed eight areas after M10 added `restore`; fixed in `e12c7f0` |
 | 10 | GitHub Actions CI #35 on `e12c7f0` (M10 parts 1 to 3) | 0 | Success: delivery backend; `tool/check.sh` (18 min 3 s); Android release build with the secrets scan and, for the first time on GitHub's runner, `tool/audit_permissions.sh` (passed); iPadOS job skipped (no macOS runner) |
-| 11 | GitHub Actions CI on the commit adding this entry | pending | Recorded by the commit that follows it |
+| 11 | GitHub Actions CI #36 on `b6cecf3` (the commit adding this entry; run 39221586842) | 0 | Success: delivery backend; `tool/check.sh` (18 min 10 s); Android release build, the secrets scan and the permission audit; iPadOS job skipped (no macOS runner) |
 
 ### Acceptance items
 
