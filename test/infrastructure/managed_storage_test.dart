@@ -40,6 +40,8 @@ void main() {
       'thumbnails',
       'outgoing',
       'staging',
+      // A backup being restored waits here for the next start (M10).
+      'restore',
     });
     expect(
       (await storage.databaseFile()).path,
