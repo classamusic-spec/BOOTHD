@@ -886,3 +886,79 @@ Owner approval requested: YES (after M10, as instructed: "approve start M08-M10"
   screen says so where it matters.
 - Legal review, sender registration and pricing checks are owner tasks
   before any live use (`docs/delivery/PREREQUISITES.md`).
+
+## M10: commercial resilience, security, backup and kiosk readiness
+
+```text
+Milestone: M10 | commits 55f209f, 030d7b5, d7b76e6, e12c7f0, ead9f94 and the docs commit adding this entry | build 0.1.0+1
+Host: same Linux cloud VM as M00 to M09 (4 cores, no KVM, no macOS, no attached devices)
+Flutter 3.47.7 / Dart 3.13.5; no new packages; schema version 7 (unchanged)
+iPad: BLOCKED (no physical iPad, no Mac: the Swift side is not compiled here)
+Android: builds PASS; no physical tablet
+Tested on the host: every M10 rule with real files, a real SQLite database
+  and stand-ins for the camera, the share sheet and the OS kiosk state.
+  Kills are simulated by stopping a real save at a stage for good, then
+  starting again on the same files and database. Nothing here stands in
+  for a tablet.
+Owner approval requested: YES (M08 to M10, as instructed: "approve start M08-M10")
+```
+
+### Commands and exit codes (2026-10-19 UTC)
+
+| # | Command | Exit | Result |
+| --- | --- | --- | --- |
+| 1 | `flutter test` on `e12c7f0` (M10 parts 1 to 3 and the storage test fix) | 0 | 21 min 20 s: 2,954 passed, 2 skipped (device comparison; the live delivery contract test), 0 failed. Pushed after this run |
+| 2 | `tool/check.sh` on the final M10 tree (`ead9f94` plus docs) | 0 | 23 min 52 s. Generated code current (build_runner and `drift_dev make-migrations` changed nothing; schema still v7). Format: 415 files, 0 changed. Analyze: no issues. Tests: 2,978 passed, 2 skipped (device comparison; the live delivery contract test), 0 failed. Licence report current |
+| 3 | `tool/build_android.sh debug` | 0 | 34 s; `app-debug.apk` 241,861,394 bytes, SHA-256 `477faa31dbcee691043676b0b9768c78a169e8509e024ad58c6a1a1872dc5a59`; `tool/audit_permissions.sh` on it: exit 0 |
+| 4 | `tool/build_android.sh release` | 0 | 157 s; `app-release.apk` 75,255,637 bytes, SHA-256 `2ab0af077b99d786177c07dde61e908694af79a1aa5c0153f7017ada41650bb7` |
+| 5 | `tool/audit_permissions.sh` on the APK built before the change (`ACCESS_NETWORK_STATE` still merged) | 1 | Positive control: "+ android.permission.ACCESS_NETWORK_STATE" reported as unexpected |
+| 6 | `tool/audit_permissions.sh build/app/outputs/flutter-apk/app-release.apk` (row 4) | 0 | Declares `android.permission.CAMERA`, `android.permission.INTERNET` and `com.example.porcelain_photo_booth.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` (androidx, signature level) only: "Permission audit passed" |
+| 7 | `tool/scan_binary_secrets.sh build/app/outputs/flutter-apk/app-release.apk` | 0 | 111 files, 301,928 strings scanned; no provider id or key, storage key, private key or backend secret name |
+| 8 | `tool/build_ios.sh` | 3 | BLOCKED by design on Linux: "iOS builds require macOS with Xcode" |
+| 9 | GitHub Actions CI #34 on `9201e2d` (M10 part 1) | 1 | 2,876 passed, 1 failed, 4 skipped: `managed_storage_test` still listed eight areas after M10 added `restore`; fixed in `e12c7f0` |
+| 10 | GitHub Actions CI #35 on `e12c7f0` (M10 parts 1 to 3) | 0 | Success: delivery backend; `tool/check.sh` (18 min 3 s); Android release build with the secrets scan and, for the first time on GitHub's runner, `tool/audit_permissions.sh` (passed); iPadOS job skipped (no macOS runner) |
+| 11 | GitHub Actions CI on the commit adding this entry | pending | Recorded by the commit that follows it |
+
+### Acceptance items
+
+| AC | Status | Evidence |
+| --- | --- | --- |
+| AC-1001 First-run setup, operator unlock and safe recovery screens complete | PASS (host); device BLOCKED | First run: welcome, privacy, PIN twice, recovery code, booth (M03), now with "Restore from a backup" and, after a restore, "Backup restored" before a new PIN and recovery code (`backup_flow_test.dart`, `access_flow_test.dart`); unlock with rate limiting and the recovery code (M03 tests, unchanged); a booth that cannot start shows a code and Try again, never an exception, including a restore that could not finish its swap (`access_flow_test.dart`); catalog screens `setup welcome`, `setup restore` (choose, checked, refused), `setup restored`, `unlock`, `unlock recovery` pass the layout, text scale, guideline and dead-control checks at every size, with goldens. On tablets: M10 device procedure section 1 |
+| AC-1002 Kiosk guidance: iPad Guided Access vs supervised Single App Mode; Android screen pinning vs managed lock task | PASS (guidance and host tests); device BLOCKED | `docs/KIOSK_DEPLOYMENT.md` compares both pairs (needs, turning on and off, after a restart, cautions, tests) and says what the app can and cannot see. In the app, Settings > Kiosk lock shows what the tablet reports and the two methods of its platform, also from the launch checks (`kiosk_guide_test.dart`, catalog `settings kiosk`, `settings kiosk ipad locked`). The read-only bridge maps every reply, and anything unclear is "unknown", never "locked" (`platform_kiosk_lock_test.dart`); no native code starts or stops a lock (`permission_audit_test.dart`). Whether a lock really holds, and whether Single App Mode reads as Guided Access: device procedure section 2 |
+| AC-1003 Preflight checks camera, template, storage, write access, output and orientation; blocks only critical issues | PASS (host); device BLOCKED | A table test pins what blocks (camera refused, storage not writable, no room for one session, a template that cannot render, the PIN unreadable, an inactive or invalid event) and what only warns (low or unknown space, orientation, no kiosk lock) (`preflight_test.dart`); thresholds from the probe (`device_capability_probe_test.dart`); the screen shows the warning, keeps Start Booth Mode and offers How to lock (`kiosk_guide_test.dart`, `events_flow_test.dart`) |
+| AC-1004 Recovery reconciles files and DB after a simulated kill between temp file, rename and record commit | PASS (host, simulated kills); device kills BLOCKED | `kill_recovery_test.dart`: a camera photo, a finished photo, a template image and a template revision, each killed during the staged write, before the rename and after it; a deletion killed before its files went; a backup and a restore killed half-way. After the start that follows: nothing staged, no journal left, every record has its intact file, every file has its record (a camera photo with none is moved aside, never deleted), and the photos saved before the kill are byte for byte the same. Also: the interrupted restore swap (`backup_restore_test.dart`), sessions cut off (`session_recovery_test.dart`) and the guest screens after a kill (`crash_isolation_test.dart`). On tablets: device procedure section 4 |
+| AC-1005 Low storage handled without claiming capture success or losing completed originals | PASS (host); device BLOCKED | A session does not start without room (M07); a tablet that fills during a session shows "ask the host", never "Photo saved", and keeps the photos already taken (`booth_session_flow_test.dart`); a full disk stores no original, export or backup and says so (`original_store_test.dart`, `file_export_service_test.dart`, `backup_restore_test.dart`, `backup_flow_test.dart`); the launch checks warn when space is low and block only below one session. On tablets: device procedure section 5 |
+| AC-1006 Backups include database, documents, assets and media per configuration; restore validated to an empty app sandbox | PASS (host); device BLOCKED | Everything or setup only; read back and checked before sharing; restored byte for byte into an empty sandbox (tables and files), never into a booth in use; damaged, foreign, unsafe, oversized and newer files refused with nothing changed; no PIN, recovery verifier, pairing or number inside (`tar_archive_test.dart`, `backup_restore_test.dart`, `restartable_app_test.dart`, `backup_flow_test.dart`). Between real tablets: device procedure section 6 |
+| AC-1007 Logs omit photo bytes, credential material and sensitive file names where feasible; camera and network permissions audited | PASS (host); device logs BLOCKED | SafeLog is the only way to the log and cleans every line (`safe_log_test.dart`, `error_reporting_test.dart`, `logging_test.dart`). Permissions: rows 5 and 6, `permission_audit_test.dart`; iPadOS storage excluded from device backups (`device_backup_exclusion_test.dart`). Airplane mode: a guest session and thirteen Studio screens open no connection (`offline_operation_test.dart`). On tablets: device procedure sections 7 and 8 |
+| AC-1008 Privacy, retention and delete controls and event consent text implemented and operator documented | PASS | Controls from M03 (event privacy note), M08 (retention per event, review then delete, session and event deletion) and M09 (texting consent); `docs/OPERATOR_PRIVACY_AND_DATA.md` documents what is kept, where, how long, how to delete it, what a backup holds and what deleting the app does on each platform |
+
+Mutation check (AC-1004): with `sweepOrphans` returning at once and
+`BackupStaging.discard` removed from `prepare()`, `kill_recovery_test.dart`
+fails 7 of 18 (the finished photo, template image and template revision
+killed after the rename; the template revision killed during the write
+and before the rename, whose empty folder stays; the backup and restore
+leftovers; the sweep's own test). Restored, 18 of 18 pass.
+
+### M10 exit gate
+
+| Gate | Status |
+| --- | --- |
+| Fault-injected recovery, restore, preflight and privacy tests pass | PASS on the host: the kill matrix, the restore round trip and refusals, the launch-check table and the privacy and isolation tests (rows 1 and 2) |
+| Documented kiosk deployment processes | PASS: `docs/KIOSK_DEPLOYMENT.md`, Settings > Kiosk lock, ADR-0016 section 6 |
+| The same on the certified tablets | BLOCKED: no iPad, Mac or Android tablet (M10 device procedure) |
+
+### Security and privacy notes (M10)
+
+- A backup holds guests' photos; it never holds the PIN's verifier, the
+  recovery verifier, the texting pairing or any phone number. The app says
+  so where the backup is made, and the operator guide repeats it.
+- Restores are checked from end to end before anything changes and only
+  ever fill an empty booth; the reader refuses links, traversal, oversize
+  and unknown entries.
+- The device log carries no photo data, paths, file names, numbers,
+  links or tokens; uncaught errors go through the same cleaning.
+- Permissions: the camera, and the network for optional texting only;
+  one unneeded permission removed and the audit kept in CI.
+- The booth's data is out of the tablets' own backups on both platforms
+  (iPadOS: from this milestone; unverified on a device).
+- The app never starts or stops a kiosk lock and never claims to.

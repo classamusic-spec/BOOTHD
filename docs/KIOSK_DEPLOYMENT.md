@@ -53,6 +53,11 @@ Also on iPad:
 | Good for | Single events run by the owner | Rental fleets and long installations |
 | Cautions | The names of the settings differ between manufacturers. Notifications can still appear: turn on Do Not Disturb. Some tablets let a long press on the navigation bar unpin without a PIN if "Ask for PIN" is off | The status bar, notifications and system dialogs are controlled by the policy; test that the camera permission prompt is not blocked before the event |
 
+App pinning is a convenience for an event the operator staffs: anyone
+who knows the tablet's PIN can unpin it, and on some tablets an unpin
+gesture works when "Ask for PIN before unpinning" is off. For unattended
+or rented booths use managed lock task (ARCHITECTURE A-16).
+
 Also on Android:
 
 - **Orientation on large screens.** Android 16 and later may ignore an

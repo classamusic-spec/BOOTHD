@@ -3,6 +3,113 @@
 Newest milestone first. Each entry: scope, plan, changes, commands and exit
 codes, platform results, spec issues raised, risks, next step.
 
+## M10: commercial resilience, security, backup and kiosk readiness
+
+- Date: 2026-10-19 (UTC)
+- Authorised by: the owner's instruction "approve start M08-M10". M10
+  scope only; after it, work stops for the owner's approval.
+- Quality bar: CR-001 for the new operator screens (Settings > Backup,
+  Settings > Kiosk lock, restoring from the first screen).
+- Host: the same Linux cloud session as M00 to M09. No tablet, no Mac.
+
+### Plan (as executed)
+
+1. Backup and restore (AC-1006): a checked tar of the scrubbed database
+   and chosen files; restore only into an empty booth, checked from end to
+   end, swapped in before the database opens by starting the app again.
+2. Kiosk and launch checks (AC-1002, AC-1003): a read-only bridge for the
+   OS lock state, an in-app guide per platform, the deployment guide; the
+   launch checks block only critical problems.
+3. Recovery (AC-1004, AC-1005): a startup-only orphan sweep, backup
+   working files discarded at start, and kill-at-each-stage tests; low
+   storage reviewed end to end.
+4. Logs, permissions, device backups, airplane mode (AC-1007): SafeLog and
+   uncaught-error reporting, an architecture rule, the APK permission
+   audit, iPadOS backup exclusion, network-free operation tests.
+5. Guest isolation after crashes; privacy and retention documented for
+   operators (AC-1008); ADR-0016, device procedure, evidence.
+
+### Changes
+
+- Backup: `infrastructure/backup/` (`tar_archive.dart`,
+  `file_backup_service.dart`, `pending_restore.dart`,
+  `backup_staging.dart`); `domain/backup/backup_manifest.dart`,
+  `domain/services/backup_service.dart`; `core/backup/backup_providers.dart`;
+  `shared/backup/backup_copy.dart`; `features/settings/backup_settings.dart`;
+  `features/onboarding/restore_backup_panel.dart` and the first screen's
+  restore entry and "Backup restored" step; `app/restartable_app.dart`
+  (the app starts again in place); `ManagedArea.restore`; the operator
+  file picker streams large files (`pickStream`) and shares files by path
+  (`shareFile`).
+- Kiosk: `domain/services/kiosk_lock.dart`,
+  `infrastructure/device/platform_kiosk_lock.dart`, the `porcelain/kiosk`
+  channel (Kotlin, Swift), `core/kiosk/kiosk_providers.dart`,
+  `shared/kiosk/kiosk_copy.dart` and `kiosk_guide.dart`, Settings > Kiosk
+  lock, the launch checks' "How to lock" sheet; the probe reads the lock.
+- Launch checks: free space blocks only below one session
+  (`STORAGE_FULL`), warns when low or unknown; kiosk passes only when the
+  tablet reports a lock.
+- Recovery: `StorageCleanup.sweepOrphans` (startup only; camera photos
+  quarantined, never deleted); `BackupStaging.discard` in `prepare()`; a
+  restore that could not finish its swap has its own startup message
+  (`RESTORE_INCOMPLETE`).
+- Low storage: a tablet that fills during a session sends the guest to
+  the host (`STORAGE_FULL`) instead of offering a retry; the photos
+  already taken stay saved.
+- Logs: `core/diagnostics/safe_log.dart`, `error_reporting.dart`
+  (installed by `bootstrap`).
+- Permissions and device backups: `ACCESS_NETWORK_STATE` removed from the
+  merged Android manifest; `tool/audit_permissions.sh` (CI); iPadOS
+  storage root excluded from iCloud and computer backups at every start
+  (`porcelain/device_storage` `excludeFromBackup`).
+- Tests: tar, backup round trip and refusals, restart, backup and kiosk
+  screens, preflight table, kiosk bridge and guide, SafeLog, error
+  reporting, logging rule, permission audit, airplane mode, device backup
+  exclusion, kill recovery matrix and sweep (disabling the sweep or the
+  backup clean-up makes seven of them fail), crash isolation, a disk that
+  fills mid-session, the restore-incomplete start; eight new catalog
+  screens with goldens; existing goldens of the settings list and first
+  screen updated.
+- Docs: ADR-0016, `docs/KIOSK_DEPLOYMENT.md`,
+  `docs/OPERATOR_PRIVACY_AND_DATA.md`,
+  `docs/device_tests/M10_DEVICE_PROCEDURE.md`, this entry, evidence.
+
+### Problems met and how they were handled
+
+- The restore widget test waited for a spinner that the harness's counted
+  restart never stopped: it now checks the restoring state and the restart
+  request, and `RestartableApp` has its own test that starts a real scope
+  again and waits for the database to close.
+- Pushing a Settings route over the launch checks broke the navigator's
+  page keys; the kiosk guide moved to `shared/` and opens in a sheet.
+- `managed_storage_test` still listed eight areas after `restore` was
+  added; CI #34 caught it (1 of 2,881 tests) and the test was corrected.
+- The APK audit found `ACCESS_NETWORK_STATE` from CameraX's video library;
+  removed, with the audit kept in CI.
+- Throwing at a stage runs each layer's clean-up, which a kill does not,
+  so the kill tests stop a file operation for good instead.
+- ADR-0009 left the iPadOS backup exclusion to M10; done here. The
+  privacy guide no longer claims deleting the app removes Keychain entries
+  on iPadOS.
+
+### Risks carried forward
+
+- Every device behaviour is unverified: kill and power-loss recovery on
+  real file systems, the kiosk bridge (and whether Single App Mode reads
+  as Guided Access), the iCloud exclusion, backups of real events between
+  tablets, low storage. All BLOCKED (M10 device procedure).
+- No directory fsync after renames (no Dart API): an app kill cannot lose
+  a rename; a power loss at that instant might on some file systems.
+- The booth does not keep the screen awake in Booth Mode; operators set
+  Auto-Lock to Never (kiosk guide). A wake lock is a candidate for M11.
+- The Swift side (kiosk state, backup exclusion) has not been compiled:
+  no macOS host. CI's iPadOS job is skipped without a macOS runner.
+
+### Next
+
+STOP for the owner's approval of M08 to M10. M11 (hardware certification
+and endurance) needs the physical iPad and Android tablet.
+
 ## M09: optional phone delivery (MMS preview and private link)
 
 - Date: 2026-10-19 (UTC)
