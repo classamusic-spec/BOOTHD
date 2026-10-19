@@ -7,13 +7,22 @@ export type LogFields = Record<string, string | number | boolean | null | undefi
 
 export type LogSink = (line: string) => void;
 
-const phoneLike = /\+?\(?\d[\d ().-]{8,}\d/g;
+// A number never starts or ends inside a word or an identifier.
+const phoneLike = /(?<![0-9A-Za-z])\+?\(?\d[\d ().-]{8,}\d(?![0-9A-Za-z])/g;
 // Tokens are 43 base64url characters; UUIDs (36) are left readable.
 const tokenLike = /[A-Za-z0-9_-]{40,}/g;
+// UUIDs are ids support needs, and their digit groups can look like phone
+// numbers: they are set aside while the rest is redacted.
+const uuidLike = /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi;
 
-/** [text] with phone numbers and tokens replaced. */
+/** [text] with phone numbers and tokens replaced; UUIDs kept. */
 export function redact(text: string): string {
-  return text.replace(tokenLike, '[redacted]').replace(phoneLike, '[redacted]');
+  const ids: string[] = [];
+  return text
+    .replace(uuidLike, (id) => `\uE000${ids.push(id) - 1}\uE001`)
+    .replace(tokenLike, '[redacted]')
+    .replace(phoneLike, '[redacted]')
+    .replace(/\uE000(\d+)\uE001/g, (_, index: string) => ids[Number(index)]);
 }
 
 export class Logger {

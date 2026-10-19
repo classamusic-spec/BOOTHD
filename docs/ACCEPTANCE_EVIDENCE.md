@@ -807,7 +807,7 @@ Owner approval requested: YES (after M10, as instructed: "approve start M08-M10"
 ## M09: optional phone delivery (MMS preview and private link)
 
 ```text
-Milestone: M09 | code commits ebc71bd (backend), PART2 (booth, screens, docs) | build 0.1.0+1
+Milestone: M09 | code commits ebc71bd (backend), b4327ec (booth, screens, docs) | build 0.1.0+1
 Host: same Linux cloud VM as M00 to M08 (4 cores, no KVM, no macOS, no attached devices)
 Flutter 3.47.7 / Dart 3.13.5; no new Dart packages; schema version 7
 Backend: Deno 2.9.6, PostgreSQL 16 (local), npm:postgres 3.4.9, npm:twilio 6.2.0 (webhook validator only)
@@ -830,7 +830,13 @@ Owner approval requested: YES (after M10, as instructed: "approve start M08-M10"
 | 2 | `backend/tool/test.sh` (Postgres 16 on 127.0.0.1) | 0 | `deno fmt --check` 44 files, `deno lint` 42 files, `deno check`, `deno test`: 67 passed, 0 failed |
 | 3 | `tool/delivery_contract.sh` (the backend running locally with its Twilio stand-in) | 0 | The app's real `HttpDeliveryApi` and `JpegPreviewMaker` against the real backend: pairing with an issued code, readiness, a consented delivery, both uploads with their checks, the stand-in provider's HEAD and GET of the preview, the guest page and the download (the exact bytes of the finished photo), sent then delivered, revocation (the link answers 410). 1 test, passed |
 | 4 | `flutter test --reporter json` on the M09 files | 0 | `delivery_rules_test.dart` 9, `delivery_service_test.dart` 17, `http_delivery_api_test.dart` 6, `jpeg_preview_maker_test.dart` 1, `guest_delivery_flow_test.dart` 18 (the main flow at six tablet sizes), `delivery_operator_test.dart` 9, `migration_test.dart` 13 (v7 included); 0 failed; the screen catalog's 14 texting screens: 224 checks (overflow at six sizes, 200% text, tap targets, labels, contrast in three themes, no dead controls); 34 new goldens and the changed Settings and event editor goldens (a new section row and tab) |
-BUILD_ROWS
+| 5 | `tool/build_android.sh release` on `b4327ec` | 0 | 160 s. `app-release.apk`, 74,662,289 bytes, SHA-256 `cc481da2c6c89cae1cf2511c7a41624fa6b16f218979a15d6530f1e0dc1d9b48`. `aapt2`: compileSdk 37, targetSdk 36; permissions `INTERNET` (new in M09, for the optional delivery service), `CAMERA`, `ACCESS_NETWORK_STATE` (from a plugin) and the AndroidX receiver permission; nothing else |
+| 6 | `tool/build_android.sh debug` on `b4327ec` | 0 | 32 s. `app-debug.apk`, 241,751,709 bytes, SHA-256 `f682ae2dca2e423d9c2272c1e911ce38683245725ae335819a671e6f5623e520`; the same four permissions |
+| 7 | `tool/build_ios.sh release` | 3 | BLOCKED: Linux host |
+| 8 | `tool/scan_binary_secrets.sh build/app/outputs/flutter-apk/app-release.apk` (row 5's APK) | 0 | 111 files, 300,742 strings: no Twilio account or key ids, no Twilio API host, no Supabase secret or service-role key, no JSON web token, no private key block, no backend secret names. The same scan on an archive with planted samples finds all three planted patterns and exits 1, so the scan is not vacuous. CI now runs it on every release build |
+| 9 | M09 device procedure (`docs/device_tests/M09_DEVICE_PROCEDURE.md`) | not run | BLOCKED: no tablet, no deployed backend, no sender, no registration, no test phone |
+| 10 | GitHub Actions CI #32 on `b4327ec` | 1 | Delivery backend job failed: 66 passed, 1 failed. "logs never carry numbers or tokens" redacts a random UUID each run, and this run's (`5b023d90-9418-408a-…`) held a digit run the phone pattern matched: a real defect (ids support needs were being mangled), not a flake. The pattern no longer starts or ends inside an identifier and UUIDs are set aside before redaction; the test now also checks two such UUIDs and 2,000 random ones. `backend/tool/test.sh` after the fix: exit 0, 67 passed. Superseded by row 11 before its Flutter jobs finished |
+| 11 | CI on the fix commit | CI33_EXIT | CI33_RESULT |
 
 ### Acceptance items
 

@@ -122,6 +122,11 @@ codes, platform results, spec issues raised, risks, next step.
   why.
 - The number screen's corner blossoms sat behind the title in portrait
   (CR-001); dense guest screens now keep two small corner sprays only.
+- CI #32 failed one backend test: the log redaction's phone pattern
+  matched a digit run inside that run's random UUID. Ids must stay
+  readable for support, so the pattern may no longer start or end inside
+  an identifier and UUIDs are set aside before redaction; the test checks
+  2,000 random UUIDs as well.
 - Backend: Twilio's error is in `error.cause` for refused connections;
   the expiry comparison lost milliseconds through `String(Date)`; the
   phone redaction left a bracket behind. Each found by a test and fixed.

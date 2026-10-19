@@ -174,6 +174,19 @@ Deno.test('logs never carry numbers or tokens', () => {
   assertEquals(redact(`link /p/${token}`), 'link /p/[redacted]');
   const uuid = crypto.randomUUID();
   assertEquals(redact(`job ${uuid}`), `job ${uuid}`);
+  // UUIDs whose groups are all digits look like numbers (CI #32 met one).
+  for (
+    const id of [
+      '5b023d90-9418-408a-ad79-dde4f7186c57',
+      '12345678-1234-4123-8123-123456789012',
+    ]
+  ) {
+    assertEquals(redact(`job ${id} for +1 212 555 0147`), `job ${id} for [redacted]`);
+  }
+  for (let i = 0; i < 2000; i++) {
+    const id = crypto.randomUUID();
+    assertEquals(redact(id), id);
+  }
 });
 
 Deno.test('pairing codes are 60-bit, readable and forgiving to type', () => {
