@@ -5,7 +5,9 @@
 // chooser, the Template Studio and the template preview; M06 the camera
 // test (on the simulated camera) and the Diagnostics self-test; M07 every
 // step of a guest session; M08 the gallery, its selection, export and
-// deletion sheets, a session's details and Storage.
+// deletion sheets, a session's details and Storage; M09 texting a photo
+// (S30 to S32) and the operator's texting settings, texts and pairing
+// (S34 to S36).
 //
 // Rendered at 1x to keep the repository small; text and blur rasterise
 // differently on macOS and Windows, so goldens are compared on Linux only
@@ -86,6 +88,12 @@ const states = [
   'gallery retention',
   'session detail not finished',
   'settings storage',
+  'event delivery',
+  'event delivery unpaired',
+  'session detail texts',
+  'session detail text unknown',
+  'settings delivery',
+  'settings delivery paired',
 ];
 
 /// Booth Mode, guest and operator screens alike, wears the event's theme
@@ -110,11 +118,22 @@ const boothSessionIpad = [
   'booth finished dark',
   'booth paused',
   'booth problem',
+  'booth text offer',
+  'booth text offline',
+  'booth text number',
+  'booth text number entered',
+  'booth text confirm',
+  'booth text privacy',
+  'booth text sent',
+  'booth text waiting',
 ];
 const boothSessionAndroid = [
   'booth get ready',
   'booth review',
   'booth finished',
+  'booth text offer',
+  'booth text number entered',
+  'booth text sent',
 ];
 
 /// The default theme at both certified-size candidates; the other profiles

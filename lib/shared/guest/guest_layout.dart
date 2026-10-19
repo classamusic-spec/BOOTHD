@@ -264,11 +264,14 @@ class _FillOrScroll extends StatelessWidget {
 
 /// The guest canvas: a soft porcelain glaze with painted cream blossoms
 /// spilling in from two corners, behind the content and away from the
-/// controls (CR-002).
+/// controls (CR-002). A [dense] screen (a keypad, a consent box and
+/// buttons from top to bottom) keeps only two small corner sprays, so no
+/// blossom sits behind words.
 class GuestBackdrop extends StatelessWidget {
-  const GuestBackdrop({super.key, required this.child});
+  const GuestBackdrop({super.key, required this.child, this.dense = false});
 
   final Widget child;
+  final bool dense;
 
   @override
   Widget build(BuildContext context) {
@@ -277,8 +280,9 @@ class GuestBackdrop extends StatelessWidget {
       builder: (context, constraints) {
         final size = constraints.biggest;
         final landscape = size.width > size.height;
-        final spray = size.shortestSide * (landscape ? 0.42 : 0.44);
-        final small = spray * 0.8;
+        final spray =
+            size.shortestSide * (landscape ? 0.42 : 0.44) * (dense ? 0.55 : 1);
+        final small = spray * (dense ? 1 : 0.8);
         final vine = size.shortestSide * 0.14;
         return DecoratedBox(
           decoration: BoxDecoration(
@@ -300,16 +304,17 @@ class GuestBackdrop extends StatelessWidget {
                     height: spray,
                   ),
                 ),
-                Positioned(
-                  right: -vine * 0.2,
-                  top: size.height * 0.08,
-                  child: FloralSpray(
-                    kind: FloralSprayKind.garland,
-                    width: vine,
-                    height: size.height * 0.5,
-                    mirrorX: true,
+                if (!dense)
+                  Positioned(
+                    right: -vine * 0.2,
+                    top: size.height * 0.08,
+                    child: FloralSpray(
+                      kind: FloralSprayKind.garland,
+                      width: vine,
+                      height: size.height * 0.5,
+                      mirrorX: true,
+                    ),
                   ),
-                ),
                 Positioned(
                   right: -small * 0.06,
                   bottom: -small * 0.08,
@@ -332,16 +337,17 @@ class GuestBackdrop extends StatelessWidget {
                     height: size.height * 0.5,
                   ),
                 ),
-                Positioned(
-                  right: -spray * 0.08,
-                  top: -spray * 0.06,
-                  child: FloralSpray(
-                    kind: FloralSprayKind.corner,
-                    width: spray,
-                    height: spray,
-                    mirrorX: true,
+                if (!dense)
+                  Positioned(
+                    right: -spray * 0.08,
+                    top: -spray * 0.06,
+                    child: FloralSpray(
+                      kind: FloralSprayKind.corner,
+                      width: spray,
+                      height: spray,
+                      mirrorX: true,
+                    ),
                   ),
-                ),
                 Positioned(
                   left: -small * 0.08,
                   bottom: -small * 0.04,

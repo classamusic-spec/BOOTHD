@@ -4,7 +4,8 @@
 -- camera originals and their commit journal; version 5 (M07) guest
 -- sessions, their photos and finished photos; version 6 (M08) session
 -- numbers, re-rendered finished photos, the export history and the journal
--- of files to delete.
+-- of files to delete; version 7 (M09) phone delivery: event settings, the
+-- local delivery queue, the booth's pairing and hosted copies to revoke.
 --
 -- Rules enforced here as well as in the domain, so a defect elsewhere can
 -- never store an invalid event: foreign keys with explicit actions, CHECK
@@ -13,6 +14,7 @@
 -- version bump, a migration step, a new schema dump and a seeded fixture
 -- (tool/check.sh and test/drift enforce this).
 
+import '../../domain/delivery/delivery_intent.dart';
 import '../../domain/gallery/export_plan.dart';
 import '../../domain/models/booth_event.dart';
 import '../../domain/repositories/session_repository.dart';
@@ -445,3 +447,101 @@ CREATE TABLE pending_file_deletions (
       AND instr(relative_path, char(92)) = 0),
   queued_at DATETIME NOT NULL
 ) AS PendingFileDeletionRow;
+
+-- An event's phone-delivery settings (version 7; UX-PD5, AC-0901). An
+-- event without a row has delivery off.
+CREATE TABLE event_delivery_options (
+  event_id TEXT NOT NULL PRIMARY KEY REFERENCES events (id) ON DELETE CASCADE,
+  enabled BOOLEAN NOT NULL CHECK (enabled IN (0, 1)),
+  offline_queue BOOLEAN NOT NULL CHECK (offline_queue IN (0, 1)),
+  link_days INTEGER NOT NULL CHECK (link_days BETWEEN 1 AND 30),
+  send_limit INTEGER NOT NULL CHECK (send_limit BETWEEN 1 AND 10000)
+) AS EventDeliverySettingsRow;
+
+-- This booth's pairing with the delivery service (version 7). One row at
+-- most. The credential is in platform secure storage, never here.
+CREATE TABLE delivery_pairings (
+  id INTEGER NOT NULL PRIMARY KEY CHECK (id = 1),
+  base_url TEXT NOT NULL CHECK (length(base_url) BETWEEN 9 AND 200
+    AND (base_url LIKE 'https://%' OR base_url LIKE 'http://127.0.0.1:%'
+      OR base_url LIKE 'http://localhost:%')),
+  booth_id TEXT NOT NULL CHECK (length(booth_id) = 36),
+  booth_name TEXT NOT NULL CHECK (length(booth_name) BETWEEN 1 AND 40),
+  brand_name TEXT NOT NULL CHECK (length(brand_name) BETWEEN 1 AND 40),
+  paired_at DATETIME NOT NULL,
+  paused BOOLEAN NOT NULL DEFAULT 0 CHECK (paused IN (0, 1)),
+  -- The service's last answer about this booth (readiness, sender
+  -- identity, privacy and terms addresses, limits), so the consent screen
+  -- can be shown while offline; and when it was received.
+  capabilities_json TEXT
+    CHECK (capabilities_json IS NULL OR length(capabilities_json) <= 8192),
+  checked_at DATETIME
+) AS DeliveryPairingRow;
+
+-- Guests' delivery requests (version 7; PD-05, PD-06, AC-0906): the local
+-- queue. Never the phone number (secure storage, until handed over), only
+-- its last four digits; the consent's version, digest and time; the
+-- service's job and status once handed over. Deleting a session removes
+-- its requests (the gallery journals their hosted copies for revocation).
+CREATE TABLE delivery_intents (
+  id TEXT NOT NULL PRIMARY KEY CHECK (length(id) = 36),
+  session_id TEXT NOT NULL
+    REFERENCES capture_sessions (id) ON DELETE CASCADE,
+  event_id TEXT NOT NULL CHECK (length(event_id) = 36),
+  output_id TEXT NOT NULL CHECK (length(output_id) = 36),
+  phone_last4 TEXT NOT NULL
+    CHECK (length(phone_last4) = 4 AND phone_last4 NOT GLOB '*[^0-9]*'),
+  phone_stored BOOLEAN NOT NULL CHECK (phone_stored IN (0, 1)),
+  consent_text_version TEXT NOT NULL
+    CHECK (length(consent_text_version) BETWEEN 1 AND 32),
+  consent_text_digest TEXT NOT NULL
+    CHECK (length(consent_text_digest) = 64
+      AND consent_text_digest NOT GLOB '*[^0-9a-f]*'),
+  consent_accepted_at DATETIME NOT NULL,
+  locale TEXT NOT NULL CHECK (length(locale) BETWEEN 2 AND 5),
+  link_days INTEGER NOT NULL CHECK (link_days BETWEEN 1 AND 30),
+  send_limit INTEGER NOT NULL CHECK (send_limit BETWEEN 1 AND 10000),
+  -- Whether the event allowed waiting for a connection when the guest
+  -- asked (otherwise a request that cannot go at once is not kept).
+  queue_allowed BOOLEAN NOT NULL CHECK (queue_allowed IN (0, 1)),
+  idempotency_key TEXT NOT NULL UNIQUE
+    CHECK (length(idempotency_key) BETWEEN 16 AND 64),
+  -- Mapped explicitly: "DeliveryIntentState" contains "INT" (see
+  -- booth_profiles.theme_profile).
+  state TEXT NOT NULL MAPPED BY `deliveryIntentStateByName`
+    CHECK (state IN ('queued', 'handingOver', 'handedOver', 'finished')),
+  local_outcome ENUMNAME(DeliveryPhase)
+    CHECK (local_outcome IS NULL OR local_outcome IN ('failed', 'expired',
+      'canceled')),
+  remote_job_id TEXT CHECK (remote_job_id IS NULL OR length(remote_job_id) = 36),
+  remote_status TEXT CHECK (remote_status IS NULL OR remote_status IN ('queued',
+    'uploading', 'submitting', 'submitted', 'sent', 'delivered', 'failed',
+    'unknown', 'expired', 'canceled')),
+  remote_updated_at DATETIME,
+  last_error_code TEXT
+    CHECK (last_error_code IS NULL OR length(last_error_code) BETWEEN 2 AND 64),
+  attempt_count INTEGER NOT NULL DEFAULT 0 CHECK (attempt_count >= 0),
+  retry_at DATETIME,
+  expires_at DATETIME NOT NULL,
+  history_json TEXT NOT NULL DEFAULT '[]'
+    CHECK (length(history_json) BETWEEN 2 AND 8192),
+  created_at DATETIME NOT NULL,
+  updated_at DATETIME NOT NULL,
+  -- Finished: ended on the booth, ended at the service, or no longer held
+  -- by the service (its last report is kept as it was).
+  CHECK ((state = 'finished') = (local_outcome IS NOT NULL
+    OR remote_status IN ('delivered', 'failed', 'expired', 'canceled')
+    OR last_error_code = 'NO_LONGER_AT_SERVICE'))
+) AS DeliveryIntentRow;
+
+CREATE INDEX delivery_intents_by_session ON delivery_intents (session_id);
+CREATE INDEX delivery_intents_by_state ON delivery_intents (state, retry_at);
+CREATE INDEX delivery_intents_by_event ON delivery_intents (event_id, created_at);
+
+-- Hosted copies to revoke at the service (version 7; AC-0917): sessions
+-- deleted on the booth while their delivery still had a hosted copy.
+-- Written with the deletion; removed once the service confirms.
+CREATE TABLE delivery_remote_revocations (
+  remote_job_id TEXT NOT NULL PRIMARY KEY CHECK (length(remote_job_id) = 36),
+  requested_at DATETIME NOT NULL
+) AS DeliveryRemoteRevocationRow;

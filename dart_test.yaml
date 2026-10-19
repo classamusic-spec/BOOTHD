@@ -1,3 +1,7 @@
 tags:
   golden:
     description: Pixel goldens; compared on Linux only.
+  contract:
+    description: >-
+      The delivery client against the real backend on this machine; runs
+      only under tool/delivery_contract.sh (skipped otherwise).

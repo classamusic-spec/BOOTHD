@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/delivery/delivery_providers.dart';
 import '../../core/design_system/porcelain_icons.dart';
 import '../../core/design_system/porcelain_metrics.dart';
 import '../../core/design_system/porcelain_theme.dart';
 import '../../core/gallery/gallery_providers.dart';
 import '../../core/routing/route_paths.dart';
+import '../../domain/delivery/delivery_intent.dart';
 import '../../domain/gallery/gallery_models.dart';
 import '../../domain/gallery/print_file_facts.dart';
 import '../../domain/models/booth_event.dart';
@@ -29,6 +31,7 @@ import '../../shared/widgets/studio_page.dart';
 import '../../shared/widgets/tone.dart';
 import 'export_sheet.dart';
 import 'gallery_thumbnail.dart';
+import 'session_deliveries.dart';
 
 /// One session in full (S14, AC-0802): every camera photo and retake with
 /// the one each photo space uses, the frozen template revision, every
@@ -149,7 +152,7 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
   }
 }
 
-class _Detail extends StatelessWidget {
+class _Detail extends ConsumerWidget {
   const _Detail({
     required this.detail,
     required this.rendering,
@@ -163,10 +166,13 @@ class _Detail extends StatelessWidget {
   final VoidCallback onDelete;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final session = detail.session;
     final latest = detail.latestOutput;
     final started = session.startedAtUtc.toLocal();
+    final texts =
+        ref.watch(sessionDeliveriesProvider(session.id)).value ??
+        const <DeliveryIntent>[];
     final inProgress =
         session.status == SessionStatus.capturing ||
         session.status == SessionStatus.reviewing;
@@ -224,6 +230,7 @@ class _Detail extends StatelessWidget {
       ),
       children: [
         _FinishedSection(detail: detail),
+        if (texts.isNotEmpty) SessionDeliveries(intents: texts),
         _PhotosSection(detail: detail),
         _TemplateSection(detail: detail),
         _SessionSection(detail: detail),

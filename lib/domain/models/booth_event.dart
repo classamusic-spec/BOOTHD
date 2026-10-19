@@ -5,6 +5,7 @@ library;
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
+import '../delivery/delivery_settings.dart';
 import '../services/camera_service.dart' show CameraLens;
 import '../value_objects/appearance.dart';
 import '../value_objects/calendar_date.dart';
@@ -335,6 +336,7 @@ final class BoothEvent {
     this.output = const OutputProfile(),
     this.retention = const RetentionPolicy.keepUntilDeleted(),
     this.templates = const TemplateSelection(),
+    this.delivery = const EventDeliverySettings(),
   });
 
   /// Stable identifier (UUID v4); a duplicate gets a new one.
@@ -360,6 +362,9 @@ final class BoothEvent {
   final RetentionPolicy retention;
   final TemplateSelection templates;
 
+  /// Phone delivery (M09), off unless the operator turns it on.
+  final EventDeliverySettings delivery;
+
   BoothEvent copyWith({
     String? id,
     String? title,
@@ -375,6 +380,7 @@ final class BoothEvent {
     OutputProfile? output,
     RetentionPolicy? retention,
     TemplateSelection? templates,
+    EventDeliverySettings? delivery,
   }) => BoothEvent(
     id: id ?? this.id,
     title: title ?? this.title,
@@ -393,6 +399,7 @@ final class BoothEvent {
     output: output ?? this.output,
     retention: retention ?? this.retention,
     templates: templates ?? this.templates,
+    delivery: delivery ?? this.delivery,
   );
 
   /// Whether the operator-editable content of [other] matches this event,
@@ -408,7 +415,8 @@ final class BoothEvent {
       other.guest == guest &&
       other.output == output &&
       other.retention == retention &&
-      other.templates == templates;
+      other.templates == templates &&
+      other.delivery == delivery;
 
   @override
   bool operator ==(Object other) =>

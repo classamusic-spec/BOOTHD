@@ -10180,6 +10180,2681 @@ class PendingFileDeletionsCompanion
   }
 }
 
+class EventDeliveryOptions extends Table
+    with TableInfo<EventDeliveryOptions, EventDeliverySettingsRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  EventDeliveryOptions(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _eventIdMeta = const VerificationMeta(
+    'eventId',
+  );
+  late final GeneratedColumn<String> eventId = GeneratedColumn<String>(
+    'event_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'NOT NULL PRIMARY KEY REFERENCES events(id)ON DELETE CASCADE',
+  );
+  static const VerificationMeta _enabledMeta = const VerificationMeta(
+    'enabled',
+  );
+  late final GeneratedColumn<bool> enabled = GeneratedColumn<bool>(
+    'enabled',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (enabled IN (0, 1))',
+  );
+  static const VerificationMeta _offlineQueueMeta = const VerificationMeta(
+    'offlineQueue',
+  );
+  late final GeneratedColumn<bool> offlineQueue = GeneratedColumn<bool>(
+    'offline_queue',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (offline_queue IN (0, 1))',
+  );
+  static const VerificationMeta _linkDaysMeta = const VerificationMeta(
+    'linkDays',
+  );
+  late final GeneratedColumn<int> linkDays = GeneratedColumn<int>(
+    'link_days',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (link_days BETWEEN 1 AND 30)',
+  );
+  static const VerificationMeta _sendLimitMeta = const VerificationMeta(
+    'sendLimit',
+  );
+  late final GeneratedColumn<int> sendLimit = GeneratedColumn<int>(
+    'send_limit',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (send_limit BETWEEN 1 AND 10000)',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    eventId,
+    enabled,
+    offlineQueue,
+    linkDays,
+    sendLimit,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'event_delivery_options';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<EventDeliverySettingsRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('event_id')) {
+      context.handle(
+        _eventIdMeta,
+        eventId.isAcceptableOrUnknown(data['event_id']!, _eventIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_eventIdMeta);
+    }
+    if (data.containsKey('enabled')) {
+      context.handle(
+        _enabledMeta,
+        enabled.isAcceptableOrUnknown(data['enabled']!, _enabledMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_enabledMeta);
+    }
+    if (data.containsKey('offline_queue')) {
+      context.handle(
+        _offlineQueueMeta,
+        offlineQueue.isAcceptableOrUnknown(
+          data['offline_queue']!,
+          _offlineQueueMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_offlineQueueMeta);
+    }
+    if (data.containsKey('link_days')) {
+      context.handle(
+        _linkDaysMeta,
+        linkDays.isAcceptableOrUnknown(data['link_days']!, _linkDaysMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_linkDaysMeta);
+    }
+    if (data.containsKey('send_limit')) {
+      context.handle(
+        _sendLimitMeta,
+        sendLimit.isAcceptableOrUnknown(data['send_limit']!, _sendLimitMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sendLimitMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {eventId};
+  @override
+  EventDeliverySettingsRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return EventDeliverySettingsRow(
+      eventId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}event_id'],
+      )!,
+      enabled: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}enabled'],
+      )!,
+      offlineQueue: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}offline_queue'],
+      )!,
+      linkDays: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}link_days'],
+      )!,
+      sendLimit: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}send_limit'],
+      )!,
+    );
+  }
+
+  @override
+  EventDeliveryOptions createAlias(String alias) {
+    return EventDeliveryOptions(attachedDatabase, alias);
+  }
+
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class EventDeliverySettingsRow extends DataClass
+    implements Insertable<EventDeliverySettingsRow> {
+  final String eventId;
+  final bool enabled;
+  final bool offlineQueue;
+  final int linkDays;
+  final int sendLimit;
+  const EventDeliverySettingsRow({
+    required this.eventId,
+    required this.enabled,
+    required this.offlineQueue,
+    required this.linkDays,
+    required this.sendLimit,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['event_id'] = Variable<String>(eventId);
+    map['enabled'] = Variable<bool>(enabled);
+    map['offline_queue'] = Variable<bool>(offlineQueue);
+    map['link_days'] = Variable<int>(linkDays);
+    map['send_limit'] = Variable<int>(sendLimit);
+    return map;
+  }
+
+  EventDeliveryOptionsCompanion toCompanion(bool nullToAbsent) {
+    return EventDeliveryOptionsCompanion(
+      eventId: Value(eventId),
+      enabled: Value(enabled),
+      offlineQueue: Value(offlineQueue),
+      linkDays: Value(linkDays),
+      sendLimit: Value(sendLimit),
+    );
+  }
+
+  factory EventDeliverySettingsRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return EventDeliverySettingsRow(
+      eventId: serializer.fromJson<String>(json['event_id']),
+      enabled: serializer.fromJson<bool>(json['enabled']),
+      offlineQueue: serializer.fromJson<bool>(json['offline_queue']),
+      linkDays: serializer.fromJson<int>(json['link_days']),
+      sendLimit: serializer.fromJson<int>(json['send_limit']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'event_id': serializer.toJson<String>(eventId),
+      'enabled': serializer.toJson<bool>(enabled),
+      'offline_queue': serializer.toJson<bool>(offlineQueue),
+      'link_days': serializer.toJson<int>(linkDays),
+      'send_limit': serializer.toJson<int>(sendLimit),
+    };
+  }
+
+  EventDeliverySettingsRow copyWith({
+    String? eventId,
+    bool? enabled,
+    bool? offlineQueue,
+    int? linkDays,
+    int? sendLimit,
+  }) => EventDeliverySettingsRow(
+    eventId: eventId ?? this.eventId,
+    enabled: enabled ?? this.enabled,
+    offlineQueue: offlineQueue ?? this.offlineQueue,
+    linkDays: linkDays ?? this.linkDays,
+    sendLimit: sendLimit ?? this.sendLimit,
+  );
+  EventDeliverySettingsRow copyWithCompanion(
+    EventDeliveryOptionsCompanion data,
+  ) {
+    return EventDeliverySettingsRow(
+      eventId: data.eventId.present ? data.eventId.value : this.eventId,
+      enabled: data.enabled.present ? data.enabled.value : this.enabled,
+      offlineQueue: data.offlineQueue.present
+          ? data.offlineQueue.value
+          : this.offlineQueue,
+      linkDays: data.linkDays.present ? data.linkDays.value : this.linkDays,
+      sendLimit: data.sendLimit.present ? data.sendLimit.value : this.sendLimit,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EventDeliverySettingsRow(')
+          ..write('eventId: $eventId, ')
+          ..write('enabled: $enabled, ')
+          ..write('offlineQueue: $offlineQueue, ')
+          ..write('linkDays: $linkDays, ')
+          ..write('sendLimit: $sendLimit')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(eventId, enabled, offlineQueue, linkDays, sendLimit);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is EventDeliverySettingsRow &&
+          other.eventId == this.eventId &&
+          other.enabled == this.enabled &&
+          other.offlineQueue == this.offlineQueue &&
+          other.linkDays == this.linkDays &&
+          other.sendLimit == this.sendLimit);
+}
+
+class EventDeliveryOptionsCompanion
+    extends UpdateCompanion<EventDeliverySettingsRow> {
+  final Value<String> eventId;
+  final Value<bool> enabled;
+  final Value<bool> offlineQueue;
+  final Value<int> linkDays;
+  final Value<int> sendLimit;
+  final Value<int> rowid;
+  const EventDeliveryOptionsCompanion({
+    this.eventId = const Value.absent(),
+    this.enabled = const Value.absent(),
+    this.offlineQueue = const Value.absent(),
+    this.linkDays = const Value.absent(),
+    this.sendLimit = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  EventDeliveryOptionsCompanion.insert({
+    required String eventId,
+    required bool enabled,
+    required bool offlineQueue,
+    required int linkDays,
+    required int sendLimit,
+    this.rowid = const Value.absent(),
+  }) : eventId = Value(eventId),
+       enabled = Value(enabled),
+       offlineQueue = Value(offlineQueue),
+       linkDays = Value(linkDays),
+       sendLimit = Value(sendLimit);
+  static Insertable<EventDeliverySettingsRow> custom({
+    Expression<String>? eventId,
+    Expression<bool>? enabled,
+    Expression<bool>? offlineQueue,
+    Expression<int>? linkDays,
+    Expression<int>? sendLimit,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (eventId != null) 'event_id': eventId,
+      if (enabled != null) 'enabled': enabled,
+      if (offlineQueue != null) 'offline_queue': offlineQueue,
+      if (linkDays != null) 'link_days': linkDays,
+      if (sendLimit != null) 'send_limit': sendLimit,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  EventDeliveryOptionsCompanion copyWith({
+    Value<String>? eventId,
+    Value<bool>? enabled,
+    Value<bool>? offlineQueue,
+    Value<int>? linkDays,
+    Value<int>? sendLimit,
+    Value<int>? rowid,
+  }) {
+    return EventDeliveryOptionsCompanion(
+      eventId: eventId ?? this.eventId,
+      enabled: enabled ?? this.enabled,
+      offlineQueue: offlineQueue ?? this.offlineQueue,
+      linkDays: linkDays ?? this.linkDays,
+      sendLimit: sendLimit ?? this.sendLimit,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (eventId.present) {
+      map['event_id'] = Variable<String>(eventId.value);
+    }
+    if (enabled.present) {
+      map['enabled'] = Variable<bool>(enabled.value);
+    }
+    if (offlineQueue.present) {
+      map['offline_queue'] = Variable<bool>(offlineQueue.value);
+    }
+    if (linkDays.present) {
+      map['link_days'] = Variable<int>(linkDays.value);
+    }
+    if (sendLimit.present) {
+      map['send_limit'] = Variable<int>(sendLimit.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EventDeliveryOptionsCompanion(')
+          ..write('eventId: $eventId, ')
+          ..write('enabled: $enabled, ')
+          ..write('offlineQueue: $offlineQueue, ')
+          ..write('linkDays: $linkDays, ')
+          ..write('sendLimit: $sendLimit, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class DeliveryPairings extends Table
+    with TableInfo<DeliveryPairings, DeliveryPairingRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  DeliveryPairings(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL PRIMARY KEY CHECK (id = 1)',
+  );
+  static const VerificationMeta _baseUrlMeta = const VerificationMeta(
+    'baseUrl',
+  );
+  late final GeneratedColumn<String> baseUrl = GeneratedColumn<String>(
+    'base_url',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (length(base_url) BETWEEN 9 AND 200 AND(base_url LIKE \'https://%\' OR base_url LIKE \'http://127.0.0.1:%\' OR base_url LIKE \'http://localhost:%\'))',
+  );
+  static const VerificationMeta _boothIdMeta = const VerificationMeta(
+    'boothId',
+  );
+  late final GeneratedColumn<String> boothId = GeneratedColumn<String>(
+    'booth_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (length(booth_id) = 36)',
+  );
+  static const VerificationMeta _boothNameMeta = const VerificationMeta(
+    'boothName',
+  );
+  late final GeneratedColumn<String> boothName = GeneratedColumn<String>(
+    'booth_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (length(booth_name) BETWEEN 1 AND 40)',
+  );
+  static const VerificationMeta _brandNameMeta = const VerificationMeta(
+    'brandName',
+  );
+  late final GeneratedColumn<String> brandName = GeneratedColumn<String>(
+    'brand_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (length(brand_name) BETWEEN 1 AND 40)',
+  );
+  static const VerificationMeta _pairedAtMeta = const VerificationMeta(
+    'pairedAt',
+  );
+  late final GeneratedColumn<DateTime> pairedAt = GeneratedColumn<DateTime>(
+    'paired_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _pausedMeta = const VerificationMeta('paused');
+  late final GeneratedColumn<bool> paused = GeneratedColumn<bool>(
+    'paused',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (paused IN (0, 1))',
+    defaultValue: const CustomExpression('0'),
+  );
+  static const VerificationMeta _capabilitiesJsonMeta = const VerificationMeta(
+    'capabilitiesJson',
+  );
+  late final GeneratedColumn<String> capabilitiesJson = GeneratedColumn<String>(
+    'capabilities_json',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'CHECK (capabilities_json IS NULL OR length(capabilities_json) <= 8192)',
+  );
+  static const VerificationMeta _checkedAtMeta = const VerificationMeta(
+    'checkedAt',
+  );
+  late final GeneratedColumn<DateTime> checkedAt = GeneratedColumn<DateTime>(
+    'checked_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    baseUrl,
+    boothId,
+    boothName,
+    brandName,
+    pairedAt,
+    paused,
+    capabilitiesJson,
+    checkedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'delivery_pairings';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DeliveryPairingRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('base_url')) {
+      context.handle(
+        _baseUrlMeta,
+        baseUrl.isAcceptableOrUnknown(data['base_url']!, _baseUrlMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_baseUrlMeta);
+    }
+    if (data.containsKey('booth_id')) {
+      context.handle(
+        _boothIdMeta,
+        boothId.isAcceptableOrUnknown(data['booth_id']!, _boothIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_boothIdMeta);
+    }
+    if (data.containsKey('booth_name')) {
+      context.handle(
+        _boothNameMeta,
+        boothName.isAcceptableOrUnknown(data['booth_name']!, _boothNameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_boothNameMeta);
+    }
+    if (data.containsKey('brand_name')) {
+      context.handle(
+        _brandNameMeta,
+        brandName.isAcceptableOrUnknown(data['brand_name']!, _brandNameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_brandNameMeta);
+    }
+    if (data.containsKey('paired_at')) {
+      context.handle(
+        _pairedAtMeta,
+        pairedAt.isAcceptableOrUnknown(data['paired_at']!, _pairedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_pairedAtMeta);
+    }
+    if (data.containsKey('paused')) {
+      context.handle(
+        _pausedMeta,
+        paused.isAcceptableOrUnknown(data['paused']!, _pausedMeta),
+      );
+    }
+    if (data.containsKey('capabilities_json')) {
+      context.handle(
+        _capabilitiesJsonMeta,
+        capabilitiesJson.isAcceptableOrUnknown(
+          data['capabilities_json']!,
+          _capabilitiesJsonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('checked_at')) {
+      context.handle(
+        _checkedAtMeta,
+        checkedAt.isAcceptableOrUnknown(data['checked_at']!, _checkedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DeliveryPairingRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DeliveryPairingRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      baseUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}base_url'],
+      )!,
+      boothId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}booth_id'],
+      )!,
+      boothName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}booth_name'],
+      )!,
+      brandName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}brand_name'],
+      )!,
+      pairedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}paired_at'],
+      )!,
+      paused: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}paused'],
+      )!,
+      capabilitiesJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}capabilities_json'],
+      ),
+      checkedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}checked_at'],
+      ),
+    );
+  }
+
+  @override
+  DeliveryPairings createAlias(String alias) {
+    return DeliveryPairings(attachedDatabase, alias);
+  }
+
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class DeliveryPairingRow extends DataClass
+    implements Insertable<DeliveryPairingRow> {
+  final int id;
+  final String baseUrl;
+  final String boothId;
+  final String boothName;
+  final String brandName;
+  final DateTime pairedAt;
+  final bool paused;
+
+  /// The service's last answer about this booth (readiness, sender
+  /// identity, privacy and terms addresses, limits), so the consent screen
+  /// can be shown while offline; and when it was received.
+  final String? capabilitiesJson;
+  final DateTime? checkedAt;
+  const DeliveryPairingRow({
+    required this.id,
+    required this.baseUrl,
+    required this.boothId,
+    required this.boothName,
+    required this.brandName,
+    required this.pairedAt,
+    required this.paused,
+    this.capabilitiesJson,
+    this.checkedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['base_url'] = Variable<String>(baseUrl);
+    map['booth_id'] = Variable<String>(boothId);
+    map['booth_name'] = Variable<String>(boothName);
+    map['brand_name'] = Variable<String>(brandName);
+    map['paired_at'] = Variable<DateTime>(pairedAt);
+    map['paused'] = Variable<bool>(paused);
+    if (!nullToAbsent || capabilitiesJson != null) {
+      map['capabilities_json'] = Variable<String>(capabilitiesJson);
+    }
+    if (!nullToAbsent || checkedAt != null) {
+      map['checked_at'] = Variable<DateTime>(checkedAt);
+    }
+    return map;
+  }
+
+  DeliveryPairingsCompanion toCompanion(bool nullToAbsent) {
+    return DeliveryPairingsCompanion(
+      id: Value(id),
+      baseUrl: Value(baseUrl),
+      boothId: Value(boothId),
+      boothName: Value(boothName),
+      brandName: Value(brandName),
+      pairedAt: Value(pairedAt),
+      paused: Value(paused),
+      capabilitiesJson: capabilitiesJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(capabilitiesJson),
+      checkedAt: checkedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(checkedAt),
+    );
+  }
+
+  factory DeliveryPairingRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DeliveryPairingRow(
+      id: serializer.fromJson<int>(json['id']),
+      baseUrl: serializer.fromJson<String>(json['base_url']),
+      boothId: serializer.fromJson<String>(json['booth_id']),
+      boothName: serializer.fromJson<String>(json['booth_name']),
+      brandName: serializer.fromJson<String>(json['brand_name']),
+      pairedAt: serializer.fromJson<DateTime>(json['paired_at']),
+      paused: serializer.fromJson<bool>(json['paused']),
+      capabilitiesJson: serializer.fromJson<String?>(json['capabilities_json']),
+      checkedAt: serializer.fromJson<DateTime?>(json['checked_at']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'base_url': serializer.toJson<String>(baseUrl),
+      'booth_id': serializer.toJson<String>(boothId),
+      'booth_name': serializer.toJson<String>(boothName),
+      'brand_name': serializer.toJson<String>(brandName),
+      'paired_at': serializer.toJson<DateTime>(pairedAt),
+      'paused': serializer.toJson<bool>(paused),
+      'capabilities_json': serializer.toJson<String?>(capabilitiesJson),
+      'checked_at': serializer.toJson<DateTime?>(checkedAt),
+    };
+  }
+
+  DeliveryPairingRow copyWith({
+    int? id,
+    String? baseUrl,
+    String? boothId,
+    String? boothName,
+    String? brandName,
+    DateTime? pairedAt,
+    bool? paused,
+    Value<String?> capabilitiesJson = const Value.absent(),
+    Value<DateTime?> checkedAt = const Value.absent(),
+  }) => DeliveryPairingRow(
+    id: id ?? this.id,
+    baseUrl: baseUrl ?? this.baseUrl,
+    boothId: boothId ?? this.boothId,
+    boothName: boothName ?? this.boothName,
+    brandName: brandName ?? this.brandName,
+    pairedAt: pairedAt ?? this.pairedAt,
+    paused: paused ?? this.paused,
+    capabilitiesJson: capabilitiesJson.present
+        ? capabilitiesJson.value
+        : this.capabilitiesJson,
+    checkedAt: checkedAt.present ? checkedAt.value : this.checkedAt,
+  );
+  DeliveryPairingRow copyWithCompanion(DeliveryPairingsCompanion data) {
+    return DeliveryPairingRow(
+      id: data.id.present ? data.id.value : this.id,
+      baseUrl: data.baseUrl.present ? data.baseUrl.value : this.baseUrl,
+      boothId: data.boothId.present ? data.boothId.value : this.boothId,
+      boothName: data.boothName.present ? data.boothName.value : this.boothName,
+      brandName: data.brandName.present ? data.brandName.value : this.brandName,
+      pairedAt: data.pairedAt.present ? data.pairedAt.value : this.pairedAt,
+      paused: data.paused.present ? data.paused.value : this.paused,
+      capabilitiesJson: data.capabilitiesJson.present
+          ? data.capabilitiesJson.value
+          : this.capabilitiesJson,
+      checkedAt: data.checkedAt.present ? data.checkedAt.value : this.checkedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DeliveryPairingRow(')
+          ..write('id: $id, ')
+          ..write('baseUrl: $baseUrl, ')
+          ..write('boothId: $boothId, ')
+          ..write('boothName: $boothName, ')
+          ..write('brandName: $brandName, ')
+          ..write('pairedAt: $pairedAt, ')
+          ..write('paused: $paused, ')
+          ..write('capabilitiesJson: $capabilitiesJson, ')
+          ..write('checkedAt: $checkedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    baseUrl,
+    boothId,
+    boothName,
+    brandName,
+    pairedAt,
+    paused,
+    capabilitiesJson,
+    checkedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DeliveryPairingRow &&
+          other.id == this.id &&
+          other.baseUrl == this.baseUrl &&
+          other.boothId == this.boothId &&
+          other.boothName == this.boothName &&
+          other.brandName == this.brandName &&
+          other.pairedAt == this.pairedAt &&
+          other.paused == this.paused &&
+          other.capabilitiesJson == this.capabilitiesJson &&
+          other.checkedAt == this.checkedAt);
+}
+
+class DeliveryPairingsCompanion extends UpdateCompanion<DeliveryPairingRow> {
+  final Value<int> id;
+  final Value<String> baseUrl;
+  final Value<String> boothId;
+  final Value<String> boothName;
+  final Value<String> brandName;
+  final Value<DateTime> pairedAt;
+  final Value<bool> paused;
+  final Value<String?> capabilitiesJson;
+  final Value<DateTime?> checkedAt;
+  const DeliveryPairingsCompanion({
+    this.id = const Value.absent(),
+    this.baseUrl = const Value.absent(),
+    this.boothId = const Value.absent(),
+    this.boothName = const Value.absent(),
+    this.brandName = const Value.absent(),
+    this.pairedAt = const Value.absent(),
+    this.paused = const Value.absent(),
+    this.capabilitiesJson = const Value.absent(),
+    this.checkedAt = const Value.absent(),
+  });
+  DeliveryPairingsCompanion.insert({
+    this.id = const Value.absent(),
+    required String baseUrl,
+    required String boothId,
+    required String boothName,
+    required String brandName,
+    required DateTime pairedAt,
+    this.paused = const Value.absent(),
+    this.capabilitiesJson = const Value.absent(),
+    this.checkedAt = const Value.absent(),
+  }) : baseUrl = Value(baseUrl),
+       boothId = Value(boothId),
+       boothName = Value(boothName),
+       brandName = Value(brandName),
+       pairedAt = Value(pairedAt);
+  static Insertable<DeliveryPairingRow> custom({
+    Expression<int>? id,
+    Expression<String>? baseUrl,
+    Expression<String>? boothId,
+    Expression<String>? boothName,
+    Expression<String>? brandName,
+    Expression<DateTime>? pairedAt,
+    Expression<bool>? paused,
+    Expression<String>? capabilitiesJson,
+    Expression<DateTime>? checkedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (baseUrl != null) 'base_url': baseUrl,
+      if (boothId != null) 'booth_id': boothId,
+      if (boothName != null) 'booth_name': boothName,
+      if (brandName != null) 'brand_name': brandName,
+      if (pairedAt != null) 'paired_at': pairedAt,
+      if (paused != null) 'paused': paused,
+      if (capabilitiesJson != null) 'capabilities_json': capabilitiesJson,
+      if (checkedAt != null) 'checked_at': checkedAt,
+    });
+  }
+
+  DeliveryPairingsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? baseUrl,
+    Value<String>? boothId,
+    Value<String>? boothName,
+    Value<String>? brandName,
+    Value<DateTime>? pairedAt,
+    Value<bool>? paused,
+    Value<String?>? capabilitiesJson,
+    Value<DateTime?>? checkedAt,
+  }) {
+    return DeliveryPairingsCompanion(
+      id: id ?? this.id,
+      baseUrl: baseUrl ?? this.baseUrl,
+      boothId: boothId ?? this.boothId,
+      boothName: boothName ?? this.boothName,
+      brandName: brandName ?? this.brandName,
+      pairedAt: pairedAt ?? this.pairedAt,
+      paused: paused ?? this.paused,
+      capabilitiesJson: capabilitiesJson ?? this.capabilitiesJson,
+      checkedAt: checkedAt ?? this.checkedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (baseUrl.present) {
+      map['base_url'] = Variable<String>(baseUrl.value);
+    }
+    if (boothId.present) {
+      map['booth_id'] = Variable<String>(boothId.value);
+    }
+    if (boothName.present) {
+      map['booth_name'] = Variable<String>(boothName.value);
+    }
+    if (brandName.present) {
+      map['brand_name'] = Variable<String>(brandName.value);
+    }
+    if (pairedAt.present) {
+      map['paired_at'] = Variable<DateTime>(pairedAt.value);
+    }
+    if (paused.present) {
+      map['paused'] = Variable<bool>(paused.value);
+    }
+    if (capabilitiesJson.present) {
+      map['capabilities_json'] = Variable<String>(capabilitiesJson.value);
+    }
+    if (checkedAt.present) {
+      map['checked_at'] = Variable<DateTime>(checkedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DeliveryPairingsCompanion(')
+          ..write('id: $id, ')
+          ..write('baseUrl: $baseUrl, ')
+          ..write('boothId: $boothId, ')
+          ..write('boothName: $boothName, ')
+          ..write('brandName: $brandName, ')
+          ..write('pairedAt: $pairedAt, ')
+          ..write('paused: $paused, ')
+          ..write('capabilitiesJson: $capabilitiesJson, ')
+          ..write('checkedAt: $checkedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class DeliveryIntents extends Table
+    with TableInfo<DeliveryIntents, DeliveryIntentRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  DeliveryIntents(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL PRIMARY KEY CHECK (length(id) = 36)',
+  );
+  static const VerificationMeta _sessionIdMeta = const VerificationMeta(
+    'sessionId',
+  );
+  late final GeneratedColumn<String> sessionId = GeneratedColumn<String>(
+    'session_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'NOT NULL REFERENCES capture_sessions(id)ON DELETE CASCADE',
+  );
+  static const VerificationMeta _eventIdMeta = const VerificationMeta(
+    'eventId',
+  );
+  late final GeneratedColumn<String> eventId = GeneratedColumn<String>(
+    'event_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (length(event_id) = 36)',
+  );
+  static const VerificationMeta _outputIdMeta = const VerificationMeta(
+    'outputId',
+  );
+  late final GeneratedColumn<String> outputId = GeneratedColumn<String>(
+    'output_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (length(output_id) = 36)',
+  );
+  static const VerificationMeta _phoneLast4Meta = const VerificationMeta(
+    'phoneLast4',
+  );
+  late final GeneratedColumn<String> phoneLast4 = GeneratedColumn<String>(
+    'phone_last4',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (length(phone_last4) = 4 AND phone_last4 NOT GLOB \'*[^0-9]*\')',
+  );
+  static const VerificationMeta _phoneStoredMeta = const VerificationMeta(
+    'phoneStored',
+  );
+  late final GeneratedColumn<bool> phoneStored = GeneratedColumn<bool>(
+    'phone_stored',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (phone_stored IN (0, 1))',
+  );
+  static const VerificationMeta _consentTextVersionMeta =
+      const VerificationMeta('consentTextVersion');
+  late final GeneratedColumn<String> consentTextVersion =
+      GeneratedColumn<String>(
+        'consent_text_version',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+        $customConstraints:
+            'NOT NULL CHECK (length(consent_text_version) BETWEEN 1 AND 32)',
+      );
+  static const VerificationMeta _consentTextDigestMeta = const VerificationMeta(
+    'consentTextDigest',
+  );
+  late final GeneratedColumn<String> consentTextDigest =
+      GeneratedColumn<String>(
+        'consent_text_digest',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL CHECK (length(consent_text_digest) = 64 AND consent_text_digest NOT GLOB \'*[^0-9a-f]*\')',
+      );
+  static const VerificationMeta _consentAcceptedAtMeta = const VerificationMeta(
+    'consentAcceptedAt',
+  );
+  late final GeneratedColumn<DateTime> consentAcceptedAt =
+      GeneratedColumn<DateTime>(
+        'consent_accepted_at',
+        aliasedName,
+        false,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      );
+  static const VerificationMeta _localeMeta = const VerificationMeta('locale');
+  late final GeneratedColumn<String> locale = GeneratedColumn<String>(
+    'locale',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (length(locale) BETWEEN 2 AND 5)',
+  );
+  static const VerificationMeta _linkDaysMeta = const VerificationMeta(
+    'linkDays',
+  );
+  late final GeneratedColumn<int> linkDays = GeneratedColumn<int>(
+    'link_days',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (link_days BETWEEN 1 AND 30)',
+  );
+  static const VerificationMeta _sendLimitMeta = const VerificationMeta(
+    'sendLimit',
+  );
+  late final GeneratedColumn<int> sendLimit = GeneratedColumn<int>(
+    'send_limit',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (send_limit BETWEEN 1 AND 10000)',
+  );
+  static const VerificationMeta _queueAllowedMeta = const VerificationMeta(
+    'queueAllowed',
+  );
+  late final GeneratedColumn<bool> queueAllowed = GeneratedColumn<bool>(
+    'queue_allowed',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (queue_allowed IN (0, 1))',
+  );
+  static const VerificationMeta _idempotencyKeyMeta = const VerificationMeta(
+    'idempotencyKey',
+  );
+  late final GeneratedColumn<String> idempotencyKey = GeneratedColumn<String>(
+    'idempotency_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'NOT NULL UNIQUE CHECK (length(idempotency_key) BETWEEN 16 AND 64)',
+  );
+  late final GeneratedColumnWithTypeConverter<DeliveryIntentState, String>
+  state = GeneratedColumn<String>(
+    'state',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (state IN (\'queued\', \'handingOver\', \'handedOver\', \'finished\'))',
+  ).withConverter<DeliveryIntentState>(DeliveryIntents.$converterstate);
+  late final GeneratedColumnWithTypeConverter<DeliveryPhase?, String>
+  localOutcome = GeneratedColumn<String>(
+    'local_outcome',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'CHECK (local_outcome IS NULL OR local_outcome IN (\'failed\', \'expired\', \'canceled\'))',
+  ).withConverter<DeliveryPhase?>(DeliveryIntents.$converterlocalOutcomen);
+  static const VerificationMeta _remoteJobIdMeta = const VerificationMeta(
+    'remoteJobId',
+  );
+  late final GeneratedColumn<String> remoteJobId = GeneratedColumn<String>(
+    'remote_job_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints:
+        'CHECK (remote_job_id IS NULL OR length(remote_job_id) = 36)',
+  );
+  static const VerificationMeta _remoteStatusMeta = const VerificationMeta(
+    'remoteStatus',
+  );
+  late final GeneratedColumn<String> remoteStatus = GeneratedColumn<String>(
+    'remote_status',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'CHECK (remote_status IS NULL OR remote_status IN (\'queued\', \'uploading\', \'submitting\', \'submitted\', \'sent\', \'delivered\', \'failed\', \'unknown\', \'expired\', \'canceled\'))',
+  );
+  static const VerificationMeta _remoteUpdatedAtMeta = const VerificationMeta(
+    'remoteUpdatedAt',
+  );
+  late final GeneratedColumn<DateTime> remoteUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'remote_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+        $customConstraints: '',
+      );
+  static const VerificationMeta _lastErrorCodeMeta = const VerificationMeta(
+    'lastErrorCode',
+  );
+  late final GeneratedColumn<String> lastErrorCode = GeneratedColumn<String>(
+    'last_error_code',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'CHECK (last_error_code IS NULL OR length(last_error_code) BETWEEN 2 AND 64)',
+  );
+  static const VerificationMeta _attemptCountMeta = const VerificationMeta(
+    'attemptCount',
+  );
+  late final GeneratedColumn<int> attemptCount = GeneratedColumn<int>(
+    'attempt_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (attempt_count >= 0)',
+    defaultValue: const CustomExpression('0'),
+  );
+  static const VerificationMeta _retryAtMeta = const VerificationMeta(
+    'retryAt',
+  );
+  late final GeneratedColumn<DateTime> retryAt = GeneratedColumn<DateTime>(
+    'retry_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _expiresAtMeta = const VerificationMeta(
+    'expiresAt',
+  );
+  late final GeneratedColumn<DateTime> expiresAt = GeneratedColumn<DateTime>(
+    'expires_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _historyJsonMeta = const VerificationMeta(
+    'historyJson',
+  );
+  late final GeneratedColumn<String> historyJson = GeneratedColumn<String>(
+    'history_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT \'[]\' CHECK (length(history_json) BETWEEN 2 AND 8192)',
+    defaultValue: const CustomExpression('\'[]\''),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    sessionId,
+    eventId,
+    outputId,
+    phoneLast4,
+    phoneStored,
+    consentTextVersion,
+    consentTextDigest,
+    consentAcceptedAt,
+    locale,
+    linkDays,
+    sendLimit,
+    queueAllowed,
+    idempotencyKey,
+    state,
+    localOutcome,
+    remoteJobId,
+    remoteStatus,
+    remoteUpdatedAt,
+    lastErrorCode,
+    attemptCount,
+    retryAt,
+    expiresAt,
+    historyJson,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'delivery_intents';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DeliveryIntentRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('session_id')) {
+      context.handle(
+        _sessionIdMeta,
+        sessionId.isAcceptableOrUnknown(data['session_id']!, _sessionIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sessionIdMeta);
+    }
+    if (data.containsKey('event_id')) {
+      context.handle(
+        _eventIdMeta,
+        eventId.isAcceptableOrUnknown(data['event_id']!, _eventIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_eventIdMeta);
+    }
+    if (data.containsKey('output_id')) {
+      context.handle(
+        _outputIdMeta,
+        outputId.isAcceptableOrUnknown(data['output_id']!, _outputIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_outputIdMeta);
+    }
+    if (data.containsKey('phone_last4')) {
+      context.handle(
+        _phoneLast4Meta,
+        phoneLast4.isAcceptableOrUnknown(data['phone_last4']!, _phoneLast4Meta),
+      );
+    } else if (isInserting) {
+      context.missing(_phoneLast4Meta);
+    }
+    if (data.containsKey('phone_stored')) {
+      context.handle(
+        _phoneStoredMeta,
+        phoneStored.isAcceptableOrUnknown(
+          data['phone_stored']!,
+          _phoneStoredMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_phoneStoredMeta);
+    }
+    if (data.containsKey('consent_text_version')) {
+      context.handle(
+        _consentTextVersionMeta,
+        consentTextVersion.isAcceptableOrUnknown(
+          data['consent_text_version']!,
+          _consentTextVersionMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_consentTextVersionMeta);
+    }
+    if (data.containsKey('consent_text_digest')) {
+      context.handle(
+        _consentTextDigestMeta,
+        consentTextDigest.isAcceptableOrUnknown(
+          data['consent_text_digest']!,
+          _consentTextDigestMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_consentTextDigestMeta);
+    }
+    if (data.containsKey('consent_accepted_at')) {
+      context.handle(
+        _consentAcceptedAtMeta,
+        consentAcceptedAt.isAcceptableOrUnknown(
+          data['consent_accepted_at']!,
+          _consentAcceptedAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_consentAcceptedAtMeta);
+    }
+    if (data.containsKey('locale')) {
+      context.handle(
+        _localeMeta,
+        locale.isAcceptableOrUnknown(data['locale']!, _localeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_localeMeta);
+    }
+    if (data.containsKey('link_days')) {
+      context.handle(
+        _linkDaysMeta,
+        linkDays.isAcceptableOrUnknown(data['link_days']!, _linkDaysMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_linkDaysMeta);
+    }
+    if (data.containsKey('send_limit')) {
+      context.handle(
+        _sendLimitMeta,
+        sendLimit.isAcceptableOrUnknown(data['send_limit']!, _sendLimitMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sendLimitMeta);
+    }
+    if (data.containsKey('queue_allowed')) {
+      context.handle(
+        _queueAllowedMeta,
+        queueAllowed.isAcceptableOrUnknown(
+          data['queue_allowed']!,
+          _queueAllowedMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_queueAllowedMeta);
+    }
+    if (data.containsKey('idempotency_key')) {
+      context.handle(
+        _idempotencyKeyMeta,
+        idempotencyKey.isAcceptableOrUnknown(
+          data['idempotency_key']!,
+          _idempotencyKeyMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_idempotencyKeyMeta);
+    }
+    if (data.containsKey('remote_job_id')) {
+      context.handle(
+        _remoteJobIdMeta,
+        remoteJobId.isAcceptableOrUnknown(
+          data['remote_job_id']!,
+          _remoteJobIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('remote_status')) {
+      context.handle(
+        _remoteStatusMeta,
+        remoteStatus.isAcceptableOrUnknown(
+          data['remote_status']!,
+          _remoteStatusMeta,
+        ),
+      );
+    }
+    if (data.containsKey('remote_updated_at')) {
+      context.handle(
+        _remoteUpdatedAtMeta,
+        remoteUpdatedAt.isAcceptableOrUnknown(
+          data['remote_updated_at']!,
+          _remoteUpdatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_error_code')) {
+      context.handle(
+        _lastErrorCodeMeta,
+        lastErrorCode.isAcceptableOrUnknown(
+          data['last_error_code']!,
+          _lastErrorCodeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('attempt_count')) {
+      context.handle(
+        _attemptCountMeta,
+        attemptCount.isAcceptableOrUnknown(
+          data['attempt_count']!,
+          _attemptCountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('retry_at')) {
+      context.handle(
+        _retryAtMeta,
+        retryAt.isAcceptableOrUnknown(data['retry_at']!, _retryAtMeta),
+      );
+    }
+    if (data.containsKey('expires_at')) {
+      context.handle(
+        _expiresAtMeta,
+        expiresAt.isAcceptableOrUnknown(data['expires_at']!, _expiresAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_expiresAtMeta);
+    }
+    if (data.containsKey('history_json')) {
+      context.handle(
+        _historyJsonMeta,
+        historyJson.isAcceptableOrUnknown(
+          data['history_json']!,
+          _historyJsonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DeliveryIntentRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DeliveryIntentRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      sessionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}session_id'],
+      )!,
+      eventId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}event_id'],
+      )!,
+      outputId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}output_id'],
+      )!,
+      phoneLast4: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}phone_last4'],
+      )!,
+      phoneStored: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}phone_stored'],
+      )!,
+      consentTextVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}consent_text_version'],
+      )!,
+      consentTextDigest: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}consent_text_digest'],
+      )!,
+      consentAcceptedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}consent_accepted_at'],
+      )!,
+      locale: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}locale'],
+      )!,
+      linkDays: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}link_days'],
+      )!,
+      sendLimit: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}send_limit'],
+      )!,
+      queueAllowed: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}queue_allowed'],
+      )!,
+      idempotencyKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}idempotency_key'],
+      )!,
+      state: DeliveryIntents.$converterstate.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}state'],
+        )!,
+      ),
+      localOutcome: DeliveryIntents.$converterlocalOutcomen.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}local_outcome'],
+        ),
+      ),
+      remoteJobId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remote_job_id'],
+      ),
+      remoteStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remote_status'],
+      ),
+      remoteUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}remote_updated_at'],
+      ),
+      lastErrorCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_error_code'],
+      ),
+      attemptCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}attempt_count'],
+      )!,
+      retryAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}retry_at'],
+      ),
+      expiresAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}expires_at'],
+      )!,
+      historyJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}history_json'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  DeliveryIntents createAlias(String alias) {
+    return DeliveryIntents(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<DeliveryIntentState, String, String>
+  $converterstate = deliveryIntentStateByName;
+  static JsonTypeConverter2<DeliveryPhase, String, String>
+  $converterlocalOutcome = const EnumNameConverter<DeliveryPhase>(
+    DeliveryPhase.values,
+  );
+  static JsonTypeConverter2<DeliveryPhase?, String?, String?>
+  $converterlocalOutcomen = JsonTypeConverter2.asNullable(
+    $converterlocalOutcome,
+  );
+  @override
+  List<String> get customConstraints => const [
+    'CHECK((state = \'finished\')=(local_outcome IS NOT NULL OR remote_status IN (\'delivered\', \'failed\', \'expired\', \'canceled\') OR last_error_code = \'NO_LONGER_AT_SERVICE\'))',
+  ];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class DeliveryIntentRow extends DataClass
+    implements Insertable<DeliveryIntentRow> {
+  final String id;
+  final String sessionId;
+  final String eventId;
+  final String outputId;
+  final String phoneLast4;
+  final bool phoneStored;
+  final String consentTextVersion;
+  final String consentTextDigest;
+  final DateTime consentAcceptedAt;
+  final String locale;
+  final int linkDays;
+  final int sendLimit;
+
+  /// Whether the event allowed waiting for a connection when the guest
+  /// asked (otherwise a request that cannot go at once is not kept).
+  final bool queueAllowed;
+  final String idempotencyKey;
+
+  /// Mapped explicitly: "DeliveryIntentState" contains "INT" (see
+  /// booth_profiles.theme_profile).
+  final DeliveryIntentState state;
+  final DeliveryPhase? localOutcome;
+  final String? remoteJobId;
+  final String? remoteStatus;
+  final DateTime? remoteUpdatedAt;
+  final String? lastErrorCode;
+  final int attemptCount;
+  final DateTime? retryAt;
+  final DateTime expiresAt;
+  final String historyJson;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const DeliveryIntentRow({
+    required this.id,
+    required this.sessionId,
+    required this.eventId,
+    required this.outputId,
+    required this.phoneLast4,
+    required this.phoneStored,
+    required this.consentTextVersion,
+    required this.consentTextDigest,
+    required this.consentAcceptedAt,
+    required this.locale,
+    required this.linkDays,
+    required this.sendLimit,
+    required this.queueAllowed,
+    required this.idempotencyKey,
+    required this.state,
+    this.localOutcome,
+    this.remoteJobId,
+    this.remoteStatus,
+    this.remoteUpdatedAt,
+    this.lastErrorCode,
+    required this.attemptCount,
+    this.retryAt,
+    required this.expiresAt,
+    required this.historyJson,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['session_id'] = Variable<String>(sessionId);
+    map['event_id'] = Variable<String>(eventId);
+    map['output_id'] = Variable<String>(outputId);
+    map['phone_last4'] = Variable<String>(phoneLast4);
+    map['phone_stored'] = Variable<bool>(phoneStored);
+    map['consent_text_version'] = Variable<String>(consentTextVersion);
+    map['consent_text_digest'] = Variable<String>(consentTextDigest);
+    map['consent_accepted_at'] = Variable<DateTime>(consentAcceptedAt);
+    map['locale'] = Variable<String>(locale);
+    map['link_days'] = Variable<int>(linkDays);
+    map['send_limit'] = Variable<int>(sendLimit);
+    map['queue_allowed'] = Variable<bool>(queueAllowed);
+    map['idempotency_key'] = Variable<String>(idempotencyKey);
+    {
+      map['state'] = Variable<String>(
+        DeliveryIntents.$converterstate.toSql(state),
+      );
+    }
+    if (!nullToAbsent || localOutcome != null) {
+      map['local_outcome'] = Variable<String>(
+        DeliveryIntents.$converterlocalOutcomen.toSql(localOutcome),
+      );
+    }
+    if (!nullToAbsent || remoteJobId != null) {
+      map['remote_job_id'] = Variable<String>(remoteJobId);
+    }
+    if (!nullToAbsent || remoteStatus != null) {
+      map['remote_status'] = Variable<String>(remoteStatus);
+    }
+    if (!nullToAbsent || remoteUpdatedAt != null) {
+      map['remote_updated_at'] = Variable<DateTime>(remoteUpdatedAt);
+    }
+    if (!nullToAbsent || lastErrorCode != null) {
+      map['last_error_code'] = Variable<String>(lastErrorCode);
+    }
+    map['attempt_count'] = Variable<int>(attemptCount);
+    if (!nullToAbsent || retryAt != null) {
+      map['retry_at'] = Variable<DateTime>(retryAt);
+    }
+    map['expires_at'] = Variable<DateTime>(expiresAt);
+    map['history_json'] = Variable<String>(historyJson);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  DeliveryIntentsCompanion toCompanion(bool nullToAbsent) {
+    return DeliveryIntentsCompanion(
+      id: Value(id),
+      sessionId: Value(sessionId),
+      eventId: Value(eventId),
+      outputId: Value(outputId),
+      phoneLast4: Value(phoneLast4),
+      phoneStored: Value(phoneStored),
+      consentTextVersion: Value(consentTextVersion),
+      consentTextDigest: Value(consentTextDigest),
+      consentAcceptedAt: Value(consentAcceptedAt),
+      locale: Value(locale),
+      linkDays: Value(linkDays),
+      sendLimit: Value(sendLimit),
+      queueAllowed: Value(queueAllowed),
+      idempotencyKey: Value(idempotencyKey),
+      state: Value(state),
+      localOutcome: localOutcome == null && nullToAbsent
+          ? const Value.absent()
+          : Value(localOutcome),
+      remoteJobId: remoteJobId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remoteJobId),
+      remoteStatus: remoteStatus == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remoteStatus),
+      remoteUpdatedAt: remoteUpdatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remoteUpdatedAt),
+      lastErrorCode: lastErrorCode == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastErrorCode),
+      attemptCount: Value(attemptCount),
+      retryAt: retryAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(retryAt),
+      expiresAt: Value(expiresAt),
+      historyJson: Value(historyJson),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory DeliveryIntentRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DeliveryIntentRow(
+      id: serializer.fromJson<String>(json['id']),
+      sessionId: serializer.fromJson<String>(json['session_id']),
+      eventId: serializer.fromJson<String>(json['event_id']),
+      outputId: serializer.fromJson<String>(json['output_id']),
+      phoneLast4: serializer.fromJson<String>(json['phone_last4']),
+      phoneStored: serializer.fromJson<bool>(json['phone_stored']),
+      consentTextVersion: serializer.fromJson<String>(
+        json['consent_text_version'],
+      ),
+      consentTextDigest: serializer.fromJson<String>(
+        json['consent_text_digest'],
+      ),
+      consentAcceptedAt: serializer.fromJson<DateTime>(
+        json['consent_accepted_at'],
+      ),
+      locale: serializer.fromJson<String>(json['locale']),
+      linkDays: serializer.fromJson<int>(json['link_days']),
+      sendLimit: serializer.fromJson<int>(json['send_limit']),
+      queueAllowed: serializer.fromJson<bool>(json['queue_allowed']),
+      idempotencyKey: serializer.fromJson<String>(json['idempotency_key']),
+      state: DeliveryIntents.$converterstate.fromJson(
+        serializer.fromJson<String>(json['state']),
+      ),
+      localOutcome: DeliveryIntents.$converterlocalOutcomen.fromJson(
+        serializer.fromJson<String?>(json['local_outcome']),
+      ),
+      remoteJobId: serializer.fromJson<String?>(json['remote_job_id']),
+      remoteStatus: serializer.fromJson<String?>(json['remote_status']),
+      remoteUpdatedAt: serializer.fromJson<DateTime?>(
+        json['remote_updated_at'],
+      ),
+      lastErrorCode: serializer.fromJson<String?>(json['last_error_code']),
+      attemptCount: serializer.fromJson<int>(json['attempt_count']),
+      retryAt: serializer.fromJson<DateTime?>(json['retry_at']),
+      expiresAt: serializer.fromJson<DateTime>(json['expires_at']),
+      historyJson: serializer.fromJson<String>(json['history_json']),
+      createdAt: serializer.fromJson<DateTime>(json['created_at']),
+      updatedAt: serializer.fromJson<DateTime>(json['updated_at']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'session_id': serializer.toJson<String>(sessionId),
+      'event_id': serializer.toJson<String>(eventId),
+      'output_id': serializer.toJson<String>(outputId),
+      'phone_last4': serializer.toJson<String>(phoneLast4),
+      'phone_stored': serializer.toJson<bool>(phoneStored),
+      'consent_text_version': serializer.toJson<String>(consentTextVersion),
+      'consent_text_digest': serializer.toJson<String>(consentTextDigest),
+      'consent_accepted_at': serializer.toJson<DateTime>(consentAcceptedAt),
+      'locale': serializer.toJson<String>(locale),
+      'link_days': serializer.toJson<int>(linkDays),
+      'send_limit': serializer.toJson<int>(sendLimit),
+      'queue_allowed': serializer.toJson<bool>(queueAllowed),
+      'idempotency_key': serializer.toJson<String>(idempotencyKey),
+      'state': serializer.toJson<String>(
+        DeliveryIntents.$converterstate.toJson(state),
+      ),
+      'local_outcome': serializer.toJson<String?>(
+        DeliveryIntents.$converterlocalOutcomen.toJson(localOutcome),
+      ),
+      'remote_job_id': serializer.toJson<String?>(remoteJobId),
+      'remote_status': serializer.toJson<String?>(remoteStatus),
+      'remote_updated_at': serializer.toJson<DateTime?>(remoteUpdatedAt),
+      'last_error_code': serializer.toJson<String?>(lastErrorCode),
+      'attempt_count': serializer.toJson<int>(attemptCount),
+      'retry_at': serializer.toJson<DateTime?>(retryAt),
+      'expires_at': serializer.toJson<DateTime>(expiresAt),
+      'history_json': serializer.toJson<String>(historyJson),
+      'created_at': serializer.toJson<DateTime>(createdAt),
+      'updated_at': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  DeliveryIntentRow copyWith({
+    String? id,
+    String? sessionId,
+    String? eventId,
+    String? outputId,
+    String? phoneLast4,
+    bool? phoneStored,
+    String? consentTextVersion,
+    String? consentTextDigest,
+    DateTime? consentAcceptedAt,
+    String? locale,
+    int? linkDays,
+    int? sendLimit,
+    bool? queueAllowed,
+    String? idempotencyKey,
+    DeliveryIntentState? state,
+    Value<DeliveryPhase?> localOutcome = const Value.absent(),
+    Value<String?> remoteJobId = const Value.absent(),
+    Value<String?> remoteStatus = const Value.absent(),
+    Value<DateTime?> remoteUpdatedAt = const Value.absent(),
+    Value<String?> lastErrorCode = const Value.absent(),
+    int? attemptCount,
+    Value<DateTime?> retryAt = const Value.absent(),
+    DateTime? expiresAt,
+    String? historyJson,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => DeliveryIntentRow(
+    id: id ?? this.id,
+    sessionId: sessionId ?? this.sessionId,
+    eventId: eventId ?? this.eventId,
+    outputId: outputId ?? this.outputId,
+    phoneLast4: phoneLast4 ?? this.phoneLast4,
+    phoneStored: phoneStored ?? this.phoneStored,
+    consentTextVersion: consentTextVersion ?? this.consentTextVersion,
+    consentTextDigest: consentTextDigest ?? this.consentTextDigest,
+    consentAcceptedAt: consentAcceptedAt ?? this.consentAcceptedAt,
+    locale: locale ?? this.locale,
+    linkDays: linkDays ?? this.linkDays,
+    sendLimit: sendLimit ?? this.sendLimit,
+    queueAllowed: queueAllowed ?? this.queueAllowed,
+    idempotencyKey: idempotencyKey ?? this.idempotencyKey,
+    state: state ?? this.state,
+    localOutcome: localOutcome.present ? localOutcome.value : this.localOutcome,
+    remoteJobId: remoteJobId.present ? remoteJobId.value : this.remoteJobId,
+    remoteStatus: remoteStatus.present ? remoteStatus.value : this.remoteStatus,
+    remoteUpdatedAt: remoteUpdatedAt.present
+        ? remoteUpdatedAt.value
+        : this.remoteUpdatedAt,
+    lastErrorCode: lastErrorCode.present
+        ? lastErrorCode.value
+        : this.lastErrorCode,
+    attemptCount: attemptCount ?? this.attemptCount,
+    retryAt: retryAt.present ? retryAt.value : this.retryAt,
+    expiresAt: expiresAt ?? this.expiresAt,
+    historyJson: historyJson ?? this.historyJson,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  DeliveryIntentRow copyWithCompanion(DeliveryIntentsCompanion data) {
+    return DeliveryIntentRow(
+      id: data.id.present ? data.id.value : this.id,
+      sessionId: data.sessionId.present ? data.sessionId.value : this.sessionId,
+      eventId: data.eventId.present ? data.eventId.value : this.eventId,
+      outputId: data.outputId.present ? data.outputId.value : this.outputId,
+      phoneLast4: data.phoneLast4.present
+          ? data.phoneLast4.value
+          : this.phoneLast4,
+      phoneStored: data.phoneStored.present
+          ? data.phoneStored.value
+          : this.phoneStored,
+      consentTextVersion: data.consentTextVersion.present
+          ? data.consentTextVersion.value
+          : this.consentTextVersion,
+      consentTextDigest: data.consentTextDigest.present
+          ? data.consentTextDigest.value
+          : this.consentTextDigest,
+      consentAcceptedAt: data.consentAcceptedAt.present
+          ? data.consentAcceptedAt.value
+          : this.consentAcceptedAt,
+      locale: data.locale.present ? data.locale.value : this.locale,
+      linkDays: data.linkDays.present ? data.linkDays.value : this.linkDays,
+      sendLimit: data.sendLimit.present ? data.sendLimit.value : this.sendLimit,
+      queueAllowed: data.queueAllowed.present
+          ? data.queueAllowed.value
+          : this.queueAllowed,
+      idempotencyKey: data.idempotencyKey.present
+          ? data.idempotencyKey.value
+          : this.idempotencyKey,
+      state: data.state.present ? data.state.value : this.state,
+      localOutcome: data.localOutcome.present
+          ? data.localOutcome.value
+          : this.localOutcome,
+      remoteJobId: data.remoteJobId.present
+          ? data.remoteJobId.value
+          : this.remoteJobId,
+      remoteStatus: data.remoteStatus.present
+          ? data.remoteStatus.value
+          : this.remoteStatus,
+      remoteUpdatedAt: data.remoteUpdatedAt.present
+          ? data.remoteUpdatedAt.value
+          : this.remoteUpdatedAt,
+      lastErrorCode: data.lastErrorCode.present
+          ? data.lastErrorCode.value
+          : this.lastErrorCode,
+      attemptCount: data.attemptCount.present
+          ? data.attemptCount.value
+          : this.attemptCount,
+      retryAt: data.retryAt.present ? data.retryAt.value : this.retryAt,
+      expiresAt: data.expiresAt.present ? data.expiresAt.value : this.expiresAt,
+      historyJson: data.historyJson.present
+          ? data.historyJson.value
+          : this.historyJson,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DeliveryIntentRow(')
+          ..write('id: $id, ')
+          ..write('sessionId: $sessionId, ')
+          ..write('eventId: $eventId, ')
+          ..write('outputId: $outputId, ')
+          ..write('phoneLast4: $phoneLast4, ')
+          ..write('phoneStored: $phoneStored, ')
+          ..write('consentTextVersion: $consentTextVersion, ')
+          ..write('consentTextDigest: $consentTextDigest, ')
+          ..write('consentAcceptedAt: $consentAcceptedAt, ')
+          ..write('locale: $locale, ')
+          ..write('linkDays: $linkDays, ')
+          ..write('sendLimit: $sendLimit, ')
+          ..write('queueAllowed: $queueAllowed, ')
+          ..write('idempotencyKey: $idempotencyKey, ')
+          ..write('state: $state, ')
+          ..write('localOutcome: $localOutcome, ')
+          ..write('remoteJobId: $remoteJobId, ')
+          ..write('remoteStatus: $remoteStatus, ')
+          ..write('remoteUpdatedAt: $remoteUpdatedAt, ')
+          ..write('lastErrorCode: $lastErrorCode, ')
+          ..write('attemptCount: $attemptCount, ')
+          ..write('retryAt: $retryAt, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('historyJson: $historyJson, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hashAll([
+    id,
+    sessionId,
+    eventId,
+    outputId,
+    phoneLast4,
+    phoneStored,
+    consentTextVersion,
+    consentTextDigest,
+    consentAcceptedAt,
+    locale,
+    linkDays,
+    sendLimit,
+    queueAllowed,
+    idempotencyKey,
+    state,
+    localOutcome,
+    remoteJobId,
+    remoteStatus,
+    remoteUpdatedAt,
+    lastErrorCode,
+    attemptCount,
+    retryAt,
+    expiresAt,
+    historyJson,
+    createdAt,
+    updatedAt,
+  ]);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DeliveryIntentRow &&
+          other.id == this.id &&
+          other.sessionId == this.sessionId &&
+          other.eventId == this.eventId &&
+          other.outputId == this.outputId &&
+          other.phoneLast4 == this.phoneLast4 &&
+          other.phoneStored == this.phoneStored &&
+          other.consentTextVersion == this.consentTextVersion &&
+          other.consentTextDigest == this.consentTextDigest &&
+          other.consentAcceptedAt == this.consentAcceptedAt &&
+          other.locale == this.locale &&
+          other.linkDays == this.linkDays &&
+          other.sendLimit == this.sendLimit &&
+          other.queueAllowed == this.queueAllowed &&
+          other.idempotencyKey == this.idempotencyKey &&
+          other.state == this.state &&
+          other.localOutcome == this.localOutcome &&
+          other.remoteJobId == this.remoteJobId &&
+          other.remoteStatus == this.remoteStatus &&
+          other.remoteUpdatedAt == this.remoteUpdatedAt &&
+          other.lastErrorCode == this.lastErrorCode &&
+          other.attemptCount == this.attemptCount &&
+          other.retryAt == this.retryAt &&
+          other.expiresAt == this.expiresAt &&
+          other.historyJson == this.historyJson &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class DeliveryIntentsCompanion extends UpdateCompanion<DeliveryIntentRow> {
+  final Value<String> id;
+  final Value<String> sessionId;
+  final Value<String> eventId;
+  final Value<String> outputId;
+  final Value<String> phoneLast4;
+  final Value<bool> phoneStored;
+  final Value<String> consentTextVersion;
+  final Value<String> consentTextDigest;
+  final Value<DateTime> consentAcceptedAt;
+  final Value<String> locale;
+  final Value<int> linkDays;
+  final Value<int> sendLimit;
+  final Value<bool> queueAllowed;
+  final Value<String> idempotencyKey;
+  final Value<DeliveryIntentState> state;
+  final Value<DeliveryPhase?> localOutcome;
+  final Value<String?> remoteJobId;
+  final Value<String?> remoteStatus;
+  final Value<DateTime?> remoteUpdatedAt;
+  final Value<String?> lastErrorCode;
+  final Value<int> attemptCount;
+  final Value<DateTime?> retryAt;
+  final Value<DateTime> expiresAt;
+  final Value<String> historyJson;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const DeliveryIntentsCompanion({
+    this.id = const Value.absent(),
+    this.sessionId = const Value.absent(),
+    this.eventId = const Value.absent(),
+    this.outputId = const Value.absent(),
+    this.phoneLast4 = const Value.absent(),
+    this.phoneStored = const Value.absent(),
+    this.consentTextVersion = const Value.absent(),
+    this.consentTextDigest = const Value.absent(),
+    this.consentAcceptedAt = const Value.absent(),
+    this.locale = const Value.absent(),
+    this.linkDays = const Value.absent(),
+    this.sendLimit = const Value.absent(),
+    this.queueAllowed = const Value.absent(),
+    this.idempotencyKey = const Value.absent(),
+    this.state = const Value.absent(),
+    this.localOutcome = const Value.absent(),
+    this.remoteJobId = const Value.absent(),
+    this.remoteStatus = const Value.absent(),
+    this.remoteUpdatedAt = const Value.absent(),
+    this.lastErrorCode = const Value.absent(),
+    this.attemptCount = const Value.absent(),
+    this.retryAt = const Value.absent(),
+    this.expiresAt = const Value.absent(),
+    this.historyJson = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DeliveryIntentsCompanion.insert({
+    required String id,
+    required String sessionId,
+    required String eventId,
+    required String outputId,
+    required String phoneLast4,
+    required bool phoneStored,
+    required String consentTextVersion,
+    required String consentTextDigest,
+    required DateTime consentAcceptedAt,
+    required String locale,
+    required int linkDays,
+    required int sendLimit,
+    required bool queueAllowed,
+    required String idempotencyKey,
+    required DeliveryIntentState state,
+    this.localOutcome = const Value.absent(),
+    this.remoteJobId = const Value.absent(),
+    this.remoteStatus = const Value.absent(),
+    this.remoteUpdatedAt = const Value.absent(),
+    this.lastErrorCode = const Value.absent(),
+    this.attemptCount = const Value.absent(),
+    this.retryAt = const Value.absent(),
+    required DateTime expiresAt,
+    this.historyJson = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       sessionId = Value(sessionId),
+       eventId = Value(eventId),
+       outputId = Value(outputId),
+       phoneLast4 = Value(phoneLast4),
+       phoneStored = Value(phoneStored),
+       consentTextVersion = Value(consentTextVersion),
+       consentTextDigest = Value(consentTextDigest),
+       consentAcceptedAt = Value(consentAcceptedAt),
+       locale = Value(locale),
+       linkDays = Value(linkDays),
+       sendLimit = Value(sendLimit),
+       queueAllowed = Value(queueAllowed),
+       idempotencyKey = Value(idempotencyKey),
+       state = Value(state),
+       expiresAt = Value(expiresAt),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<DeliveryIntentRow> custom({
+    Expression<String>? id,
+    Expression<String>? sessionId,
+    Expression<String>? eventId,
+    Expression<String>? outputId,
+    Expression<String>? phoneLast4,
+    Expression<bool>? phoneStored,
+    Expression<String>? consentTextVersion,
+    Expression<String>? consentTextDigest,
+    Expression<DateTime>? consentAcceptedAt,
+    Expression<String>? locale,
+    Expression<int>? linkDays,
+    Expression<int>? sendLimit,
+    Expression<bool>? queueAllowed,
+    Expression<String>? idempotencyKey,
+    Expression<String>? state,
+    Expression<String>? localOutcome,
+    Expression<String>? remoteJobId,
+    Expression<String>? remoteStatus,
+    Expression<DateTime>? remoteUpdatedAt,
+    Expression<String>? lastErrorCode,
+    Expression<int>? attemptCount,
+    Expression<DateTime>? retryAt,
+    Expression<DateTime>? expiresAt,
+    Expression<String>? historyJson,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (sessionId != null) 'session_id': sessionId,
+      if (eventId != null) 'event_id': eventId,
+      if (outputId != null) 'output_id': outputId,
+      if (phoneLast4 != null) 'phone_last4': phoneLast4,
+      if (phoneStored != null) 'phone_stored': phoneStored,
+      if (consentTextVersion != null)
+        'consent_text_version': consentTextVersion,
+      if (consentTextDigest != null) 'consent_text_digest': consentTextDigest,
+      if (consentAcceptedAt != null) 'consent_accepted_at': consentAcceptedAt,
+      if (locale != null) 'locale': locale,
+      if (linkDays != null) 'link_days': linkDays,
+      if (sendLimit != null) 'send_limit': sendLimit,
+      if (queueAllowed != null) 'queue_allowed': queueAllowed,
+      if (idempotencyKey != null) 'idempotency_key': idempotencyKey,
+      if (state != null) 'state': state,
+      if (localOutcome != null) 'local_outcome': localOutcome,
+      if (remoteJobId != null) 'remote_job_id': remoteJobId,
+      if (remoteStatus != null) 'remote_status': remoteStatus,
+      if (remoteUpdatedAt != null) 'remote_updated_at': remoteUpdatedAt,
+      if (lastErrorCode != null) 'last_error_code': lastErrorCode,
+      if (attemptCount != null) 'attempt_count': attemptCount,
+      if (retryAt != null) 'retry_at': retryAt,
+      if (expiresAt != null) 'expires_at': expiresAt,
+      if (historyJson != null) 'history_json': historyJson,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DeliveryIntentsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? sessionId,
+    Value<String>? eventId,
+    Value<String>? outputId,
+    Value<String>? phoneLast4,
+    Value<bool>? phoneStored,
+    Value<String>? consentTextVersion,
+    Value<String>? consentTextDigest,
+    Value<DateTime>? consentAcceptedAt,
+    Value<String>? locale,
+    Value<int>? linkDays,
+    Value<int>? sendLimit,
+    Value<bool>? queueAllowed,
+    Value<String>? idempotencyKey,
+    Value<DeliveryIntentState>? state,
+    Value<DeliveryPhase?>? localOutcome,
+    Value<String?>? remoteJobId,
+    Value<String?>? remoteStatus,
+    Value<DateTime?>? remoteUpdatedAt,
+    Value<String?>? lastErrorCode,
+    Value<int>? attemptCount,
+    Value<DateTime?>? retryAt,
+    Value<DateTime>? expiresAt,
+    Value<String>? historyJson,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return DeliveryIntentsCompanion(
+      id: id ?? this.id,
+      sessionId: sessionId ?? this.sessionId,
+      eventId: eventId ?? this.eventId,
+      outputId: outputId ?? this.outputId,
+      phoneLast4: phoneLast4 ?? this.phoneLast4,
+      phoneStored: phoneStored ?? this.phoneStored,
+      consentTextVersion: consentTextVersion ?? this.consentTextVersion,
+      consentTextDigest: consentTextDigest ?? this.consentTextDigest,
+      consentAcceptedAt: consentAcceptedAt ?? this.consentAcceptedAt,
+      locale: locale ?? this.locale,
+      linkDays: linkDays ?? this.linkDays,
+      sendLimit: sendLimit ?? this.sendLimit,
+      queueAllowed: queueAllowed ?? this.queueAllowed,
+      idempotencyKey: idempotencyKey ?? this.idempotencyKey,
+      state: state ?? this.state,
+      localOutcome: localOutcome ?? this.localOutcome,
+      remoteJobId: remoteJobId ?? this.remoteJobId,
+      remoteStatus: remoteStatus ?? this.remoteStatus,
+      remoteUpdatedAt: remoteUpdatedAt ?? this.remoteUpdatedAt,
+      lastErrorCode: lastErrorCode ?? this.lastErrorCode,
+      attemptCount: attemptCount ?? this.attemptCount,
+      retryAt: retryAt ?? this.retryAt,
+      expiresAt: expiresAt ?? this.expiresAt,
+      historyJson: historyJson ?? this.historyJson,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (sessionId.present) {
+      map['session_id'] = Variable<String>(sessionId.value);
+    }
+    if (eventId.present) {
+      map['event_id'] = Variable<String>(eventId.value);
+    }
+    if (outputId.present) {
+      map['output_id'] = Variable<String>(outputId.value);
+    }
+    if (phoneLast4.present) {
+      map['phone_last4'] = Variable<String>(phoneLast4.value);
+    }
+    if (phoneStored.present) {
+      map['phone_stored'] = Variable<bool>(phoneStored.value);
+    }
+    if (consentTextVersion.present) {
+      map['consent_text_version'] = Variable<String>(consentTextVersion.value);
+    }
+    if (consentTextDigest.present) {
+      map['consent_text_digest'] = Variable<String>(consentTextDigest.value);
+    }
+    if (consentAcceptedAt.present) {
+      map['consent_accepted_at'] = Variable<DateTime>(consentAcceptedAt.value);
+    }
+    if (locale.present) {
+      map['locale'] = Variable<String>(locale.value);
+    }
+    if (linkDays.present) {
+      map['link_days'] = Variable<int>(linkDays.value);
+    }
+    if (sendLimit.present) {
+      map['send_limit'] = Variable<int>(sendLimit.value);
+    }
+    if (queueAllowed.present) {
+      map['queue_allowed'] = Variable<bool>(queueAllowed.value);
+    }
+    if (idempotencyKey.present) {
+      map['idempotency_key'] = Variable<String>(idempotencyKey.value);
+    }
+    if (state.present) {
+      map['state'] = Variable<String>(
+        DeliveryIntents.$converterstate.toSql(state.value),
+      );
+    }
+    if (localOutcome.present) {
+      map['local_outcome'] = Variable<String>(
+        DeliveryIntents.$converterlocalOutcomen.toSql(localOutcome.value),
+      );
+    }
+    if (remoteJobId.present) {
+      map['remote_job_id'] = Variable<String>(remoteJobId.value);
+    }
+    if (remoteStatus.present) {
+      map['remote_status'] = Variable<String>(remoteStatus.value);
+    }
+    if (remoteUpdatedAt.present) {
+      map['remote_updated_at'] = Variable<DateTime>(remoteUpdatedAt.value);
+    }
+    if (lastErrorCode.present) {
+      map['last_error_code'] = Variable<String>(lastErrorCode.value);
+    }
+    if (attemptCount.present) {
+      map['attempt_count'] = Variable<int>(attemptCount.value);
+    }
+    if (retryAt.present) {
+      map['retry_at'] = Variable<DateTime>(retryAt.value);
+    }
+    if (expiresAt.present) {
+      map['expires_at'] = Variable<DateTime>(expiresAt.value);
+    }
+    if (historyJson.present) {
+      map['history_json'] = Variable<String>(historyJson.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DeliveryIntentsCompanion(')
+          ..write('id: $id, ')
+          ..write('sessionId: $sessionId, ')
+          ..write('eventId: $eventId, ')
+          ..write('outputId: $outputId, ')
+          ..write('phoneLast4: $phoneLast4, ')
+          ..write('phoneStored: $phoneStored, ')
+          ..write('consentTextVersion: $consentTextVersion, ')
+          ..write('consentTextDigest: $consentTextDigest, ')
+          ..write('consentAcceptedAt: $consentAcceptedAt, ')
+          ..write('locale: $locale, ')
+          ..write('linkDays: $linkDays, ')
+          ..write('sendLimit: $sendLimit, ')
+          ..write('queueAllowed: $queueAllowed, ')
+          ..write('idempotencyKey: $idempotencyKey, ')
+          ..write('state: $state, ')
+          ..write('localOutcome: $localOutcome, ')
+          ..write('remoteJobId: $remoteJobId, ')
+          ..write('remoteStatus: $remoteStatus, ')
+          ..write('remoteUpdatedAt: $remoteUpdatedAt, ')
+          ..write('lastErrorCode: $lastErrorCode, ')
+          ..write('attemptCount: $attemptCount, ')
+          ..write('retryAt: $retryAt, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('historyJson: $historyJson, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class DeliveryRemoteRevocations extends Table
+    with TableInfo<DeliveryRemoteRevocations, DeliveryRemoteRevocationRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  DeliveryRemoteRevocations(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _remoteJobIdMeta = const VerificationMeta(
+    'remoteJobId',
+  );
+  late final GeneratedColumn<String> remoteJobId = GeneratedColumn<String>(
+    'remote_job_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'NOT NULL PRIMARY KEY CHECK (length(remote_job_id) = 36)',
+  );
+  static const VerificationMeta _requestedAtMeta = const VerificationMeta(
+    'requestedAt',
+  );
+  late final GeneratedColumn<DateTime> requestedAt = GeneratedColumn<DateTime>(
+    'requested_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [remoteJobId, requestedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'delivery_remote_revocations';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DeliveryRemoteRevocationRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('remote_job_id')) {
+      context.handle(
+        _remoteJobIdMeta,
+        remoteJobId.isAcceptableOrUnknown(
+          data['remote_job_id']!,
+          _remoteJobIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_remoteJobIdMeta);
+    }
+    if (data.containsKey('requested_at')) {
+      context.handle(
+        _requestedAtMeta,
+        requestedAt.isAcceptableOrUnknown(
+          data['requested_at']!,
+          _requestedAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_requestedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {remoteJobId};
+  @override
+  DeliveryRemoteRevocationRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DeliveryRemoteRevocationRow(
+      remoteJobId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remote_job_id'],
+      )!,
+      requestedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}requested_at'],
+      )!,
+    );
+  }
+
+  @override
+  DeliveryRemoteRevocations createAlias(String alias) {
+    return DeliveryRemoteRevocations(attachedDatabase, alias);
+  }
+
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class DeliveryRemoteRevocationRow extends DataClass
+    implements Insertable<DeliveryRemoteRevocationRow> {
+  final String remoteJobId;
+  final DateTime requestedAt;
+  const DeliveryRemoteRevocationRow({
+    required this.remoteJobId,
+    required this.requestedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['remote_job_id'] = Variable<String>(remoteJobId);
+    map['requested_at'] = Variable<DateTime>(requestedAt);
+    return map;
+  }
+
+  DeliveryRemoteRevocationsCompanion toCompanion(bool nullToAbsent) {
+    return DeliveryRemoteRevocationsCompanion(
+      remoteJobId: Value(remoteJobId),
+      requestedAt: Value(requestedAt),
+    );
+  }
+
+  factory DeliveryRemoteRevocationRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DeliveryRemoteRevocationRow(
+      remoteJobId: serializer.fromJson<String>(json['remote_job_id']),
+      requestedAt: serializer.fromJson<DateTime>(json['requested_at']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'remote_job_id': serializer.toJson<String>(remoteJobId),
+      'requested_at': serializer.toJson<DateTime>(requestedAt),
+    };
+  }
+
+  DeliveryRemoteRevocationRow copyWith({
+    String? remoteJobId,
+    DateTime? requestedAt,
+  }) => DeliveryRemoteRevocationRow(
+    remoteJobId: remoteJobId ?? this.remoteJobId,
+    requestedAt: requestedAt ?? this.requestedAt,
+  );
+  DeliveryRemoteRevocationRow copyWithCompanion(
+    DeliveryRemoteRevocationsCompanion data,
+  ) {
+    return DeliveryRemoteRevocationRow(
+      remoteJobId: data.remoteJobId.present
+          ? data.remoteJobId.value
+          : this.remoteJobId,
+      requestedAt: data.requestedAt.present
+          ? data.requestedAt.value
+          : this.requestedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DeliveryRemoteRevocationRow(')
+          ..write('remoteJobId: $remoteJobId, ')
+          ..write('requestedAt: $requestedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(remoteJobId, requestedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DeliveryRemoteRevocationRow &&
+          other.remoteJobId == this.remoteJobId &&
+          other.requestedAt == this.requestedAt);
+}
+
+class DeliveryRemoteRevocationsCompanion
+    extends UpdateCompanion<DeliveryRemoteRevocationRow> {
+  final Value<String> remoteJobId;
+  final Value<DateTime> requestedAt;
+  final Value<int> rowid;
+  const DeliveryRemoteRevocationsCompanion({
+    this.remoteJobId = const Value.absent(),
+    this.requestedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DeliveryRemoteRevocationsCompanion.insert({
+    required String remoteJobId,
+    required DateTime requestedAt,
+    this.rowid = const Value.absent(),
+  }) : remoteJobId = Value(remoteJobId),
+       requestedAt = Value(requestedAt);
+  static Insertable<DeliveryRemoteRevocationRow> custom({
+    Expression<String>? remoteJobId,
+    Expression<DateTime>? requestedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (remoteJobId != null) 'remote_job_id': remoteJobId,
+      if (requestedAt != null) 'requested_at': requestedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DeliveryRemoteRevocationsCompanion copyWith({
+    Value<String>? remoteJobId,
+    Value<DateTime>? requestedAt,
+    Value<int>? rowid,
+  }) {
+    return DeliveryRemoteRevocationsCompanion(
+      remoteJobId: remoteJobId ?? this.remoteJobId,
+      requestedAt: requestedAt ?? this.requestedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (remoteJobId.present) {
+      map['remote_job_id'] = Variable<String>(remoteJobId.value);
+    }
+    if (requestedAt.present) {
+      map['requested_at'] = Variable<DateTime>(requestedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DeliveryRemoteRevocationsCompanion(')
+          ..write('remoteJobId: $remoteJobId, ')
+          ..write('requestedAt: $requestedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$BoothDatabase extends GeneratedDatabase {
   _$BoothDatabase(QueryExecutor e) : super(e);
   $BoothDatabaseManager get managers => $BoothDatabaseManager(this);
@@ -10265,6 +12940,25 @@ abstract class _$BoothDatabase extends GeneratedDatabase {
   late final PendingFileDeletions pendingFileDeletions = PendingFileDeletions(
     this,
   );
+  late final EventDeliveryOptions eventDeliveryOptions = EventDeliveryOptions(
+    this,
+  );
+  late final DeliveryPairings deliveryPairings = DeliveryPairings(this);
+  late final DeliveryIntents deliveryIntents = DeliveryIntents(this);
+  late final Index deliveryIntentsBySession = Index(
+    'delivery_intents_by_session',
+    'CREATE INDEX delivery_intents_by_session ON delivery_intents (session_id)',
+  );
+  late final Index deliveryIntentsByState = Index(
+    'delivery_intents_by_state',
+    'CREATE INDEX delivery_intents_by_state ON delivery_intents (state, retry_at)',
+  );
+  late final Index deliveryIntentsByEvent = Index(
+    'delivery_intents_by_event',
+    'CREATE INDEX delivery_intents_by_event ON delivery_intents (event_id, created_at)',
+  );
+  late final DeliveryRemoteRevocations deliveryRemoteRevocations =
+      DeliveryRemoteRevocations(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -10303,6 +12997,13 @@ abstract class _$BoothDatabase extends GeneratedDatabase {
     exportBatchItems,
     exportBatchItemsBySession,
     pendingFileDeletions,
+    eventDeliveryOptions,
+    deliveryPairings,
+    deliveryIntents,
+    deliveryIntentsBySession,
+    deliveryIntentsByState,
+    deliveryIntentsByEvent,
+    deliveryRemoteRevocations,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -10405,6 +13106,20 @@ abstract class _$BoothDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('export_batch_items', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'events',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('event_delivery_options', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'capture_sessions',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('delivery_intents', kind: UpdateKind.delete)],
     ),
   ]);
   @override
@@ -11143,6 +13858,30 @@ final class $EventsReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<
+    EventDeliveryOptions,
+    List<EventDeliverySettingsRow>
+  >
+  _eventDeliveryOptionsRefsTable(_$BoothDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.eventDeliveryOptions,
+        aliasName: 'events__id__event_delivery_options__event_id',
+      );
+
+  $EventDeliveryOptionsProcessedTableManager get eventDeliveryOptionsRefs {
+    final manager = $EventDeliveryOptionsTableManager(
+      $_db,
+      $_db.eventDeliveryOptions,
+    ).filter((f) => f.eventId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _eventDeliveryOptionsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $EventsFilterComposer extends Composer<_$BoothDatabase, Events> {
@@ -11398,6 +14137,31 @@ class $EventsFilterComposer extends Composer<_$BoothDatabase, Events> {
           }) => $CaptureSessionsFilterComposer(
             $db: $db,
             $table: $db.captureSessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> eventDeliveryOptionsRefs(
+    Expression<bool> Function($EventDeliveryOptionsFilterComposer f) f,
+  ) {
+    final $EventDeliveryOptionsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.eventDeliveryOptions,
+      getReferencedColumn: (t) => t.eventId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $EventDeliveryOptionsFilterComposer(
+            $db: $db,
+            $table: $db.eventDeliveryOptions,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -11810,6 +14574,31 @@ class $EventsAnnotationComposer extends Composer<_$BoothDatabase, Events> {
     );
     return f(composer);
   }
+
+  Expression<T> eventDeliveryOptionsRefs<T extends Object>(
+    Expression<T> Function($EventDeliveryOptionsAnnotationComposer a) f,
+  ) {
+    final $EventDeliveryOptionsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.eventDeliveryOptions,
+      getReferencedColumn: (t) => t.eventId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $EventDeliveryOptionsAnnotationComposer(
+            $db: $db,
+            $table: $db.eventDeliveryOptions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $EventsTableManager
@@ -11830,6 +14619,7 @@ class $EventsTableManager
             bool appSettingsRefs,
             bool eventTemplatesRefs,
             bool captureSessionsRefs,
+            bool eventDeliveryOptionsRefs,
           })
         > {
   $EventsTableManager(_$BoothDatabase db, Events table)
@@ -11988,6 +14778,7 @@ class $EventsTableManager
                 appSettingsRefs = false,
                 eventTemplatesRefs = false,
                 captureSessionsRefs = false,
+                eventDeliveryOptionsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -11995,6 +14786,7 @@ class $EventsTableManager
                     if (appSettingsRefs) db.appSettings,
                     if (eventTemplatesRefs) db.eventTemplates,
                     if (captureSessionsRefs) db.captureSessions,
+                    if (eventDeliveryOptionsRefs) db.eventDeliveryOptions,
                   ],
                   addJoins:
                       <
@@ -12085,6 +14877,26 @@ class $EventsTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (eventDeliveryOptionsRefs)
+                        await $_getPrefetchedData<
+                          EventRow,
+                          Events,
+                          EventDeliverySettingsRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $EventsReferences
+                              ._eventDeliveryOptionsRefsTable(db),
+                          managerFromTypedResult: (p0) => $EventsReferences(
+                            db,
+                            table,
+                            p0,
+                          ).eventDeliveryOptionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.eventId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -12110,6 +14922,7 @@ typedef $EventsProcessedTableManager =
         bool appSettingsRefs,
         bool eventTemplatesRefs,
         bool captureSessionsRefs,
+        bool eventDeliveryOptionsRefs,
       })
     >;
 typedef $AppSettingsCreateCompanionBuilder = AppSettingsCompanion Function({
@@ -16344,6 +19157,27 @@ final class $CaptureSessionsReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<DeliveryIntents, List<DeliveryIntentRow>>
+  _deliveryIntentsRefsTable(_$BoothDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.deliveryIntents,
+        aliasName: 'capture_sessions__id__delivery_intents__session_id',
+      );
+
+  $DeliveryIntentsProcessedTableManager get deliveryIntentsRefs {
+    final manager = $DeliveryIntentsTableManager(
+      $_db,
+      $_db.deliveryIntents,
+    ).filter((f) => f.sessionId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _deliveryIntentsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $CaptureSessionsFilterComposer
@@ -16524,6 +19358,31 @@ class $CaptureSessionsFilterComposer
           }) => $ExportBatchItemsFilterComposer(
             $db: $db,
             $table: $db.exportBatchItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> deliveryIntentsRefs(
+    Expression<bool> Function($DeliveryIntentsFilterComposer f) f,
+  ) {
+    final $DeliveryIntentsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.deliveryIntents,
+      getReferencedColumn: (t) => t.sessionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $DeliveryIntentsFilterComposer(
+            $db: $db,
+            $table: $db.deliveryIntents,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -16811,6 +19670,31 @@ class $CaptureSessionsAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> deliveryIntentsRefs<T extends Object>(
+    Expression<T> Function($DeliveryIntentsAnnotationComposer a) f,
+  ) {
+    final $DeliveryIntentsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.deliveryIntents,
+      getReferencedColumn: (t) => t.sessionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $DeliveryIntentsAnnotationComposer(
+            $db: $db,
+            $table: $db.deliveryIntents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $CaptureSessionsTableManager
@@ -16832,6 +19716,7 @@ class $CaptureSessionsTableManager
             bool sessionPhotosRefs,
             bool sessionOutputsRefs,
             bool exportBatchItemsRefs,
+            bool deliveryIntentsRefs,
           })
         > {
   $CaptureSessionsTableManager(_$BoothDatabase db, CaptureSessions table)
@@ -16924,6 +19809,7 @@ class $CaptureSessionsTableManager
                 sessionPhotosRefs = false,
                 sessionOutputsRefs = false,
                 exportBatchItemsRefs = false,
+                deliveryIntentsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -16931,6 +19817,7 @@ class $CaptureSessionsTableManager
                     if (sessionPhotosRefs) db.sessionPhotos,
                     if (sessionOutputsRefs) db.sessionOutputs,
                     if (exportBatchItemsRefs) db.exportBatchItems,
+                    if (deliveryIntentsRefs) db.deliveryIntents,
                   ],
                   addJoins:
                       <
@@ -17038,6 +19925,27 @@ class $CaptureSessionsTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (deliveryIntentsRefs)
+                        await $_getPrefetchedData<
+                          CaptureSessionRow,
+                          CaptureSessions,
+                          DeliveryIntentRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $CaptureSessionsReferences
+                              ._deliveryIntentsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $CaptureSessionsReferences(
+                                db,
+                                table,
+                                p0,
+                              ).deliveryIntentsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.sessionId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -17064,6 +19972,7 @@ typedef $CaptureSessionsProcessedTableManager =
         bool sessionPhotosRefs,
         bool sessionOutputsRefs,
         bool exportBatchItemsRefs,
+        bool deliveryIntentsRefs,
       })
     >;
 typedef $SessionPhotosCreateCompanionBuilder = SessionPhotosCompanion Function({
@@ -18842,6 +21751,1547 @@ typedef $PendingFileDeletionsProcessedTableManager =
       PendingFileDeletionRow,
       PrefetchHooks Function()
     >;
+typedef $EventDeliveryOptionsCreateCompanionBuilder =
+    EventDeliveryOptionsCompanion Function({
+      required String eventId,
+      required bool enabled,
+      required bool offlineQueue,
+      required int linkDays,
+      required int sendLimit,
+      Value<int> rowid,
+    });
+typedef $EventDeliveryOptionsUpdateCompanionBuilder =
+    EventDeliveryOptionsCompanion Function({
+      Value<String> eventId,
+      Value<bool> enabled,
+      Value<bool> offlineQueue,
+      Value<int> linkDays,
+      Value<int> sendLimit,
+      Value<int> rowid,
+    });
+
+final class $EventDeliveryOptionsReferences
+    extends
+        BaseReferences<
+          _$BoothDatabase,
+          EventDeliveryOptions,
+          EventDeliverySettingsRow
+        > {
+  $EventDeliveryOptionsReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static Events _eventIdTable(_$BoothDatabase db) =>
+      db.events.createAlias('event_delivery_options__event_id__events__id');
+
+  $EventsProcessedTableManager get eventId {
+    final $_column = $_itemColumn<String>('event_id')!;
+
+    final manager = $EventsTableManager(
+      $_db,
+      $_db.events,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_eventIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $EventDeliveryOptionsFilterComposer
+    extends Composer<_$BoothDatabase, EventDeliveryOptions> {
+  $EventDeliveryOptionsFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<bool> get enabled => $composableBuilder(
+    column: $table.enabled,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get offlineQueue => $composableBuilder(
+    column: $table.offlineQueue,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get linkDays => $composableBuilder(
+    column: $table.linkDays,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sendLimit => $composableBuilder(
+    column: $table.sendLimit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $EventsFilterComposer get eventId {
+    final $EventsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.eventId,
+      referencedTable: $db.events,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $EventsFilterComposer(
+            $db: $db,
+            $table: $db.events,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $EventDeliveryOptionsOrderingComposer
+    extends Composer<_$BoothDatabase, EventDeliveryOptions> {
+  $EventDeliveryOptionsOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<bool> get enabled => $composableBuilder(
+    column: $table.enabled,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get offlineQueue => $composableBuilder(
+    column: $table.offlineQueue,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get linkDays => $composableBuilder(
+    column: $table.linkDays,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sendLimit => $composableBuilder(
+    column: $table.sendLimit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $EventsOrderingComposer get eventId {
+    final $EventsOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.eventId,
+      referencedTable: $db.events,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $EventsOrderingComposer(
+            $db: $db,
+            $table: $db.events,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $EventDeliveryOptionsAnnotationComposer
+    extends Composer<_$BoothDatabase, EventDeliveryOptions> {
+  $EventDeliveryOptionsAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<bool> get enabled =>
+      $composableBuilder(column: $table.enabled, builder: (column) => column);
+
+  GeneratedColumn<bool> get offlineQueue => $composableBuilder(
+    column: $table.offlineQueue,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get linkDays =>
+      $composableBuilder(column: $table.linkDays, builder: (column) => column);
+
+  GeneratedColumn<int> get sendLimit =>
+      $composableBuilder(column: $table.sendLimit, builder: (column) => column);
+
+  $EventsAnnotationComposer get eventId {
+    final $EventsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.eventId,
+      referencedTable: $db.events,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $EventsAnnotationComposer(
+            $db: $db,
+            $table: $db.events,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $EventDeliveryOptionsTableManager
+    extends
+        RootTableManager<
+          _$BoothDatabase,
+          EventDeliveryOptions,
+          EventDeliverySettingsRow,
+          $EventDeliveryOptionsFilterComposer,
+          $EventDeliveryOptionsOrderingComposer,
+          $EventDeliveryOptionsAnnotationComposer,
+          $EventDeliveryOptionsCreateCompanionBuilder,
+          $EventDeliveryOptionsUpdateCompanionBuilder,
+          (EventDeliverySettingsRow, $EventDeliveryOptionsReferences),
+          EventDeliverySettingsRow,
+          PrefetchHooks Function({bool eventId})
+        > {
+  $EventDeliveryOptionsTableManager(
+    _$BoothDatabase db,
+    EventDeliveryOptions table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $EventDeliveryOptionsFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $EventDeliveryOptionsOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $EventDeliveryOptionsAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> eventId = const Value.absent(),
+                Value<bool> enabled = const Value.absent(),
+                Value<bool> offlineQueue = const Value.absent(),
+                Value<int> linkDays = const Value.absent(),
+                Value<int> sendLimit = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => EventDeliveryOptionsCompanion(
+                eventId: eventId,
+                enabled: enabled,
+                offlineQueue: offlineQueue,
+                linkDays: linkDays,
+                sendLimit: sendLimit,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String eventId,
+                required bool enabled,
+                required bool offlineQueue,
+                required int linkDays,
+                required int sendLimit,
+                Value<int> rowid = const Value.absent(),
+              }) => EventDeliveryOptionsCompanion.insert(
+                eventId: eventId,
+                enabled: enabled,
+                offlineQueue: offlineQueue,
+                linkDays: linkDays,
+                sendLimit: sendLimit,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<EventDeliveryOptions, EventDeliverySettingsRow>(
+                    table,
+                  ),
+                  $EventDeliveryOptionsReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({eventId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (eventId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.eventId,
+                        referencedTable: $EventDeliveryOptionsReferences
+                            ._eventIdTable(db),
+                        referencedColumn: $EventDeliveryOptionsReferences
+                            ._eventIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $EventDeliveryOptionsProcessedTableManager =
+    ProcessedTableManager<
+      _$BoothDatabase,
+      EventDeliveryOptions,
+      EventDeliverySettingsRow,
+      $EventDeliveryOptionsFilterComposer,
+      $EventDeliveryOptionsOrderingComposer,
+      $EventDeliveryOptionsAnnotationComposer,
+      $EventDeliveryOptionsCreateCompanionBuilder,
+      $EventDeliveryOptionsUpdateCompanionBuilder,
+      (EventDeliverySettingsRow, $EventDeliveryOptionsReferences),
+      EventDeliverySettingsRow,
+      PrefetchHooks Function({bool eventId})
+    >;
+typedef $DeliveryPairingsCreateCompanionBuilder =
+    DeliveryPairingsCompanion Function({
+      Value<int> id,
+      required String baseUrl,
+      required String boothId,
+      required String boothName,
+      required String brandName,
+      required DateTime pairedAt,
+      Value<bool> paused,
+      Value<String?> capabilitiesJson,
+      Value<DateTime?> checkedAt,
+    });
+typedef $DeliveryPairingsUpdateCompanionBuilder =
+    DeliveryPairingsCompanion Function({
+      Value<int> id,
+      Value<String> baseUrl,
+      Value<String> boothId,
+      Value<String> boothName,
+      Value<String> brandName,
+      Value<DateTime> pairedAt,
+      Value<bool> paused,
+      Value<String?> capabilitiesJson,
+      Value<DateTime?> checkedAt,
+    });
+
+class $DeliveryPairingsFilterComposer
+    extends Composer<_$BoothDatabase, DeliveryPairings> {
+  $DeliveryPairingsFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get baseUrl => $composableBuilder(
+    column: $table.baseUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get boothId => $composableBuilder(
+    column: $table.boothId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get boothName => $composableBuilder(
+    column: $table.boothName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get brandName => $composableBuilder(
+    column: $table.brandName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get pairedAt => $composableBuilder(
+    column: $table.pairedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get paused => $composableBuilder(
+    column: $table.paused,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get capabilitiesJson => $composableBuilder(
+    column: $table.capabilitiesJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get checkedAt => $composableBuilder(
+    column: $table.checkedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $DeliveryPairingsOrderingComposer
+    extends Composer<_$BoothDatabase, DeliveryPairings> {
+  $DeliveryPairingsOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get baseUrl => $composableBuilder(
+    column: $table.baseUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get boothId => $composableBuilder(
+    column: $table.boothId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get boothName => $composableBuilder(
+    column: $table.boothName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get brandName => $composableBuilder(
+    column: $table.brandName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get pairedAt => $composableBuilder(
+    column: $table.pairedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get paused => $composableBuilder(
+    column: $table.paused,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get capabilitiesJson => $composableBuilder(
+    column: $table.capabilitiesJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get checkedAt => $composableBuilder(
+    column: $table.checkedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $DeliveryPairingsAnnotationComposer
+    extends Composer<_$BoothDatabase, DeliveryPairings> {
+  $DeliveryPairingsAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get baseUrl =>
+      $composableBuilder(column: $table.baseUrl, builder: (column) => column);
+
+  GeneratedColumn<String> get boothId =>
+      $composableBuilder(column: $table.boothId, builder: (column) => column);
+
+  GeneratedColumn<String> get boothName =>
+      $composableBuilder(column: $table.boothName, builder: (column) => column);
+
+  GeneratedColumn<String> get brandName =>
+      $composableBuilder(column: $table.brandName, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get pairedAt =>
+      $composableBuilder(column: $table.pairedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get paused =>
+      $composableBuilder(column: $table.paused, builder: (column) => column);
+
+  GeneratedColumn<String> get capabilitiesJson => $composableBuilder(
+    column: $table.capabilitiesJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get checkedAt =>
+      $composableBuilder(column: $table.checkedAt, builder: (column) => column);
+}
+
+class $DeliveryPairingsTableManager
+    extends
+        RootTableManager<
+          _$BoothDatabase,
+          DeliveryPairings,
+          DeliveryPairingRow,
+          $DeliveryPairingsFilterComposer,
+          $DeliveryPairingsOrderingComposer,
+          $DeliveryPairingsAnnotationComposer,
+          $DeliveryPairingsCreateCompanionBuilder,
+          $DeliveryPairingsUpdateCompanionBuilder,
+          (
+            DeliveryPairingRow,
+            BaseReferences<
+              _$BoothDatabase,
+              DeliveryPairings,
+              DeliveryPairingRow
+            >,
+          ),
+          DeliveryPairingRow,
+          PrefetchHooks Function()
+        > {
+  $DeliveryPairingsTableManager(_$BoothDatabase db, DeliveryPairings table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $DeliveryPairingsFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $DeliveryPairingsOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $DeliveryPairingsAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> baseUrl = const Value.absent(),
+                Value<String> boothId = const Value.absent(),
+                Value<String> boothName = const Value.absent(),
+                Value<String> brandName = const Value.absent(),
+                Value<DateTime> pairedAt = const Value.absent(),
+                Value<bool> paused = const Value.absent(),
+                Value<String?> capabilitiesJson = const Value.absent(),
+                Value<DateTime?> checkedAt = const Value.absent(),
+              }) => DeliveryPairingsCompanion(
+                id: id,
+                baseUrl: baseUrl,
+                boothId: boothId,
+                boothName: boothName,
+                brandName: brandName,
+                pairedAt: pairedAt,
+                paused: paused,
+                capabilitiesJson: capabilitiesJson,
+                checkedAt: checkedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String baseUrl,
+                required String boothId,
+                required String boothName,
+                required String brandName,
+                required DateTime pairedAt,
+                Value<bool> paused = const Value.absent(),
+                Value<String?> capabilitiesJson = const Value.absent(),
+                Value<DateTime?> checkedAt = const Value.absent(),
+              }) => DeliveryPairingsCompanion.insert(
+                id: id,
+                baseUrl: baseUrl,
+                boothId: boothId,
+                boothName: boothName,
+                brandName: brandName,
+                pairedAt: pairedAt,
+                paused: paused,
+                capabilitiesJson: capabilitiesJson,
+                checkedAt: checkedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<DeliveryPairings, DeliveryPairingRow>(table),
+                  BaseReferences<
+                    _$BoothDatabase,
+                    DeliveryPairings,
+                    DeliveryPairingRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $DeliveryPairingsProcessedTableManager =
+    ProcessedTableManager<
+      _$BoothDatabase,
+      DeliveryPairings,
+      DeliveryPairingRow,
+      $DeliveryPairingsFilterComposer,
+      $DeliveryPairingsOrderingComposer,
+      $DeliveryPairingsAnnotationComposer,
+      $DeliveryPairingsCreateCompanionBuilder,
+      $DeliveryPairingsUpdateCompanionBuilder,
+      (
+        DeliveryPairingRow,
+        BaseReferences<_$BoothDatabase, DeliveryPairings, DeliveryPairingRow>,
+      ),
+      DeliveryPairingRow,
+      PrefetchHooks Function()
+    >;
+typedef $DeliveryIntentsCreateCompanionBuilder =
+    DeliveryIntentsCompanion Function({
+      required String id,
+      required String sessionId,
+      required String eventId,
+      required String outputId,
+      required String phoneLast4,
+      required bool phoneStored,
+      required String consentTextVersion,
+      required String consentTextDigest,
+      required DateTime consentAcceptedAt,
+      required String locale,
+      required int linkDays,
+      required int sendLimit,
+      required bool queueAllowed,
+      required String idempotencyKey,
+      required DeliveryIntentState state,
+      Value<DeliveryPhase?> localOutcome,
+      Value<String?> remoteJobId,
+      Value<String?> remoteStatus,
+      Value<DateTime?> remoteUpdatedAt,
+      Value<String?> lastErrorCode,
+      Value<int> attemptCount,
+      Value<DateTime?> retryAt,
+      required DateTime expiresAt,
+      Value<String> historyJson,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $DeliveryIntentsUpdateCompanionBuilder =
+    DeliveryIntentsCompanion Function({
+      Value<String> id,
+      Value<String> sessionId,
+      Value<String> eventId,
+      Value<String> outputId,
+      Value<String> phoneLast4,
+      Value<bool> phoneStored,
+      Value<String> consentTextVersion,
+      Value<String> consentTextDigest,
+      Value<DateTime> consentAcceptedAt,
+      Value<String> locale,
+      Value<int> linkDays,
+      Value<int> sendLimit,
+      Value<bool> queueAllowed,
+      Value<String> idempotencyKey,
+      Value<DeliveryIntentState> state,
+      Value<DeliveryPhase?> localOutcome,
+      Value<String?> remoteJobId,
+      Value<String?> remoteStatus,
+      Value<DateTime?> remoteUpdatedAt,
+      Value<String?> lastErrorCode,
+      Value<int> attemptCount,
+      Value<DateTime?> retryAt,
+      Value<DateTime> expiresAt,
+      Value<String> historyJson,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $DeliveryIntentsReferences
+    extends
+        BaseReferences<_$BoothDatabase, DeliveryIntents, DeliveryIntentRow> {
+  $DeliveryIntentsReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static CaptureSessions _sessionIdTable(_$BoothDatabase db) => db
+      .captureSessions
+      .createAlias('delivery_intents__session_id__capture_sessions__id');
+
+  $CaptureSessionsProcessedTableManager get sessionId {
+    final $_column = $_itemColumn<String>('session_id')!;
+
+    final manager = $CaptureSessionsTableManager(
+      $_db,
+      $_db.captureSessions,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_sessionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $DeliveryIntentsFilterComposer
+    extends Composer<_$BoothDatabase, DeliveryIntents> {
+  $DeliveryIntentsFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get eventId => $composableBuilder(
+    column: $table.eventId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get outputId => $composableBuilder(
+    column: $table.outputId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get phoneLast4 => $composableBuilder(
+    column: $table.phoneLast4,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get phoneStored => $composableBuilder(
+    column: $table.phoneStored,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get consentTextVersion => $composableBuilder(
+    column: $table.consentTextVersion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get consentTextDigest => $composableBuilder(
+    column: $table.consentTextDigest,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get consentAcceptedAt => $composableBuilder(
+    column: $table.consentAcceptedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get locale => $composableBuilder(
+    column: $table.locale,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get linkDays => $composableBuilder(
+    column: $table.linkDays,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sendLimit => $composableBuilder(
+    column: $table.sendLimit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get queueAllowed => $composableBuilder(
+    column: $table.queueAllowed,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get idempotencyKey => $composableBuilder(
+    column: $table.idempotencyKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<
+    DeliveryIntentState,
+    DeliveryIntentState,
+    String
+  >
+  get state => $composableBuilder(
+    column: $table.state,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<DeliveryPhase?, DeliveryPhase, String>
+  get localOutcome => $composableBuilder(
+    column: $table.localOutcome,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get remoteJobId => $composableBuilder(
+    column: $table.remoteJobId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get remoteStatus => $composableBuilder(
+    column: $table.remoteStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get remoteUpdatedAt => $composableBuilder(
+    column: $table.remoteUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastErrorCode => $composableBuilder(
+    column: $table.lastErrorCode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get attemptCount => $composableBuilder(
+    column: $table.attemptCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get retryAt => $composableBuilder(
+    column: $table.retryAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get expiresAt => $composableBuilder(
+    column: $table.expiresAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get historyJson => $composableBuilder(
+    column: $table.historyJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $CaptureSessionsFilterComposer get sessionId {
+    final $CaptureSessionsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionId,
+      referencedTable: $db.captureSessions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $CaptureSessionsFilterComposer(
+            $db: $db,
+            $table: $db.captureSessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $DeliveryIntentsOrderingComposer
+    extends Composer<_$BoothDatabase, DeliveryIntents> {
+  $DeliveryIntentsOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get eventId => $composableBuilder(
+    column: $table.eventId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get outputId => $composableBuilder(
+    column: $table.outputId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get phoneLast4 => $composableBuilder(
+    column: $table.phoneLast4,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get phoneStored => $composableBuilder(
+    column: $table.phoneStored,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get consentTextVersion => $composableBuilder(
+    column: $table.consentTextVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get consentTextDigest => $composableBuilder(
+    column: $table.consentTextDigest,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get consentAcceptedAt => $composableBuilder(
+    column: $table.consentAcceptedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get locale => $composableBuilder(
+    column: $table.locale,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get linkDays => $composableBuilder(
+    column: $table.linkDays,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sendLimit => $composableBuilder(
+    column: $table.sendLimit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get queueAllowed => $composableBuilder(
+    column: $table.queueAllowed,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get idempotencyKey => $composableBuilder(
+    column: $table.idempotencyKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get state => $composableBuilder(
+    column: $table.state,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get localOutcome => $composableBuilder(
+    column: $table.localOutcome,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get remoteJobId => $composableBuilder(
+    column: $table.remoteJobId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get remoteStatus => $composableBuilder(
+    column: $table.remoteStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get remoteUpdatedAt => $composableBuilder(
+    column: $table.remoteUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastErrorCode => $composableBuilder(
+    column: $table.lastErrorCode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get attemptCount => $composableBuilder(
+    column: $table.attemptCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get retryAt => $composableBuilder(
+    column: $table.retryAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get expiresAt => $composableBuilder(
+    column: $table.expiresAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get historyJson => $composableBuilder(
+    column: $table.historyJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $CaptureSessionsOrderingComposer get sessionId {
+    final $CaptureSessionsOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionId,
+      referencedTable: $db.captureSessions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $CaptureSessionsOrderingComposer(
+            $db: $db,
+            $table: $db.captureSessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $DeliveryIntentsAnnotationComposer
+    extends Composer<_$BoothDatabase, DeliveryIntents> {
+  $DeliveryIntentsAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get eventId =>
+      $composableBuilder(column: $table.eventId, builder: (column) => column);
+
+  GeneratedColumn<String> get outputId =>
+      $composableBuilder(column: $table.outputId, builder: (column) => column);
+
+  GeneratedColumn<String> get phoneLast4 => $composableBuilder(
+    column: $table.phoneLast4,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get phoneStored => $composableBuilder(
+    column: $table.phoneStored,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get consentTextVersion => $composableBuilder(
+    column: $table.consentTextVersion,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get consentTextDigest => $composableBuilder(
+    column: $table.consentTextDigest,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get consentAcceptedAt => $composableBuilder(
+    column: $table.consentAcceptedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get locale =>
+      $composableBuilder(column: $table.locale, builder: (column) => column);
+
+  GeneratedColumn<int> get linkDays =>
+      $composableBuilder(column: $table.linkDays, builder: (column) => column);
+
+  GeneratedColumn<int> get sendLimit =>
+      $composableBuilder(column: $table.sendLimit, builder: (column) => column);
+
+  GeneratedColumn<bool> get queueAllowed => $composableBuilder(
+    column: $table.queueAllowed,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get idempotencyKey => $composableBuilder(
+    column: $table.idempotencyKey,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<DeliveryIntentState, String> get state =>
+      $composableBuilder(column: $table.state, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<DeliveryPhase?, String> get localOutcome =>
+      $composableBuilder(
+        column: $table.localOutcome,
+        builder: (column) => column,
+      );
+
+  GeneratedColumn<String> get remoteJobId => $composableBuilder(
+    column: $table.remoteJobId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get remoteStatus => $composableBuilder(
+    column: $table.remoteStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get remoteUpdatedAt => $composableBuilder(
+    column: $table.remoteUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get lastErrorCode => $composableBuilder(
+    column: $table.lastErrorCode,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get attemptCount => $composableBuilder(
+    column: $table.attemptCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get retryAt =>
+      $composableBuilder(column: $table.retryAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get expiresAt =>
+      $composableBuilder(column: $table.expiresAt, builder: (column) => column);
+
+  GeneratedColumn<String> get historyJson => $composableBuilder(
+    column: $table.historyJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $CaptureSessionsAnnotationComposer get sessionId {
+    final $CaptureSessionsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionId,
+      referencedTable: $db.captureSessions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $CaptureSessionsAnnotationComposer(
+            $db: $db,
+            $table: $db.captureSessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $DeliveryIntentsTableManager
+    extends
+        RootTableManager<
+          _$BoothDatabase,
+          DeliveryIntents,
+          DeliveryIntentRow,
+          $DeliveryIntentsFilterComposer,
+          $DeliveryIntentsOrderingComposer,
+          $DeliveryIntentsAnnotationComposer,
+          $DeliveryIntentsCreateCompanionBuilder,
+          $DeliveryIntentsUpdateCompanionBuilder,
+          (DeliveryIntentRow, $DeliveryIntentsReferences),
+          DeliveryIntentRow,
+          PrefetchHooks Function({bool sessionId})
+        > {
+  $DeliveryIntentsTableManager(_$BoothDatabase db, DeliveryIntents table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $DeliveryIntentsFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $DeliveryIntentsOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $DeliveryIntentsAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> sessionId = const Value.absent(),
+                Value<String> eventId = const Value.absent(),
+                Value<String> outputId = const Value.absent(),
+                Value<String> phoneLast4 = const Value.absent(),
+                Value<bool> phoneStored = const Value.absent(),
+                Value<String> consentTextVersion = const Value.absent(),
+                Value<String> consentTextDigest = const Value.absent(),
+                Value<DateTime> consentAcceptedAt = const Value.absent(),
+                Value<String> locale = const Value.absent(),
+                Value<int> linkDays = const Value.absent(),
+                Value<int> sendLimit = const Value.absent(),
+                Value<bool> queueAllowed = const Value.absent(),
+                Value<String> idempotencyKey = const Value.absent(),
+                Value<DeliveryIntentState> state = const Value.absent(),
+                Value<DeliveryPhase?> localOutcome = const Value.absent(),
+                Value<String?> remoteJobId = const Value.absent(),
+                Value<String?> remoteStatus = const Value.absent(),
+                Value<DateTime?> remoteUpdatedAt = const Value.absent(),
+                Value<String?> lastErrorCode = const Value.absent(),
+                Value<int> attemptCount = const Value.absent(),
+                Value<DateTime?> retryAt = const Value.absent(),
+                Value<DateTime> expiresAt = const Value.absent(),
+                Value<String> historyJson = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DeliveryIntentsCompanion(
+                id: id,
+                sessionId: sessionId,
+                eventId: eventId,
+                outputId: outputId,
+                phoneLast4: phoneLast4,
+                phoneStored: phoneStored,
+                consentTextVersion: consentTextVersion,
+                consentTextDigest: consentTextDigest,
+                consentAcceptedAt: consentAcceptedAt,
+                locale: locale,
+                linkDays: linkDays,
+                sendLimit: sendLimit,
+                queueAllowed: queueAllowed,
+                idempotencyKey: idempotencyKey,
+                state: state,
+                localOutcome: localOutcome,
+                remoteJobId: remoteJobId,
+                remoteStatus: remoteStatus,
+                remoteUpdatedAt: remoteUpdatedAt,
+                lastErrorCode: lastErrorCode,
+                attemptCount: attemptCount,
+                retryAt: retryAt,
+                expiresAt: expiresAt,
+                historyJson: historyJson,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String sessionId,
+                required String eventId,
+                required String outputId,
+                required String phoneLast4,
+                required bool phoneStored,
+                required String consentTextVersion,
+                required String consentTextDigest,
+                required DateTime consentAcceptedAt,
+                required String locale,
+                required int linkDays,
+                required int sendLimit,
+                required bool queueAllowed,
+                required String idempotencyKey,
+                required DeliveryIntentState state,
+                Value<DeliveryPhase?> localOutcome = const Value.absent(),
+                Value<String?> remoteJobId = const Value.absent(),
+                Value<String?> remoteStatus = const Value.absent(),
+                Value<DateTime?> remoteUpdatedAt = const Value.absent(),
+                Value<String?> lastErrorCode = const Value.absent(),
+                Value<int> attemptCount = const Value.absent(),
+                Value<DateTime?> retryAt = const Value.absent(),
+                required DateTime expiresAt,
+                Value<String> historyJson = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => DeliveryIntentsCompanion.insert(
+                id: id,
+                sessionId: sessionId,
+                eventId: eventId,
+                outputId: outputId,
+                phoneLast4: phoneLast4,
+                phoneStored: phoneStored,
+                consentTextVersion: consentTextVersion,
+                consentTextDigest: consentTextDigest,
+                consentAcceptedAt: consentAcceptedAt,
+                locale: locale,
+                linkDays: linkDays,
+                sendLimit: sendLimit,
+                queueAllowed: queueAllowed,
+                idempotencyKey: idempotencyKey,
+                state: state,
+                localOutcome: localOutcome,
+                remoteJobId: remoteJobId,
+                remoteStatus: remoteStatus,
+                remoteUpdatedAt: remoteUpdatedAt,
+                lastErrorCode: lastErrorCode,
+                attemptCount: attemptCount,
+                retryAt: retryAt,
+                expiresAt: expiresAt,
+                historyJson: historyJson,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<DeliveryIntents, DeliveryIntentRow>(table),
+                  $DeliveryIntentsReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({sessionId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (sessionId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.sessionId,
+                        referencedTable: $DeliveryIntentsReferences
+                            ._sessionIdTable(db),
+                        referencedColumn: $DeliveryIntentsReferences
+                            ._sessionIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $DeliveryIntentsProcessedTableManager =
+    ProcessedTableManager<
+      _$BoothDatabase,
+      DeliveryIntents,
+      DeliveryIntentRow,
+      $DeliveryIntentsFilterComposer,
+      $DeliveryIntentsOrderingComposer,
+      $DeliveryIntentsAnnotationComposer,
+      $DeliveryIntentsCreateCompanionBuilder,
+      $DeliveryIntentsUpdateCompanionBuilder,
+      (DeliveryIntentRow, $DeliveryIntentsReferences),
+      DeliveryIntentRow,
+      PrefetchHooks Function({bool sessionId})
+    >;
+typedef $DeliveryRemoteRevocationsCreateCompanionBuilder =
+    DeliveryRemoteRevocationsCompanion Function({
+      required String remoteJobId,
+      required DateTime requestedAt,
+      Value<int> rowid,
+    });
+typedef $DeliveryRemoteRevocationsUpdateCompanionBuilder =
+    DeliveryRemoteRevocationsCompanion Function({
+      Value<String> remoteJobId,
+      Value<DateTime> requestedAt,
+      Value<int> rowid,
+    });
+
+class $DeliveryRemoteRevocationsFilterComposer
+    extends Composer<_$BoothDatabase, DeliveryRemoteRevocations> {
+  $DeliveryRemoteRevocationsFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get remoteJobId => $composableBuilder(
+    column: $table.remoteJobId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get requestedAt => $composableBuilder(
+    column: $table.requestedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $DeliveryRemoteRevocationsOrderingComposer
+    extends Composer<_$BoothDatabase, DeliveryRemoteRevocations> {
+  $DeliveryRemoteRevocationsOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get remoteJobId => $composableBuilder(
+    column: $table.remoteJobId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get requestedAt => $composableBuilder(
+    column: $table.requestedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $DeliveryRemoteRevocationsAnnotationComposer
+    extends Composer<_$BoothDatabase, DeliveryRemoteRevocations> {
+  $DeliveryRemoteRevocationsAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get remoteJobId => $composableBuilder(
+    column: $table.remoteJobId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get requestedAt => $composableBuilder(
+    column: $table.requestedAt,
+    builder: (column) => column,
+  );
+}
+
+class $DeliveryRemoteRevocationsTableManager
+    extends
+        RootTableManager<
+          _$BoothDatabase,
+          DeliveryRemoteRevocations,
+          DeliveryRemoteRevocationRow,
+          $DeliveryRemoteRevocationsFilterComposer,
+          $DeliveryRemoteRevocationsOrderingComposer,
+          $DeliveryRemoteRevocationsAnnotationComposer,
+          $DeliveryRemoteRevocationsCreateCompanionBuilder,
+          $DeliveryRemoteRevocationsUpdateCompanionBuilder,
+          (
+            DeliveryRemoteRevocationRow,
+            BaseReferences<
+              _$BoothDatabase,
+              DeliveryRemoteRevocations,
+              DeliveryRemoteRevocationRow
+            >,
+          ),
+          DeliveryRemoteRevocationRow,
+          PrefetchHooks Function()
+        > {
+  $DeliveryRemoteRevocationsTableManager(
+    _$BoothDatabase db,
+    DeliveryRemoteRevocations table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $DeliveryRemoteRevocationsFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $DeliveryRemoteRevocationsOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $DeliveryRemoteRevocationsAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> remoteJobId = const Value.absent(),
+                Value<DateTime> requestedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DeliveryRemoteRevocationsCompanion(
+                remoteJobId: remoteJobId,
+                requestedAt: requestedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String remoteJobId,
+                required DateTime requestedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => DeliveryRemoteRevocationsCompanion.insert(
+                remoteJobId: remoteJobId,
+                requestedAt: requestedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<
+                    DeliveryRemoteRevocations,
+                    DeliveryRemoteRevocationRow
+                  >(table),
+                  BaseReferences<
+                    _$BoothDatabase,
+                    DeliveryRemoteRevocations,
+                    DeliveryRemoteRevocationRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $DeliveryRemoteRevocationsProcessedTableManager =
+    ProcessedTableManager<
+      _$BoothDatabase,
+      DeliveryRemoteRevocations,
+      DeliveryRemoteRevocationRow,
+      $DeliveryRemoteRevocationsFilterComposer,
+      $DeliveryRemoteRevocationsOrderingComposer,
+      $DeliveryRemoteRevocationsAnnotationComposer,
+      $DeliveryRemoteRevocationsCreateCompanionBuilder,
+      $DeliveryRemoteRevocationsUpdateCompanionBuilder,
+      (
+        DeliveryRemoteRevocationRow,
+        BaseReferences<
+          _$BoothDatabase,
+          DeliveryRemoteRevocations,
+          DeliveryRemoteRevocationRow
+        >,
+      ),
+      DeliveryRemoteRevocationRow,
+      PrefetchHooks Function()
+    >;
 
 class $BoothDatabaseManager {
   final _$BoothDatabase _db;
@@ -18880,4 +23330,15 @@ class $BoothDatabaseManager {
       $ExportBatchItemsTableManager(_db, _db.exportBatchItems);
   $PendingFileDeletionsTableManager get pendingFileDeletions =>
       $PendingFileDeletionsTableManager(_db, _db.pendingFileDeletions);
+  $EventDeliveryOptionsTableManager get eventDeliveryOptions =>
+      $EventDeliveryOptionsTableManager(_db, _db.eventDeliveryOptions);
+  $DeliveryPairingsTableManager get deliveryPairings =>
+      $DeliveryPairingsTableManager(_db, _db.deliveryPairings);
+  $DeliveryIntentsTableManager get deliveryIntents =>
+      $DeliveryIntentsTableManager(_db, _db.deliveryIntents);
+  $DeliveryRemoteRevocationsTableManager get deliveryRemoteRevocations =>
+      $DeliveryRemoteRevocationsTableManager(
+        _db,
+        _db.deliveryRemoteRevocations,
+      );
 }

@@ -1,13 +1,14 @@
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 
+import '../../domain/delivery/delivery_settings.dart';
 import '../../domain/models/booth_event.dart';
 import '../../domain/repositories/event_repository.dart';
 import 'booth_database.dart';
 import 'persistence_guard.dart';
 
-/// Events in the booth database. An event and its template selection are
-/// read in one query and written in one transaction.
+/// Events in the booth database. An event, its template selection and its
+/// delivery settings are read in one query and written in one transaction.
 final class DriftEventRepository implements EventRepository {
   DriftEventRepository(this._db);
 
@@ -18,6 +19,10 @@ final class DriftEventRepository implements EventRepository {
         leftOuterJoin(
           _db.eventTemplates,
           _db.eventTemplates.eventId.equalsExp(_db.events.id),
+        ),
+        leftOuterJoin(
+          _db.eventDeliveryOptions,
+          _db.eventDeliveryOptions.eventId.equalsExp(_db.events.id),
         ),
       ])..orderBy([
         OrderingTerm.desc(_db.events.updatedAt),
@@ -44,6 +49,18 @@ final class DriftEventRepository implements EventRepository {
   Future<void> save(BoothEvent event) => guardPersistence(
     () => _db.transaction(() async {
       await _db.into(_db.events).insertOnConflictUpdate(_toRow(event));
+      final delivery = event.delivery;
+      await _db
+          .into(_db.eventDeliveryOptions)
+          .insertOnConflictUpdate(
+            EventDeliveryOptionsCompanion.insert(
+              eventId: event.id,
+              enabled: delivery.enabled,
+              offlineQueue: delivery.offlineQueue,
+              linkDays: delivery.linkDays,
+              sendLimit: delivery.sendLimit,
+            ),
+          );
       await (_db.delete(
         _db.eventTemplates,
       )..where((link) => link.eventId.equals(event.id))).go();
@@ -64,19 +81,29 @@ final class DriftEventRepository implements EventRepository {
   );
 
   List<BoothEvent> _assemble(List<TypedResult> rows) {
-    final grouped = <String, (EventRow, List<EventTemplateRow>)>{};
+    final grouped =
+        <
+          String,
+          (EventRow, List<EventTemplateRow>, EventDeliverySettingsRow?)
+        >{};
     for (final row in rows) {
       final event = row.readTable(_db.events);
       final link = row.readTableOrNull(_db.eventTemplates);
-      final entry = grouped.putIfAbsent(event.id, () => (event, []));
+      final delivery = row.readTableOrNull(_db.eventDeliveryOptions);
+      final entry = grouped.putIfAbsent(event.id, () => (event, [], delivery));
       if (link != null) entry.$2.add(link);
     }
     return [
-      for (final (event, links) in grouped.values) _toDomain(event, links),
+      for (final (event, links, delivery) in grouped.values)
+        _toDomain(event, links, delivery),
     ];
   }
 
-  BoothEvent _toDomain(EventRow row, List<EventTemplateRow> links) {
+  BoothEvent _toDomain(
+    EventRow row,
+    List<EventTemplateRow> links,
+    EventDeliverySettingsRow? delivery,
+  ) {
     final ordered = links.sortedBy<num>((link) => link.position);
     return BoothEvent(
       id: row.id,
@@ -125,6 +152,14 @@ final class DriftEventRepository implements EventRepository {
             .firstWhereOrNull((link) => link.isDefault)
             ?.templateRevisionId,
       ),
+      delivery: delivery == null
+          ? const EventDeliverySettings()
+          : EventDeliverySettings(
+              enabled: delivery.enabled,
+              offlineQueue: delivery.offlineQueue,
+              linkDays: delivery.linkDays,
+              sendLimit: delivery.sendLimit,
+            ),
     );
   }
 

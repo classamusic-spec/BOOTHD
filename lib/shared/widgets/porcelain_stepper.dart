@@ -79,16 +79,24 @@ class PorcelainStepper extends StatelessWidget {
           child: ExcludeSemantics(
             child: ConstrainedBox(
               constraints: const BoxConstraints(minWidth: 72),
-              child: AnimatedSwitcher(
-                duration: PorcelainMotion.of(context).standard,
-                child: Text(
-                  show(value),
-                  key: ValueKey(value),
-                  textAlign: TextAlign.center,
-                  style: theme.text.numeric.copyWith(
-                    fontSize: 22,
-                    height: 28 / 22,
-                    color: onChanged == null ? colors.inkDisabled : colors.ink,
+              // Room either side for longer values ("14 days").
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: PorcelainSpace.xs,
+                ),
+                child: AnimatedSwitcher(
+                  duration: PorcelainMotion.of(context).standard,
+                  child: Text(
+                    show(value),
+                    key: ValueKey(value),
+                    textAlign: TextAlign.center,
+                    style: theme.text.numeric.copyWith(
+                      fontSize: 22,
+                      height: 28 / 22,
+                      color: onChanged == null
+                          ? colors.inkDisabled
+                          : colors.ink,
+                    ),
                   ),
                 ),
               ),

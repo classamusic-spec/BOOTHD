@@ -6,6 +6,11 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" tools:node="remove" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="remove" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove" />
+    <!-- Optional phone delivery (M09, ADR-0015) talks to the operator's own
+         delivery service over HTTPS. Nothing else uses the network: the
+         booth works fully offline, and without a pairing it makes no
+         request at all. Cleartext stays off (the default for target 28+). -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <!-- Any camera will do (the plugin requires android.hardware.camera.any);
          without this, the CAMERA permission implies a required rear camera
          and app stores would hide the app from front-camera-only tablets. -->

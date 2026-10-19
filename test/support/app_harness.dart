@@ -22,12 +22,14 @@ import 'package:porcelain_photo_booth/domain/services/operator_secrets.dart';
 import 'package:porcelain_photo_booth/infrastructure/composition/dart_ui_composition_renderer.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/booth_database.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_booth_settings_repository.dart';
+import 'package:porcelain_photo_booth/infrastructure/database/drift_delivery_repository.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_event_repository.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_gallery_repository.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_operator_access_repository.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_session_repository.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_template_catalog.dart';
 
+import 'fake_delivery.dart';
 import 'fake_export.dart';
 import 'fake_gallery.dart';
 import 'fakes.dart';
@@ -94,6 +96,9 @@ final class TestBooth {
     required this.thumbnails,
     required this.exporter,
     required this.cleanup,
+    required this.delivery,
+    required this.secrets,
+    required this.previews,
   });
 
   final BoothDatabase db;
@@ -125,6 +130,14 @@ final class TestBooth {
   final FakeThumbnailStore thumbnails;
   final FakeGalleryExporter exporter;
   final FakeStorageCleanup cleanup;
+
+  /// Phone delivery (M09): the service, secure storage and previews.
+  final FakeDeliveryApi delivery;
+  final MemoryDeliverySecrets secrets;
+  final FakePreviewMaker previews;
+
+  /// The delivery queue in the booth database.
+  DriftDeliveryRepository get deliveries => DriftDeliveryRepository(db);
 
   /// The gallery's records, over the booth database.
   DriftGalleryRepository get gallery => DriftGalleryRepository(
@@ -201,6 +214,8 @@ Future<TestBooth> pumpApp(
   FakeDeviceStorage? space,
   FakeExportService? exports,
   FakeGalleryExporter? exporter,
+  FakeDeliveryApi? delivery,
+  MemoryDeliverySecrets? secrets,
 }) async {
   final testClock = clock ?? FakeClock();
   final db = database ?? memoryDatabase(clock: testClock);
@@ -239,6 +254,9 @@ Future<TestBooth> pumpApp(
     thumbnails: FakeThumbnailStore(),
     exporter: exporter ?? FakeGalleryExporter(),
     cleanup: FakeStorageCleanup(db),
+    delivery: delivery ?? FakeDeliveryApi(),
+    secrets: secrets ?? MemoryDeliverySecrets(),
+    previews: FakePreviewMaker(),
   );
   booth.thumbnails.exports ??= booth.exports;
   // Sessions refer to originals, which the real store records in the
@@ -283,6 +301,10 @@ Future<TestBooth> pumpApp(
         thumbnailStoreProvider.overrideWithValue(booth.thumbnails),
         galleryExporterProvider.overrideWithValue(booth.exporter),
         storageCleanupProvider.overrideWithValue(booth.cleanup),
+        deliveryRepositoryProvider.overrideWith((ref) => booth.deliveries),
+        deliveryApiProvider.overrideWithValue(booth.delivery),
+        deliverySecretsProvider.overrideWithValue(booth.secrets),
+        previewMakerProvider.overrideWithValue(booth.previews),
         deviceSelfTestProvider.overrideWith(
           (ref) => DeviceSelfTest(
             camera: booth.camera,

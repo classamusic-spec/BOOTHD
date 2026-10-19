@@ -6,6 +6,7 @@ import '../../domain/models/booth_profile.dart';
 import '../../domain/models/template_revision_summary.dart';
 import '../../domain/session/guest_flow.dart';
 import '../../domain/value_objects/appearance.dart';
+import '../delivery/delivery_providers.dart';
 import '../di/service_providers.dart';
 import 'session_recovery.dart';
 
@@ -13,7 +14,8 @@ import 'session_recovery.dart';
 /// database, reads the booth, finishes or undoes photo saves the app never
 /// finished (A-11), ends or queues guest sessions it never finished
 /// (A-10) and removes files whose records an interrupted deletion already
-/// removed (M08), before anything can take a photo. Errors (storage
+/// removed (M08), before anything can take a photo; then starts the phone
+/// delivery queue (M09), which never holds startup up. Errors (storage
 /// unavailable, data from a newer app version) surface here, before any
 /// screen depends on them.
 final startupProvider = FutureProvider<BoothState>((ref) async {
@@ -25,6 +27,11 @@ final startupProvider = FutureProvider<BoothState>((ref) async {
     await ref.watch(storageCleanupProvider).run();
   } on Object {
     // Left in the journal; the gallery shows it and tries again.
+  }
+  try {
+    ref.read(deliveryRunnerProvider).start();
+  } on Object {
+    // Texting is optional: the booth works without it.
   }
   return booth;
 });

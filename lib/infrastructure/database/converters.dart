@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../../domain/delivery/delivery_intent.dart';
 import '../../domain/value_objects/appearance.dart';
 import '../../domain/value_objects/calendar_date.dart';
 
@@ -19,4 +20,10 @@ final class CalendarDateConverter extends TypeConverter<CalendarDate, String> {
 /// Stores a theme profile by name, like the ENUMNAME columns.
 const themeProfileByName = EnumNameConverter<PorcelainThemeProfile>(
   PorcelainThemeProfile.values,
+);
+
+/// Stores a delivery request's state by name ("DeliveryIntentState"
+/// contains "INT", which would give ENUMNAME columns integer affinity).
+const deliveryIntentStateByName = EnumNameConverter<DeliveryIntentState>(
+  DeliveryIntentState.values,
 );

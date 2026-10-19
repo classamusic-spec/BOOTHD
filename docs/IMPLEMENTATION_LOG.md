@@ -3,6 +3,155 @@
 Newest milestone first. Each entry: scope, plan, changes, commands and exit
 codes, platform results, spec issues raised, risks, next step.
 
+## M09: optional phone delivery (MMS preview and private link)
+
+- Date: 2026-10-19 (UTC)
+- Authorised by: the owner's instruction "approve start M08-M10". M09
+  scope only: the optional texting feature, off by default, implemented
+  and tested with stand-ins; every live gate (domain, backend project,
+  Twilio account and registration, legal review, tablets, phones) is
+  BLOCKED and recorded as such. Nothing is deployed and the feature is
+  not advertised as working.
+- Quality bar: CR-001 for S30 to S36; the guest screens follow the
+  owner's booth boards (Porcelain Studio guest theme).
+- Host: the same Linux cloud session as M00 to M08. No tablet, no Mac, no
+  phone, no Twilio account.
+
+### Plan (as executed)
+
+1. Inventory of prerequisites (`docs/delivery/PREREQUISITES.md`): all
+   live items BLOCKED. Threat model, ADR-0015, OpenAPI contract.
+2. Backend (`backend/`): Postgres schema v1 (tenants, booths, pairing
+   codes, tokens, jobs, consent receipts, upload and access grants,
+   suppression, provider events, audit, rate counters); pairing and
+   tokens; intake with quotas; uploads validated against their
+   declarations; a leased dispatcher that retries only after a definite
+   non-submission, with reconciliation and operator review for unknown
+   outcomes; Twilio webhooks verified with the official validator;
+   STOP/START/HELP; the preview fetch and the guest page; retention; the
+   admin API; staging limited to approved test numbers.
+3. Booth: domain (E.164 parsing shared with the backend's cases, consent
+   text and digest, settings, intents, retry policy); schema v7 queue;
+   secure storage for the credential and pending numbers; the HTTP client;
+   `DeliveryService` and `DeliveryRunner`.
+4. Screens: S30 to S32 in Booth Mode (both orientations, every size),
+   S34 Event > Texting, S35 a session's Texts, S36 Settings > Phone
+   delivery.
+5. Tests: backend (Deno, real Postgres), booth unit, database, client,
+   service, widget flows, operator screens, the app-to-backend contract
+   run; the screen catalog and goldens; docs (setup, operations, privacy
+   draft, device procedure); checks, builds, a secrets scan of the APK.
+
+### Changes
+
+- Backend: `backend/` (migration, Edge Function and shared modules,
+  OpenAPI, tests, tools, README); CI job "Delivery backend".
+- Domain: `delivery/phone_number.dart`, `consent.dart`,
+  `delivery_settings.dart`, `delivery_intent.dart`,
+  `delivery_policy.dart`; `services/delivery_api.dart` (port, models,
+  `deliveryAddressAcceptable`); `repositories/delivery_repository.dart`;
+  `BoothEvent.delivery`.
+- Infrastructure: schema v7 (`event_delivery_options`,
+  `delivery_pairings`, `delivery_intents`, `delivery_remote_revocations`)
+  with dump, steps, test schemas and `seed_v7.sql`;
+  `database/drift_delivery_repository.dart`; the gallery's deletion now
+  journals remote revocations; `delivery/secure_delivery_secrets.dart`,
+  `delivery/jpeg_preview_maker.dart`, `delivery/http_delivery_api.dart`.
+- Core: `delivery/delivery_service.dart`, `delivery_runner.dart`,
+  `delivery_providers.dart`, `diagnostic_image.dart`; providers and
+  bindings; the runner starts after startup; `BoothSessionController.touch`
+  keeps the finished screen alive while the guest types.
+- Features and shared: `booth/guest_delivery.dart`, `delivery_copy.dart`,
+  the finished screen's texting buttons, `booth_screen.dart`'s finished
+  step; `events/editor/delivery_tab.dart`;
+  `gallery/session_deliveries.dart`; `settings/delivery_settings.dart`;
+  `shared/delivery/delivery_labels.dart`; delivery icons.
+- Tests: `domain/delivery_rules_test.dart`,
+  `delivery/delivery_service_test.dart`,
+  `infrastructure/http_delivery_api_test.dart`,
+  `delivery/live_contract_test.dart` (tag `contract`, run by
+  `tool/delivery_contract.sh`), `widgets/guest_delivery_flow_test.dart`,
+  `widgets/delivery_operator_test.dart`; migration test v7 checks;
+  support: `fake_delivery.dart` (service stand-in, memory secure storage,
+  preview stand-in, `seedPairing`, `seededIntent`); fourteen texting
+  screens in the catalog with their goldens.
+- Platform: the Android release manifest declares `INTERNET` (only
+  debug and profile builds had it, for Flutter's tooling); cleartext stays
+  off; nothing on iPadOS changes.
+- Tools: `tool/delivery_contract.sh` (the app's client against the local
+  backend), `tool/scan_binary_secrets.sh` (an APK, AAB or IPA searched for
+  provider ids and keys, service keys, private keys and backend secret
+  names; checked against a planted sample).
+- Docs: ADR-0015 and index, `docs/delivery/` (README, PREREQUISITES,
+  SETUP_AND_CREDENTIALS, OPERATIONS, PRIVACY_AND_RETENTION_DRAFT,
+  THREAT_MODEL), `docs/device_tests/M09_DEVICE_PROCEDURE.md`.
+
+### Problems met and how they were handled
+
+- A Drift column typed `ENUMNAME(DeliveryIntentState)` got integer
+  affinity because the type name contains "INT", so its CHECK rejected
+  every name. The column is `TEXT` mapped by a converter.
+- Generated table classes clashed with domain names (`DeliveryIntent`);
+  the tables were renamed.
+- Two queue passes could overlap when a guest submitted during a
+  scheduled pass; `processDue` now runs one loop that repeats while asked
+  to.
+- Flutter's test binding answers every real HTTP request with 400; the
+  client tests run a real local server with the binding's HTTP override
+  lifted.
+- The booth's own check that a service address is https lived only in the
+  HTTP client, so a stand-in service accepted `http://`. The check moved
+  to the domain and runs before pairing.
+- The guest's info card had a "Close" button, a word the guest-isolation
+  check forbids (it reads as leaving the booth). It says "OK".
+- The session page's empty Texts section still took a section's spacing,
+  moving every session golden; the section is now left out when empty.
+- The Android release manifest had no `INTERNET` permission (debug and
+  profile builds add it for Flutter's tooling, which hid the gap): a
+  release build could never have reached the service. Found while writing
+  the evidence; declared in the main manifest.
+- A service that no longer holds a delivery made the booth call it
+  "Expired", which claims more than is known. The last report now stands,
+  with a note; schema v7's finished-state check admits that case.
+- The confirmation card faded in from opacity 0, which hides its
+  semantics for the first frame, while the entry behind it stayed
+  readable to screen readers. The card is in the accessibility tree from
+  the first frame and the entry is hidden behind it.
+- Dead-control checks found the keypad's Clear and Delete keys and the
+  link-life stepper at its limit disabled without a reason; each now says
+  why.
+- The number screen's corner blossoms sat behind the title in portrait
+  (CR-001); dense guest screens now keep two small corner sprays only.
+- Backend: Twilio's error is in `error.cause` for refused connections;
+  the expiry comparison lost milliseconds through `String(Date)`; the
+  phone redaction left a bracket behind. Each found by a test and fixed.
+
+### Spec issues raised
+
+- PD-03 asks the booth to send while offline queues drain; neither
+  iPadOS nor Android lets an app send reliably in the background, so the
+  queue runs only while the app is in front, and guests are told the text
+  may not arrive.
+- "US mobile only": whether a number is a mobile is known only to the
+  provider; the booth checks NANP shape and US area codes, and a landline
+  fails at the provider with an honest message.
+- The consent wording, retention periods and minors need the legal
+  review (PRIVACY_AND_RETENTION_DRAFT section 7).
+
+### Risks carried forward
+
+- No live sender, phone, carrier or tablet: every live row of
+  AC-0901..AC-0922 is BLOCKED; the device procedure is ready.
+- Prices (PD-08) are the spec's October 2026 figures; re-check before
+  launch.
+- MMS transcoding and carrier filtering are unknown until real sends.
+- iPadOS has still not been compiled (no Mac; CI's manual job not run).
+
+### Next
+
+M10 (resilience, security, backup and kiosk readiness), as the owner
+approved; stop for approval after M10.
+
 ## M08: operator gallery, export-ready workflow and printer boundary
 
 - Date: 2026-10-19 (UTC)

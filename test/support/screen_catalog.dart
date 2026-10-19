@@ -4,10 +4,14 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:porcelain_photo_booth/core/design_system/appearance.dart';
 import 'package:porcelain_photo_booth/core/routing/route_paths.dart';
+import 'package:porcelain_photo_booth/domain/delivery/consent.dart';
+import 'package:porcelain_photo_booth/domain/delivery/delivery_intent.dart';
+import 'package:porcelain_photo_booth/domain/delivery/delivery_settings.dart';
 import 'package:porcelain_photo_booth/domain/models/booth_event.dart';
 import 'package:porcelain_photo_booth/domain/services/camera_service.dart';
 import 'package:porcelain_photo_booth/domain/session/guest_flow.dart';
 import 'package:porcelain_photo_booth/features/booth/booth_copy.dart';
+import 'package:porcelain_photo_booth/features/booth/delivery_copy.dart';
 import 'package:porcelain_photo_booth/features/booth/guest_camera_stage.dart';
 import 'package:porcelain_photo_booth/features/booth/guest_finished.dart';
 import 'package:porcelain_photo_booth/features/booth/guest_review.dart';
@@ -19,8 +23,10 @@ import 'package:porcelain_photo_booth/shared/gallery/gallery_copy.dart';
 import 'package:porcelain_photo_booth/shared/operator_access/access_copy.dart';
 
 import 'app_harness.dart';
+import 'fake_delivery.dart';
 import 'fake_export.dart';
 import 'fake_gallery.dart';
+import 'fakes.dart';
 import 'gallery_seed.dart';
 import 'seed.dart';
 import 'simulated_camera.dart';
@@ -40,6 +46,9 @@ final class ScreenSpec {
     this.then,
     this.session,
     this.gallery,
+    this.paired = false,
+    this.offline = false,
+    this.texts,
   });
 
   final String location;
@@ -72,6 +81,21 @@ final class ScreenSpec {
   /// photos' bytes registered in [exports].
   final Future<void> Function(BoothDatabase db, FakeExportService exports)?
   gallery;
+
+  /// The booth is paired with the (stand-in) delivery service, which is
+  /// ready to send (M09).
+  final bool paired;
+
+  /// The delivery service cannot be reached.
+  final bool offline;
+
+  /// Texts guests asked for, stored before the app starts.
+  final Future<void> Function(
+    BoothDatabase db,
+    FakeDeliveryApi api,
+    MemoryDeliverySecrets secrets,
+  )?
+  texts;
 }
 
 Future<void> _tap(WidgetTester tester, String text) async {
@@ -108,6 +132,7 @@ const editorTabs = [
   'guest',
   'output',
   'privacy',
+  'delivery',
 ];
 
 /// Every implemented screen, by name.
@@ -121,7 +146,12 @@ final screens = <String, ScreenSpec>{
       RoutePaths.event(SeedIds.active, tab: tab),
       seeded: true,
       renders: tab == 'templates',
+      paired: tab == 'delivery',
     ),
+  'event delivery unpaired': ScreenSpec(
+    RoutePaths.event(SeedIds.active, tab: 'delivery'),
+    seeded: true,
+  ),
   'event draft': ScreenSpec(RoutePaths.event(SeedIds.draft), seeded: true),
   'event archived': ScreenSpec(
     RoutePaths.event(SeedIds.archived),
@@ -286,6 +316,24 @@ final screens = <String, ScreenSpec>{
     renders: true,
     gallery: _gallerySessions,
   ),
+  'session detail texts': ScreenSpec(
+    RoutePaths.gallerySession(GalleryIds.session(8)),
+    seeded: true,
+    renders: true,
+    gallery: _gallerySessions,
+    paired: true,
+    texts: _texts,
+    then: _toTexts,
+  ),
+  'session detail text unknown': ScreenSpec(
+    RoutePaths.gallerySession(GalleryIds.session(6)),
+    seeded: true,
+    renders: true,
+    gallery: _gallerySessions,
+    paired: true,
+    texts: _texts,
+    then: _toTexts,
+  ),
   'session detail failed': ScreenSpec(
     RoutePaths.gallerySession(GalleryIds.session(3)),
     seeded: true,
@@ -307,6 +355,14 @@ final screens = <String, ScreenSpec>{
     '/studio/settings?section=storage',
     seeded: true,
     gallery: _gallerySessions,
+  ),
+  'settings delivery': const ScreenSpec('/studio/settings?section=delivery'),
+  'settings delivery paired': const ScreenSpec(
+    '/studio/settings?section=delivery',
+    seeded: true,
+    gallery: _gallerySessions,
+    paired: true,
+    texts: _texts,
   ),
   'settings booth': const ScreenSpec('/studio/settings?section=booth'),
   'settings about': const ScreenSpec('/studio/settings?section=about'),
@@ -588,7 +644,199 @@ final boothSessionScreens = <String, ScreenSpec>{
       expect(find.text(BoothOperatorCopy.lastProblemTitle), findsOneWidget);
     },
   ),
+  'booth text offer': ScreenSpec(
+    RoutePaths.booth,
+    startAs: StartAs.booth,
+    seeded: true,
+    renders: true,
+    boothEventId: SeedIds.active,
+    event: _texting,
+    paired: true,
+    session: (tester, booth) async {
+      await _toFinished(tester);
+      expect(find.bySemanticsLabel(DeliveryCopy.textMyPhotos), findsOneWidget);
+    },
+  ),
+  'booth text offline': ScreenSpec(
+    RoutePaths.booth,
+    startAs: StartAs.booth,
+    seeded: true,
+    renders: true,
+    boothEventId: SeedIds.active,
+    event: _texting,
+    paired: true,
+    offline: true,
+    session: (tester, booth) async {
+      await _toFinished(tester);
+      expect(find.text(DeliveryCopy.offlineNote), findsOneWidget);
+    },
+  ),
+  'booth text number': ScreenSpec(
+    RoutePaths.booth,
+    startAs: StartAs.booth,
+    seeded: true,
+    renders: true,
+    boothEventId: SeedIds.active,
+    event: _texting,
+    paired: true,
+    session: (tester, booth) async {
+      await _toTextEntry(tester);
+      expect(find.bySemanticsLabel(_consent), findsOneWidget);
+    },
+  ),
+  'booth text number entered': ScreenSpec(
+    RoutePaths.booth,
+    startAs: StartAs.booth,
+    seeded: true,
+    renders: true,
+    boothEventId: SeedIds.active,
+    event: _texting,
+    paired: true,
+    session: (tester, booth) async {
+      await _toTextEntry(tester);
+      await _typeNumber(tester);
+      await _press(tester, _consent);
+      await _settlePhotos(tester);
+      // The last keys' release animations.
+      await tester.pump(const Duration(seconds: 1));
+    },
+  ),
+  'booth text confirm': ScreenSpec(
+    RoutePaths.booth,
+    startAs: StartAs.booth,
+    seeded: true,
+    renders: true,
+    boothEventId: SeedIds.active,
+    event: _texting,
+    paired: true,
+    session: (tester, booth) async {
+      await _toTextEntry(tester);
+      await _typeNumber(tester);
+      await _press(tester, _consent);
+      await _press(tester, DeliveryCopy.sendMyPhotos);
+      await _settlePhotos(tester);
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.text(DeliveryCopy.confirmTitle), findsOneWidget);
+    },
+  ),
+  'booth text privacy': ScreenSpec(
+    RoutePaths.booth,
+    startAs: StartAs.booth,
+    seeded: true,
+    renders: true,
+    boothEventId: SeedIds.active,
+    event: _texting,
+    paired: true,
+    session: (tester, booth) async {
+      await _toTextEntry(tester);
+      await _press(tester, DeliveryCopy.privacy);
+      await _settlePhotos(tester);
+      expect(find.text(DeliveryCopy.privacyTitle), findsOneWidget);
+    },
+  ),
+  'booth text sent': ScreenSpec(
+    RoutePaths.booth,
+    startAs: StartAs.booth,
+    seeded: true,
+    renders: true,
+    boothEventId: SeedIds.active,
+    event: _texting,
+    paired: true,
+    session: (tester, booth) async {
+      await _sendText(tester);
+      expect(find.text('Text request sent'), findsOneWidget);
+    },
+  ),
+  'booth text waiting': ScreenSpec(
+    RoutePaths.booth,
+    startAs: StartAs.booth,
+    seeded: true,
+    renders: true,
+    boothEventId: SeedIds.active,
+    event: _texting,
+    paired: true,
+    offline: true,
+    session: (tester, booth) async {
+      await _sendText(tester);
+      expect(find.text('Waiting for a connection'), findsOneWidget);
+    },
+  ),
 };
+
+/// The seeded event in the booth's own theme, offering texting.
+BoothEvent _texting(BoothEvent event) =>
+    _porcelain(event)
+        .copyWith(delivery: const EventDeliverySettings(enabled: true));
+
+/// The consent box, by its wording.
+final _consent = const ConsentText(brand: 'Porcelain Booth', linkDays: 7).text;
+
+/// Both photos kept: the finished screen.
+Future<void> _toFinished(WidgetTester tester) async {
+  await _toReview(tester);
+  await _press(tester, BoothCopy.keepThese);
+  await tester.pump();
+  await _settlePhotos(tester);
+  await _settlePhotos(tester);
+  expect(find.byType(GuestFinished), findsOneWidget);
+}
+
+/// The finished screen, then Text my photos: the number and the consent.
+Future<void> _toTextEntry(WidgetTester tester) async {
+  await _toFinished(tester);
+  await _press(tester, DeliveryCopy.textMyPhotos);
+  await _settlePhotos(tester);
+}
+
+/// 212-555-0147 on the booth keypad.
+Future<void> _typeNumber(WidgetTester tester) async {
+  for (final digit in '2125550147'.split('')) {
+    await _press(tester, digit);
+    await tester.pump(const Duration(milliseconds: 50));
+  }
+}
+
+/// A number, the box checked, Send my photos, Send: the result.
+Future<void> _sendText(WidgetTester tester) async {
+  await _toTextEntry(tester);
+  await _typeNumber(tester);
+  await _press(tester, _consent);
+  await tester.pump(const Duration(milliseconds: 400));
+  await _press(tester, DeliveryCopy.sendMyPhotos);
+  await tester.pump(const Duration(milliseconds: 400));
+  await _press(tester, DeliveryCopy.send);
+  for (var i = 0; i < 6; i++) {
+    await tester.pump(const Duration(milliseconds: 50));
+  }
+  await _settlePhotos(tester);
+}
+
+/// Scrolls a session's page to its Texts.
+Future<void> _toTexts(WidgetTester tester) async {
+  await tester.ensureVisible(find.text('Texts'));
+  await tester.pumpAndSettle();
+}
+
+/// Texts for five of the gallery's sessions, one in each state an operator
+/// meets, the evening before the test clock.
+Future<void> _texts(
+  BoothDatabase db,
+  FakeDeliveryApi api,
+  MemoryDeliverySecrets secrets,
+) => seedTexts(
+  db,
+  api,
+  secrets,
+  const [
+    (8, '0147', DeliveryPhase.delivered, null),
+    (7, '2291', DeliveryPhase.sent, null),
+    (6, '8830', DeliveryPhase.unknown, 'PROVIDER_TIMEOUT'),
+    (4, '4410', DeliveryPhase.queuedLocally, 'OFFLINE'),
+    (2, '6052', DeliveryPhase.failed, 'RECIPIENT_OPTED_OUT'),
+  ],
+  sessionId: GalleryIds.session,
+  outputId: GalleryIds.output,
+);
 
 /// The seeded event in the booth's own theme (Porcelain Studio).
 BoothEvent _porcelain(BoothEvent event) =>
@@ -698,6 +946,9 @@ Future<void> show(
   final spec = screens[name] ?? boothSessionScreens[name]!;
   useViewport(tester, viewport, pixelRatio: pixelRatio);
   final exports = FakeExportService();
+  final clock = FakeClock();
+  final delivery = FakeDeliveryApi();
+  final secrets = MemoryDeliverySecrets();
   final booth = await pumpApp(
     tester,
     location: spec.location,
@@ -705,10 +956,18 @@ Future<void> show(
     startAs: spec.startAs,
     boothEventId: spec.boothEventId,
     exports: exports,
-    seed: spec.seeded
+    clock: clock,
+    delivery: delivery,
+    secrets: secrets,
+    seed: spec.seeded || spec.paired
         ? (db) async {
-            await seedEvents(db, active: spec.event);
+            if (spec.seeded) await seedEvents(db, active: spec.event);
             await spec.gallery?.call(db, exports);
+            if (spec.paired) {
+              await seedPairing(db, secrets, at: clock.now(), api: delivery);
+            }
+            await spec.texts?.call(db, delivery, secrets);
+            delivery.offline = spec.offline;
           }
         : null,
     seedTemplates: spec.library

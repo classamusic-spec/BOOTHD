@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../../domain/delivery/delivery_intent.dart';
 import '../../domain/gallery/export_plan.dart';
 import '../../domain/models/booth_event.dart';
 import '../../domain/models/booth_profile.dart';
@@ -31,7 +32,7 @@ final class BoothDatabase extends _$BoothDatabase {
 
   /// Bump together with a migration step, a schema dump
   /// (`dart run drift_dev make-migrations`) and a seeded fixture.
-  static const currentSchemaVersion = 6;
+  static const currentSchemaVersion = 7;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -148,6 +149,17 @@ final class BoothDatabase extends _$BoothDatabase {
       await migrator.createTable(schema.exportBatchItems);
       await migrator.create(schema.exportBatchItemsBySession);
       await migrator.createTable(schema.pendingFileDeletions);
+    },
+    // M09: phone delivery. New tables only; events without settings keep
+    // delivery off.
+    from6To7: (migrator, schema) async {
+      await migrator.createTable(schema.eventDeliveryOptions);
+      await migrator.createTable(schema.deliveryPairings);
+      await migrator.createTable(schema.deliveryIntents);
+      await migrator.create(schema.deliveryIntentsBySession);
+      await migrator.create(schema.deliveryIntentsByState);
+      await migrator.create(schema.deliveryIntentsByEvent);
+      await migrator.createTable(schema.deliveryRemoteRevocations);
     },
   );
 

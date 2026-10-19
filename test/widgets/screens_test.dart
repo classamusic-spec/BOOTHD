@@ -2,7 +2,7 @@
 // layouts without overflow), AC-0205 and AC-0208 (contrast, labels and
 // touch targets on every screen in both orientations), for every screen
 // including M03's setup, PIN, event, launch-check and Booth Mode screens
-// and M07's guest session screens.
+// and M07's guest session and M09's texting screens.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:porcelain_photo_booth/core/design_system/appearance.dart';

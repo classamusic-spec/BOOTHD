@@ -13,6 +13,7 @@ import 'about_settings.dart';
 import 'appearance_settings.dart';
 import 'booth_settings.dart';
 import 'camera_settings.dart';
+import 'delivery_settings.dart';
 import 'output_settings.dart';
 import 'storage_settings.dart';
 
@@ -41,6 +42,12 @@ enum SettingsSection {
     'Storage',
     'Space photos use, upkeep and clean-up',
     PorcelainIcons.storage,
+  ),
+  delivery(
+    'delivery',
+    'Phone delivery',
+    'Texting photos to guests: pairing and checks',
+    PorcelainIcons.textMessage,
   ),
   booth(
     'booth',
@@ -160,6 +167,7 @@ class _SectionDetail extends StatelessWidget {
       SettingsSection.camera => const CameraSettings(),
       SettingsSection.output => const OutputSettings(),
       SettingsSection.storage => const StorageSettings(),
+      SettingsSection.delivery => const DeliverySettings(),
       SettingsSection.booth => const BoothSettings(),
       SettingsSection.about => const AboutSettings(),
     };

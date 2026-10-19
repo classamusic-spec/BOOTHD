@@ -222,6 +222,15 @@ final class BoothSessionController extends ChangeNotifier {
     if (_flow.stage == GuestStage.interrupted) _set(_flow.resume());
   }
 
+  /// The guest is using the finished screen (texting their photos, S30
+  /// to S32): the booth waits its finish time again from now before it
+  /// resets, so nobody is cut off mid-number, and nobody is kept either.
+  void touch() {
+    if (_disposed || _flow.stage != GuestStage.completed) return;
+    _cancelTimers();
+    _enter(GuestStage.completed, _epoch);
+  }
+
   /// Next guest (S27): back to the welcome screen.
   Future<void> nextGuest() => _endAndReset(SessionEndReason.timedOut);
 

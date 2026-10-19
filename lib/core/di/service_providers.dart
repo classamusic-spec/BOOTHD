@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/repositories/booth_settings_repository.dart';
+import '../../domain/repositories/delivery_repository.dart';
 import '../../domain/repositories/event_repository.dart';
 import '../../domain/repositories/gallery_repository.dart';
 import '../../domain/repositories/operator_access_repository.dart';
@@ -12,6 +13,7 @@ import '../../domain/repositories/template_store.dart';
 import '../../domain/services/booth_capabilities.dart';
 import '../../domain/services/camera_service.dart';
 import '../../domain/services/composition_renderer.dart';
+import '../../domain/services/delivery_api.dart';
 import '../../domain/services/event_service.dart';
 import '../../domain/services/export_service.dart';
 import '../../domain/services/finished_photos.dart';
@@ -89,6 +91,25 @@ final thumbnailStoreProvider = Provider<ThumbnailStore>(
 /// Removes the files of deleted records (the deletion journal).
 final storageCleanupProvider = Provider<StorageCleanup>(
   (ref) => _unbound('storageCleanupProvider'),
+);
+
+/// Phone delivery (M09, ADR-0015): the local queue, the service client,
+/// secure storage for the booth credential and pending numbers, and the
+/// MMS preview maker.
+final deliveryRepositoryProvider = Provider<DeliveryRepository>(
+  (ref) => _unbound('deliveryRepositoryProvider'),
+);
+
+final deliveryApiProvider = Provider<DeliveryApi>(
+  (ref) => _unbound('deliveryApiProvider'),
+);
+
+final deliverySecretsProvider = Provider<DeliverySecrets>(
+  (ref) => _unbound('deliverySecretsProvider'),
+);
+
+final previewMakerProvider = Provider<PreviewMaker>(
+  (ref) => _unbound('previewMakerProvider'),
 );
 
 /// Printing (A-13). Release 1 is export-only: the unconfigured adapter is

@@ -7,6 +7,8 @@ import 'dart:io';
 import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift_dev/api/migrations_native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:porcelain_photo_booth/domain/delivery/delivery_intent.dart';
+import 'package:porcelain_photo_booth/domain/delivery/delivery_settings.dart';
 import 'package:porcelain_photo_booth/domain/models/booth_event.dart';
 import 'package:porcelain_photo_booth/domain/repositories/session_repository.dart';
 import 'package:porcelain_photo_booth/domain/repositories/storage_errors.dart';
@@ -20,6 +22,7 @@ import 'package:porcelain_photo_booth/domain/value_objects/orientation.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/booth_database.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/database_connection.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_booth_settings_repository.dart';
+import 'package:porcelain_photo_booth/infrastructure/database/drift_delivery_repository.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_event_repository.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_gallery_repository.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_operator_access_repository.dart';
@@ -197,6 +200,62 @@ void main() {
         archived.guest.themeOverride,
         PorcelainThemeProfile.porcelainStudio,
       );
+
+      // Version 7 (M09): phone delivery, off for events from older versions.
+      final deliveries = DriftDeliveryRepository(db);
+      if (from >= 7) {
+        expect(
+          active.delivery,
+          const EventDeliverySettings(
+            enabled: true,
+            offlineQueue: false,
+            linkDays: 5,
+            sendLimit: 150,
+          ),
+        );
+        expect(draft.delivery, const EventDeliverySettings());
+        final pairing = (await deliveries.pairing())!;
+        expect(pairing.baseUrl, Uri.parse('https://photos.example.test'));
+        expect(pairing.boothName, 'Ballroom booth');
+        expect(pairing.paused, isFalse);
+        expect(pairing.capabilities!.ready, isTrue);
+        expect(pairing.capabilities!.linkDaysMax, 14);
+        expect(pairing.capabilities!.previewMaxBytes, 600000);
+        expect(pairing.checkedAtUtc, DateTime.utc(2026, 11, 14, 18));
+        final intents = await deliveries.forSession(_completedSession);
+        expect(intents.map((i) => i.phase), [
+          DeliveryPhase.delivered,
+          DeliveryPhase.queuedLocally,
+        ]);
+        final delivered = intents.first;
+        expect(delivered.phoneLast4, '0147');
+        expect(delivered.phoneStored, isFalse);
+        expect(delivered.queueAllowed, isFalse);
+        expect(delivered.remoteJobId, 'f2000000-0000-4000-8000-000000000001');
+        expect(delivered.consentTextDigest, 'ab' * 32);
+        expect(delivered.history.map((step) => step.phase), [
+          DeliveryPhase.queuedLocally,
+          DeliveryPhase.delivered,
+        ]);
+        final waiting = intents.last;
+        expect(waiting.state, DeliveryIntentState.queued);
+        expect(waiting.lastErrorCode, 'OFFLINE');
+        expect(waiting.attemptCount, 2);
+        expect(waiting.retryAtUtc, DateTime.utc(2026, 11, 14, 18, 13));
+        expect(waiting.expiresAtUtc, DateTime.utc(2026, 11, 15, 18, 12));
+        expect(await deliveries.pendingRevocations(), [
+          'f2000000-0000-4000-8000-000000000009',
+        ]);
+      } else {
+        expect(
+          active.delivery,
+          const EventDeliverySettings(),
+          reason: 'delivery arrived with version 7, off',
+        );
+        expect(await deliveries.pairing(), isNull);
+        expect(await deliveries.forSession(_completedSession), isEmpty);
+        expect(await deliveries.pendingRevocations(), isEmpty);
+      }
 
       final all = await events.watchAll().first;
       expect(all.map((event) => event.id), [_active, _draft, _archived]);

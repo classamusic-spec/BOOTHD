@@ -468,8 +468,8 @@ final class DriftGalleryRepository implements GalleryRepository {
     }),
   );
 
-  /// Deletes [ids]' rows and journals their files. Runs inside a
-  /// transaction.
+  /// Deletes [ids]' rows and journals their files and texted copies. Runs
+  /// inside a transaction.
   Future<DeletionReceipt> _deleteSessionRows(Set<String> ids) async {
     final sessions = await (_db.select(
       _db.captureSessions,
@@ -513,6 +513,26 @@ final class DriftGalleryRepository implements GalleryRepository {
       ],
     ];
     await _journal(paths);
+    // A texted copy hosted by the delivery service goes too: revoked there
+    // when the booth is next online (AC-0917).
+    final delivered = await (_db.select(
+      _db.deliveryIntents,
+    )..where((i) => i.sessionId.isIn(found) & i.remoteJobId.isNotNull())).get();
+    if (delivered.isNotEmpty) {
+      final now = _clock.now();
+      await _db.batch(
+        (batch) => batch.insertAll(_db.deliveryRemoteRevocations, [
+          for (final intent in delivered)
+            DeliveryRemoteRevocationsCompanion.insert(
+              remoteJobId: intent.remoteJobId!,
+              requestedAt: now,
+            ),
+        ], mode: InsertMode.insertOrIgnore),
+      );
+    }
+    await (_db.delete(
+      _db.deliveryIntents,
+    )..where((i) => i.sessionId.isIn(found))).go();
     await (_db.delete(
       _db.exportBatchItems,
     )..where((i) => i.sessionId.isIn(found))).go();

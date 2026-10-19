@@ -9,6 +9,7 @@ import '../../core/design_system/porcelain_theme.dart';
 import '../../shared/guest/guest_layout.dart';
 import '../../shared/widgets/porcelain_button.dart';
 import 'booth_copy.dart';
+import 'delivery_copy.dart';
 import 'guest_parts.dart';
 
 /// S27 Finished (CR-001 fix 11, CR-002): the finished photo as saved,
@@ -16,12 +17,19 @@ import 'guest_parts.dart';
 /// "Saved to the booth gallery", a large Next guest, and a note that the
 /// booth resets by itself. No print button: there is no printer (A-13),
 /// and nothing here suggests the guest takes a print away.
+///
+/// With [onTextPhotos] it is S30 Delivery choice (UX-PD1): Text my photos
+/// as the main action and No thanks, finish beside it, never a condition
+/// of finishing; with [offline], a note that the text can only go if the
+/// booth reconnects.
 class GuestFinished extends StatelessWidget {
   const GuestFinished({
     super.key,
     required this.photo,
     required this.aspect,
     required this.onNextGuest,
+    this.onTextPhotos,
+    this.offline = false,
   });
 
   final Uint8List photo;
@@ -29,6 +37,12 @@ class GuestFinished extends StatelessWidget {
   /// The finished photo's width over height.
   final double aspect;
   final VoidCallback onNextGuest;
+
+  /// Offered when the event texts photos and the service is ready (S30).
+  final VoidCallback? onTextPhotos;
+
+  /// The text would wait for a connection.
+  final bool offline;
 
   @override
   Widget build(BuildContext context) {
@@ -107,13 +121,40 @@ class GuestFinished extends StatelessWidget {
                         style: scale.text(theme.text.guestBody),
                       ),
                       SizedBox(height: scale(PorcelainSpace.xxxl)),
-                      PorcelainButton(
-                        label: BoothCopy.nextGuest,
-                        icon: PorcelainIcons.nextGuest,
-                        size: PorcelainButtonSize.guest,
-                        caps: true,
-                        onPressed: onNextGuest,
-                      ),
+                      if (onTextPhotos case final textPhotos?) ...[
+                        PorcelainButton(
+                          label: DeliveryCopy.textMyPhotos,
+                          icon: PorcelainIcons.textMessage,
+                          variant: PorcelainButtonVariant.primary,
+                          size: PorcelainButtonSize.guest,
+                          caps: true,
+                          onPressed: textPhotos,
+                        ),
+                        SizedBox(height: scale(PorcelainSpace.md)),
+                        PorcelainButton(
+                          label: DeliveryCopy.noThanksFinish,
+                          size: PorcelainButtonSize.large,
+                          onPressed: onNextGuest,
+                        ),
+                        if (offline) ...[
+                          SizedBox(height: scale(PorcelainSpace.md)),
+                          ConstrainedBox(
+                            constraints: BoxConstraints(maxWidth: scale(400)),
+                            child: Text(
+                              DeliveryCopy.offlineNote,
+                              textAlign: TextAlign.center,
+                              style: scale.text(theme.text.guestCaption),
+                            ),
+                          ),
+                        ],
+                      ] else
+                        PorcelainButton(
+                          label: BoothCopy.nextGuest,
+                          icon: PorcelainIcons.nextGuest,
+                          size: PorcelainButtonSize.guest,
+                          caps: true,
+                          onPressed: onNextGuest,
+                        ),
                       SizedBox(height: scale(PorcelainSpace.md)),
                       ConstrainedBox(
                         constraints: BoxConstraints(maxWidth: scale(380)),

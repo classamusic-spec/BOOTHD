@@ -118,7 +118,7 @@ Booth diagnostics show when the worker and the webhooks last ran.
    a verified toll-free number).
 2. Registration material: the operator's brand, the use case
    (transactional, one text per consenting guest, no marketing), the
-   consent screen exported from the app (Event > Delivery > Export consent
+   consent screen exported from the app (Event > Texting > Export consent
    proof), the privacy and terms URLs, and the sample message from
    `OPERATIONS.md`.
 3. Messaging Service > Integration > incoming messages: webhook
@@ -160,7 +160,7 @@ curl -sS -X POST $API/v1/admin/tenants/<tenant-id>/pairing-codes -H "$AUTH"
 
 On the booth: Studio > Settings > Phone delivery > enter the service
 address and the code. The booth then shows the service's readiness; each
-event turns texting on in its Delivery tab.
+event turns texting on in its Texting tab.
 
 Staging: approve each test phone first
 (`POST /v1/admin/tenants/<id>/test-recipients` with `phone` and `label`).

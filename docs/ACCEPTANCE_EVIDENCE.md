@@ -803,3 +803,80 @@ Owner approval requested: YES (after M10, as instructed: "approve start M08-M10"
   session or Storage stay on the welcome screen (flow test).
 - Export history records the platform's destination identifier, counts
   and file names: no guest data.
+
+## M09: optional phone delivery (MMS preview and private link)
+
+```text
+Milestone: M09 | code commits ebc71bd (backend), PART2 (booth, screens, docs) | build 0.1.0+1
+Host: same Linux cloud VM as M00 to M08 (4 cores, no KVM, no macOS, no attached devices)
+Flutter 3.47.7 / Dart 3.13.5; no new Dart packages; schema version 7
+Backend: Deno 2.9.6, PostgreSQL 16 (local), npm:postgres 3.4.9, npm:twilio 6.2.0 (webhook validator only)
+iPad: BLOCKED (no physical iPad, no Mac)
+Android: builds PASS; no physical tablet
+Live delivery: BLOCKED. No domain, no Supabase project, no Twilio account, no sender
+  registration, no legal review, no test phones, no carrier. Nothing is deployed and no
+  real text has been sent. Every live row below is BLOCKED, never inferred from mocks.
+Tested on the host: the booth app against a stand-in delivery service; the backend
+  against a real Postgres with a stand-in Twilio API and in-memory storage; the app's
+  real HTTP client against the real backend running locally (contract run).
+Owner approval requested: YES (after M10, as instructed: "approve start M08-M10")
+```
+
+### Commands and exit codes (2026-10-19 UTC)
+
+| # | Command | Exit | Result |
+| --- | --- | --- | --- |
+| 1 | `tool/check.sh` on the M09 booth tree | 0 | 20 min 24 s. Generated code current (build_runner and `drift_dev make-migrations` changed nothing, schema v7 dump, steps and test schemas included). Format: 381 files, 0 changed. Analyze: no issues. Tests: 2,729 passed, 2 skipped (device comparison; the live contract test, run in row 3), 0 failed. Licence report current. A few test files changed after its format and analyze steps ran (the preview maker test, two fakes); re-run on the final tree: `dart format --output=none --set-exit-if-changed .` exit 0 (382 files, 0 changed), `flutter analyze` exit 0 (no issues) |
+| 2 | `backend/tool/test.sh` (Postgres 16 on 127.0.0.1) | 0 | `deno fmt --check` 44 files, `deno lint` 42 files, `deno check`, `deno test`: 67 passed, 0 failed |
+| 3 | `tool/delivery_contract.sh` (the backend running locally with its Twilio stand-in) | 0 | The app's real `HttpDeliveryApi` and `JpegPreviewMaker` against the real backend: pairing with an issued code, readiness, a consented delivery, both uploads with their checks, the stand-in provider's HEAD and GET of the preview, the guest page and the download (the exact bytes of the finished photo), sent then delivered, revocation (the link answers 410). 1 test, passed |
+| 4 | `flutter test --reporter json` on the M09 files | 0 | `delivery_rules_test.dart` 9, `delivery_service_test.dart` 17, `http_delivery_api_test.dart` 6, `jpeg_preview_maker_test.dart` 1, `guest_delivery_flow_test.dart` 18 (the main flow at six tablet sizes), `delivery_operator_test.dart` 9, `migration_test.dart` 13 (v7 included); 0 failed; the screen catalog's 14 texting screens: 224 checks (overflow at six sizes, 200% text, tap targets, labels, contrast in three themes, no dead controls); 34 new goldens and the changed Settings and event editor goldens (a new section row and tab) |
+BUILD_ROWS
+
+### Acceptance items
+
+| AC | Status | Evidence |
+| --- | --- | --- |
+| AC-0901 Delivery off by default until provider readiness + operator enable; capture/render/gallery offline with delivery disabled | PASS (host); device BLOCKED | Backend: a tenant starts with sending off; it can be enabled only with provider settings, an attested registration and legal review, and an https public address (`pairing_test.ts` "sending is off until every gate is open", "without provider settings nothing can be enabled"). Booth: events default off (`delivery_rules_test.dart`); S34's switch is disabled with "Pair this booth first" until paired and ready (`delivery_operator_test.dart`); guests are not offered texting when the event, the pairing or the service says no (`guest_delivery_flow_test.dart`, three cases). Every M07 and M08 test passes unchanged with texting off; an unpaired booth makes no network request |
+| AC-0902 Finished photo saved before phone prompt; No thanks exits without intent/upload/send | PASS (host); device BLOCKED | S30 appears only on the verified finished screen ("Saved to the booth gallery."); "No thanks, finish" and S31's "No thanks" leave no request, no stored number and no service call (`guest_delivery_flow_test.dart`); intake refuses a delivery without a consent receipt (`intake_test.ts`) |
+| AC-0903 E.164 validation, initial US-only region, masked UI/logs; input cleared on guest reset | PASS (host); device BLOCKED | One rule set on both sides, checked against shared vectors (`phone_cases.json`: `delivery_rules_test.dart`, `unit_test.ts`); Canadian, Caribbean and territory codes refused as unsupported. Operators see `•••-•••-0147` only; the booth database keeps the last four digits only (flow test reads the row); logs never carry numbers (`unit_test.ts`, `security_test.ts`). The booth's own timeout wipes a half-typed number and the next guest starts empty (flow test) |
+| AC-0904 Separate unchecked consent with version/time/event/source; no send without receipt; no marketing | PASS (host); legal review BLOCKED | The box starts unchecked; a number alone, or checking and unchecking, never enables sending; a confirmation shows the number before anything is stored (flow test). The receipt (version `pd-consent-1`, SHA-256 of the exact text, time, event, session, screen S31, locale) is stored immutably by the service and checked against the booth's text (`intake_test.ts`). One transactional text; no list. The wording is a draft awaiting legal review (prerequisite 7) |
+| AC-0905 iPad/Android guest screens: portrait/landscape, accessible keypad, offline status, 7-day expiry disclosure | PASS (host); device BLOCKED | S30 to S32 at six tablet sizes in both orientations: no overflow, 200% text, tap targets, labels, contrast in three themes, no dead controls (screen catalog, 14 texting screens, 224 checks); the keypad's keys are labelled and the number is read out with its country; turning the tablet keeps the number and the box; the consent text states the link's life; offline guests read that the text may come later or not at all. Goldens: 22 booth and 12 Studio images. On tablets: M09 device procedure section 2 |
+| AC-0906 Local durable queue survives restart/offline, retries safely on reconnect within 24h, expires erasing phone PII | PASS (host); device BLOCKED | Over the real database: requests are stored before anything leaves; offline requests wait with backoff and are sent on reconnect; requests the event did not allow to wait are dropped with the number erased; a request not handed over expires 24 hours after consent and loses its number; the queue survives a restart (`delivery_service_test.dart`); the service expires unsent deliveries after 24 hours (`retention_test.ts`). Photos are untouched throughout. Background sending: not attempted by design (ADR-0015) |
+| AC-0907 Pairing, scoped token revocation, quotas and per-recipient throttles | PASS (host) | Single-use 30-minute pairing codes; 256-bit credentials stored hashed; 15-minute tokens; rotation with a 10-minute grace; a revoked booth is shut out at once; another booth cannot see or touch a delivery; per-number (3 an hour, 6 a day), per-booth, per-tenant, per-event and monthly budget limits (`pairing_test.ts`, `intake_test.ts`, `security_test.ts`). Pairing attempts are also limited per network address (10 in 10 minutes; in code, not separately tested). The booth refuses non-https service addresses before any request and keeps only its credential (`delivery_operator_test.dart`, `http_delivery_api_test.dart`) |
+| AC-0908 Only final composition + preview uploaded, validated, private; never raw originals | PASS (host) | Exactly two upload grants; type read from the bytes, size, SHA-256 and pixel size must match the declaration; incomplete or oversize files refused (`dispatch_test.ts`); the booth uploads the session's finished photo and a preview made from it, nothing else (`delivery_service_test.dart`); private buckets only (`adapters_test.ts`) |
+| AC-0909 Preview via limited provider-fetchable GET/HEAD URL, HTTPS/MIME, byte budget under 5MB; original private | PASS (host); live provider fetch BLOCKED | `/m/{token}`: GET and HEAD with the right headers (including `no-store`), 60 minutes, then refused; never the finished photo; preview and download links not interchangeable (`links_test.ts`). The real preview maker: a JPEG of the whole photo, at most 1024 px, under the budget (600 kB default, always under 5 MB), stepping down rather than going over (`jpeg_preview_maker_test.dart`). Twilio fetching it: BLOCKED |
+| AC-0910 Guest token >=128 bits, hashed, 7-day default expiry/revoke, non-indexed page, private short-lived access | PASS (host) | Link tokens 256 bits, stored as SHA-256; links expire after their days; revocation; the page is `noindex`, `no-referrer`, CSP, no cookies or analytics, rate limited; downloads are short-lived private grants (`links_test.ts`, `unit_test.ts`) |
+| AC-0911 Twilio credentials server-side only; US sender registration and consent artifacts confirmed; no live send without approval | BLOCKED (registration); host parts PASS | No messaging, storage or database secret exists in the app (code and the APK scan, row 8); the service refuses to send until registration and legal review are attested (`pairing_test.ts`); the consent proof is exportable for registration (S34). Sender registration and the approval itself: BLOCKED, no account |
+| AC-0912 Real MMS on a certified US phone with preview + private link; high-res file exact dimensions | BLOCKED | No sender, phone or carrier. Host part: the download is the exact finished photo, byte for byte, as an attachment (`links_test.ts`; contract run row 3) |
+| AC-0913 Provider callbacks verified with official validation; statuses mapped; no false received claims | PASS (host); live callbacks BLOCKED | Twilio's own `validateRequest` (`npm:twilio@6.2.0`); accepted, sent, delivered, undelivered and failed mapped, forward only; only delivered reads "Delivery confirmed", never "read" (`webhooks_test.ts`, `unit_test.ts`, `delivery_rules_test.dart`, `delivery_operator_test.dart`); a record the service no longer holds keeps its last report (`delivery_service_test.dart`) |
+| AC-0914 STOP blocks later sends; HELP works; no duplicate replies | PASS (host); live carrier BLOCKED | STOP adds the number's keyed digest to suppression and ends its unsent deliveries; START lifts it; HELP gets empty TwiML so the Messaging Service answers once (`webhooks_test.ts`, `intake_test.ts`). The guest sees "This number opted out of our texts" (flow test) |
+| AC-0915 No duplicate sends on double taps / repeated callbacks; ambiguous timeouts become UNKNOWN; no blind retries | PASS (host) | Idempotency keys (a repeat returns the same delivery; a reused key with other content is refused); leased dispatch; retry only after definite non-submission; timeouts and dead workers become unknown and are reconciled by link hash, else an operator decides; "Send again" needs an explicit acknowledgement of the duplicate risk (`dispatch_test.ts`, `intake_test.ts`, `delivery_service_test.dart`, `delivery_operator_test.dart`) |
+| AC-0916 Rate limit, spend estimate, unsupported destination, storage, bad upload, expiring preview, provider outage handled | PASS (host) | Limits and budget (`intake_test.ts`); provider rate limit retried safely (`dispatch_test.ts`); unsupported numbers refused with guest-safe words; bad uploads refused; expired preview refused; storage trouble during purge retried (`retention_test.ts`); a finished photo that cannot be read or previewed ends the request with nothing uploaded and the number erased (`delivery_service_test.dart`); the event's estimated cost is shown (S34) |
+| AC-0917 Expiry and revoke make download inaccessible; hosted media and provider media deleted; recall limits documented | PASS (host); provider media deletion live BLOCKED | Revocation and expiry give honest pages; hosted files purged at link end, provider media deleted (stand-in) (`links_test.ts`, `retention_test.ts`); "Turn link off" in S35 after a confirmation that says a delivered text cannot be recalled (`delivery_operator_test.dart`); session deletion journals revocation (`delivery_service_test.dart`) |
+| AC-0918 Webhook signature regression tests; no secrets in app binary; logs redact phone/token/PII | PASS (host) | Unsigned, tampered or foreign webhooks refused (`webhooks_test.ts`); a full delivery leaves no number, token or credential in logs or tables (`security_test.ts`); the release APK contains no Twilio, Supabase service or private key material (row 8); the booth's diagnostics export is redacted (OPERATIONS.md section 8) |
+| AC-0919 Download page works on iPhone and Android; no indexing or unapproved analytics; honest expired errors | PASS (host page); phones BLOCKED | Headers, noindex, no analytics, honest expired/revoked/deleted pages (`links_test.ts`). Rendering on real iPhone and Android browsers: BLOCKED (device procedure section 7) |
+| AC-0920 Live tests log certified booth, carrier, phone, sanitized SID, consent proof, result | BLOCKED | Nothing live has run. The procedure and what to record: `docs/device_tests/M09_DEVICE_PROCEDURE.md` |
+| AC-0921 Staging/production separation, migration/rollback/deletion jobs, incident docs, monthly review | PASS (documents and code); no environment deployed | Staging sends only to approved test numbers (`intake_test.ts`); one migration with row-level security on (`security_test.ts`); retention worker and its scheduler (`retention_test.ts`, setup guide section 6); incidents, rollback and the monthly review (`docs/delivery/OPERATIONS.md`). No staging or production environment exists yet |
+| AC-0922 No guest trapped waiting; booth resets after timeout without exposing number or prior photos | PASS (host); device BLOCKED | Done is always offered and the guest never waits for the text; touches restart the finish timeout, walking away resets the booth and wipes the number; the next welcome shows nothing of the last guest; texting screens offer no way out of Booth Mode, no browser and no share sheet (`guest_delivery_flow_test.dart`) |
+
+### M09 exit gate
+
+| Gate | Status |
+| --- | --- |
+| One explicitly consenting guest on either certified tablet receives the preview MMS with a valid full-quality link, while non-consenting/offline/failed sessions remain safe, accessible and truthful | BLOCKED for the live half: no tablet, sender, registration, phone or carrier. Host: the consenting, non-consenting, offline and failed paths are implemented and pass end to end against stand-ins, and the app's real HTTP client against the real backend locally (row 3) |
+
+### Security and privacy notes (M09)
+
+- The app holds one secret: its booth credential, in platform secure
+  storage. Pending numbers sit in secure storage only until handed over
+  (or the request ends); the database keeps the last four digits.
+- Network: only the operator's delivery service, only over HTTPS, only
+  when paired. Android release builds now declare `INTERNET` (row 5);
+  cleartext stays off.
+- The backend never logs numbers, tokens or links; numbers are encrypted
+  at rest and erased when no longer needed; opt-outs are keyed digests.
+- What cannot be done by software: recalling a delivered message or a
+  carrier's copy, guaranteeing delivery, knowing a text was read. Every
+  screen says so where it matters.
+- Legal review, sender registration and pricing checks are owner tasks
+  before any live use (`docs/delivery/PREREQUISITES.md`).

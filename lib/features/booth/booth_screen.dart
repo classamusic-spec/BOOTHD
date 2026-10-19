@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +9,8 @@ import 'package:go_router/go_router.dart';
 import '../../core/access/access_controller.dart';
 import '../../core/booth/booth_providers.dart';
 import '../../core/booth/booth_session_controller.dart';
+import '../../core/delivery/delivery_providers.dart';
+import '../../core/delivery/delivery_service.dart';
 import '../../core/design_system/porcelain_metrics.dart';
 import '../../core/design_system/porcelain_motion.dart';
 import '../../core/design_system/porcelain_theme.dart';
@@ -25,6 +28,7 @@ import '../../shared/widgets/porcelain_spinner.dart';
 import 'booth_copy.dart';
 import 'booth_event_theme.dart';
 import 'guest_camera_stage.dart';
+import 'guest_delivery.dart';
 import 'guest_finished.dart';
 import 'guest_notices.dart';
 import 'guest_review.dart';
@@ -250,11 +254,7 @@ class _BoothSessionViewState extends ConsumerState<BoothSessionView> {
         onKeep: _session.keep,
       ),
       _Screen.rendering => const GuestRendering(),
-      _Screen.finished => GuestFinished(
-        photo: _session.finishedPhoto!,
-        aspect: _session.output!.widthPx / _session.output!.heightPx,
-        onNextGuest: () => unawaited(_session.nextGuest()),
-      ),
+      _Screen.finished => _FinishedStep(event: event, session: _session),
       _Screen.paused => GuestPaused(
         photosSoFar: photosSoFar,
         onContinue: _session.resume,
@@ -400,6 +400,97 @@ class _GuestNotice extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// S27 Finished, or S30 to S32 when the event texts photos (M09): whether
+/// texting is offered is decided once, when the screen opens, from the
+/// event, the pairing and what the service last said. Until then, and
+/// whenever texting is off or unavailable, the plain finished screen.
+class _FinishedStep extends ConsumerStatefulWidget {
+  const _FinishedStep({required this.event, required this.session});
+
+  final BoothEvent event;
+  final BoothSessionController session;
+
+  @override
+  ConsumerState<_FinishedStep> createState() => _FinishedStepState();
+}
+
+class _FinishedStepState extends ConsumerState<_FinishedStep> {
+  DeliveryOffer? _offer;
+  DeliveryTerms? _terms;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_decide());
+  }
+
+  Future<void> _decide() async {
+    if (!widget.event.delivery.enabled) return;
+    try {
+      final offer = await ref
+          .read(deliveryServiceProvider)
+          .offerFor(widget.event.delivery);
+      final capabilities =
+          (await ref.read(deliveryRepositoryProvider).pairing())?.capabilities;
+      if (!mounted || capabilities == null) return;
+      setState(() {
+        _offer = offer;
+        _terms = DeliveryTerms(
+          brand: capabilities.brandName,
+          privacyUrl: capabilities.privacyUrl,
+          termsUrl: capabilities.termsUrl,
+          supportContact: capabilities.supportContact,
+        );
+      });
+    } on Object {
+      // Texting is optional: the guest sees the plain finished screen.
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final session = widget.session;
+    final output = session.output!;
+    final photo = session.finishedPhoto!;
+    final aspect = output.widthPx / output.heightPx;
+    final terms = _terms;
+    final offer = _offer;
+    if (terms == null ||
+        (offer != DeliveryOffer.online && offer != DeliveryOffer.queued)) {
+      return GuestFinished(
+        photo: photo,
+        aspect: aspect,
+        onNextGuest: () => unawaited(session.nextGuest()),
+      );
+    }
+    return GuestDeliveryFlow(
+      photo: photo,
+      aspect: aspect,
+      offline: offer == DeliveryOffer.queued,
+      terms: terms,
+      linkDays: widget.event.delivery.linkDays,
+      onSubmit: (phone, consent) async {
+        final intent = await ref
+            .read(deliveryServiceProvider)
+            .submit(
+              event: widget.event,
+              output: output,
+              phone: phone,
+              consent: consent,
+              acceptedAtUtc: ref.read(clockProvider).now(),
+            );
+        return intent.id;
+      },
+      watch: (id) => ref
+          .read(deliveryRepositoryProvider)
+          .watchSession(output.sessionId)
+          .map((intents) => intents.firstWhereOrNull((i) => i.id == id)),
+      onActivity: session.touch,
+      onFinish: () => unawaited(session.nextGuest()),
     );
   }
 }

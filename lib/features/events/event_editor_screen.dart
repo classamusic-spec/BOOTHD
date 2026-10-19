@@ -27,6 +27,7 @@ import '../../shared/widgets/skeleton.dart';
 import '../../shared/widgets/status_badge.dart';
 import '../../shared/widgets/tone.dart';
 import 'editor/capture_tab.dart';
+import 'editor/delivery_tab.dart';
 import 'editor/editor_parts.dart';
 import 'editor/general_tab.dart';
 import 'editor/guest_tab.dart';
@@ -43,7 +44,8 @@ enum EventEditorTab {
   templates('Templates', PorcelainIcons.templates),
   capture('Camera', PorcelainIcons.camera),
   output('Output', PorcelainIcons.outputFormat),
-  privacy('Privacy', PorcelainIcons.privacy);
+  privacy('Privacy', PorcelainIcons.privacy),
+  delivery('Texting', PorcelainIcons.textMessage);
 
   const EventEditorTab(this.label, this.icon);
 
@@ -69,7 +71,7 @@ enum EventEditorTab {
   };
 }
 
-/// The event editor (S04): six sections, saved together and atomically.
+/// The event editor (S04): seven sections, saved together and atomically.
 /// Unsaved changes are guarded; archived events are read-only until
 /// reopened. Validation is live: problems that stop saving, and those that
 /// only stop activation, are listed above the section with a way to them.
@@ -368,6 +370,7 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
         ),
         EventEditorTab.output => OutputTab(tab: tabContext),
         EventEditorTab.privacy => PrivacyTab(tab: tabContext),
+        EventEditorTab.delivery => DeliveryTab(tab: tabContext),
       },
     );
 

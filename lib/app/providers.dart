@@ -15,11 +15,15 @@ import '../infrastructure/composition/dart_ui_composition_renderer.dart';
 import '../infrastructure/database/booth_database.dart';
 import '../infrastructure/database/database_connection.dart';
 import '../infrastructure/database/drift_booth_settings_repository.dart';
+import '../infrastructure/database/drift_delivery_repository.dart';
 import '../infrastructure/database/drift_event_repository.dart';
 import '../infrastructure/database/drift_gallery_repository.dart';
 import '../infrastructure/database/drift_operator_access_repository.dart';
 import '../infrastructure/database/drift_session_repository.dart';
 import '../infrastructure/database/drift_template_catalog.dart';
+import '../infrastructure/delivery/http_delivery_api.dart';
+import '../infrastructure/delivery/jpeg_preview_maker.dart';
+import '../infrastructure/delivery/secure_delivery_secrets.dart';
 import '../infrastructure/device/device_capability_probe.dart';
 import '../infrastructure/device/platform_device_storage.dart';
 import '../infrastructure/file_store/file_export_service.dart';
@@ -199,6 +203,12 @@ List<Override> productionOverrides() => [
       root: getApplicationSupportDirectory,
     ),
   ),
+  deliveryRepositoryProvider.overrideWith(
+    (ref) => DriftDeliveryRepository(ref.watch(_boothDatabaseProvider)),
+  ),
+  deliveryApiProvider.overrideWith((ref) => HttpDeliveryApi()),
+  deliverySecretsProvider.overrideWithValue(SecureDeliverySecrets()),
+  previewMakerProvider.overrideWithValue(const JpegPreviewMaker()),
   boothCapabilityProbeProvider.overrideWith(
     (ref) => DeviceCapabilityProbe(
       ref.watch(_managedStorageProvider),

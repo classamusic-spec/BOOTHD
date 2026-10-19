@@ -124,6 +124,22 @@ abstract final class PorcelainIcons {
   static const IconData rename = Symbols.drive_file_rename_outline_rounded;
   static const IconData share = Symbols.ios_share_rounded;
   static const IconData upload = Symbols.upload_file_rounded;
+
+  // Phone delivery (M09).
+  static const IconData textMessage = Symbols.sms_rounded;
+  static const IconData phone = Symbols.smartphone_rounded;
+  static const IconData send = Symbols.send_rounded;
+  static const IconData delivered = Symbols.mark_chat_read_rounded;
+  static const IconData queued = Symbols.schedule_rounded;
+  static const IconData offline = Symbols.cloud_off_rounded;
+  static const IconData online = Symbols.cloud_done_rounded;
+  static const IconData link = Symbols.link_rounded;
+  static const IconData linkOff = Symbols.link_off_rounded;
+  static const IconData pause = Symbols.pause_circle_rounded;
+  static const IconData pairing = Symbols.key_rounded;
+  static const IconData refresh = Symbols.sync_rounded;
+  static const IconData help = Symbols.help_rounded;
+  static const IconData blocked = Symbols.do_not_disturb_on_rounded;
   static const IconData alignLeft = Symbols.format_align_left_rounded;
   static const IconData alignCenter = Symbols.format_align_center_rounded;
   static const IconData alignRight = Symbols.format_align_right_rounded;
