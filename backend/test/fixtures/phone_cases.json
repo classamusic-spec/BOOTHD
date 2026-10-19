@@ -1,0 +1,24 @@
+{
+  "comment": "Shared test vectors for the booth app (Dart) and the delivery backend (TypeScript): both must agree on every case.",
+  "cases": [
+    { "input": "+1 (212) 555-0147", "e164": "+12125550147", "last4": "0147" },
+    { "input": "212-555-0147", "e164": "+12125550147", "last4": "0147" },
+    { "input": "1 212 555 0147", "e164": "+12125550147", "last4": "0147" },
+    { "input": "(415) 867.5309", "e164": "+14158675309", "last4": "5309" },
+    { "input": "+12065550100", "e164": "+12065550100", "last4": "0100" },
+    { "input": "212555014", "problem": "PHONE_INVALID" },
+    { "input": "21255501477", "problem": "PHONE_INVALID" },
+    { "input": "(112) 555-0147", "problem": "PHONE_INVALID" },
+    { "input": "(212) 155-0147", "problem": "PHONE_INVALID" },
+    { "input": "(911) 555-0147", "problem": "PHONE_INVALID" },
+    { "input": "(212) 411-0147", "problem": "PHONE_INVALID" },
+    { "input": "(555) 555-0147", "problem": "PHONE_INVALID" },
+    { "input": "(900) 555-0147", "problem": "PHONE_INVALID" },
+    { "input": "call me", "problem": "PHONE_INVALID" },
+    { "input": "", "problem": "PHONE_INVALID" },
+    { "input": "+44 20 7946 0958", "problem": "PHONE_REGION_UNSUPPORTED" },
+    { "input": "+1 416 555 0147", "problem": "PHONE_REGION_UNSUPPORTED" },
+    { "input": "+1 876 555 0147", "problem": "PHONE_REGION_UNSUPPORTED" },
+    { "input": "+1 787 555 0147", "problem": "PHONE_REGION_UNSUPPORTED" }
+  ]
+}

@@ -1,0 +1,11 @@
+# Supabase CLI settings for the phone-delivery backend (M09, ADR-0015).
+# Only the parts this project relies on; see
+# docs/delivery/SETUP_AND_CREDENTIALS.md for the full setup.
+
+project_id = "porcelain-delivery"
+
+[functions.delivery]
+# Twilio's webhooks and the guest's download page carry no Supabase JWT;
+# the function authenticates every request itself (booth access tokens,
+# Twilio signatures, bearer grants, the administrator token).
+verify_jwt = false

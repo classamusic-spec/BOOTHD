@@ -1,0 +1,723 @@
+openapi: 3.1.0
+info:
+  title: Porcelain Photo Booth phone delivery
+  version: 1.0.0
+  summary: Consented MMS preview plus private full-quality download link (M09, ADR-0015).
+  description: |
+    The optional phone-delivery service. Booths never hold provider or
+    database credentials: they pair once with an administrator's code,
+    keep a revocable credential in platform secure storage and exchange it
+    for 15-minute access tokens. Twilio reaches this service only through
+    signed webhooks and the short-lived preview link; guests only through
+    their bearer download link.
+
+    Rules every client relies on:
+    - No delivery exists without an accepted consent receipt; nothing is
+      sent until both images are uploaded and verified.
+    - `status` values describe the provider's reports honestly:
+      `submitted` (accepted by the provider) and `sent` never mean the
+      guest received anything; `delivered` only follows the provider's
+      delivered report and still says nothing about reading.
+    - Errors carry a stable `error.code`; clients show their own words.
+    - Paths may be served under a platform prefix such as
+      `/functions/v1/delivery`; tokens are 43 base64url characters
+      (256 bits) and are stored server-side only as SHA-256 hashes.
+servers:
+  - url: https://photos.example.invalid
+    description: Placeholder. Each operator's own HTTPS domain (never example.com).
+tags:
+  - name: Booth
+  - name: Deliveries
+  - name: Administrator
+  - name: Provider
+  - name: Guest
+security: []
+paths:
+  /v1/booths/pair:
+    post:
+      tags: [Booth]
+      summary: Exchange a single-use pairing code for a booth credential.
+      description: Rate limited per network (10 per 10 minutes). Unknown, used and expired codes all answer PAIRING_CODE_INVALID.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code, boothName]
+              properties:
+                code: { type: string, example: 'K7QM-4XHT-9ZPA', description: 'Case, spaces and hyphens ignored; I and L read as 1, O as 0.' }
+                boothName: { type: string, minLength: 1, maxLength: 40 }
+      responses:
+        '201':
+          description: Paired. The credential is shown once; store it in platform secure storage.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [boothId, boothName, credential, brandName]
+                properties:
+                  boothId: { type: string, format: uuid }
+                  boothName: { type: string }
+                  credential: { $ref: '#/components/schemas/Token' }
+                  brandName: { type: string }
+        '400': { $ref: '#/components/responses/Error' }
+        '429': { $ref: '#/components/responses/Error' }
+  /v1/booths/token:
+    post:
+      tags: [Booth]
+      summary: Exchange the booth credential for a 15-minute access token.
+      security: [{ boothCredential: [] }]
+      responses:
+        '200':
+          description: Access token.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [accessToken, expiresAt, boothId]
+                properties:
+                  accessToken: { $ref: '#/components/schemas/Token' }
+                  expiresAt: { type: string, format: date-time }
+                  boothId: { type: string, format: uuid }
+        '401': { $ref: '#/components/responses/Error' }
+        '429': { $ref: '#/components/responses/Error' }
+  /v1/booths/rotate:
+    post:
+      tags: [Booth]
+      summary: Replace the booth credential. The old one keeps working for 10 minutes.
+      security: [{ boothAccess: [] }]
+      responses:
+        '200':
+          description: The new credential.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [credential]
+                properties:
+                  credential: { $ref: '#/components/schemas/Token' }
+        '401': { $ref: '#/components/responses/Error' }
+  /v1/delivery/capabilities:
+    get:
+      tags: [Booth]
+      summary: Whether this booth may send now, and with which limits.
+      security: [{ boothAccess: [] }]
+      responses:
+        '200':
+          description: Capabilities. No secrets and no phone numbers.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Capabilities' }
+        '401': { $ref: '#/components/responses/Error' }
+  /v1/deliveries:
+    post:
+      tags: [Deliveries]
+      summary: Create a delivery with the guest's consent receipt.
+      description: |
+        Refused before anything is stored when consent is missing or old,
+        the number is invalid or outside the certified region, sending is
+        not ready, the number opted out, or a limit is reached. A repeated
+        request with the same idempotency key and content returns the same
+        delivery (200); the same key with other content is refused (409).
+        The same photo to the same number within an hour is DUPLICATE_REQUEST.
+      security: [{ boothAccess: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateDelivery' }
+      responses:
+        '201': { $ref: '#/components/responses/Delivery' }
+        '200': { $ref: '#/components/responses/Delivery' }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403':
+          description: RECIPIENT_OPTED_OUT, RECIPIENT_NOT_APPROVED (staging).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '409':
+          description: SENDING_NOT_READY (with reasons), IDEMPOTENCY_KEY_REUSED, DUPLICATE_REQUEST (with deliveryId).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '422':
+          description: CONSENT_REQUIRED, CONSENT_EXPIRED, CONSENT_TIME_INVALID, PHONE_INVALID, PHONE_REGION_UNSUPPORTED, LINK_DAYS_TOO_LONG.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '429':
+          description: RECIPIENT_RATE_LIMITED, BOOTH_DAILY_LIMIT, DAILY_LIMIT, EVENT_LIMIT, BUDGET_REACHED.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+  /v1/deliveries/{id}/upload-init:
+    post:
+      tags: [Deliveries]
+      summary: Declare the two images and get one single-use upload grant for each.
+      description: Only the finished photo (`final`) and its MMS preview (`preview`, JPEG) can be uploaded; there is no grant for camera originals. Re-declaring while uploading replaces both grants.
+      security: [{ boothAccess: [] }]
+      parameters: [{ $ref: '#/components/parameters/DeliveryId' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [final, preview]
+              properties:
+                final:
+                  allOf: [{ $ref: '#/components/schemas/ImageDeclaration' }]
+                  required: [format]
+                preview:
+                  $ref: '#/components/schemas/ImageDeclaration'
+      responses:
+        '200':
+          description: Two upload grants (15 minutes).
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [uploads]
+                properties:
+                  uploads:
+                    type: array
+                    minItems: 2
+                    maxItems: 2
+                    items:
+                      type: object
+                      required: [kind, method, url, contentType, bytes, expiresAt]
+                      properties:
+                        kind: { type: string, enum: [final, preview] }
+                        method: { type: string, const: PUT }
+                        url: { type: string, format: uri }
+                        contentType: { type: string, enum: [image/jpeg, image/png] }
+                        bytes: { type: integer }
+                        expiresAt: { type: string, format: date-time }
+        '409': { $ref: '#/components/responses/Error' }
+        '422':
+          description: PREVIEW_TOO_LARGE, FINAL_TOO_LARGE (with maxBytes), PREVIEW_MUST_BE_JPEG, PREVIEW_LARGER_THAN_FINAL.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+  /v1/uploads/{token}:
+    put:
+      tags: [Deliveries]
+      summary: Upload one image under its grant.
+      description: The bytes must match the declaration exactly; the type is read from the bytes, the pixel size from the image header, and the file must be complete.
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema: { $ref: '#/components/schemas/Token' }
+      requestBody:
+        required: true
+        content:
+          image/jpeg: { schema: { type: string, format: binary } }
+          image/png: { schema: { type: string, format: binary } }
+      responses:
+        '201':
+          description: Stored and verified.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  kind: { type: string, enum: [final, preview] }
+                  bytes: { type: integer }
+                  sha256: { type: string, pattern: '^[0-9a-f]{64}$' }
+                  width: { type: integer }
+                  height: { type: integer }
+        '404': { $ref: '#/components/responses/Error' }
+        '409':
+          description: UPLOAD_GRANT_USED, DELIVERY_NOT_UPLOADABLE, UPLOAD_SUPERSEDED.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '410': { $ref: '#/components/responses/Error' }
+        '413': { $ref: '#/components/responses/Error' }
+        '422':
+          description: UPLOAD_SIZE_MISMATCH, UPLOAD_CHECKSUM_MISMATCH, UPLOAD_NOT_IMAGE, UPLOAD_TRUNCATED, UPLOAD_TYPE_MISMATCH, UPLOAD_DIMENSIONS_MISMATCH.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '503': { $ref: '#/components/responses/Error' }
+  /v1/deliveries/{id}/commit:
+    post:
+      tags: [Deliveries]
+      summary: Both images are uploaded; dispatch the delivery.
+      description: Dispatched within this request when possible, else by the worker. Repeating a commit returns the delivery as it is.
+      security: [{ boothAccess: [] }]
+      parameters: [{ $ref: '#/components/parameters/DeliveryId' }]
+      responses:
+        '200': { $ref: '#/components/responses/Delivery' }
+        '409':
+          description: UPLOAD_INCOMPLETE, SENDING_NOT_READY.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+  /v1/deliveries/{id}:
+    get:
+      tags: [Deliveries]
+      summary: The delivery's state and history (owner booth only).
+      security: [{ boothAccess: [] }]
+      parameters: [{ $ref: '#/components/parameters/DeliveryId' }]
+      responses:
+        '200': { $ref: '#/components/responses/Delivery' }
+        '404': { $ref: '#/components/responses/Error' }
+  /v1/deliveries/{id}/cancel:
+    post:
+      tags: [Deliveries]
+      summary: Cancel before submission; hosted images are deleted and the number erased.
+      security: [{ boothAccess: [] }]
+      parameters: [{ $ref: '#/components/parameters/DeliveryId' }]
+      responses:
+        '200': { $ref: '#/components/responses/Delivery' }
+        '409':
+          description: DELIVERY_IN_FLIGHT, DELIVERY_OUTCOME_UNKNOWN (use resolve), DELIVERY_ALREADY_SUBMITTED.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+  /v1/deliveries/{id}/revoke:
+    post:
+      tags: [Deliveries]
+      summary: Turn the download link off, delete the hosted images and the provider's media copy where allowed.
+      description: Texts and images already on phones or with carriers cannot be recalled.
+      security: [{ boothAccess: [] }]
+      parameters: [{ $ref: '#/components/parameters/DeliveryId' }]
+      responses:
+        '200': { $ref: '#/components/responses/Delivery' }
+        '409': { $ref: '#/components/responses/Error' }
+  /v1/deliveries/{id}/resolve:
+    post:
+      tags: [Deliveries]
+      summary: An operator decides a delivery whose submission outcome stayed unknown.
+      security: [{ boothAccess: [] }]
+      parameters: [{ $ref: '#/components/parameters/DeliveryId' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action: { type: string, enum: [close, resend] }
+                acknowledgeDuplicateRisk:
+                  type: boolean
+                  description: Required (true) for resend; the guest may receive two texts. The first link is turned off.
+      responses:
+        '200': { $ref: '#/components/responses/Delivery' }
+        '409':
+          description: DELIVERY_NOT_UNKNOWN, DELIVERY_WINDOW_ENDED.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '422': { $ref: '#/components/responses/Error' }
+  /v1/diagnostics/upload-test:
+    post:
+      tags: [Booth]
+      summary: Check a fixture image like an upload, store nothing, send nothing.
+      security: [{ boothAccess: [] }]
+      requestBody:
+        required: true
+        content:
+          image/jpeg: { schema: { type: string, format: binary, maxLength: 1048576 } }
+      responses:
+        '200':
+          description: What the server read.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  format: { type: string }
+                  width: { type: integer }
+                  height: { type: integer }
+                  bytes: { type: integer }
+                  sha256: { type: string }
+                  stored: { type: boolean, const: false }
+        '422': { $ref: '#/components/responses/Error' }
+  /v1/admin/tenants:
+    post:
+      tags: [Administrator]
+      summary: Create a tenant (operator business). Sending starts off.
+      security: [{ admin: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, brandName, privacyUrl, termsUrl, supportContact]
+              properties:
+                name: { type: string, maxLength: 80 }
+                brandName: { type: string, maxLength: 40 }
+                privacyUrl: { type: string, pattern: '^https://' }
+                termsUrl: { type: string, pattern: '^https://' }
+                supportContact: { type: string, maxLength: 120 }
+      responses:
+        '201': { $ref: '#/components/responses/Tenant' }
+        '401': { $ref: '#/components/responses/Error' }
+  /v1/admin/tenants/{id}:
+    patch:
+      tags: [Administrator]
+      summary: Limits and the operator's sending switch (emergency off).
+      security: [{ admin: [] }]
+      parameters: [{ $ref: '#/components/parameters/TenantId' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sendingEnabled: { type: boolean }
+                dailySendLimit: { type: integer, minimum: 0, maximum: 100000 }
+                eventSendLimit: { type: integer, minimum: 0, maximum: 100000 }
+                monthlyBudgetCents: { type: integer, minimum: 0 }
+                estimatedCostMillicents: { type: integer, minimum: 1 }
+                linkDaysDefault: { type: integer, minimum: 1, maximum: 30 }
+                linkDaysMax: { type: integer, minimum: 1, maximum: 30 }
+                previewMaxBytes: { type: integer, minimum: 50000, maximum: 4999999 }
+      responses:
+        '200': { $ref: '#/components/responses/Tenant' }
+  /v1/admin/tenants/{id}/attestations:
+    post:
+      tags: [Administrator]
+      summary: Record (or withdraw) the sender registration and the legal review, from evidence.
+      security: [{ admin: [] }]
+      parameters: [{ $ref: '#/components/parameters/TenantId' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                registration: { type: boolean }
+                registrationReference: { type: string, description: 'Campaign or verification reference; required with registration true.' }
+                legalReview: { type: boolean }
+      responses:
+        '200': { $ref: '#/components/responses/Tenant' }
+  /v1/admin/tenants/{id}/pairing-codes:
+    post:
+      tags: [Administrator]
+      summary: A single-use pairing code valid for 30 minutes.
+      security: [{ admin: [] }]
+      parameters: [{ $ref: '#/components/parameters/TenantId' }]
+      responses:
+        '201':
+          description: The code, shown once.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: string }
+                  expiresAt: { type: string, format: date-time }
+  /v1/admin/tenants/{id}/test-recipients:
+    post:
+      tags: [Administrator]
+      summary: Approve a test number for staging (stored as a keyed digest).
+      security: [{ admin: [] }]
+      parameters: [{ $ref: '#/components/parameters/TenantId' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone, label]
+              properties:
+                phone: { type: string }
+                label: { type: string, maxLength: 40 }
+      responses:
+        '201': { description: Approved. }
+  /v1/admin/tenants/{id}/summary:
+    get:
+      tags: [Administrator]
+      summary: This month's deliveries by state and the estimated spend (an estimate, not a bill).
+      security: [{ admin: [] }]
+      parameters: [{ $ref: '#/components/parameters/TenantId' }]
+      responses:
+        '200': { description: Summary. }
+  /v1/admin/booths/{id}/revoke:
+    post:
+      tags: [Administrator]
+      summary: Revoke a booth; its credential and tokens stop at once.
+      security: [{ admin: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200': { description: Revoked. }
+  /v1/admin/suppressions:
+    post:
+      tags: [Administrator]
+      summary: Block a number manually.
+      security: [{ admin: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone]
+              properties:
+                phone: { type: string }
+      responses:
+        '201': { description: Blocked. }
+  /v1/admin/worker/run:
+    post:
+      tags: [Administrator]
+      summary: One worker pass (called every minute by the scheduler) - expired leases, dispatch, reconciliation, retention.
+      security: [{ admin: [] }]
+      responses:
+        '200': { description: What the pass did. }
+  /webhooks/twilio/status:
+    post:
+      tags: [Provider]
+      summary: Twilio message status callback.
+      description: X-Twilio-Signature is verified with Twilio's official library against this exact public URL; AccountSid must match. Idempotent per message and status; forward-only.
+      parameters:
+        - { name: X-Twilio-Signature, in: header, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [AccountSid, MessageSid, MessageStatus]
+              properties:
+                AccountSid: { type: string }
+                MessageSid: { type: string }
+                MessageStatus: { type: string }
+                ErrorCode: { type: string }
+      responses:
+        '204': { description: Recorded (or a duplicate). }
+        '403': { $ref: '#/components/responses/Error' }
+  /webhooks/twilio/inbound:
+    post:
+      tags: [Provider]
+      summary: Inbound messages - STOP, START and HELP keywords.
+      description: STOP suppresses the number and ends its unsent deliveries; START lifts an opt-out the number made; HELP and STOP replies come from the Messaging Service's own configured responses (this endpoint answers with empty TwiML, so there are no duplicate replies).
+      parameters:
+        - { name: X-Twilio-Signature, in: header, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                AccountSid: { type: string }
+                From: { type: string }
+                Body: { type: string }
+                OptOutType: { type: string, enum: [STOP, START, HELP] }
+      responses:
+        '200':
+          description: Empty TwiML.
+          content:
+            text/xml: { schema: { type: string } }
+        '403': { $ref: '#/components/responses/Error' }
+  /m/{token}:
+    get:
+      tags: [Provider]
+      summary: The MMS preview for Twilio's media fetch (60 minutes).
+      description: Never the finished photo. 404 for unknown tokens, 410 once expired, revoked or deleted.
+      parameters:
+        - { name: token, in: path, required: true, schema: { $ref: '#/components/schemas/Token' } }
+      responses:
+        '200':
+          description: The preview JPEG with Content-Type, Content-Length, Content-Disposition inline, Cache-Control no-store, X-Robots-Tag noindex.
+          content:
+            image/jpeg: { schema: { type: string, format: binary } }
+        '404': { $ref: '#/components/responses/Error' }
+        '410': { $ref: '#/components/responses/Error' }
+    head:
+      tags: [Provider]
+      summary: Headers of the preview, as GET.
+      parameters:
+        - { name: token, in: path, required: true, schema: { $ref: '#/components/schemas/Token' } }
+      responses:
+        '200': { description: Headers only. }
+        '404': { description: Unknown. }
+        '410': { description: Expired, revoked or deleted. }
+  /p/{token}:
+    get:
+      tags: [Guest]
+      summary: The guest's download page (S33).
+      description: No scripts, no third-party requests, noindex, no referrer, no caching. Rate limited per network. Expired, revoked, deleted, used-up and unavailable links get honest pages that say nothing about the guest or the event.
+      parameters:
+        - { name: token, in: path, required: true, schema: { $ref: '#/components/schemas/Token' } }
+      responses:
+        '200': { description: The page., content: { text/html: { schema: { type: string } } } }
+        '404': { description: Not found page. }
+        '410': { description: Expired, revoked, deleted or used-up page. }
+        '429': { description: Busy page. }
+        '503': { description: Temporarily unavailable page. }
+  /p/{token}/preview.jpg:
+    get:
+      tags: [Guest]
+      summary: The preview shown on the page (under the download grant).
+      parameters:
+        - { name: token, in: path, required: true, schema: { $ref: '#/components/schemas/Token' } }
+      responses:
+        '200': { description: JPEG., content: { image/jpeg: { schema: { type: string, format: binary } } } }
+  /p/{token}/download:
+    get:
+      tags: [Guest]
+      summary: The full-quality finished photo as an attachment (counted against the grant's limit).
+      parameters:
+        - { name: token, in: path, required: true, schema: { $ref: '#/components/schemas/Token' } }
+      responses:
+        '200':
+          description: The exact uploaded finished photo.
+          content:
+            image/jpeg: { schema: { type: string, format: binary } }
+            image/png: { schema: { type: string, format: binary } }
+components:
+  securitySchemes:
+    boothCredential:
+      type: http
+      scheme: bearer
+      description: The booth's long-lived credential (from pairing); used only to get access tokens.
+    boothAccess:
+      type: http
+      scheme: bearer
+      description: A 15-minute booth access token.
+    admin:
+      type: http
+      scheme: bearer
+      description: The administrator token; its SHA-256 is the only form the service holds. Never on a booth.
+  parameters:
+    DeliveryId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    TenantId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  responses:
+    Error:
+      description: An error with a stable code.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Delivery:
+      description: The delivery as the booth may see it.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Delivery' }
+    Tenant:
+      description: The tenant with its readiness.
+      content:
+        application/json:
+          schema: { type: object }
+  schemas:
+    Token:
+      type: string
+      pattern: '^[A-Za-z0-9_-]{43}$'
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code]
+          properties:
+            code: { type: string, example: RECIPIENT_OPTED_OUT }
+          additionalProperties: true
+    ImageDeclaration:
+      type: object
+      required: [bytes, sha256, width, height]
+      properties:
+        format: { type: string, enum: [jpeg, png], description: 'final only; previews are JPEG.' }
+        bytes: { type: integer, minimum: 1 }
+        sha256: { type: string, pattern: '^[0-9a-f]{64}$' }
+        width: { type: integer, minimum: 1 }
+        height: { type: integer, minimum: 1 }
+    CreateDelivery:
+      type: object
+      required: [eventId, eventName, sessionId, outputId, phone, idempotencyKey, linkDays, eventSendLimit, consent]
+      properties:
+        eventId: { type: string, format: uuid }
+        eventName: { type: string, maxLength: 80 }
+        sessionId: { type: string, format: uuid }
+        outputId: { type: string, format: uuid }
+        phone: { type: string, description: 'E.164 (+1...) or US digits; only US numbers are accepted in release 1.' }
+        idempotencyKey: { type: string, pattern: '^[0-9A-Za-z-]{16,64}$', description: 'One per deliberate submission.' }
+        linkDays: { type: integer, minimum: 1, maximum: 30 }
+        eventSendLimit: { type: integer, minimum: 1 }
+        consent:
+          type: object
+          required: [accepted, textVersion, textDigest, acceptedAt, locale, sourceScreen]
+          properties:
+            accepted: { type: boolean, const: true }
+            textVersion: { type: string, example: pd-consent-1 }
+            textDigest: { type: string, pattern: '^[0-9a-f]{64}$', description: SHA-256 of the exact consent text shown. }
+            acceptedAt: { type: string, format: date-time, description: 'UTC; the delivery expires 24 hours later if not sent.' }
+            locale: { type: string, example: en-US }
+            sourceScreen: { type: string, example: S31 }
+    Delivery:
+      type: object
+      required: [id, state, status, recipientLast4, history]
+      properties:
+        id: { type: string, format: uuid }
+        state:
+          type: string
+          enum: [created, uploading, dispatch_pending, dispatching, provider_accepted, provider_sent, delivered, failed_retryable, failed_permanent, delivery_unknown, expired, canceled]
+        status:
+          type: string
+          enum: [queued, uploading, submitting, submitted, sent, delivered, failed, unknown, expired, canceled]
+        recipientLast4: { type: string, pattern: '^[0-9]{4}$' }
+        eventId: { type: string }
+        sessionId: { type: string }
+        outputId: { type: string }
+        attempts: { type: integer }
+        failureCode: { type: [string, 'null'] }
+        reviewReason: { type: [string, 'null'], description: 'NOT_FOUND_AT_PROVIDER etc.: an operator must resolve.' }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        expiresAt: { type: string, format: date-time }
+        dispatchedAt: { type: [string, 'null'], format: date-time }
+        linkExpiresAt: { type: [string, 'null'], format: date-time }
+        linkRevokedAt: { type: [string, 'null'], format: date-time }
+        hostedFilesDeleted: { type: boolean }
+        history:
+          type: array
+          items:
+            type: object
+            properties:
+              state: { type: string }
+              status: { type: string }
+              code: { type: [string, 'null'] }
+              at: { type: string, format: date-time }
+    Capabilities:
+      type: object
+      required: [apiVersion, sending, regions, linkDays, queueHours, previewMaxBytes]
+      properties:
+        apiVersion: { type: integer, const: 1 }
+        environment: { type: string, enum: [production, staging, test] }
+        booth: { type: object, properties: { id: { type: string }, name: { type: string } } }
+        brandName: { type: string }
+        privacyUrl: { type: string }
+        termsUrl: { type: string }
+        supportContact: { type: string }
+        regions: { type: array, items: { type: string, const: US } }
+        deliveryMode: { type: string, const: mms_with_link }
+        sending:
+          type: object
+          required: [ready, reasons]
+          properties:
+            ready: { type: boolean }
+            reasons:
+              type: array
+              items:
+                type: string
+                enum: [PROVIDER_NOT_CONFIGURED, REGISTRATION_NOT_ATTESTED, LEGAL_REVIEW_NOT_ATTESTED, SENDING_DISABLED, PUBLIC_URL_NOT_HTTPS]
+        linkDays: { type: object, properties: { default: { type: integer }, max: { type: integer } } }
+        queueHours: { type: integer, const: 24 }
+        previewMaxBytes: { type: integer }
+        finalMaxBytes: { type: integer }
+        limits:
+          type: object
+          properties:
+            tenantDailyRemaining: { type: integer }
+            boothDailyRemaining: { type: integer }
+            eventSendLimitMax: { type: integer }
+            monthlyBudgetCents: { type: integer }
+            monthEstimatedCents: { type: integer }
+            estimatedCostMillicents: { type: integer }
+        health:
+          type: object
+          properties:
+            statusWebhookAt: { type: [string, 'null'], format: date-time }
+            inboundWebhookAt: { type: [string, 'null'], format: date-time }
+            dispatchWorkerAt: { type: [string, 'null'], format: date-time }
+            retentionWorkerAt: { type: [string, 'null'], format: date-time }
+        serverTime: { type: string, format: date-time }
