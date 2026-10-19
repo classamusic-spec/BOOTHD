@@ -12,6 +12,7 @@ import 'package:porcelain_photo_booth/domain/repositories/session_repository.dar
 import 'package:porcelain_photo_booth/domain/repositories/storage_errors.dart';
 import 'package:porcelain_photo_booth/domain/repositories/template_store.dart';
 import 'package:porcelain_photo_booth/domain/services/camera_service.dart';
+import 'package:porcelain_photo_booth/domain/services/operator_files.dart';
 import 'package:porcelain_photo_booth/domain/template/template_assets.dart';
 import 'package:porcelain_photo_booth/domain/value_objects/appearance.dart';
 import 'package:porcelain_photo_booth/domain/value_objects/calendar_date.dart';
@@ -20,6 +21,7 @@ import 'package:porcelain_photo_booth/infrastructure/database/booth_database.dar
 import 'package:porcelain_photo_booth/infrastructure/database/database_connection.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_booth_settings_repository.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_event_repository.dart';
+import 'package:porcelain_photo_booth/infrastructure/database/drift_gallery_repository.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_operator_access_repository.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_session_repository.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_template_catalog.dart';
@@ -38,6 +40,7 @@ const _sessionOriginal = '20261114180500-0a1b2c3d';
 const _completedSession = 'c0000000-0000-4000-8000-000000000001';
 const _renderingSession = 'c0000000-0000-4000-8000-000000000002';
 const _sessionOutput = 'd0000000-0000-4000-8000-000000000001';
+const _rerenderOutput = 'd0000000-0000-4000-8000-000000000002';
 const _legacyOriginal = 'm01-spike-still';
 
 String seedFor(int version) =>
@@ -320,11 +323,52 @@ void main() {
         expect(output.relativePath, 'outputs/$_sessionOutput.png');
         expect((output.widthPx, output.heightPx), (1200, 1800));
         expect(output.renderVersion, 2);
+        expect(output.origin, SessionOutputOrigin.session);
         final unfinished = await sessions.unfinished();
         expect(unfinished.single.id, _renderingSession);
         expect(unfinished.single.status, SessionStatus.rendering);
         expect(unfinished.single.renderAttempts, 1);
         expect(unfinished.single.shots.isComplete, isTrue);
+        // Version 6 numbers sessions per event in the order they started.
+        expect(completed.number, 1);
+        expect(unfinished.single.number, 2);
+
+        final gallery = DriftGalleryRepository(
+          db,
+          clock: FakeClock(),
+          templates: catalog,
+        );
+        final listed = await gallery.sessions(_active);
+        expect(listed.map((s) => s.number), [2, 1]);
+        final outputs = await sessions.outputs(_completedSession);
+        final journal = await db.select(db.pendingFileDeletions).get();
+        final detail = (await gallery.detail(_completedSession))!;
+        if (from >= 6) {
+          expect(outputs.map((o) => o.origin), [
+            SessionOutputOrigin.session,
+            SessionOutputOrigin.rerender,
+          ]);
+          expect(listed.last.latestOutput!.id, _rerenderOutput);
+          final export = detail.exports.single;
+          expect(export.outcome, ShareOutcome.shared);
+          expect(
+            export.destination,
+            'com.apple.DocumentManagerUICore.SaveToFiles',
+          );
+          expect(export.fileNames, [
+            'hannah-theo-s-wedding-0001-20261114-1809.png',
+            'hannah-theo-s-wedding-0001-photo2-retake1.jpg',
+          ]);
+          expect(listed.last.lastExportedAtUtc, DateTime.utc(2026, 11, 20, 10));
+          expect(
+            journal.single.relativePath,
+            'originals/20261101120000-deleted0.jpg',
+          );
+        } else {
+          expect(outputs.single.origin, SessionOutputOrigin.session);
+          expect(detail.exports, isEmpty);
+          expect(journal, isEmpty, reason: 'the journal arrived with v6');
+        }
       } else {
         expect(
           await db.select(db.captureSessions).get(),
@@ -388,6 +432,51 @@ void main() {
     expect(
       raw.select('SELECT count(*) FROM original_photos').single.values.single,
       3,
+    );
+  });
+
+  test('session numbers are unique per event and never change; outputs '
+      'name their origin', () async {
+    final schema = await verifier.schemaAt(BoothDatabase.currentSchemaVersion);
+    final raw = schema.rawDatabase..execute(seedFor(6));
+    final seeded = currentCode(schema.newConnection());
+    addTearDown(seeded.close);
+    await seeded.customSelect('SELECT 1').get();
+
+    Future<void> rejects(String sql) => expectLater(
+      seeded.customStatement(sql),
+      throwsA(anything),
+      reason: sql,
+    );
+    await rejects(
+      "UPDATE capture_sessions SET sequence = 7 WHERE id = '$_renderingSession'",
+    );
+    await rejects(
+      "UPDATE capture_sessions SET sequence = 1 WHERE id = '$_renderingSession'",
+    );
+    await rejects(
+      "UPDATE session_outputs SET origin = 'session' "
+      "WHERE id = '$_rerenderOutput'",
+    );
+    await rejects(
+      "INSERT INTO session_outputs VALUES ('d0000000-0000-4000-8000-0000000000ff', "
+      "'$_completedSession', "
+      "'outputs/d0000000-0000-4000-8000-0000000000ff.png', '${'9' * 64}', "
+      "10, 1200, 1800, 'png', 2, '2026-11-20T09:31:00.000Z', 'copied')",
+    );
+    await rejects(
+      "INSERT INTO pending_file_deletions VALUES ('../outside.jpg', "
+      "'2026-11-20T10:05:00.000Z')",
+    );
+    await rejects(
+      "INSERT INTO export_batches VALUES ('f0000000-0000-4000-8000-000000000002', "
+      "'dismissed', NULL, 1, 0, '2026-11-20T10:00:00.000Z')",
+    );
+    expect(
+      raw
+          .select('SELECT sequence FROM capture_sessions ORDER BY sequence')
+          .map((row) => row.values.single),
+      [1, 2],
     );
   });
 

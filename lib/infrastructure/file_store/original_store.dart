@@ -198,7 +198,7 @@ final class OriginalStore implements CapturedStillStore {
         (o) => OrderingTerm.desc(o.id),
       ]);
     if (limit != null) query.limit(limit);
-    return [for (final row in await query.get()) _still(row)];
+    return [for (final row in await query.get()) stillOf(row)];
   }
 
   @override
@@ -206,7 +206,7 @@ final class OriginalStore implements CapturedStillStore {
     final row = await (_database.select(
       _database.originalPhotos,
     )..where((o) => o.id.equals(id))).getSingleOrNull();
-    return row == null ? null : _still(row);
+    return row == null ? null : stillOf(row);
   }
 
   @override
@@ -385,7 +385,8 @@ final class OriginalStore implements CapturedStillStore {
         committedAt: _clock.now(),
       );
 
-  static CapturedStill _still(OriginalPhotoRow row) => CapturedStill(
+  /// [row] as a domain record.
+  static CapturedStill stillOf(OriginalPhotoRow row) => CapturedStill(
     id: row.id,
     relativePath: row.relativePath,
     widthPx: row.widthPx,

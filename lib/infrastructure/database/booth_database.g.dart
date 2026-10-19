@@ -7202,6 +7202,17 @@ class CaptureSessions extends Table
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL REFERENCES events(id)ON DELETE RESTRICT',
   );
+  static const VerificationMeta _sequenceMeta = const VerificationMeta(
+    'sequence',
+  );
+  late final GeneratedColumn<int> sequence = GeneratedColumn<int>(
+    'sequence',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (sequence >= 1)',
+  );
   static const VerificationMeta _templateRevisionIdMeta =
       const VerificationMeta('templateRevisionId');
   late final GeneratedColumn<String> templateRevisionId =
@@ -7315,6 +7326,7 @@ class CaptureSessions extends Table
   List<GeneratedColumn> get $columns => [
     id,
     eventId,
+    sequence,
     templateRevisionId,
     plannedShots,
     planJson,
@@ -7350,6 +7362,14 @@ class CaptureSessions extends Table
       );
     } else if (isInserting) {
       context.missing(_eventIdMeta);
+    }
+    if (data.containsKey('sequence')) {
+      context.handle(
+        _sequenceMeta,
+        sequence.isAcceptableOrUnknown(data['sequence']!, _sequenceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sequenceMeta);
     }
     if (data.containsKey('template_revision_id')) {
       context.handle(
@@ -7424,6 +7444,10 @@ class CaptureSessions extends Table
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {eventId, sequence},
+  ];
+  @override
   CaptureSessionRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return CaptureSessionRow(
@@ -7434,6 +7458,10 @@ class CaptureSessions extends Table
       eventId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}event_id'],
+      )!,
+      sequence: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sequence'],
       )!,
       templateRevisionId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -7500,6 +7528,7 @@ class CaptureSessions extends Table
     'CHECK((status IN (\'completed\', \'abandoned\', \'failed\'))=(ended_at IS NOT NULL))',
     'CHECK((status = \'completed\')=(output_id IS NOT NULL))',
     'CHECK((status IN (\'abandoned\', \'failed\'))=(end_reason IS NOT NULL))',
+    'UNIQUE(event_id, sequence)',
   ];
   @override
   bool get dontWriteConstraints => true;
@@ -7509,6 +7538,7 @@ class CaptureSessionRow extends DataClass
     implements Insertable<CaptureSessionRow> {
   final String id;
   final String eventId;
+  final int sequence;
   final String templateRevisionId;
   final int plannedShots;
   final String planJson;
@@ -7522,6 +7552,7 @@ class CaptureSessionRow extends DataClass
   const CaptureSessionRow({
     required this.id,
     required this.eventId,
+    required this.sequence,
     required this.templateRevisionId,
     required this.plannedShots,
     required this.planJson,
@@ -7538,6 +7569,7 @@ class CaptureSessionRow extends DataClass
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['event_id'] = Variable<String>(eventId);
+    map['sequence'] = Variable<int>(sequence);
     map['template_revision_id'] = Variable<String>(templateRevisionId);
     map['planned_shots'] = Variable<int>(plannedShots);
     map['plan_json'] = Variable<String>(planJson);
@@ -7567,6 +7599,7 @@ class CaptureSessionRow extends DataClass
     return CaptureSessionsCompanion(
       id: Value(id),
       eventId: Value(eventId),
+      sequence: Value(sequence),
       templateRevisionId: Value(templateRevisionId),
       plannedShots: Value(plannedShots),
       planJson: Value(planJson),
@@ -7594,6 +7627,7 @@ class CaptureSessionRow extends DataClass
     return CaptureSessionRow(
       id: serializer.fromJson<String>(json['id']),
       eventId: serializer.fromJson<String>(json['event_id']),
+      sequence: serializer.fromJson<int>(json['sequence']),
       templateRevisionId: serializer.fromJson<String>(
         json['template_revision_id'],
       ),
@@ -7618,6 +7652,7 @@ class CaptureSessionRow extends DataClass
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'event_id': serializer.toJson<String>(eventId),
+      'sequence': serializer.toJson<int>(sequence),
       'template_revision_id': serializer.toJson<String>(templateRevisionId),
       'planned_shots': serializer.toJson<int>(plannedShots),
       'plan_json': serializer.toJson<String>(planJson),
@@ -7638,6 +7673,7 @@ class CaptureSessionRow extends DataClass
   CaptureSessionRow copyWith({
     String? id,
     String? eventId,
+    int? sequence,
     String? templateRevisionId,
     int? plannedShots,
     String? planJson,
@@ -7651,6 +7687,7 @@ class CaptureSessionRow extends DataClass
   }) => CaptureSessionRow(
     id: id ?? this.id,
     eventId: eventId ?? this.eventId,
+    sequence: sequence ?? this.sequence,
     templateRevisionId: templateRevisionId ?? this.templateRevisionId,
     plannedShots: plannedShots ?? this.plannedShots,
     planJson: planJson ?? this.planJson,
@@ -7666,6 +7703,7 @@ class CaptureSessionRow extends DataClass
     return CaptureSessionRow(
       id: data.id.present ? data.id.value : this.id,
       eventId: data.eventId.present ? data.eventId.value : this.eventId,
+      sequence: data.sequence.present ? data.sequence.value : this.sequence,
       templateRevisionId: data.templateRevisionId.present
           ? data.templateRevisionId.value
           : this.templateRevisionId,
@@ -7690,6 +7728,7 @@ class CaptureSessionRow extends DataClass
     return (StringBuffer('CaptureSessionRow(')
           ..write('id: $id, ')
           ..write('eventId: $eventId, ')
+          ..write('sequence: $sequence, ')
           ..write('templateRevisionId: $templateRevisionId, ')
           ..write('plannedShots: $plannedShots, ')
           ..write('planJson: $planJson, ')
@@ -7708,6 +7747,7 @@ class CaptureSessionRow extends DataClass
   int get hashCode => Object.hash(
     id,
     eventId,
+    sequence,
     templateRevisionId,
     plannedShots,
     planJson,
@@ -7725,6 +7765,7 @@ class CaptureSessionRow extends DataClass
       (other is CaptureSessionRow &&
           other.id == this.id &&
           other.eventId == this.eventId &&
+          other.sequence == this.sequence &&
           other.templateRevisionId == this.templateRevisionId &&
           other.plannedShots == this.plannedShots &&
           other.planJson == this.planJson &&
@@ -7740,6 +7781,7 @@ class CaptureSessionRow extends DataClass
 class CaptureSessionsCompanion extends UpdateCompanion<CaptureSessionRow> {
   final Value<String> id;
   final Value<String> eventId;
+  final Value<int> sequence;
   final Value<String> templateRevisionId;
   final Value<int> plannedShots;
   final Value<String> planJson;
@@ -7754,6 +7796,7 @@ class CaptureSessionsCompanion extends UpdateCompanion<CaptureSessionRow> {
   const CaptureSessionsCompanion({
     this.id = const Value.absent(),
     this.eventId = const Value.absent(),
+    this.sequence = const Value.absent(),
     this.templateRevisionId = const Value.absent(),
     this.plannedShots = const Value.absent(),
     this.planJson = const Value.absent(),
@@ -7769,6 +7812,7 @@ class CaptureSessionsCompanion extends UpdateCompanion<CaptureSessionRow> {
   CaptureSessionsCompanion.insert({
     required String id,
     required String eventId,
+    required int sequence,
     required String templateRevisionId,
     required int plannedShots,
     required String planJson,
@@ -7782,6 +7826,7 @@ class CaptureSessionsCompanion extends UpdateCompanion<CaptureSessionRow> {
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        eventId = Value(eventId),
+       sequence = Value(sequence),
        templateRevisionId = Value(templateRevisionId),
        plannedShots = Value(plannedShots),
        planJson = Value(planJson),
@@ -7791,6 +7836,7 @@ class CaptureSessionsCompanion extends UpdateCompanion<CaptureSessionRow> {
   static Insertable<CaptureSessionRow> custom({
     Expression<String>? id,
     Expression<String>? eventId,
+    Expression<int>? sequence,
     Expression<String>? templateRevisionId,
     Expression<int>? plannedShots,
     Expression<String>? planJson,
@@ -7806,6 +7852,7 @@ class CaptureSessionsCompanion extends UpdateCompanion<CaptureSessionRow> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (eventId != null) 'event_id': eventId,
+      if (sequence != null) 'sequence': sequence,
       if (templateRevisionId != null)
         'template_revision_id': templateRevisionId,
       if (plannedShots != null) 'planned_shots': plannedShots,
@@ -7824,6 +7871,7 @@ class CaptureSessionsCompanion extends UpdateCompanion<CaptureSessionRow> {
   CaptureSessionsCompanion copyWith({
     Value<String>? id,
     Value<String>? eventId,
+    Value<int>? sequence,
     Value<String>? templateRevisionId,
     Value<int>? plannedShots,
     Value<String>? planJson,
@@ -7839,6 +7887,7 @@ class CaptureSessionsCompanion extends UpdateCompanion<CaptureSessionRow> {
     return CaptureSessionsCompanion(
       id: id ?? this.id,
       eventId: eventId ?? this.eventId,
+      sequence: sequence ?? this.sequence,
       templateRevisionId: templateRevisionId ?? this.templateRevisionId,
       plannedShots: plannedShots ?? this.plannedShots,
       planJson: planJson ?? this.planJson,
@@ -7861,6 +7910,9 @@ class CaptureSessionsCompanion extends UpdateCompanion<CaptureSessionRow> {
     }
     if (eventId.present) {
       map['event_id'] = Variable<String>(eventId.value);
+    }
+    if (sequence.present) {
+      map['sequence'] = Variable<int>(sequence.value);
     }
     if (templateRevisionId.present) {
       map['template_revision_id'] = Variable<String>(templateRevisionId.value);
@@ -7907,6 +7959,7 @@ class CaptureSessionsCompanion extends UpdateCompanion<CaptureSessionRow> {
     return (StringBuffer('CaptureSessionsCompanion(')
           ..write('id: $id, ')
           ..write('eventId: $eventId, ')
+          ..write('sequence: $sequence, ')
           ..write('templateRevisionId: $templateRevisionId, ')
           ..write('plannedShots: $plannedShots, ')
           ..write('planJson: $planJson, ')
@@ -8514,6 +8567,16 @@ class SessionOutputs extends Table
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL',
   );
+  late final GeneratedColumnWithTypeConverter<SessionOutputOrigin, String>
+  origin = GeneratedColumn<String>(
+    'origin',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT \'session\' CHECK (origin IN (\'session\', \'rerender\'))',
+    defaultValue: const CustomExpression('\'session\''),
+  ).withConverter<SessionOutputOrigin>(SessionOutputs.$converterorigin);
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -8526,6 +8589,7 @@ class SessionOutputs extends Table
     format,
     renderVersion,
     createdAt,
+    origin,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -8665,6 +8729,12 @@ class SessionOutputs extends Table
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
       )!,
+      origin: SessionOutputs.$converterorigin.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}origin'],
+        )!,
+      ),
     );
   }
 
@@ -8675,6 +8745,10 @@ class SessionOutputs extends Table
 
   static JsonTypeConverter2<OutputFormat, String, String> $converterformat =
       const EnumNameConverter<OutputFormat>(OutputFormat.values);
+  static JsonTypeConverter2<SessionOutputOrigin, String, String>
+  $converterorigin = const EnumNameConverter<SessionOutputOrigin>(
+    SessionOutputOrigin.values,
+  );
   @override
   bool get dontWriteConstraints => true;
 }
@@ -8691,6 +8765,7 @@ class SessionOutputRow extends DataClass
   final OutputFormat format;
   final int renderVersion;
   final DateTime createdAt;
+  final SessionOutputOrigin origin;
   const SessionOutputRow({
     required this.id,
     required this.sessionId,
@@ -8702,6 +8777,7 @@ class SessionOutputRow extends DataClass
     required this.format,
     required this.renderVersion,
     required this.createdAt,
+    required this.origin,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -8720,6 +8796,11 @@ class SessionOutputRow extends DataClass
     }
     map['render_version'] = Variable<int>(renderVersion);
     map['created_at'] = Variable<DateTime>(createdAt);
+    {
+      map['origin'] = Variable<String>(
+        SessionOutputs.$converterorigin.toSql(origin),
+      );
+    }
     return map;
   }
 
@@ -8735,6 +8816,7 @@ class SessionOutputRow extends DataClass
       format: Value(format),
       renderVersion: Value(renderVersion),
       createdAt: Value(createdAt),
+      origin: Value(origin),
     );
   }
 
@@ -8756,6 +8838,9 @@ class SessionOutputRow extends DataClass
       ),
       renderVersion: serializer.fromJson<int>(json['render_version']),
       createdAt: serializer.fromJson<DateTime>(json['created_at']),
+      origin: SessionOutputs.$converterorigin.fromJson(
+        serializer.fromJson<String>(json['origin']),
+      ),
     );
   }
   @override
@@ -8774,6 +8859,9 @@ class SessionOutputRow extends DataClass
       ),
       'render_version': serializer.toJson<int>(renderVersion),
       'created_at': serializer.toJson<DateTime>(createdAt),
+      'origin': serializer.toJson<String>(
+        SessionOutputs.$converterorigin.toJson(origin),
+      ),
     };
   }
 
@@ -8788,6 +8876,7 @@ class SessionOutputRow extends DataClass
     OutputFormat? format,
     int? renderVersion,
     DateTime? createdAt,
+    SessionOutputOrigin? origin,
   }) => SessionOutputRow(
     id: id ?? this.id,
     sessionId: sessionId ?? this.sessionId,
@@ -8799,6 +8888,7 @@ class SessionOutputRow extends DataClass
     format: format ?? this.format,
     renderVersion: renderVersion ?? this.renderVersion,
     createdAt: createdAt ?? this.createdAt,
+    origin: origin ?? this.origin,
   );
   SessionOutputRow copyWithCompanion(SessionOutputsCompanion data) {
     return SessionOutputRow(
@@ -8818,6 +8908,7 @@ class SessionOutputRow extends DataClass
           ? data.renderVersion.value
           : this.renderVersion,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      origin: data.origin.present ? data.origin.value : this.origin,
     );
   }
 
@@ -8833,7 +8924,8 @@ class SessionOutputRow extends DataClass
           ..write('heightPx: $heightPx, ')
           ..write('format: $format, ')
           ..write('renderVersion: $renderVersion, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('origin: $origin')
           ..write(')'))
         .toString();
   }
@@ -8850,6 +8942,7 @@ class SessionOutputRow extends DataClass
     format,
     renderVersion,
     createdAt,
+    origin,
   );
   @override
   bool operator ==(Object other) =>
@@ -8864,7 +8957,8 @@ class SessionOutputRow extends DataClass
           other.heightPx == this.heightPx &&
           other.format == this.format &&
           other.renderVersion == this.renderVersion &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.origin == this.origin);
 }
 
 class SessionOutputsCompanion extends UpdateCompanion<SessionOutputRow> {
@@ -8878,6 +8972,7 @@ class SessionOutputsCompanion extends UpdateCompanion<SessionOutputRow> {
   final Value<OutputFormat> format;
   final Value<int> renderVersion;
   final Value<DateTime> createdAt;
+  final Value<SessionOutputOrigin> origin;
   final Value<int> rowid;
   const SessionOutputsCompanion({
     this.id = const Value.absent(),
@@ -8890,6 +8985,7 @@ class SessionOutputsCompanion extends UpdateCompanion<SessionOutputRow> {
     this.format = const Value.absent(),
     this.renderVersion = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.origin = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   SessionOutputsCompanion.insert({
@@ -8903,6 +8999,7 @@ class SessionOutputsCompanion extends UpdateCompanion<SessionOutputRow> {
     required OutputFormat format,
     required int renderVersion,
     required DateTime createdAt,
+    this.origin = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        sessionId = Value(sessionId),
@@ -8925,6 +9022,7 @@ class SessionOutputsCompanion extends UpdateCompanion<SessionOutputRow> {
     Expression<String>? format,
     Expression<int>? renderVersion,
     Expression<DateTime>? createdAt,
+    Expression<String>? origin,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -8938,6 +9036,7 @@ class SessionOutputsCompanion extends UpdateCompanion<SessionOutputRow> {
       if (format != null) 'format': format,
       if (renderVersion != null) 'render_version': renderVersion,
       if (createdAt != null) 'created_at': createdAt,
+      if (origin != null) 'origin': origin,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -8953,6 +9052,7 @@ class SessionOutputsCompanion extends UpdateCompanion<SessionOutputRow> {
     Value<OutputFormat>? format,
     Value<int>? renderVersion,
     Value<DateTime>? createdAt,
+    Value<SessionOutputOrigin>? origin,
     Value<int>? rowid,
   }) {
     return SessionOutputsCompanion(
@@ -8966,6 +9066,7 @@ class SessionOutputsCompanion extends UpdateCompanion<SessionOutputRow> {
       format: format ?? this.format,
       renderVersion: renderVersion ?? this.renderVersion,
       createdAt: createdAt ?? this.createdAt,
+      origin: origin ?? this.origin,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -9005,6 +9106,11 @@ class SessionOutputsCompanion extends UpdateCompanion<SessionOutputRow> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (origin.present) {
+      map['origin'] = Variable<String>(
+        SessionOutputs.$converterorigin.toSql(origin.value),
+      );
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -9024,6 +9130,1050 @@ class SessionOutputsCompanion extends UpdateCompanion<SessionOutputRow> {
           ..write('format: $format, ')
           ..write('renderVersion: $renderVersion, ')
           ..write('createdAt: $createdAt, ')
+          ..write('origin: $origin, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class ExportBatches extends Table
+    with TableInfo<ExportBatches, ExportBatchRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  ExportBatches(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL PRIMARY KEY CHECK (length(id) = 36)',
+  );
+  late final GeneratedColumnWithTypeConverter<ShareOutcome, String> outcome =
+      GeneratedColumn<String>(
+        'outcome',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+        $customConstraints:
+            'NOT NULL CHECK (outcome IN (\'shared\', \'unknown\'))',
+      ).withConverter<ShareOutcome>(ExportBatches.$converteroutcome);
+  static const VerificationMeta _destinationMeta = const VerificationMeta(
+    'destination',
+  );
+  late final GeneratedColumn<String> destination = GeneratedColumn<String>(
+    'destination',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints:
+        'CHECK (destination IS NULL OR length(destination) BETWEEN 1 AND 200)',
+  );
+  static const VerificationMeta _fileCountMeta = const VerificationMeta(
+    'fileCount',
+  );
+  late final GeneratedColumn<int> fileCount = GeneratedColumn<int>(
+    'file_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (file_count >= 1)',
+  );
+  static const VerificationMeta _failureCountMeta = const VerificationMeta(
+    'failureCount',
+  );
+  late final GeneratedColumn<int> failureCount = GeneratedColumn<int>(
+    'failure_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (failure_count >= 0)',
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    outcome,
+    destination,
+    fileCount,
+    failureCount,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'export_batches';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ExportBatchRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('destination')) {
+      context.handle(
+        _destinationMeta,
+        destination.isAcceptableOrUnknown(
+          data['destination']!,
+          _destinationMeta,
+        ),
+      );
+    }
+    if (data.containsKey('file_count')) {
+      context.handle(
+        _fileCountMeta,
+        fileCount.isAcceptableOrUnknown(data['file_count']!, _fileCountMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_fileCountMeta);
+    }
+    if (data.containsKey('failure_count')) {
+      context.handle(
+        _failureCountMeta,
+        failureCount.isAcceptableOrUnknown(
+          data['failure_count']!,
+          _failureCountMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_failureCountMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ExportBatchRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ExportBatchRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      outcome: ExportBatches.$converteroutcome.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}outcome'],
+        )!,
+      ),
+      destination: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}destination'],
+      ),
+      fileCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}file_count'],
+      )!,
+      failureCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}failure_count'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  ExportBatches createAlias(String alias) {
+    return ExportBatches(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<ShareOutcome, String, String> $converteroutcome =
+      const EnumNameConverter<ShareOutcome>(ShareOutcome.values);
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class ExportBatchRow extends DataClass implements Insertable<ExportBatchRow> {
+  final String id;
+  final ShareOutcome outcome;
+  final String? destination;
+  final int fileCount;
+  final int failureCount;
+  final DateTime createdAt;
+  const ExportBatchRow({
+    required this.id,
+    required this.outcome,
+    this.destination,
+    required this.fileCount,
+    required this.failureCount,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    {
+      map['outcome'] = Variable<String>(
+        ExportBatches.$converteroutcome.toSql(outcome),
+      );
+    }
+    if (!nullToAbsent || destination != null) {
+      map['destination'] = Variable<String>(destination);
+    }
+    map['file_count'] = Variable<int>(fileCount);
+    map['failure_count'] = Variable<int>(failureCount);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  ExportBatchesCompanion toCompanion(bool nullToAbsent) {
+    return ExportBatchesCompanion(
+      id: Value(id),
+      outcome: Value(outcome),
+      destination: destination == null && nullToAbsent
+          ? const Value.absent()
+          : Value(destination),
+      fileCount: Value(fileCount),
+      failureCount: Value(failureCount),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory ExportBatchRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ExportBatchRow(
+      id: serializer.fromJson<String>(json['id']),
+      outcome: ExportBatches.$converteroutcome.fromJson(
+        serializer.fromJson<String>(json['outcome']),
+      ),
+      destination: serializer.fromJson<String?>(json['destination']),
+      fileCount: serializer.fromJson<int>(json['file_count']),
+      failureCount: serializer.fromJson<int>(json['failure_count']),
+      createdAt: serializer.fromJson<DateTime>(json['created_at']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'outcome': serializer.toJson<String>(
+        ExportBatches.$converteroutcome.toJson(outcome),
+      ),
+      'destination': serializer.toJson<String?>(destination),
+      'file_count': serializer.toJson<int>(fileCount),
+      'failure_count': serializer.toJson<int>(failureCount),
+      'created_at': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  ExportBatchRow copyWith({
+    String? id,
+    ShareOutcome? outcome,
+    Value<String?> destination = const Value.absent(),
+    int? fileCount,
+    int? failureCount,
+    DateTime? createdAt,
+  }) => ExportBatchRow(
+    id: id ?? this.id,
+    outcome: outcome ?? this.outcome,
+    destination: destination.present ? destination.value : this.destination,
+    fileCount: fileCount ?? this.fileCount,
+    failureCount: failureCount ?? this.failureCount,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  ExportBatchRow copyWithCompanion(ExportBatchesCompanion data) {
+    return ExportBatchRow(
+      id: data.id.present ? data.id.value : this.id,
+      outcome: data.outcome.present ? data.outcome.value : this.outcome,
+      destination: data.destination.present
+          ? data.destination.value
+          : this.destination,
+      fileCount: data.fileCount.present ? data.fileCount.value : this.fileCount,
+      failureCount: data.failureCount.present
+          ? data.failureCount.value
+          : this.failureCount,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExportBatchRow(')
+          ..write('id: $id, ')
+          ..write('outcome: $outcome, ')
+          ..write('destination: $destination, ')
+          ..write('fileCount: $fileCount, ')
+          ..write('failureCount: $failureCount, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, outcome, destination, fileCount, failureCount, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ExportBatchRow &&
+          other.id == this.id &&
+          other.outcome == this.outcome &&
+          other.destination == this.destination &&
+          other.fileCount == this.fileCount &&
+          other.failureCount == this.failureCount &&
+          other.createdAt == this.createdAt);
+}
+
+class ExportBatchesCompanion extends UpdateCompanion<ExportBatchRow> {
+  final Value<String> id;
+  final Value<ShareOutcome> outcome;
+  final Value<String?> destination;
+  final Value<int> fileCount;
+  final Value<int> failureCount;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const ExportBatchesCompanion({
+    this.id = const Value.absent(),
+    this.outcome = const Value.absent(),
+    this.destination = const Value.absent(),
+    this.fileCount = const Value.absent(),
+    this.failureCount = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ExportBatchesCompanion.insert({
+    required String id,
+    required ShareOutcome outcome,
+    this.destination = const Value.absent(),
+    required int fileCount,
+    required int failureCount,
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       outcome = Value(outcome),
+       fileCount = Value(fileCount),
+       failureCount = Value(failureCount),
+       createdAt = Value(createdAt);
+  static Insertable<ExportBatchRow> custom({
+    Expression<String>? id,
+    Expression<String>? outcome,
+    Expression<String>? destination,
+    Expression<int>? fileCount,
+    Expression<int>? failureCount,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (outcome != null) 'outcome': outcome,
+      if (destination != null) 'destination': destination,
+      if (fileCount != null) 'file_count': fileCount,
+      if (failureCount != null) 'failure_count': failureCount,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ExportBatchesCompanion copyWith({
+    Value<String>? id,
+    Value<ShareOutcome>? outcome,
+    Value<String?>? destination,
+    Value<int>? fileCount,
+    Value<int>? failureCount,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return ExportBatchesCompanion(
+      id: id ?? this.id,
+      outcome: outcome ?? this.outcome,
+      destination: destination ?? this.destination,
+      fileCount: fileCount ?? this.fileCount,
+      failureCount: failureCount ?? this.failureCount,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (outcome.present) {
+      map['outcome'] = Variable<String>(
+        ExportBatches.$converteroutcome.toSql(outcome.value),
+      );
+    }
+    if (destination.present) {
+      map['destination'] = Variable<String>(destination.value);
+    }
+    if (fileCount.present) {
+      map['file_count'] = Variable<int>(fileCount.value);
+    }
+    if (failureCount.present) {
+      map['failure_count'] = Variable<int>(failureCount.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExportBatchesCompanion(')
+          ..write('id: $id, ')
+          ..write('outcome: $outcome, ')
+          ..write('destination: $destination, ')
+          ..write('fileCount: $fileCount, ')
+          ..write('failureCount: $failureCount, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class ExportBatchItems extends Table
+    with TableInfo<ExportBatchItems, ExportBatchItemRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  ExportBatchItems(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _batchIdMeta = const VerificationMeta(
+    'batchId',
+  );
+  late final GeneratedColumn<String> batchId = GeneratedColumn<String>(
+    'batch_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'NOT NULL REFERENCES export_batches(id)ON DELETE CASCADE',
+  );
+  static const VerificationMeta _sessionIdMeta = const VerificationMeta(
+    'sessionId',
+  );
+  late final GeneratedColumn<String> sessionId = GeneratedColumn<String>(
+    'session_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'NOT NULL REFERENCES capture_sessions(id)ON DELETE CASCADE',
+  );
+  late final GeneratedColumnWithTypeConverter<ExportFileKind, String> kind =
+      GeneratedColumn<String>(
+        'kind',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+        $customConstraints:
+            'NOT NULL CHECK (kind IN (\'finished\', \'original\'))',
+      ).withConverter<ExportFileKind>(ExportBatchItems.$converterkind);
+  static const VerificationMeta _sourceIdMeta = const VerificationMeta(
+    'sourceId',
+  );
+  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>(
+    'source_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (length(source_id) BETWEEN 1 AND 64)',
+  );
+  static const VerificationMeta _fileNameMeta = const VerificationMeta(
+    'fileName',
+  );
+  late final GeneratedColumn<String> fileName = GeneratedColumn<String>(
+    'file_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (length(file_name) BETWEEN 5 AND 120)',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    batchId,
+    sessionId,
+    kind,
+    sourceId,
+    fileName,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'export_batch_items';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ExportBatchItemRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('batch_id')) {
+      context.handle(
+        _batchIdMeta,
+        batchId.isAcceptableOrUnknown(data['batch_id']!, _batchIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_batchIdMeta);
+    }
+    if (data.containsKey('session_id')) {
+      context.handle(
+        _sessionIdMeta,
+        sessionId.isAcceptableOrUnknown(data['session_id']!, _sessionIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sessionIdMeta);
+    }
+    if (data.containsKey('source_id')) {
+      context.handle(
+        _sourceIdMeta,
+        sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceIdMeta);
+    }
+    if (data.containsKey('file_name')) {
+      context.handle(
+        _fileNameMeta,
+        fileName.isAcceptableOrUnknown(data['file_name']!, _fileNameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_fileNameMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {batchId, kind, sourceId};
+  @override
+  ExportBatchItemRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ExportBatchItemRow(
+      batchId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}batch_id'],
+      )!,
+      sessionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}session_id'],
+      )!,
+      kind: ExportBatchItems.$converterkind.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}kind'],
+        )!,
+      ),
+      sourceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_id'],
+      )!,
+      fileName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}file_name'],
+      )!,
+    );
+  }
+
+  @override
+  ExportBatchItems createAlias(String alias) {
+    return ExportBatchItems(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<ExportFileKind, String, String> $converterkind =
+      const EnumNameConverter<ExportFileKind>(ExportFileKind.values);
+  @override
+  List<String> get customConstraints => const [
+    'PRIMARY KEY(batch_id, kind, source_id)',
+  ];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class ExportBatchItemRow extends DataClass
+    implements Insertable<ExportBatchItemRow> {
+  final String batchId;
+  final String sessionId;
+  final ExportFileKind kind;
+  final String sourceId;
+  final String fileName;
+  const ExportBatchItemRow({
+    required this.batchId,
+    required this.sessionId,
+    required this.kind,
+    required this.sourceId,
+    required this.fileName,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['batch_id'] = Variable<String>(batchId);
+    map['session_id'] = Variable<String>(sessionId);
+    {
+      map['kind'] = Variable<String>(
+        ExportBatchItems.$converterkind.toSql(kind),
+      );
+    }
+    map['source_id'] = Variable<String>(sourceId);
+    map['file_name'] = Variable<String>(fileName);
+    return map;
+  }
+
+  ExportBatchItemsCompanion toCompanion(bool nullToAbsent) {
+    return ExportBatchItemsCompanion(
+      batchId: Value(batchId),
+      sessionId: Value(sessionId),
+      kind: Value(kind),
+      sourceId: Value(sourceId),
+      fileName: Value(fileName),
+    );
+  }
+
+  factory ExportBatchItemRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ExportBatchItemRow(
+      batchId: serializer.fromJson<String>(json['batch_id']),
+      sessionId: serializer.fromJson<String>(json['session_id']),
+      kind: ExportBatchItems.$converterkind.fromJson(
+        serializer.fromJson<String>(json['kind']),
+      ),
+      sourceId: serializer.fromJson<String>(json['source_id']),
+      fileName: serializer.fromJson<String>(json['file_name']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'batch_id': serializer.toJson<String>(batchId),
+      'session_id': serializer.toJson<String>(sessionId),
+      'kind': serializer.toJson<String>(
+        ExportBatchItems.$converterkind.toJson(kind),
+      ),
+      'source_id': serializer.toJson<String>(sourceId),
+      'file_name': serializer.toJson<String>(fileName),
+    };
+  }
+
+  ExportBatchItemRow copyWith({
+    String? batchId,
+    String? sessionId,
+    ExportFileKind? kind,
+    String? sourceId,
+    String? fileName,
+  }) => ExportBatchItemRow(
+    batchId: batchId ?? this.batchId,
+    sessionId: sessionId ?? this.sessionId,
+    kind: kind ?? this.kind,
+    sourceId: sourceId ?? this.sourceId,
+    fileName: fileName ?? this.fileName,
+  );
+  ExportBatchItemRow copyWithCompanion(ExportBatchItemsCompanion data) {
+    return ExportBatchItemRow(
+      batchId: data.batchId.present ? data.batchId.value : this.batchId,
+      sessionId: data.sessionId.present ? data.sessionId.value : this.sessionId,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      sourceId: data.sourceId.present ? data.sourceId.value : this.sourceId,
+      fileName: data.fileName.present ? data.fileName.value : this.fileName,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExportBatchItemRow(')
+          ..write('batchId: $batchId, ')
+          ..write('sessionId: $sessionId, ')
+          ..write('kind: $kind, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('fileName: $fileName')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(batchId, sessionId, kind, sourceId, fileName);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ExportBatchItemRow &&
+          other.batchId == this.batchId &&
+          other.sessionId == this.sessionId &&
+          other.kind == this.kind &&
+          other.sourceId == this.sourceId &&
+          other.fileName == this.fileName);
+}
+
+class ExportBatchItemsCompanion extends UpdateCompanion<ExportBatchItemRow> {
+  final Value<String> batchId;
+  final Value<String> sessionId;
+  final Value<ExportFileKind> kind;
+  final Value<String> sourceId;
+  final Value<String> fileName;
+  final Value<int> rowid;
+  const ExportBatchItemsCompanion({
+    this.batchId = const Value.absent(),
+    this.sessionId = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.sourceId = const Value.absent(),
+    this.fileName = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ExportBatchItemsCompanion.insert({
+    required String batchId,
+    required String sessionId,
+    required ExportFileKind kind,
+    required String sourceId,
+    required String fileName,
+    this.rowid = const Value.absent(),
+  }) : batchId = Value(batchId),
+       sessionId = Value(sessionId),
+       kind = Value(kind),
+       sourceId = Value(sourceId),
+       fileName = Value(fileName);
+  static Insertable<ExportBatchItemRow> custom({
+    Expression<String>? batchId,
+    Expression<String>? sessionId,
+    Expression<String>? kind,
+    Expression<String>? sourceId,
+    Expression<String>? fileName,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (batchId != null) 'batch_id': batchId,
+      if (sessionId != null) 'session_id': sessionId,
+      if (kind != null) 'kind': kind,
+      if (sourceId != null) 'source_id': sourceId,
+      if (fileName != null) 'file_name': fileName,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ExportBatchItemsCompanion copyWith({
+    Value<String>? batchId,
+    Value<String>? sessionId,
+    Value<ExportFileKind>? kind,
+    Value<String>? sourceId,
+    Value<String>? fileName,
+    Value<int>? rowid,
+  }) {
+    return ExportBatchItemsCompanion(
+      batchId: batchId ?? this.batchId,
+      sessionId: sessionId ?? this.sessionId,
+      kind: kind ?? this.kind,
+      sourceId: sourceId ?? this.sourceId,
+      fileName: fileName ?? this.fileName,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (batchId.present) {
+      map['batch_id'] = Variable<String>(batchId.value);
+    }
+    if (sessionId.present) {
+      map['session_id'] = Variable<String>(sessionId.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(
+        ExportBatchItems.$converterkind.toSql(kind.value),
+      );
+    }
+    if (sourceId.present) {
+      map['source_id'] = Variable<String>(sourceId.value);
+    }
+    if (fileName.present) {
+      map['file_name'] = Variable<String>(fileName.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExportBatchItemsCompanion(')
+          ..write('batchId: $batchId, ')
+          ..write('sessionId: $sessionId, ')
+          ..write('kind: $kind, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('fileName: $fileName, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class PendingFileDeletions extends Table
+    with TableInfo<PendingFileDeletions, PendingFileDeletionRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  PendingFileDeletions(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _relativePathMeta = const VerificationMeta(
+    'relativePath',
+  );
+  late final GeneratedColumn<String> relativePath = GeneratedColumn<String>(
+    'relative_path',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL PRIMARY KEY CHECK (length(relative_path) BETWEEN 3 AND 255 AND relative_path NOT LIKE \'/%\' AND relative_path NOT LIKE \'%..%\' AND instr(relative_path, char(92)) = 0)',
+  );
+  static const VerificationMeta _queuedAtMeta = const VerificationMeta(
+    'queuedAt',
+  );
+  late final GeneratedColumn<DateTime> queuedAt = GeneratedColumn<DateTime>(
+    'queued_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [relativePath, queuedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'pending_file_deletions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PendingFileDeletionRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('relative_path')) {
+      context.handle(
+        _relativePathMeta,
+        relativePath.isAcceptableOrUnknown(
+          data['relative_path']!,
+          _relativePathMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_relativePathMeta);
+    }
+    if (data.containsKey('queued_at')) {
+      context.handle(
+        _queuedAtMeta,
+        queuedAt.isAcceptableOrUnknown(data['queued_at']!, _queuedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_queuedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {relativePath};
+  @override
+  PendingFileDeletionRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PendingFileDeletionRow(
+      relativePath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}relative_path'],
+      )!,
+      queuedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}queued_at'],
+      )!,
+    );
+  }
+
+  @override
+  PendingFileDeletions createAlias(String alias) {
+    return PendingFileDeletions(attachedDatabase, alias);
+  }
+
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class PendingFileDeletionRow extends DataClass
+    implements Insertable<PendingFileDeletionRow> {
+  final String relativePath;
+  final DateTime queuedAt;
+  const PendingFileDeletionRow({
+    required this.relativePath,
+    required this.queuedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['relative_path'] = Variable<String>(relativePath);
+    map['queued_at'] = Variable<DateTime>(queuedAt);
+    return map;
+  }
+
+  PendingFileDeletionsCompanion toCompanion(bool nullToAbsent) {
+    return PendingFileDeletionsCompanion(
+      relativePath: Value(relativePath),
+      queuedAt: Value(queuedAt),
+    );
+  }
+
+  factory PendingFileDeletionRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PendingFileDeletionRow(
+      relativePath: serializer.fromJson<String>(json['relative_path']),
+      queuedAt: serializer.fromJson<DateTime>(json['queued_at']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'relative_path': serializer.toJson<String>(relativePath),
+      'queued_at': serializer.toJson<DateTime>(queuedAt),
+    };
+  }
+
+  PendingFileDeletionRow copyWith({String? relativePath, DateTime? queuedAt}) =>
+      PendingFileDeletionRow(
+        relativePath: relativePath ?? this.relativePath,
+        queuedAt: queuedAt ?? this.queuedAt,
+      );
+  PendingFileDeletionRow copyWithCompanion(PendingFileDeletionsCompanion data) {
+    return PendingFileDeletionRow(
+      relativePath: data.relativePath.present
+          ? data.relativePath.value
+          : this.relativePath,
+      queuedAt: data.queuedAt.present ? data.queuedAt.value : this.queuedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PendingFileDeletionRow(')
+          ..write('relativePath: $relativePath, ')
+          ..write('queuedAt: $queuedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(relativePath, queuedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PendingFileDeletionRow &&
+          other.relativePath == this.relativePath &&
+          other.queuedAt == this.queuedAt);
+}
+
+class PendingFileDeletionsCompanion
+    extends UpdateCompanion<PendingFileDeletionRow> {
+  final Value<String> relativePath;
+  final Value<DateTime> queuedAt;
+  final Value<int> rowid;
+  const PendingFileDeletionsCompanion({
+    this.relativePath = const Value.absent(),
+    this.queuedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PendingFileDeletionsCompanion.insert({
+    required String relativePath,
+    required DateTime queuedAt,
+    this.rowid = const Value.absent(),
+  }) : relativePath = Value(relativePath),
+       queuedAt = Value(queuedAt);
+  static Insertable<PendingFileDeletionRow> custom({
+    Expression<String>? relativePath,
+    Expression<DateTime>? queuedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (relativePath != null) 'relative_path': relativePath,
+      if (queuedAt != null) 'queued_at': queuedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PendingFileDeletionsCompanion copyWith({
+    Value<String>? relativePath,
+    Value<DateTime>? queuedAt,
+    Value<int>? rowid,
+  }) {
+    return PendingFileDeletionsCompanion(
+      relativePath: relativePath ?? this.relativePath,
+      queuedAt: queuedAt ?? this.queuedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (relativePath.present) {
+      map['relative_path'] = Variable<String>(relativePath.value);
+    }
+    if (queuedAt.present) {
+      map['queued_at'] = Variable<DateTime>(queuedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PendingFileDeletionsCompanion(')
+          ..write('relativePath: $relativePath, ')
+          ..write('queuedAt: $queuedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -9085,7 +10235,7 @@ abstract class _$BoothDatabase extends GeneratedDatabase {
     'CREATE INDEX capture_sessions_by_event ON capture_sessions (event_id, started_at)',
   );
   late final Trigger captureSessionPlansAreImmutable = Trigger(
-    'CREATE TRIGGER capture_session_plans_are_immutable BEFORE UPDATE OF id, event_id, template_revision_id, planned_shots, plan_json, started_at ON capture_sessions BEGIN SELECT RAISE (ABORT, \'a session is frozen to its plan\');END',
+    'CREATE TRIGGER capture_session_plans_are_immutable BEFORE UPDATE OF id, event_id, sequence, template_revision_id, planned_shots, plan_json, started_at ON capture_sessions BEGIN SELECT RAISE (ABORT, \'a session is frozen to its plan\');END',
     'capture_session_plans_are_immutable',
   );
   late final Trigger finishedSessionsAreImmutable = Trigger(
@@ -9105,6 +10255,15 @@ abstract class _$BoothDatabase extends GeneratedDatabase {
   late final Trigger sessionOutputsAreImmutable = Trigger(
     'CREATE TRIGGER session_outputs_are_immutable BEFORE UPDATE ON session_outputs BEGIN SELECT RAISE (ABORT, \'finished photos are immutable\');END',
     'session_outputs_are_immutable',
+  );
+  late final ExportBatches exportBatches = ExportBatches(this);
+  late final ExportBatchItems exportBatchItems = ExportBatchItems(this);
+  late final Index exportBatchItemsBySession = Index(
+    'export_batch_items_by_session',
+    'CREATE INDEX export_batch_items_by_session ON export_batch_items (session_id)',
+  );
+  late final PendingFileDeletions pendingFileDeletions = PendingFileDeletions(
+    this,
   );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -9140,6 +10299,10 @@ abstract class _$BoothDatabase extends GeneratedDatabase {
     sessionOutputs,
     sessionOutputsBySession,
     sessionOutputsAreImmutable,
+    exportBatches,
+    exportBatchItems,
+    exportBatchItemsBySession,
+    pendingFileDeletions,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -9228,6 +10391,20 @@ abstract class _$BoothDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.update,
       ),
       result: [],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'export_batches',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('export_batch_items', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'capture_sessions',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('export_batch_items', kind: UpdateKind.delete)],
     ),
   ]);
   @override
@@ -15039,6 +16216,7 @@ typedef $CaptureSessionsCreateCompanionBuilder =
     CaptureSessionsCompanion Function({
       required String id,
       required String eventId,
+      required int sequence,
       required String templateRevisionId,
       required int plannedShots,
       required String planJson,
@@ -15055,6 +16233,7 @@ typedef $CaptureSessionsUpdateCompanionBuilder =
     CaptureSessionsCompanion Function({
       Value<String> id,
       Value<String> eventId,
+      Value<int> sequence,
       Value<String> templateRevisionId,
       Value<int> plannedShots,
       Value<String> planJson,
@@ -15144,6 +16323,27 @@ final class $CaptureSessionsReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<ExportBatchItems, List<ExportBatchItemRow>>
+  _exportBatchItemsRefsTable(_$BoothDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.exportBatchItems,
+        aliasName: 'capture_sessions__id__export_batch_items__session_id',
+      );
+
+  $ExportBatchItemsProcessedTableManager get exportBatchItemsRefs {
+    final manager = $ExportBatchItemsTableManager(
+      $_db,
+      $_db.exportBatchItems,
+    ).filter((f) => f.sessionId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _exportBatchItemsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $CaptureSessionsFilterComposer
@@ -15157,6 +16357,11 @@ class $CaptureSessionsFilterComposer
   });
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sequence => $composableBuilder(
+    column: $table.sequence,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -15302,6 +16507,31 @@ class $CaptureSessionsFilterComposer
     );
     return f(composer);
   }
+
+  Expression<bool> exportBatchItemsRefs(
+    Expression<bool> Function($ExportBatchItemsFilterComposer f) f,
+  ) {
+    final $ExportBatchItemsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.exportBatchItems,
+      getReferencedColumn: (t) => t.sessionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $ExportBatchItemsFilterComposer(
+            $db: $db,
+            $table: $db.exportBatchItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $CaptureSessionsOrderingComposer
@@ -15315,6 +16545,11 @@ class $CaptureSessionsOrderingComposer
   });
   ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sequence => $composableBuilder(
+    column: $table.sequence,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -15421,6 +16656,9 @@ class $CaptureSessionsAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get sequence =>
+      $composableBuilder(column: $table.sequence, builder: (column) => column);
 
   GeneratedColumn<int> get plannedShots => $composableBuilder(
     column: $table.plannedShots,
@@ -15548,6 +16786,31 @@ class $CaptureSessionsAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> exportBatchItemsRefs<T extends Object>(
+    Expression<T> Function($ExportBatchItemsAnnotationComposer a) f,
+  ) {
+    final $ExportBatchItemsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.exportBatchItems,
+      getReferencedColumn: (t) => t.sessionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $ExportBatchItemsAnnotationComposer(
+            $db: $db,
+            $table: $db.exportBatchItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $CaptureSessionsTableManager
@@ -15568,6 +16831,7 @@ class $CaptureSessionsTableManager
             bool templateRevisionId,
             bool sessionPhotosRefs,
             bool sessionOutputsRefs,
+            bool exportBatchItemsRefs,
           })
         > {
   $CaptureSessionsTableManager(_$BoothDatabase db, CaptureSessions table)
@@ -15585,6 +16849,7 @@ class $CaptureSessionsTableManager
               ({
                 Value<String> id = const Value.absent(),
                 Value<String> eventId = const Value.absent(),
+                Value<int> sequence = const Value.absent(),
                 Value<String> templateRevisionId = const Value.absent(),
                 Value<int> plannedShots = const Value.absent(),
                 Value<String> planJson = const Value.absent(),
@@ -15599,6 +16864,7 @@ class $CaptureSessionsTableManager
               }) => CaptureSessionsCompanion(
                 id: id,
                 eventId: eventId,
+                sequence: sequence,
                 templateRevisionId: templateRevisionId,
                 plannedShots: plannedShots,
                 planJson: planJson,
@@ -15615,6 +16881,7 @@ class $CaptureSessionsTableManager
               ({
                 required String id,
                 required String eventId,
+                required int sequence,
                 required String templateRevisionId,
                 required int plannedShots,
                 required String planJson,
@@ -15629,6 +16896,7 @@ class $CaptureSessionsTableManager
               }) => CaptureSessionsCompanion.insert(
                 id: id,
                 eventId: eventId,
+                sequence: sequence,
                 templateRevisionId: templateRevisionId,
                 plannedShots: plannedShots,
                 planJson: planJson,
@@ -15655,12 +16923,14 @@ class $CaptureSessionsTableManager
                 templateRevisionId = false,
                 sessionPhotosRefs = false,
                 sessionOutputsRefs = false,
+                exportBatchItemsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (sessionPhotosRefs) db.sessionPhotos,
                     if (sessionOutputsRefs) db.sessionOutputs,
+                    if (exportBatchItemsRefs) db.exportBatchItems,
                   ],
                   addJoins:
                       <
@@ -15747,6 +17017,27 @@ class $CaptureSessionsTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (exportBatchItemsRefs)
+                        await $_getPrefetchedData<
+                          CaptureSessionRow,
+                          CaptureSessions,
+                          ExportBatchItemRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $CaptureSessionsReferences
+                              ._exportBatchItemsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $CaptureSessionsReferences(
+                                db,
+                                table,
+                                p0,
+                              ).exportBatchItemsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.sessionId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -15772,6 +17063,7 @@ typedef $CaptureSessionsProcessedTableManager =
         bool templateRevisionId,
         bool sessionPhotosRefs,
         bool sessionOutputsRefs,
+        bool exportBatchItemsRefs,
       })
     >;
 typedef $SessionPhotosCreateCompanionBuilder = SessionPhotosCompanion Function({
@@ -16225,6 +17517,7 @@ typedef $SessionOutputsCreateCompanionBuilder =
       required OutputFormat format,
       required int renderVersion,
       required DateTime createdAt,
+      Value<SessionOutputOrigin> origin,
       Value<int> rowid,
     });
 typedef $SessionOutputsUpdateCompanionBuilder =
@@ -16239,6 +17532,7 @@ typedef $SessionOutputsUpdateCompanionBuilder =
       Value<OutputFormat> format,
       Value<int> renderVersion,
       Value<DateTime> createdAt,
+      Value<SessionOutputOrigin> origin,
       Value<int> rowid,
     });
 
@@ -16320,6 +17614,16 @@ class $SessionOutputsFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnWithTypeConverterFilters<
+    SessionOutputOrigin,
+    SessionOutputOrigin,
+    String
+  >
+  get origin => $composableBuilder(
+    column: $table.origin,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
   $CaptureSessionsFilterComposer get sessionId {
     final $CaptureSessionsFilterComposer composer = $composerBuilder(
       composer: this,
@@ -16398,6 +17702,11 @@ class $SessionOutputsOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get origin => $composableBuilder(
+    column: $table.origin,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $CaptureSessionsOrderingComposer get sessionId {
     final $CaptureSessionsOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -16464,6 +17773,9 @@ class $SessionOutputsAnnotationComposer
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
+  GeneratedColumnWithTypeConverter<SessionOutputOrigin, String> get origin =>
+      $composableBuilder(column: $table.origin, builder: (column) => column);
+
   $CaptureSessionsAnnotationComposer get sessionId {
     final $CaptureSessionsAnnotationComposer composer = $composerBuilder(
       composer: this,
@@ -16526,6 +17838,7 @@ class $SessionOutputsTableManager
                 Value<OutputFormat> format = const Value.absent(),
                 Value<int> renderVersion = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<SessionOutputOrigin> origin = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SessionOutputsCompanion(
                 id: id,
@@ -16538,6 +17851,7 @@ class $SessionOutputsTableManager
                 format: format,
                 renderVersion: renderVersion,
                 createdAt: createdAt,
+                origin: origin,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -16552,6 +17866,7 @@ class $SessionOutputsTableManager
                 required OutputFormat format,
                 required int renderVersion,
                 required DateTime createdAt,
+                Value<SessionOutputOrigin> origin = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SessionOutputsCompanion.insert(
                 id: id,
@@ -16564,6 +17879,7 @@ class $SessionOutputsTableManager
                 format: format,
                 renderVersion: renderVersion,
                 createdAt: createdAt,
+                origin: origin,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -16631,6 +17947,901 @@ typedef $SessionOutputsProcessedTableManager =
       SessionOutputRow,
       PrefetchHooks Function({bool sessionId})
     >;
+typedef $ExportBatchesCreateCompanionBuilder = ExportBatchesCompanion Function({
+  required String id,
+  required ShareOutcome outcome,
+  Value<String?> destination,
+  required int fileCount,
+  required int failureCount,
+  required DateTime createdAt,
+  Value<int> rowid,
+});
+typedef $ExportBatchesUpdateCompanionBuilder = ExportBatchesCompanion Function({
+  Value<String> id,
+  Value<ShareOutcome> outcome,
+  Value<String?> destination,
+  Value<int> fileCount,
+  Value<int> failureCount,
+  Value<DateTime> createdAt,
+  Value<int> rowid,
+});
+
+final class $ExportBatchesReferences
+    extends BaseReferences<_$BoothDatabase, ExportBatches, ExportBatchRow> {
+  $ExportBatchesReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<ExportBatchItems, List<ExportBatchItemRow>>
+  _exportBatchItemsRefsTable(_$BoothDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.exportBatchItems,
+        aliasName: 'export_batches__id__export_batch_items__batch_id',
+      );
+
+  $ExportBatchItemsProcessedTableManager get exportBatchItemsRefs {
+    final manager = $ExportBatchItemsTableManager(
+      $_db,
+      $_db.exportBatchItems,
+    ).filter((f) => f.batchId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _exportBatchItemsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $ExportBatchesFilterComposer
+    extends Composer<_$BoothDatabase, ExportBatches> {
+  $ExportBatchesFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<ShareOutcome, ShareOutcome, String>
+  get outcome => $composableBuilder(
+    column: $table.outcome,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get destination => $composableBuilder(
+    column: $table.destination,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get fileCount => $composableBuilder(
+    column: $table.fileCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get failureCount => $composableBuilder(
+    column: $table.failureCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> exportBatchItemsRefs(
+    Expression<bool> Function($ExportBatchItemsFilterComposer f) f,
+  ) {
+    final $ExportBatchItemsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.exportBatchItems,
+      getReferencedColumn: (t) => t.batchId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $ExportBatchItemsFilterComposer(
+            $db: $db,
+            $table: $db.exportBatchItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $ExportBatchesOrderingComposer
+    extends Composer<_$BoothDatabase, ExportBatches> {
+  $ExportBatchesOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get outcome => $composableBuilder(
+    column: $table.outcome,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get destination => $composableBuilder(
+    column: $table.destination,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get fileCount => $composableBuilder(
+    column: $table.fileCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get failureCount => $composableBuilder(
+    column: $table.failureCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $ExportBatchesAnnotationComposer
+    extends Composer<_$BoothDatabase, ExportBatches> {
+  $ExportBatchesAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<ShareOutcome, String> get outcome =>
+      $composableBuilder(column: $table.outcome, builder: (column) => column);
+
+  GeneratedColumn<String> get destination => $composableBuilder(
+    column: $table.destination,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get fileCount =>
+      $composableBuilder(column: $table.fileCount, builder: (column) => column);
+
+  GeneratedColumn<int> get failureCount => $composableBuilder(
+    column: $table.failureCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  Expression<T> exportBatchItemsRefs<T extends Object>(
+    Expression<T> Function($ExportBatchItemsAnnotationComposer a) f,
+  ) {
+    final $ExportBatchItemsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.exportBatchItems,
+      getReferencedColumn: (t) => t.batchId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $ExportBatchItemsAnnotationComposer(
+            $db: $db,
+            $table: $db.exportBatchItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $ExportBatchesTableManager
+    extends
+        RootTableManager<
+          _$BoothDatabase,
+          ExportBatches,
+          ExportBatchRow,
+          $ExportBatchesFilterComposer,
+          $ExportBatchesOrderingComposer,
+          $ExportBatchesAnnotationComposer,
+          $ExportBatchesCreateCompanionBuilder,
+          $ExportBatchesUpdateCompanionBuilder,
+          (ExportBatchRow, $ExportBatchesReferences),
+          ExportBatchRow,
+          PrefetchHooks Function({bool exportBatchItemsRefs})
+        > {
+  $ExportBatchesTableManager(_$BoothDatabase db, ExportBatches table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $ExportBatchesFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $ExportBatchesOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $ExportBatchesAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<ShareOutcome> outcome = const Value.absent(),
+                Value<String?> destination = const Value.absent(),
+                Value<int> fileCount = const Value.absent(),
+                Value<int> failureCount = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ExportBatchesCompanion(
+                id: id,
+                outcome: outcome,
+                destination: destination,
+                fileCount: fileCount,
+                failureCount: failureCount,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required ShareOutcome outcome,
+                Value<String?> destination = const Value.absent(),
+                required int fileCount,
+                required int failureCount,
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => ExportBatchesCompanion.insert(
+                id: id,
+                outcome: outcome,
+                destination: destination,
+                fileCount: fileCount,
+                failureCount: failureCount,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<ExportBatches, ExportBatchRow>(table),
+                  $ExportBatchesReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({exportBatchItemsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (exportBatchItemsRefs) db.exportBatchItems,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (exportBatchItemsRefs)
+                    await $_getPrefetchedData<
+                      ExportBatchRow,
+                      ExportBatches,
+                      ExportBatchItemRow
+                    >(
+                      currentTable: table,
+                      referencedTable: $ExportBatchesReferences
+                          ._exportBatchItemsRefsTable(db),
+                      managerFromTypedResult: (p0) => $ExportBatchesReferences(
+                        db,
+                        table,
+                        p0,
+                      ).exportBatchItemsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.batchId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $ExportBatchesProcessedTableManager =
+    ProcessedTableManager<
+      _$BoothDatabase,
+      ExportBatches,
+      ExportBatchRow,
+      $ExportBatchesFilterComposer,
+      $ExportBatchesOrderingComposer,
+      $ExportBatchesAnnotationComposer,
+      $ExportBatchesCreateCompanionBuilder,
+      $ExportBatchesUpdateCompanionBuilder,
+      (ExportBatchRow, $ExportBatchesReferences),
+      ExportBatchRow,
+      PrefetchHooks Function({bool exportBatchItemsRefs})
+    >;
+typedef $ExportBatchItemsCreateCompanionBuilder =
+    ExportBatchItemsCompanion Function({
+      required String batchId,
+      required String sessionId,
+      required ExportFileKind kind,
+      required String sourceId,
+      required String fileName,
+      Value<int> rowid,
+    });
+typedef $ExportBatchItemsUpdateCompanionBuilder =
+    ExportBatchItemsCompanion Function({
+      Value<String> batchId,
+      Value<String> sessionId,
+      Value<ExportFileKind> kind,
+      Value<String> sourceId,
+      Value<String> fileName,
+      Value<int> rowid,
+    });
+
+final class $ExportBatchItemsReferences
+    extends
+        BaseReferences<_$BoothDatabase, ExportBatchItems, ExportBatchItemRow> {
+  $ExportBatchItemsReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static ExportBatches _batchIdTable(_$BoothDatabase db) => db.exportBatches
+      .createAlias('export_batch_items__batch_id__export_batches__id');
+
+  $ExportBatchesProcessedTableManager get batchId {
+    final $_column = $_itemColumn<String>('batch_id')!;
+
+    final manager = $ExportBatchesTableManager(
+      $_db,
+      $_db.exportBatches,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_batchIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static CaptureSessions _sessionIdTable(_$BoothDatabase db) => db
+      .captureSessions
+      .createAlias('export_batch_items__session_id__capture_sessions__id');
+
+  $CaptureSessionsProcessedTableManager get sessionId {
+    final $_column = $_itemColumn<String>('session_id')!;
+
+    final manager = $CaptureSessionsTableManager(
+      $_db,
+      $_db.captureSessions,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_sessionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $ExportBatchItemsFilterComposer
+    extends Composer<_$BoothDatabase, ExportBatchItems> {
+  $ExportBatchItemsFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnWithTypeConverterFilters<ExportFileKind, ExportFileKind, String>
+  get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get sourceId => $composableBuilder(
+    column: $table.sourceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fileName => $composableBuilder(
+    column: $table.fileName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $ExportBatchesFilterComposer get batchId {
+    final $ExportBatchesFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.batchId,
+      referencedTable: $db.exportBatches,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $ExportBatchesFilterComposer(
+            $db: $db,
+            $table: $db.exportBatches,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $CaptureSessionsFilterComposer get sessionId {
+    final $CaptureSessionsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionId,
+      referencedTable: $db.captureSessions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $CaptureSessionsFilterComposer(
+            $db: $db,
+            $table: $db.captureSessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $ExportBatchItemsOrderingComposer
+    extends Composer<_$BoothDatabase, ExportBatchItems> {
+  $ExportBatchItemsOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceId => $composableBuilder(
+    column: $table.sourceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get fileName => $composableBuilder(
+    column: $table.fileName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $ExportBatchesOrderingComposer get batchId {
+    final $ExportBatchesOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.batchId,
+      referencedTable: $db.exportBatches,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $ExportBatchesOrderingComposer(
+            $db: $db,
+            $table: $db.exportBatches,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $CaptureSessionsOrderingComposer get sessionId {
+    final $CaptureSessionsOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionId,
+      referencedTable: $db.captureSessions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $CaptureSessionsOrderingComposer(
+            $db: $db,
+            $table: $db.captureSessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $ExportBatchItemsAnnotationComposer
+    extends Composer<_$BoothDatabase, ExportBatchItems> {
+  $ExportBatchItemsAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumnWithTypeConverter<ExportFileKind, String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<String> get sourceId =>
+      $composableBuilder(column: $table.sourceId, builder: (column) => column);
+
+  GeneratedColumn<String> get fileName =>
+      $composableBuilder(column: $table.fileName, builder: (column) => column);
+
+  $ExportBatchesAnnotationComposer get batchId {
+    final $ExportBatchesAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.batchId,
+      referencedTable: $db.exportBatches,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $ExportBatchesAnnotationComposer(
+            $db: $db,
+            $table: $db.exportBatches,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $CaptureSessionsAnnotationComposer get sessionId {
+    final $CaptureSessionsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionId,
+      referencedTable: $db.captureSessions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $CaptureSessionsAnnotationComposer(
+            $db: $db,
+            $table: $db.captureSessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $ExportBatchItemsTableManager
+    extends
+        RootTableManager<
+          _$BoothDatabase,
+          ExportBatchItems,
+          ExportBatchItemRow,
+          $ExportBatchItemsFilterComposer,
+          $ExportBatchItemsOrderingComposer,
+          $ExportBatchItemsAnnotationComposer,
+          $ExportBatchItemsCreateCompanionBuilder,
+          $ExportBatchItemsUpdateCompanionBuilder,
+          (ExportBatchItemRow, $ExportBatchItemsReferences),
+          ExportBatchItemRow,
+          PrefetchHooks Function({bool batchId, bool sessionId})
+        > {
+  $ExportBatchItemsTableManager(_$BoothDatabase db, ExportBatchItems table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $ExportBatchItemsFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $ExportBatchItemsOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $ExportBatchItemsAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> batchId = const Value.absent(),
+                Value<String> sessionId = const Value.absent(),
+                Value<ExportFileKind> kind = const Value.absent(),
+                Value<String> sourceId = const Value.absent(),
+                Value<String> fileName = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ExportBatchItemsCompanion(
+                batchId: batchId,
+                sessionId: sessionId,
+                kind: kind,
+                sourceId: sourceId,
+                fileName: fileName,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String batchId,
+                required String sessionId,
+                required ExportFileKind kind,
+                required String sourceId,
+                required String fileName,
+                Value<int> rowid = const Value.absent(),
+              }) => ExportBatchItemsCompanion.insert(
+                batchId: batchId,
+                sessionId: sessionId,
+                kind: kind,
+                sourceId: sourceId,
+                fileName: fileName,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<ExportBatchItems, ExportBatchItemRow>(table),
+                  $ExportBatchItemsReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({batchId = false, sessionId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (batchId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.batchId,
+                        referencedTable: $ExportBatchItemsReferences
+                            ._batchIdTable(db),
+                        referencedColumn: $ExportBatchItemsReferences
+                            ._batchIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+                    if (sessionId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.sessionId,
+                        referencedTable: $ExportBatchItemsReferences
+                            ._sessionIdTable(db),
+                        referencedColumn: $ExportBatchItemsReferences
+                            ._sessionIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $ExportBatchItemsProcessedTableManager =
+    ProcessedTableManager<
+      _$BoothDatabase,
+      ExportBatchItems,
+      ExportBatchItemRow,
+      $ExportBatchItemsFilterComposer,
+      $ExportBatchItemsOrderingComposer,
+      $ExportBatchItemsAnnotationComposer,
+      $ExportBatchItemsCreateCompanionBuilder,
+      $ExportBatchItemsUpdateCompanionBuilder,
+      (ExportBatchItemRow, $ExportBatchItemsReferences),
+      ExportBatchItemRow,
+      PrefetchHooks Function({bool batchId, bool sessionId})
+    >;
+typedef $PendingFileDeletionsCreateCompanionBuilder =
+    PendingFileDeletionsCompanion Function({
+      required String relativePath,
+      required DateTime queuedAt,
+      Value<int> rowid,
+    });
+typedef $PendingFileDeletionsUpdateCompanionBuilder =
+    PendingFileDeletionsCompanion Function({
+      Value<String> relativePath,
+      Value<DateTime> queuedAt,
+      Value<int> rowid,
+    });
+
+class $PendingFileDeletionsFilterComposer
+    extends Composer<_$BoothDatabase, PendingFileDeletions> {
+  $PendingFileDeletionsFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get relativePath => $composableBuilder(
+    column: $table.relativePath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get queuedAt => $composableBuilder(
+    column: $table.queuedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $PendingFileDeletionsOrderingComposer
+    extends Composer<_$BoothDatabase, PendingFileDeletions> {
+  $PendingFileDeletionsOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get relativePath => $composableBuilder(
+    column: $table.relativePath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get queuedAt => $composableBuilder(
+    column: $table.queuedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $PendingFileDeletionsAnnotationComposer
+    extends Composer<_$BoothDatabase, PendingFileDeletions> {
+  $PendingFileDeletionsAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get relativePath => $composableBuilder(
+    column: $table.relativePath,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get queuedAt =>
+      $composableBuilder(column: $table.queuedAt, builder: (column) => column);
+}
+
+class $PendingFileDeletionsTableManager
+    extends
+        RootTableManager<
+          _$BoothDatabase,
+          PendingFileDeletions,
+          PendingFileDeletionRow,
+          $PendingFileDeletionsFilterComposer,
+          $PendingFileDeletionsOrderingComposer,
+          $PendingFileDeletionsAnnotationComposer,
+          $PendingFileDeletionsCreateCompanionBuilder,
+          $PendingFileDeletionsUpdateCompanionBuilder,
+          (
+            PendingFileDeletionRow,
+            BaseReferences<
+              _$BoothDatabase,
+              PendingFileDeletions,
+              PendingFileDeletionRow
+            >,
+          ),
+          PendingFileDeletionRow,
+          PrefetchHooks Function()
+        > {
+  $PendingFileDeletionsTableManager(
+    _$BoothDatabase db,
+    PendingFileDeletions table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $PendingFileDeletionsFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $PendingFileDeletionsOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $PendingFileDeletionsAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> relativePath = const Value.absent(),
+                Value<DateTime> queuedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PendingFileDeletionsCompanion(
+                relativePath: relativePath,
+                queuedAt: queuedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String relativePath,
+                required DateTime queuedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => PendingFileDeletionsCompanion.insert(
+                relativePath: relativePath,
+                queuedAt: queuedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<PendingFileDeletions, PendingFileDeletionRow>(
+                    table,
+                  ),
+                  BaseReferences<
+                    _$BoothDatabase,
+                    PendingFileDeletions,
+                    PendingFileDeletionRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $PendingFileDeletionsProcessedTableManager =
+    ProcessedTableManager<
+      _$BoothDatabase,
+      PendingFileDeletions,
+      PendingFileDeletionRow,
+      $PendingFileDeletionsFilterComposer,
+      $PendingFileDeletionsOrderingComposer,
+      $PendingFileDeletionsAnnotationComposer,
+      $PendingFileDeletionsCreateCompanionBuilder,
+      $PendingFileDeletionsUpdateCompanionBuilder,
+      (
+        PendingFileDeletionRow,
+        BaseReferences<
+          _$BoothDatabase,
+          PendingFileDeletions,
+          PendingFileDeletionRow
+        >,
+      ),
+      PendingFileDeletionRow,
+      PrefetchHooks Function()
+    >;
 
 class $BoothDatabaseManager {
   final _$BoothDatabase _db;
@@ -16663,4 +18874,10 @@ class $BoothDatabaseManager {
       $SessionPhotosTableManager(_db, _db.sessionPhotos);
   $SessionOutputsTableManager get sessionOutputs =>
       $SessionOutputsTableManager(_db, _db.sessionOutputs);
+  $ExportBatchesTableManager get exportBatches =>
+      $ExportBatchesTableManager(_db, _db.exportBatches);
+  $ExportBatchItemsTableManager get exportBatchItems =>
+      $ExportBatchItemsTableManager(_db, _db.exportBatchItems);
+  $PendingFileDeletionsTableManager get pendingFileDeletions =>
+      $PendingFileDeletionsTableManager(_db, _db.pendingFileDeletions);
 }

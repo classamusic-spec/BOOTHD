@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/repositories/booth_settings_repository.dart';
 import '../../domain/repositories/event_repository.dart';
+import '../../domain/repositories/gallery_repository.dart';
 import '../../domain/repositories/operator_access_repository.dart';
 import '../../domain/repositories/session_repository.dart';
 import '../../domain/repositories/template_catalog.dart';
@@ -14,12 +15,15 @@ import '../../domain/services/composition_renderer.dart';
 import '../../domain/services/event_service.dart';
 import '../../domain/services/export_service.dart';
 import '../../domain/services/finished_photos.dart';
+import '../../domain/services/gallery_services.dart';
 import '../../domain/services/managed_storage.dart';
 import '../../domain/services/operator_auth_service.dart';
 import '../../domain/services/operator_files.dart';
 import '../../domain/services/operator_secrets.dart';
+import '../../domain/services/print_service.dart';
 import '../../domain/value_objects/clock.dart';
 import '../../domain/value_objects/entity_id.dart';
+import '../booth/session_renderer.dart';
 import '../templates/template_library.dart';
 
 /// Service providers that features depend on, typed by domain interfaces.
@@ -63,6 +67,34 @@ final sessionRepositoryProvider = Provider<SessionRepository>(
 /// Finished photos read back from storage (M07).
 final finishedPhotosProvider = Provider<FinishedPhotos>(
   (ref) => _unbound('finishedPhotosProvider'),
+);
+
+// The operator gallery (M08, ADR-0014).
+
+/// Sessions, their files and storage, as the gallery sees them.
+final galleryRepositoryProvider = Provider<GalleryRepository>(
+  (ref) => _unbound('galleryRepositoryProvider'),
+);
+
+/// Hands verified copies of gallery files to the platform share sheet.
+final galleryExporterProvider = Provider<GalleryExporter>(
+  (ref) => _unbound('galleryExporterProvider'),
+);
+
+/// Gallery thumbnails, kept in managed storage.
+final thumbnailStoreProvider = Provider<ThumbnailStore>(
+  (ref) => _unbound('thumbnailStoreProvider'),
+);
+
+/// Removes the files of deleted records (the deletion journal).
+final storageCleanupProvider = Provider<StorageCleanup>(
+  (ref) => _unbound('storageCleanupProvider'),
+);
+
+/// Printing (A-13). Release 1 is export-only: the unconfigured adapter is
+/// the only one, so nothing can be printed or appear printed (AC-0806).
+final printServiceProvider = Provider<PrintService>(
+  (ref) => const UnconfiguredPrintService(),
 );
 
 /// Free space on the booth's volume (M06, ADR-0012).
@@ -178,5 +210,16 @@ final eventServiceProvider = Provider<EventService>(
     templates: ref.watch(templateCatalogProvider),
     clock: ref.watch(clockProvider),
     ids: ref.watch(idGeneratorProvider),
+  ),
+);
+
+/// Makes finished photos for the booth and the gallery (M07, M08).
+final sessionRendererProvider = Provider<SessionRenderer>(
+  (ref) => SessionRenderer(
+    export: ref.watch(exportServiceProvider),
+    finished: ref.watch(finishedPhotosProvider),
+    templates: ref.watch(templateRepositoryProvider),
+    assets: ref.watch(assetRepositoryProvider),
+    originals: ref.watch(capturedStillStoreProvider),
   ),
 );

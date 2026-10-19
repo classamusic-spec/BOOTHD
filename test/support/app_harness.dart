@@ -23,11 +23,13 @@ import 'package:porcelain_photo_booth/infrastructure/composition/dart_ui_composi
 import 'package:porcelain_photo_booth/infrastructure/database/booth_database.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_booth_settings_repository.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_event_repository.dart';
+import 'package:porcelain_photo_booth/infrastructure/database/drift_gallery_repository.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_operator_access_repository.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_session_repository.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_template_catalog.dart';
 
 import 'fake_export.dart';
+import 'fake_gallery.dart';
 import 'fakes.dart';
 import 'memory_template_store.dart';
 import 'simulated_camera.dart';
@@ -89,6 +91,9 @@ final class TestBooth {
     required this.camera,
     required this.space,
     required this.exports,
+    required this.thumbnails,
+    required this.exporter,
+    required this.cleanup,
   });
 
   final BoothDatabase db;
@@ -115,6 +120,18 @@ final class TestBooth {
 
   /// Finished photos: a fast stand-in for the renderer and file export.
   final FakeExportService exports;
+
+  /// Gallery thumbnails, export and the deletion journal (M08).
+  final FakeThumbnailStore thumbnails;
+  final FakeGalleryExporter exporter;
+  final FakeStorageCleanup cleanup;
+
+  /// The gallery's records, over the booth database.
+  DriftGalleryRepository get gallery => DriftGalleryRepository(
+    db,
+    clock: clock,
+    templates: DriftTemplateCatalog(db),
+  );
 
   /// Guest sessions in the booth database.
   DriftSessionRepository get sessions =>
@@ -183,6 +200,7 @@ Future<TestBooth> pumpApp(
   SimulatedCameraService? camera,
   FakeDeviceStorage? space,
   FakeExportService? exports,
+  FakeGalleryExporter? exporter,
 }) async {
   final testClock = clock ?? FakeClock();
   final db = database ?? memoryDatabase(clock: testClock);
@@ -218,7 +236,11 @@ Future<TestBooth> pumpApp(
     camera: camera ?? SimulatedCameraService(),
     space: space ?? FakeDeviceStorage(),
     exports: exports ?? FakeExportService(),
+    thumbnails: FakeThumbnailStore(),
+    exporter: exporter ?? FakeGalleryExporter(),
+    cleanup: FakeStorageCleanup(db),
   );
+  booth.thumbnails.exports ??= booth.exports;
   // Sessions refer to originals, which the real store records in the
   // database too.
   booth.camera.store.database ??= db;
@@ -257,6 +279,10 @@ Future<TestBooth> pumpApp(
         sessionRepositoryProvider.overrideWith((ref) => booth.sessions),
         exportServiceProvider.overrideWithValue(booth.exports),
         finishedPhotosProvider.overrideWithValue(booth.exports.finished),
+        galleryRepositoryProvider.overrideWith((ref) => booth.gallery),
+        thumbnailStoreProvider.overrideWithValue(booth.thumbnails),
+        galleryExporterProvider.overrideWithValue(booth.exporter),
+        storageCleanupProvider.overrideWithValue(booth.cleanup),
         deviceSelfTestProvider.overrideWith(
           (ref) => DeviceSelfTest(
             camera: booth.camera,

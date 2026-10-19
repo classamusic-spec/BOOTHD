@@ -1,11 +1,13 @@
 import 'package:drift/drift.dart';
 
+import '../../domain/gallery/export_plan.dart';
 import '../../domain/models/booth_event.dart';
 import '../../domain/models/booth_profile.dart';
 import '../../domain/repositories/session_repository.dart';
 import '../../domain/repositories/storage_errors.dart';
 import '../../domain/repositories/template_store.dart';
 import '../../domain/services/camera_service.dart';
+import '../../domain/services/operator_files.dart';
 import '../../domain/template/template_assets.dart';
 import '../../domain/value_objects/appearance.dart';
 import '../../domain/value_objects/calendar_date.dart';
@@ -29,7 +31,7 @@ final class BoothDatabase extends _$BoothDatabase {
 
   /// Bump together with a migration step, a schema dump
   /// (`dart run drift_dev make-migrations`) and a seeded fixture.
-  static const currentSchemaVersion = 5;
+  static const currentSchemaVersion = 6;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -109,6 +111,43 @@ final class BoothDatabase extends _$BoothDatabase {
       await migrator.createTable(schema.sessionOutputs);
       await migrator.create(schema.sessionOutputsBySession);
       await migrator.create(schema.sessionOutputsAreImmutable);
+    },
+    // M08: session numbers (existing sessions are numbered per event in
+    // the order they started), the origin of finished photos, the export
+    // history and the journal of files to delete. The rebuilds keep each
+    // table's indexes and triggers; the plan trigger is replaced so it
+    // also freezes the number.
+    from5To6: (migrator, schema) async {
+      final sessions = schema.captureSessions;
+      await migrator.alterTable(
+        TableMigration(
+          sessions,
+          newColumns: [sessions.sequence],
+          columnTransformer: {
+            sessions.sequence: const CustomExpression<int>(
+              '(SELECT COUNT(*) FROM capture_sessions AS earlier '
+              'WHERE earlier.event_id = capture_sessions.event_id '
+              'AND (earlier.started_at < capture_sessions.started_at '
+              'OR (earlier.started_at = capture_sessions.started_at '
+              'AND earlier.id <= capture_sessions.id)))',
+            ),
+          },
+        ),
+      );
+      await migrator.database.customStatement(
+        'DROP TRIGGER IF EXISTS capture_session_plans_are_immutable',
+      );
+      await migrator.create(schema.captureSessionPlansAreImmutable);
+      await migrator.alterTable(
+        TableMigration(
+          schema.sessionOutputs,
+          newColumns: [schema.sessionOutputs.origin],
+        ),
+      );
+      await migrator.createTable(schema.exportBatches);
+      await migrator.createTable(schema.exportBatchItems);
+      await migrator.create(schema.exportBatchItemsBySession);
+      await migrator.createTable(schema.pendingFileDeletions);
     },
   );
 

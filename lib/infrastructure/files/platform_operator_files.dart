@@ -90,3 +90,36 @@ final class PlatformOperatorFiles implements OperatorFiles {
     };
   }
 }
+
+/// Offers files already on disk to the platform share sheet (M08 gallery
+/// export) and reports what the platform said: the destination chosen
+/// (an iPadOS activity type, or the Android app component), a dismissed
+/// sheet, or nothing when the platform cannot tell. iPadOS's Print action
+/// is removed: this release does not print (A-13).
+Future<ShareReport> shareFilesWithPlatformSheet(
+  List<({String path, String mimeType})> files,
+  ShareAnchor anchor,
+) async {
+  final result = await SharePlus.instance.share(
+    ShareParams(
+      files: [
+        for (final file in files) XFile(file.path, mimeType: file.mimeType),
+      ],
+      sharePositionOrigin: Rect.fromLTWH(
+        anchor.left,
+        anchor.top,
+        anchor.width,
+        anchor.height,
+      ),
+      excludedCupertinoActivities: const [CupertinoActivityType.print],
+    ),
+  );
+  return switch (result.status) {
+    ShareResultStatus.success => ShareReport(
+      ShareOutcome.shared,
+      destination: result.raw.isEmpty ? null : result.raw,
+    ),
+    ShareResultStatus.dismissed => const ShareReport(ShareOutcome.dismissed),
+    ShareResultStatus.unavailable => const ShareReport(ShareOutcome.unknown),
+  };
+}

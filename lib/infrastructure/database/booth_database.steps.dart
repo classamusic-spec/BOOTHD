@@ -2428,11 +2428,678 @@ i1.GeneratedColumn<int> _column_106(String aliasedName) =>
       type: i1.DriftSqlType.int,
       $customConstraints: 'NOT NULL CHECK (render_version >= 1)',
     );
+
+final class Schema6 extends i0.VersionedSchema {
+  Schema6({required super.database}) : super(version: 6);
+  @override
+  late final List<i1.DatabaseSchemaEntity> entities = [
+    boothProfiles,
+    events,
+    appSettings,
+    operatorAccess,
+    templates,
+    templateRevisions,
+    templateRevisionsAreImmutable,
+    assets,
+    assetContentIsImmutable,
+    templateRevisionAssets,
+    templateRevisionAssetsByAsset,
+    templateDrafts,
+    eventsByStatus,
+    eventTemplates,
+    eventTemplatesOneDefault,
+    eventTemplatesByRevision,
+    originalPhotos,
+    originalPhotosByTime,
+    originalPhotosAreImmutable,
+    pendingOriginalCommits,
+    captureSessions,
+    captureSessionsByEvent,
+    captureSessionPlansAreImmutable,
+    finishedSessionsAreImmutable,
+    sessionPhotos,
+    sessionPhotosAreImmutable,
+    sessionOutputs,
+    sessionOutputsBySession,
+    sessionOutputsAreImmutable,
+    exportBatches,
+    exportBatchItems,
+    exportBatchItemsBySession,
+    pendingFileDeletions,
+  ];
+  late final Shape0 boothProfiles = Shape0(
+    source: i0.VersionedTable(
+      entityName: 'booth_profiles',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [
+        _column_0,
+        _column_1,
+        _column_2,
+        _column_3,
+        _column_4,
+        _column_5,
+        _column_6,
+        _column_7,
+        _column_8,
+        _column_9,
+        _column_10,
+        _column_11,
+        _column_12,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape1 events = Shape1(
+    source: i0.VersionedTable(
+      entityName: 'events',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [
+        'CHECK((retake_policy = \'none\' AND retake_limit = 0)OR(retake_policy <> \'none\' AND retake_limit BETWEEN 1 AND 5))',
+        'CHECK((retention_mode = \'keepUntilDeleted\' AND retention_days IS NULL)OR(retention_mode = \'deleteAfterDays\' AND retention_days BETWEEN 1 AND 365))',
+        'CHECK((status = \'archived\')=(archived_at IS NOT NULL))',
+      ],
+      columns: [
+        _column_0,
+        _column_13,
+        _column_14,
+        _column_15,
+        _column_16,
+        _column_17,
+        _column_18,
+        _column_19,
+        _column_20,
+        _column_21,
+        _column_22,
+        _column_23,
+        _column_24,
+        _column_25,
+        _column_26,
+        _column_27,
+        _column_28,
+        _column_29,
+        _column_30,
+        _column_31,
+        _column_32,
+        _column_33,
+        _column_34,
+        _column_35,
+        _column_36,
+        _column_37,
+        _column_11,
+        _column_12,
+        _column_38,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape2 appSettings = Shape2(
+    source: i0.VersionedTable(
+      entityName: 'app_settings',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [_column_39, _column_13, _column_40, _column_41],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape3 operatorAccess = Shape3(
+    source: i0.VersionedTable(
+      entityName: 'operator_access',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [
+        _column_39,
+        _column_42,
+        _column_43,
+        _column_44,
+        _column_45,
+        _column_46,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape4 templates = Shape4(
+    source: i0.VersionedTable(
+      entityName: 'templates',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [
+        _column_0,
+        _column_47,
+        _column_48,
+        _column_11,
+        _column_12,
+        _column_38,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape5 templateRevisions = Shape5(
+    source: i0.VersionedTable(
+      entityName: 'template_revisions',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['UNIQUE(template_id, revision_number)'],
+      columns: [
+        _column_0,
+        _column_49,
+        _column_50,
+        _column_51,
+        _column_52,
+        _column_53,
+        _column_54,
+        _column_55,
+        _column_56,
+        _column_11,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Trigger templateRevisionsAreImmutable = i1.Trigger(
+    'CREATE TRIGGER template_revisions_are_immutable BEFORE UPDATE ON template_revisions BEGIN SELECT RAISE (ABORT, \'template revisions are immutable\');END',
+    'template_revisions_are_immutable',
+  );
+  late final Shape6 assets = Shape6(
+    source: i0.VersionedTable(
+      entityName: 'assets',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [
+        'CHECK((media_type IN (\'png\', \'jpeg\'))=(width_px IS NOT NULL AND height_px IS NOT NULL))',
+        'CHECK(media_type IN (\'png\', \'jpeg\') OR byte_length <= 20971520)',
+      ],
+      columns: [
+        _column_57,
+        _column_58,
+        _column_59,
+        _column_60,
+        _column_61,
+        _column_62,
+        _column_63,
+        _column_71,
+        _column_11,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Trigger assetContentIsImmutable = i1.Trigger(
+    'CREATE TRIGGER asset_content_is_immutable BEFORE UPDATE OF id, media_type, relative_path, byte_length, width_px, height_px, origin, created_at ON assets BEGIN SELECT RAISE (ABORT, \'assets are immutable\');END',
+    'asset_content_is_immutable',
+  );
+  late final Shape7 templateRevisionAssets = Shape7(
+    source: i0.VersionedTable(
+      entityName: 'template_revision_assets',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(template_revision_id, asset_id)'],
+      columns: [_column_65, _column_66],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index templateRevisionAssetsByAsset = i1.Index(
+    'template_revision_assets_by_asset',
+    'CREATE INDEX template_revision_assets_by_asset ON template_revision_assets (asset_id)',
+  );
+  late final Shape9 templateDrafts = Shape9(
+    source: i0.VersionedTable(
+      entityName: 'template_drafts',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [_column_72, _column_73, _column_74, _column_12],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index eventsByStatus = i1.Index(
+    'events_by_status',
+    'CREATE INDEX events_by_status ON events (status, updated_at)',
+  );
+  late final Shape8 eventTemplates = Shape8(
+    source: i0.VersionedTable(
+      entityName: 'event_templates',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [
+        'PRIMARY KEY(event_id, template_revision_id)',
+        'UNIQUE(event_id, position)',
+      ],
+      columns: [_column_67, _column_68, _column_69, _column_70],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index eventTemplatesOneDefault = i1.Index(
+    'event_templates_one_default',
+    'CREATE UNIQUE INDEX event_templates_one_default ON event_templates (event_id) WHERE is_default = 1',
+  );
+  final i1.Index eventTemplatesByRevision = i1.Index(
+    'event_templates_by_revision',
+    'CREATE INDEX event_templates_by_revision ON event_templates (template_revision_id)',
+  );
+  late final Shape10 originalPhotos = Shape10(
+    source: i0.VersionedTable(
+      entityName: 'original_photos',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [
+        _column_75,
+        _column_76,
+        _column_77,
+        _column_78,
+        _column_79,
+        _column_80,
+        _column_19,
+        _column_81,
+        _column_82,
+        _column_83,
+        _column_20,
+        _column_21,
+        _column_84,
+        _column_85,
+        _column_86,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index originalPhotosByTime = i1.Index(
+    'original_photos_by_time',
+    'CREATE INDEX original_photos_by_time ON original_photos (captured_at)',
+  );
+  final i1.Trigger originalPhotosAreImmutable = i1.Trigger(
+    'CREATE TRIGGER original_photos_are_immutable BEFORE UPDATE ON original_photos BEGIN SELECT RAISE (ABORT, \'originals are immutable\');END',
+    'original_photos_are_immutable',
+  );
+  late final Shape11 pendingOriginalCommits = Shape11(
+    source: i0.VersionedTable(
+      entityName: 'pending_original_commits',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [_column_75, _column_80, _column_87, _column_88, _column_89],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape15 captureSessions = Shape15(
+    source: i0.VersionedTable(
+      entityName: 'capture_sessions',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [
+        'CHECK((status IN (\'completed\', \'abandoned\', \'failed\'))=(ended_at IS NOT NULL))',
+        'CHECK((status = \'completed\')=(output_id IS NOT NULL))',
+        'CHECK((status IN (\'abandoned\', \'failed\'))=(end_reason IS NOT NULL))',
+        'UNIQUE(event_id, sequence)',
+      ],
+      columns: [
+        _column_0,
+        _column_90,
+        _column_107,
+        _column_68,
+        _column_91,
+        _column_92,
+        _column_93,
+        _column_94,
+        _column_95,
+        _column_96,
+        _column_89,
+        _column_12,
+        _column_97,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index captureSessionsByEvent = i1.Index(
+    'capture_sessions_by_event',
+    'CREATE INDEX capture_sessions_by_event ON capture_sessions (event_id, started_at)',
+  );
+  final i1.Trigger captureSessionPlansAreImmutable = i1.Trigger(
+    'CREATE TRIGGER capture_session_plans_are_immutable BEFORE UPDATE OF id, event_id, sequence, template_revision_id, planned_shots, plan_json, started_at ON capture_sessions BEGIN SELECT RAISE (ABORT, \'a session is frozen to its plan\');END',
+    'capture_session_plans_are_immutable',
+  );
+  final i1.Trigger finishedSessionsAreImmutable = i1.Trigger(
+    'CREATE TRIGGER finished_sessions_are_immutable BEFORE UPDATE ON capture_sessions WHEN OLD.status IN (\'completed\', \'abandoned\', \'failed\') BEGIN SELECT RAISE (ABORT, \'a finished session never changes\');END',
+    'finished_sessions_are_immutable',
+  );
+  late final Shape13 sessionPhotos = Shape13(
+    source: i0.VersionedTable(
+      entityName: 'session_photos',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(session_id, shot_index, attempt)'],
+      columns: [
+        _column_98,
+        _column_99,
+        _column_100,
+        _column_101,
+        _column_102,
+        _column_103,
+        _column_85,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Trigger sessionPhotosAreImmutable = i1.Trigger(
+    'CREATE TRIGGER session_photos_are_immutable BEFORE UPDATE ON session_photos BEGIN SELECT RAISE (ABORT, \'session photos are immutable\');END',
+    'session_photos_are_immutable',
+  );
+  late final Shape16 sessionOutputs = Shape16(
+    source: i0.VersionedTable(
+      entityName: 'session_outputs',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [
+        _column_0,
+        _column_98,
+        _column_104,
+        _column_80,
+        _column_87,
+        _column_77,
+        _column_78,
+        _column_105,
+        _column_106,
+        _column_11,
+        _column_108,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index sessionOutputsBySession = i1.Index(
+    'session_outputs_by_session',
+    'CREATE INDEX session_outputs_by_session ON session_outputs (session_id, created_at)',
+  );
+  final i1.Trigger sessionOutputsAreImmutable = i1.Trigger(
+    'CREATE TRIGGER session_outputs_are_immutable BEFORE UPDATE ON session_outputs BEGIN SELECT RAISE (ABORT, \'finished photos are immutable\');END',
+    'session_outputs_are_immutable',
+  );
+  late final Shape17 exportBatches = Shape17(
+    source: i0.VersionedTable(
+      entityName: 'export_batches',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [
+        _column_0,
+        _column_109,
+        _column_110,
+        _column_111,
+        _column_112,
+        _column_11,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape18 exportBatchItems = Shape18(
+    source: i0.VersionedTable(
+      entityName: 'export_batch_items',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(batch_id, kind, source_id)'],
+      columns: [
+        _column_113,
+        _column_114,
+        _column_115,
+        _column_116,
+        _column_117,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index exportBatchItemsBySession = i1.Index(
+    'export_batch_items_by_session',
+    'CREATE INDEX export_batch_items_by_session ON export_batch_items (session_id)',
+  );
+  late final Shape19 pendingFileDeletions = Shape19(
+    source: i0.VersionedTable(
+      entityName: 'pending_file_deletions',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [_column_118, _column_119],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+}
+
+class Shape15 extends i0.VersionedTable {
+  Shape15({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<String> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get eventId =>
+      columnsByName['event_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get sequence =>
+      columnsByName['sequence']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get templateRevisionId =>
+      columnsByName['template_revision_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get plannedShots =>
+      columnsByName['planned_shots']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get planJson =>
+      columnsByName['plan_json']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get status =>
+      columnsByName['status']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get endReason =>
+      columnsByName['end_reason']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get renderAttempts =>
+      columnsByName['render_attempts']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get outputId =>
+      columnsByName['output_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get startedAt =>
+      columnsByName['started_at']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get updatedAt =>
+      columnsByName['updated_at']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get endedAt =>
+      columnsByName['ended_at']! as i1.GeneratedColumn<String>;
+}
+
+i1.GeneratedColumn<int> _column_107(String aliasedName) =>
+    i1.GeneratedColumn<int>(
+      'sequence',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.int,
+      $customConstraints: 'NOT NULL CHECK (sequence >= 1)',
+    );
+
+class Shape16 extends i0.VersionedTable {
+  Shape16({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<String> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get sessionId =>
+      columnsByName['session_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get relativePath =>
+      columnsByName['relative_path']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get sha256 =>
+      columnsByName['sha256']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get byteLength =>
+      columnsByName['byte_length']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get widthPx =>
+      columnsByName['width_px']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get heightPx =>
+      columnsByName['height_px']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get format =>
+      columnsByName['format']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get renderVersion =>
+      columnsByName['render_version']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get createdAt =>
+      columnsByName['created_at']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get origin =>
+      columnsByName['origin']! as i1.GeneratedColumn<String>;
+}
+
+i1.GeneratedColumn<String> _column_108(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'origin',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.string,
+      $customConstraints: 'NOT NULL DEFAULT \'session\' CHECK (origin IN (\'session\', \'rerender\'))',
+      defaultValue: const i1.CustomExpression('\'session\''),
+    );
+
+class Shape17 extends i0.VersionedTable {
+  Shape17({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<String> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get outcome =>
+      columnsByName['outcome']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get destination =>
+      columnsByName['destination']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get fileCount =>
+      columnsByName['file_count']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get failureCount =>
+      columnsByName['failure_count']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get createdAt =>
+      columnsByName['created_at']! as i1.GeneratedColumn<String>;
+}
+
+i1.GeneratedColumn<String> _column_109(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'outcome',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.string,
+      $customConstraints:
+          'NOT NULL CHECK (outcome IN (\'shared\', \'unknown\'))',
+    );
+i1.GeneratedColumn<String> _column_110(
+  String aliasedName,
+) => i1.GeneratedColumn<String>(
+  'destination',
+  aliasedName,
+  true,
+  type: i1.DriftSqlType.string,
+  $customConstraints:
+      'CHECK (destination IS NULL OR length(destination) BETWEEN 1 AND 200)',
+);
+i1.GeneratedColumn<int> _column_111(String aliasedName) =>
+    i1.GeneratedColumn<int>(
+      'file_count',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.int,
+      $customConstraints: 'NOT NULL CHECK (file_count >= 1)',
+    );
+i1.GeneratedColumn<int> _column_112(String aliasedName) =>
+    i1.GeneratedColumn<int>(
+      'failure_count',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.int,
+      $customConstraints: 'NOT NULL CHECK (failure_count >= 0)',
+    );
+
+class Shape18 extends i0.VersionedTable {
+  Shape18({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<String> get batchId =>
+      columnsByName['batch_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get sessionId =>
+      columnsByName['session_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get kind =>
+      columnsByName['kind']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get sourceId =>
+      columnsByName['source_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get fileName =>
+      columnsByName['file_name']! as i1.GeneratedColumn<String>;
+}
+
+i1.GeneratedColumn<String> _column_113(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'batch_id',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.string,
+      $customConstraints:
+          'NOT NULL REFERENCES export_batches(id)ON DELETE CASCADE',
+    );
+i1.GeneratedColumn<String> _column_114(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'session_id',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.string,
+      $customConstraints:
+          'NOT NULL REFERENCES capture_sessions(id)ON DELETE CASCADE',
+    );
+i1.GeneratedColumn<String> _column_115(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'kind',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.string,
+      $customConstraints:
+          'NOT NULL CHECK (kind IN (\'finished\', \'original\'))',
+    );
+i1.GeneratedColumn<String> _column_116(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'source_id',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.string,
+      $customConstraints: 'NOT NULL CHECK (length(source_id) BETWEEN 1 AND 64)',
+    );
+i1.GeneratedColumn<String> _column_117(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'file_name',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.string,
+      $customConstraints:
+          'NOT NULL CHECK (length(file_name) BETWEEN 5 AND 120)',
+    );
+
+class Shape19 extends i0.VersionedTable {
+  Shape19({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<String> get relativePath =>
+      columnsByName['relative_path']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get queuedAt =>
+      columnsByName['queued_at']! as i1.GeneratedColumn<String>;
+}
+
+i1.GeneratedColumn<String> _column_118(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'relative_path',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.string,
+      $customConstraints: 'NOT NULL PRIMARY KEY CHECK (length(relative_path) BETWEEN 3 AND 255 AND relative_path NOT LIKE \'/%\' AND relative_path NOT LIKE \'%..%\' AND instr(relative_path, char(92)) = 0)',
+    );
+i1.GeneratedColumn<String> _column_119(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'queued_at',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.string,
+      $customConstraints: 'NOT NULL',
+    );
 i0.MigrationStepWithVersion migrationSteps({
   required Future<void> Function(i1.Migrator m, Schema2 schema) from1To2,
   required Future<void> Function(i1.Migrator m, Schema3 schema) from2To3,
   required Future<void> Function(i1.Migrator m, Schema4 schema) from3To4,
   required Future<void> Function(i1.Migrator m, Schema5 schema) from4To5,
+  required Future<void> Function(i1.Migrator m, Schema6 schema) from5To6,
 }) {
   return (currentVersion, database) async {
     switch (currentVersion) {
@@ -2456,6 +3123,11 @@ i0.MigrationStepWithVersion migrationSteps({
         final migrator = i1.Migrator(database, schema);
         await from4To5(migrator, schema);
         return 5;
+      case 5:
+        final schema = Schema6(database: database);
+        final migrator = i1.Migrator(database, schema);
+        await from5To6(migrator, schema);
+        return 6;
       default:
         throw ArgumentError.value('Unknown migration from $currentVersion');
     }
@@ -2467,11 +3139,13 @@ i1.OnUpgrade stepByStep({
   required Future<void> Function(i1.Migrator m, Schema3 schema) from2To3,
   required Future<void> Function(i1.Migrator m, Schema4 schema) from3To4,
   required Future<void> Function(i1.Migrator m, Schema5 schema) from4To5,
+  required Future<void> Function(i1.Migrator m, Schema6 schema) from5To6,
 }) => i0.VersionedSchema.stepByStepHelper(
   step: migrationSteps(
     from1To2: from1To2,
     from2To3: from2To3,
     from3To4: from3To4,
     from4To5: from4To5,
+    from5To6: from5To6,
   ),
 );

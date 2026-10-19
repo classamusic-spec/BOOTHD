@@ -46,6 +46,17 @@ enum SessionEndReason {
   renderFailed,
 }
 
+/// How a finished photo came to be.
+enum SessionOutputOrigin {
+  /// The session's own finished photo: made while the guest waited, or
+  /// later by the booth or the gallery finishing the session.
+  session,
+
+  /// Made again from the session's originals and template revision in the
+  /// gallery (AC-0804). Earlier finished photos are kept.
+  rerender,
+}
+
 /// A finished photo recorded against its session (A-05 RenderedOutput).
 @immutable
 final class SessionOutput {
@@ -60,6 +71,7 @@ final class SessionOutput {
     required this.format,
     required this.renderVersion,
     required this.createdAtUtc,
+    this.origin = SessionOutputOrigin.session,
   });
 
   final String id;
@@ -74,6 +86,7 @@ final class SessionOutput {
   final OutputFormat format;
   final int renderVersion;
   final DateTime createdAtUtc;
+  final SessionOutputOrigin origin;
 }
 
 /// A recorded guest session (A-05 CaptureSession) with its photos.
@@ -81,6 +94,7 @@ final class SessionOutput {
 final class SessionRecord {
   const SessionRecord({
     required this.id,
+    required this.number,
     required this.plan,
     required this.status,
     required this.photos,
@@ -93,6 +107,9 @@ final class SessionRecord {
   });
 
   final String id;
+
+  /// The session's number within its event, from 1 (schema version 6).
+  final int number;
   final SessionPlan plan;
   final SessionStatus status;
 
@@ -127,7 +144,8 @@ final class SessionStoreException implements Exception {
 /// Guest sessions, their photos and finished photos (A-04
 /// SessionRepository): checkpoints that survive restarts (A-10, A-11).
 abstract interface class SessionRepository {
-  /// Records a new session [id] frozen to [plan], capturing.
+  /// Records a new session [id] frozen to [plan], capturing, numbered after
+  /// the event's latest session.
   Future<void> create({
     required String id,
     required SessionPlan plan,
@@ -159,4 +177,13 @@ abstract interface class SessionRepository {
   Future<List<SessionRecord>> unfinished();
 
   Future<SessionOutput?> output(String outputId);
+
+  /// Every finished photo of [sessionId], oldest first.
+  Future<List<SessionOutput>> outputs(String sessionId);
+
+  /// Records [output], made again from a finished session's originals and
+  /// template revision (AC-0804). The session and its earlier finished
+  /// photos do not change. Refused for a session that is not finished or
+  /// whose set of photos is incomplete.
+  Future<SessionOutput> addRerender(String sessionId, ExportedFile output);
 }

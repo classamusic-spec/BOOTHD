@@ -11,7 +11,8 @@ import '../../domain/value_objects/clock.dart';
 import 'booth_database.dart';
 import 'persistence_guard.dart';
 
-/// Guest sessions in the booth database (schema version 5, A-10, A-11).
+/// Guest sessions in the booth database (schema versions 5 and 6, A-10,
+/// A-11).
 ///
 /// Every change is one transaction that re-reads the session and applies
 /// the domain's rules ([SessionShots]) before writing, so a session's rows
@@ -35,20 +36,29 @@ final class DriftSessionRepository implements SessionRepository {
     required SessionPlan plan,
     required DateTime startedAtUtc,
   }) => _guard(
-    () => _db
-        .into(_db.captureSessions)
-        .insert(
-          CaptureSessionsCompanion.insert(
-            id: id,
-            eventId: plan.eventId,
-            templateRevisionId: plan.templateRevisionId,
-            plannedShots: plan.shotCount,
-            planJson: jsonEncode(plan.toJson()),
-            status: SessionStatus.capturing,
-            startedAt: startedAtUtc,
-            updatedAt: startedAtUtc,
-          ),
-        ),
+    () => _db.transaction(() async {
+      final latest = _db.captureSessions.sequence.max();
+      final row =
+          await (_db.selectOnly(_db.captureSessions)
+                ..addColumns([latest])
+                ..where(_db.captureSessions.eventId.equals(plan.eventId)))
+              .getSingle();
+      await _db
+          .into(_db.captureSessions)
+          .insert(
+            CaptureSessionsCompanion.insert(
+              id: id,
+              eventId: plan.eventId,
+              sequence: (row.read(latest) ?? 0) + 1,
+              templateRevisionId: plan.templateRevisionId,
+              plannedShots: plan.shotCount,
+              planJson: jsonEncode(plan.toJson()),
+              status: SessionStatus.capturing,
+              startedAt: startedAtUtc,
+              updatedAt: startedAtUtc,
+            ),
+          );
+    }),
   );
 
   @override
@@ -219,21 +229,82 @@ final class DriftSessionRepository implements SessionRepository {
     final row = await (_db.select(
       _db.sessionOutputs,
     )..where((o) => o.id.equals(outputId))).getSingleOrNull();
-    return row == null
-        ? null
-        : SessionOutput(
-            id: row.id,
-            sessionId: row.sessionId,
-            relativePath: row.relativePath,
-            sha256: row.sha256,
-            byteLength: row.byteLength,
-            widthPx: row.widthPx,
-            heightPx: row.heightPx,
-            format: row.format,
-            renderVersion: row.renderVersion,
-            createdAtUtc: row.createdAt.toUtc(),
-          );
+    return row == null ? null : outputOf(row);
   });
+
+  @override
+  Future<List<SessionOutput>> outputs(String sessionId) => _guard(() async {
+    final rows =
+        await (_db.select(_db.sessionOutputs)
+              ..where((o) => o.sessionId.equals(sessionId))
+              ..orderBy([
+                (o) => OrderingTerm.asc(o.createdAt),
+                (o) => OrderingTerm.asc(o.id),
+              ]))
+            .get();
+    return [for (final row in rows) outputOf(row)];
+  });
+
+  @override
+  Future<SessionOutput> addRerender(String sessionId, ExportedFile output) =>
+      _guard(
+        () => _db.transaction(() async {
+          final session = await _require(sessionId, const {
+            SessionStatus.completed,
+            SessionStatus.abandoned,
+            SessionStatus.failed,
+          });
+          if (!session.shots.isComplete) {
+            throw const SessionStoreException('SESSION_SET_INCOMPLETE');
+          }
+          final now = _clock.now();
+          await _db
+              .into(_db.sessionOutputs)
+              .insert(
+                SessionOutputsCompanion.insert(
+                  id: output.id,
+                  sessionId: sessionId,
+                  relativePath: output.relativePath,
+                  sha256: output.sha256,
+                  byteLength: output.byteLength,
+                  widthPx: output.widthPx,
+                  heightPx: output.heightPx,
+                  format: output.format,
+                  renderVersion: output.renderVersion,
+                  createdAt: now,
+                  origin: const Value(SessionOutputOrigin.rerender),
+                ),
+              );
+          return SessionOutput(
+            id: output.id,
+            sessionId: sessionId,
+            relativePath: output.relativePath,
+            sha256: output.sha256,
+            byteLength: output.byteLength,
+            widthPx: output.widthPx,
+            heightPx: output.heightPx,
+            format: output.format,
+            renderVersion: output.renderVersion,
+            createdAtUtc: now,
+            origin: SessionOutputOrigin.rerender,
+          );
+        }),
+      );
+
+  /// [row] as a domain record.
+  static SessionOutput outputOf(SessionOutputRow row) => SessionOutput(
+    id: row.id,
+    sessionId: row.sessionId,
+    relativePath: row.relativePath,
+    sha256: row.sha256,
+    byteLength: row.byteLength,
+    widthPx: row.widthPx,
+    heightPx: row.heightPx,
+    format: row.format,
+    renderVersion: row.renderVersion,
+    createdAtUtc: row.createdAt.toUtc(),
+    origin: row.origin,
+  );
 
   /// The session, which must be in one of [allowed].
   Future<SessionRecord> _require(
@@ -270,6 +341,7 @@ final class DriftSessionRepository implements SessionRepository {
     }
     return SessionRecord(
       id: row.id,
+      number: row.sequence,
       plan: plan,
       status: row.status,
       photos: [

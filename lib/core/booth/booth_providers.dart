@@ -11,8 +11,9 @@ import 'session_recovery.dart';
 
 /// Startup (UX-04): prepares managed storage, opens and migrates the
 /// database, reads the booth, finishes or undoes photo saves the app never
-/// finished (A-11) and ends or queues guest sessions it never finished
-/// (A-10), before anything can take a photo. Errors (storage
+/// finished (A-11), ends or queues guest sessions it never finished
+/// (A-10) and removes files whose records an interrupted deletion already
+/// removed (M08), before anything can take a photo. Errors (storage
 /// unavailable, data from a newer app version) surface here, before any
 /// screen depends on them.
 final startupProvider = FutureProvider<BoothState>((ref) async {
@@ -20,6 +21,11 @@ final startupProvider = FutureProvider<BoothState>((ref) async {
   final booth = await ref.watch(boothSettingsRepositoryProvider).load();
   await ref.watch(capturedStillStoreProvider).reconcile();
   await SessionRecovery(ref.watch(sessionRepositoryProvider)).reconcile();
+  try {
+    await ref.watch(storageCleanupProvider).run();
+  } on Object {
+    // Left in the journal; the gallery shows it and tries again.
+  }
   return booth;
 });
 

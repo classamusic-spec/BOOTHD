@@ -37,6 +37,8 @@ void main() {
       'outputs',
       'templates',
       'assets',
+      'thumbnails',
+      'outgoing',
       'staging',
     });
     expect(

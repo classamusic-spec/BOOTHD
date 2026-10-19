@@ -16,6 +16,14 @@ enum ManagedArea {
   templates('templates'),
   assets('assets'),
 
+  /// Gallery thumbnails (M08): derived from outputs and originals, safe to
+  /// clear at any time.
+  thumbnails('thumbnails'),
+
+  /// Copies prepared for the share sheet (M08), under their export names.
+  /// Replaced by each export and cleared at startup.
+  outgoing('outgoing'),
+
   /// Files being written; renamed into place only once complete (A-11).
   staging('staging');
 
@@ -54,6 +62,15 @@ final class FileManagedStorage implements ManagedStorage {
     // Startup reconciliation (A-11): nothing writes before startup, so a
     // staged file now belongs to a write the app never finished.
     await AtomicFileWriter.discardStaged(await directory(ManagedArea.staging));
+    // Copies prepared for an earlier export (M08) are never needed again.
+    final outgoing = await directory(ManagedArea.outgoing);
+    for (final entry in outgoing.listSync(followLinks: false)) {
+      try {
+        await entry.delete(recursive: true);
+      } on FileSystemException {
+        // Tried again at the next start.
+      }
+    }
   }
 
   /// A writer that stages in this storage's staging area.

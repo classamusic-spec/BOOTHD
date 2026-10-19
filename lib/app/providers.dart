@@ -16,6 +16,7 @@ import '../infrastructure/database/booth_database.dart';
 import '../infrastructure/database/database_connection.dart';
 import '../infrastructure/database/drift_booth_settings_repository.dart';
 import '../infrastructure/database/drift_event_repository.dart';
+import '../infrastructure/database/drift_gallery_repository.dart';
 import '../infrastructure/database/drift_operator_access_repository.dart';
 import '../infrastructure/database/drift_session_repository.dart';
 import '../infrastructure/database/drift_template_catalog.dart';
@@ -24,7 +25,10 @@ import '../infrastructure/device/platform_device_storage.dart';
 import '../infrastructure/file_store/file_export_service.dart';
 import '../infrastructure/file_store/managed_finished_photos.dart';
 import '../infrastructure/file_store/managed_storage.dart';
+import '../infrastructure/file_store/managed_storage_cleanup.dart';
+import '../infrastructure/file_store/managed_thumbnail_store.dart';
 import '../infrastructure/file_store/original_store.dart';
+import '../infrastructure/files/managed_gallery_exporter.dart';
 import '../infrastructure/files/platform_operator_files.dart';
 import '../infrastructure/security/pbkdf2_pin_hasher.dart';
 import '../infrastructure/security/secure_pin_verifier_store.dart';
@@ -170,6 +174,30 @@ List<Override> productionOverrides() => [
   ),
   finishedPhotosProvider.overrideWithValue(
     ManagedFinishedPhotos(root: getApplicationSupportDirectory),
+  ),
+  galleryRepositoryProvider.overrideWith(
+    (ref) => DriftGalleryRepository(
+      ref.watch(_boothDatabaseProvider),
+      clock: ref.watch(clockProvider),
+      templates: ref.watch(templateCatalogProvider),
+    ),
+  ),
+  galleryExporterProvider.overrideWith(
+    (ref) => ManagedGalleryExporter(
+      storage: ref.watch(_managedStorageProvider),
+      space: ref.watch(deviceStorageInfoProvider),
+      ids: ref.watch(idGeneratorProvider),
+      share: shareFilesWithPlatformSheet,
+    ),
+  ),
+  thumbnailStoreProvider.overrideWith(
+    (ref) => ManagedThumbnailStore(storage: ref.watch(_managedStorageProvider)),
+  ),
+  storageCleanupProvider.overrideWith(
+    (ref) => ManagedStorageCleanup(
+      database: ref.watch(_boothDatabaseProvider),
+      root: getApplicationSupportDirectory,
+    ),
   ),
   boothCapabilityProbeProvider.overrideWith(
     (ref) => DeviceCapabilityProbe(

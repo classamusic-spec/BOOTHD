@@ -62,6 +62,18 @@ enum ShareOutcome {
   unknown,
 }
 
+/// What the share sheet reported, as the platform gave it.
+final class ShareReport {
+  const ShareReport(this.outcome, {this.destination});
+
+  final ShareOutcome outcome;
+
+  /// The destination the operator chose, as the platform names it (an
+  /// iPadOS activity type such as `com.apple.UIKit.activity.AirDrop`, or
+  /// an Android app component). Null when the platform does not say.
+  final String? destination;
+}
+
 abstract interface class OperatorFiles {
   /// Lets the operator choose one file for [kind]; null when they cancel.
   /// Throws [FilePickException] for a file over [maxBytes] (checked before

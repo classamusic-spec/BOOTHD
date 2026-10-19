@@ -97,7 +97,7 @@ final class AtomicFileWriter {
         await operations.writeAndFlush(staged, bytes);
       } on FileSystemException catch (error) {
         throw AtomicWriteException(
-          _isNoSpace(error)
+          isNoSpace(error)
               ? AtomicWriteFailure.noSpace
               : AtomicWriteFailure.writeFailed,
           osErrorCode: error.osError?.errorCode,
@@ -131,7 +131,7 @@ final class AtomicFileWriter {
         await operations.rename(staged, destination.path);
       } on FileSystemException catch (error) {
         throw AtomicWriteException(
-          _isNoSpace(error)
+          isNoSpace(error)
               ? AtomicWriteFailure.noSpace
               : AtomicWriteFailure.commitFailed,
           osErrorCode: error.osError?.errorCode,
@@ -180,7 +180,8 @@ final class AtomicFileWriter {
 
   /// ENOSPC (28 on Linux, Android, iOS and macOS) and EDQUOT (122 on Linux
   /// and Android, 69 on iOS and macOS).
-  static bool _isNoSpace(FileSystemException error) {
+  /// Whether [error] means the volume is full (or over quota).
+  static bool isNoSpace(FileSystemException error) {
     final code = error.osError?.errorCode;
     return code == 28 ||
         ((Platform.isLinux || Platform.isAndroid) && code == 122) ||

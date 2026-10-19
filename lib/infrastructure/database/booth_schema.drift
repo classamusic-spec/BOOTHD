@@ -2,7 +2,9 @@
 -- version 2 (M04) adds template assets and the assets each revision uses;
 -- version 3 (M05) adds editor drafts and bundled assets; version 4 (M06)
 -- camera originals and their commit journal; version 5 (M07) guest
--- sessions, their photos and finished photos.
+-- sessions, their photos and finished photos; version 6 (M08) session
+-- numbers, re-rendered finished photos, the export history and the journal
+-- of files to delete.
 --
 -- Rules enforced here as well as in the domain, so a defect elsewhere can
 -- never store an invalid event: foreign keys with explicit actions, CHECK
@@ -11,8 +13,10 @@
 -- version bump, a migration step, a new schema dump and a seeded fixture
 -- (tool/check.sh and test/drift enforce this).
 
+import '../../domain/gallery/export_plan.dart';
 import '../../domain/models/booth_event.dart';
 import '../../domain/repositories/session_repository.dart';
+import '../../domain/services/operator_files.dart';
 import '../../domain/repositories/template_store.dart';
 import '../../domain/services/camera_service.dart';
 import '../../domain/template/template_assets.dart';
@@ -303,10 +307,12 @@ CREATE TABLE pending_original_commits (
 -- Guest sessions (version 5; A-05 CaptureSession, A-10). Each is frozen to
 -- one event and one template revision when it starts; `plan_json` keeps the
 -- frozen settings (JSON). Only the status columns change afterwards, and
--- a completed session never changes again.
+-- a completed session never changes again. Version 6 numbers sessions
+-- within their event (1, 2, ...) for the gallery and export file names.
 CREATE TABLE capture_sessions (
   id TEXT NOT NULL PRIMARY KEY CHECK (length(id) = 36),
   event_id TEXT NOT NULL REFERENCES events (id) ON DELETE RESTRICT,
+  sequence INTEGER NOT NULL CHECK (sequence >= 1),
   template_revision_id TEXT NOT NULL
     REFERENCES template_revisions (id) ON DELETE RESTRICT,
   planned_shots INTEGER NOT NULL CHECK (planned_shots BETWEEN 1 AND 4),
@@ -325,15 +331,16 @@ CREATE TABLE capture_sessions (
   CHECK ((status IN ('completed', 'abandoned', 'failed'))
     = (ended_at IS NOT NULL)),
   CHECK ((status = 'completed') = (output_id IS NOT NULL)),
-  CHECK ((status IN ('abandoned', 'failed')) = (end_reason IS NOT NULL))
+  CHECK ((status IN ('abandoned', 'failed')) = (end_reason IS NOT NULL)),
+  UNIQUE (event_id, sequence)
 ) AS CaptureSessionRow;
 
 CREATE INDEX capture_sessions_by_event
   ON capture_sessions (event_id, started_at);
 
 CREATE TRIGGER capture_session_plans_are_immutable
-  BEFORE UPDATE OF id, event_id, template_revision_id, planned_shots,
-    plan_json, started_at ON capture_sessions
+  BEFORE UPDATE OF id, event_id, sequence, template_revision_id,
+    planned_shots, plan_json, started_at ON capture_sessions
 BEGIN
   SELECT RAISE(ABORT, 'a session is frozen to its plan');
 END;
@@ -368,6 +375,8 @@ END;
 
 -- Finished photos (version 5; A-05 RenderedOutput): the verified file in
 -- managed storage and its facts. Never changed; a new render is a new row.
+-- Version 6 records whether it is the session's own finished photo or one
+-- made again in the gallery (AC-0804).
 CREATE TABLE session_outputs (
   id TEXT NOT NULL PRIMARY KEY CHECK (length(id) = 36),
   session_id TEXT NOT NULL REFERENCES capture_sessions (id) ON DELETE RESTRICT,
@@ -381,7 +390,9 @@ CREATE TABLE session_outputs (
   height_px INTEGER NOT NULL CHECK (height_px BETWEEN 1 AND 20000),
   format ENUMNAME(OutputFormat) NOT NULL CHECK (format IN ('jpeg', 'png')),
   render_version INTEGER NOT NULL CHECK (render_version >= 1),
-  created_at DATETIME NOT NULL
+  created_at DATETIME NOT NULL,
+  origin ENUMNAME(SessionOutputOrigin) NOT NULL DEFAULT 'session'
+    CHECK (origin IN ('session', 'rerender'))
 ) AS SessionOutputRow;
 
 CREATE INDEX session_outputs_by_session
@@ -392,3 +403,45 @@ CREATE TRIGGER session_outputs_are_immutable
 BEGIN
   SELECT RAISE(ABORT, 'finished photos are immutable');
 END;
+
+-- Exports whose files left the tablet (version 6; P-11 export status,
+-- AC-0803): when, what the share sheet reported and how many files went
+-- or failed. A dismissed share sheet sent nothing and is not recorded.
+CREATE TABLE export_batches (
+  id TEXT NOT NULL PRIMARY KEY CHECK (length(id) = 36),
+  outcome ENUMNAME(ShareOutcome) NOT NULL
+    CHECK (outcome IN ('shared', 'unknown')),
+  destination TEXT
+    CHECK (destination IS NULL OR length(destination) BETWEEN 1 AND 200),
+  file_count INTEGER NOT NULL CHECK (file_count >= 1),
+  failure_count INTEGER NOT NULL CHECK (failure_count >= 0),
+  created_at DATETIME NOT NULL
+) AS ExportBatchRow;
+
+-- The files of each export (version 6). Deleting a session removes its
+-- rows; the batch keeps its counts.
+CREATE TABLE export_batch_items (
+  batch_id TEXT NOT NULL REFERENCES export_batches (id) ON DELETE CASCADE,
+  session_id TEXT NOT NULL
+    REFERENCES capture_sessions (id) ON DELETE CASCADE,
+  kind ENUMNAME(ExportFileKind) NOT NULL
+    CHECK (kind IN ('finished', 'original')),
+  source_id TEXT NOT NULL CHECK (length(source_id) BETWEEN 1 AND 64),
+  file_name TEXT NOT NULL CHECK (length(file_name) BETWEEN 5 AND 120),
+  PRIMARY KEY (batch_id, kind, source_id)
+) AS ExportBatchItemRow;
+
+CREATE INDEX export_batch_items_by_session
+  ON export_batch_items (session_id);
+
+-- Files whose records were deleted (version 6; A-11 journal, AC-0805).
+-- Written in the transaction that deletes the records; a row is removed
+-- once its file is gone. Rows left at startup are finished then.
+CREATE TABLE pending_file_deletions (
+  relative_path TEXT NOT NULL PRIMARY KEY
+    CHECK (length(relative_path) BETWEEN 3 AND 255
+      AND relative_path NOT LIKE '/%'
+      AND relative_path NOT LIKE '%..%'
+      AND instr(relative_path, char(92)) = 0),
+  queued_at DATETIME NOT NULL
+) AS PendingFileDeletionRow;

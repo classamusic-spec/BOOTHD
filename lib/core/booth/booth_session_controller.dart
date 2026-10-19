@@ -18,8 +18,8 @@ import '../../domain/template/template_document.dart';
 import '../../domain/value_objects/clock.dart';
 import '../../domain/value_objects/entity_id.dart';
 import '../camera/camera_session.dart';
-import '../composition/store_render_source.dart';
 import 'session_recovery.dart';
+import 'session_renderer.dart';
 
 /// How long a guest-facing step waits before the booth moves on by itself
 /// (guest-safe timeouts, ADR-0013).
@@ -74,16 +74,23 @@ final class BoothSessionController extends ChangeNotifier {
     required CameraService camera,
     required this._originals,
     required this._sessions,
-    required this._export,
-    required this._finished,
+    required ExportService export,
+    required FinishedPhotos finished,
     required this._templates,
-    required this._assets,
+    required AssetRepository assets,
     required this._space,
     required this._clock,
     required this._ids,
     this.timeouts = const BoothTimeouts(),
   }) : _cameraService = camera,
-       _camera = CameraSessionController(camera) {
+       _camera = CameraSessionController(camera),
+       _renderer = SessionRenderer(
+         export: export,
+         finished: finished,
+         templates: _templates,
+         assets: assets,
+         originals: _originals,
+       ) {
     _camera.addListener(_onCamera);
     _lifecycle = AppLifecycleListener(onStateChange: _onAppState);
     final state = WidgetsBinding.instance.lifecycleState;
@@ -103,13 +110,11 @@ final class BoothSessionController extends ChangeNotifier {
   final CameraSessionController _camera;
   final CapturedStillStore _originals;
   final SessionRepository _sessions;
-  final ExportService _export;
-  final FinishedPhotos _finished;
   final TemplateRepository _templates;
-  final AssetRepository _assets;
   final DeviceStorageInfo _space;
   final Clock _clock;
   final IdGenerator _ids;
+  final SessionRenderer _renderer;
   late final AppLifecycleListener _lifecycle;
 
   var _flow = GuestFlow.idle;
@@ -145,7 +150,7 @@ final class BoothSessionController extends ChangeNotifier {
   /// The saved original [originalId] of this session, read back and
   /// checked (S24 thumbnails, S25 review).
   Future<Uint8List> photo(String originalId) =>
-      _photos[originalId] ??= _quiet(_readOriginal(originalId));
+      _photos[originalId] ??= _quiet(_renderer.readOriginal(originalId));
 
   /// Width over height of the original [originalId] as guests see it, when
   /// this session took it.
@@ -566,42 +571,9 @@ final class BoothSessionController extends ChangeNotifier {
     SessionShots shots,
     TemplateDocument document,
   ) async {
-    final plan = shots.plan;
-    final exported = await _export.export(
-      TemplateRender(
-        document: document,
-        photos: {
-          for (final MapEntry(key: slot, value: originalId)
-              in shots.slotBindings.entries)
-            slot: SlotPhoto(originalId, mirrored: plan.capture.mirrorOutput),
-        },
-        source: StoreRenderSource(assets: _assets, photos: _readOriginal),
-      ),
-      output: plan.output,
-    );
-    final Uint8List bytes;
-    try {
-      bytes = await _finished.read(
-        relativePath: exported.relativePath,
-        sha256: exported.sha256,
-      );
-    } on FinishedPhotoUnreadable {
-      throw const ExportFailure(ExportFailureCode.verifyFailed);
-    }
+    final (exported, bytes) = await _renderer.render(shots, document: document);
     final output = await _sessions.complete(sessionId, exported);
     return (output, bytes);
-  }
-
-  Future<Uint8List> _readOriginal(String originalId) async {
-    final still = await _originals.find(originalId);
-    if (still == null) {
-      throw RenderFailure(RenderFailureCode.missingPhoto, detail: originalId);
-    }
-    try {
-      return await _originals.read(still);
-    } on CameraFailure {
-      throw RenderFailure(RenderFailureCode.missingPhoto, detail: originalId);
-    }
   }
 
   /// Ends the session (unless it completed, or still waits to be
