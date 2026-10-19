@@ -659,3 +659,84 @@ on `a9cee67`:
 - The free-space channel returns one number. Camera test and self-test
   are operator-only routes behind the PIN and absent from Booth Mode
   (`access_flow_test.dart` checks the camera test route from Booth Mode).
+
+## M07: end-to-end guest booth and persistent session state machine
+
+```text
+Milestone: M07 | code commits 053a283, f657d4e, 25138ec | build 0.1.0+1
+Host: same Linux cloud VM as M00 to M06 (4 cores, no KVM, no macOS, no attached devices)
+Flutter 3.47.7 / Dart 3.13.5; no new packages; schema version 5
+iPad: BLOCKED (no physical iPad, no Mac)
+Android: builds PASS; no physical tablet
+Guest sessions tested on the host only: the controller and every guest screen on the
+  simulated camera with a stand-in export, and one session with the real renderer and
+  file export. None of it is a tablet: the exit gate and AC-0708 are BLOCKED.
+Owner approval requested: YES
+```
+
+### Commands and exit codes (2026-10-19 UTC)
+
+| # | Command | Exit | Result |
+| --- | --- | --- | --- |
+| 1 | `tool/check.sh` on the tree committed as `25138ec` | 0 | 12 min 25 s. Generated code current (build_runner and `drift_dev make-migrations` changed nothing, including the schema v5 dump, steps and test schemas). Format: 317 files, 0 changed. Analyze: no issues. Tests: 2,075 passed, 1 skipped (device comparison, no device results), 0 failed. Licence report matches `pubspec.lock` |
+| 2 | The same script one run earlier, before the last changes of `25138ec` (the test harness's render wait, the memory bound, the operator problem state) | 1 | One failure: the Studio golden `lightOak/templates_library_ipadPortrait.png` (1.35% of pixels) captured before a thumbnail finished rendering, while M07's new tests ran in parallel. Not an M07 screen; the wait was a fixed real time. Fixed in `25138ec` by waiting for renders in flight; row 1 passes with every golden unchanged |
+| 3 | `flutter test --reporter json` on the M07 test files at `25138ec` | 0 | `guest_session_test.dart` 17, `session_repository_test.dart` 7, `session_recovery_test.dart` 1, `booth_session_controller_test.dart` 14, `migration_test.dart` 10, `booth_session_flow_test.dart` 19, `booth_render_test.dart` 1, `access_flow_test.dart` 16, `guest_isolation_test.dart` 19; 0 failed. The screen catalog adds 176 checks for eleven guest-session states (overflow at six sizes, 200% text, tap targets, labels, contrast in three themes, no dead controls) and 30 goldens |
+| 4 | `tool/build_android.sh release` on `25138ec` | 0 | 3 min 46 s. `app-release.apk`, 71,973,513 bytes, SHA-256 `8e78413c4356e4299362731e6d454c50d1236884a7c5b1281af86c1603c44dbc`. `aapt2`: compileSdk 37, targetSdk 36; permissions unchanged from M06 (`CAMERA`, `ACCESS_NETWORK_STATE`, the AndroidX receiver permission); components unchanged (`ShareFileProvider`, `SharePlusPendingIntent`, CameraX `MetadataHolderService` and `InitializationProvider` not exported; `ProfileInstallReceiver` exported behind `DUMP`); `allowBackup=false`, `fullBackupContent=false`, `dataExtractionRules` present; no fixed `screenOrientation` (the booth asks at run time, ADR-0013) |
+| 5 | `tool/build_android.sh debug` on `25138ec` | 0 | `app-debug.apk`, 241,155,040 bytes, SHA-256 `ba26425cfccee7e24232b63b0e4f252e087a61c0a5d9ab63e87a9e06e9daff2b`; adds only `INTERNET` (Flutter debug tooling), as before |
+| 6 | `tool/build_ios.sh release` | 3 | BLOCKED: Linux host |
+| 7 | `flutter test integration_test/guest_session_test.dart -d <device>` | not run | BLOCKED: no physical tablet. During development a host copy with the simulated camera in place of the plugin ran the same steps once (Floral Elegance, three photos: 600 x 1800 finished photo, 144,847 bytes, rendered and saved in 476 ms from 64 x 48 stand-in photos); informative only, not device evidence |
+| 8 | M07 device procedure (`docs/device_tests/M07_DEVICE_PROCEDURE.md`) | not run | BLOCKED: no iPad, no Android tablet |
+
+### Acceptance items
+
+| AC | Status | Evidence |
+| --- | --- | --- |
+| AC-0701 Correct flow welcome → optional template → preview → countdown → 1–4 captures → review/retake → render → saved → reset | PASS (host); device BLOCKED | `guest_session_test.dart` (17): every transition of the flow and every refused one. `booth_session_controller_test.dart`: Start to saved to the next guest with the event and template revision frozen. `booth_session_flow_test.dart`: the same through the guest screens at all six tablet sizes with no operator action, the template choice used for the session, the welcome back after Next guest. Device: procedure section 2 |
+| AC-0702 Countdown follows monotonic time, pauses/cancels safely on background/interrupt | PASS (host); device BLOCKED | Controller: 3, 2, 1 one step a second on timers; inactive or hidden during preparing, the countdown or the pause between photos stops at once, no shutter for ten seconds away, the camera released while hidden, nothing until the guest's Continue, then a fresh countdown; a photo in flight finishes and is kept, then the booth pauses. Flow test: "Welcome back!" with Continue only, no shutter while waiting. Device: procedure section 5 |
+| AC-0703 Review/retake replaces the selected binding without destroying original captures | PASS (host); device BLOCKED | Controller: a per-photo retake adds a third original, the binding moves to it, the replaced original still reads back; no retake beyond the limit; a whole-set retake starts a new round (four originals, bindings to the new two). Repository: the database records the new round with its first photo and refuses a round beyond the limit; triggers refuse changes to photo rows. Flow test: "Retaking photo 1", then "No retakes left"; Retake all asks first. Device: section 3 |
+| AC-0704 Captured photos map to correct slots; missing/extra slots handled as specified | PASS (host); device BLOCKED | Shot n fills the template's n-th photo space (`SessionPlan`); the render receives exactly those bindings (controller test). `booth_render_test.dart` with the real renderer and file export: each photo fills its own space at 1200 x 1800, the paper shows between them, not mirrored. Missing or extra: a template whose photo count differs from the event's is refused when the session starts (`SESSION_TEMPLATE_SLOTS_MISMATCH`, a guest-safe problem; launch checks block it before Booth Mode); bindings exist only for a complete set (`SESSION_SET_INCOMPLETE`); the export refuses a space without a photo. Device: section 4 |
+| AC-0705 Rendering progress and Saved label only appear after verified durable export | PASS (host); device BLOCKED | "Creating your photos" while the export runs, with no claim and nothing to cancel; the session stays `rendering`. The finished photo is exported atomically, read back against its checksum, and only then recorded `completed` and shown with "Saved to the booth gallery." A file damaged after its checksum is never called saved (controller and flow tests, then Try again succeeds). Real export: committed with nothing left in staging; the shown bytes are the file's. Device: section 2 |
+| AC-0706 Guest cannot access Studio/gallery, other guest photos or system share picker | PASS (host); device BLOCKED | Flow test during a countdown and a review: system back does nothing; deep links to the dashboard, gallery, templates, settings, diagnostics, camera test, guest preview and the operator route never leave Booth Mode or show the Studio; no picker or share call; guest control labels free of print, save, share, settings, back, exit, close, gallery, download, menu, studio and operator. Screen checks: no dead controls on any session screen. Other guests' photos: none is ever shown (AC-0709). Leaving the app itself needs the OS kiosk lock (M10). Device: section 7 |
+| AC-0707 Session state checkpoint and interrupted render recovery preserves originals | PASS (host); device BLOCKED | `session_recovery_test.dart`: at startup, sessions cut off while photos were taken or reviewed end `abandoned` (`interrupted`) with every photo kept; a render checkpoint waits; three failed renders end `failed` (`renderFailed`); a second startup changes nothing. Controller: a failed render keeps the checkpoint and is finished while the booth is idle after the guest leaves. Flow test: the app restarted after a failed render opens on the welcome and the finished photo is made (two attempts, both photos kept). Device: section 6 |
+| AC-0708 Configured portrait/landscape guest layouts work on both physical tablet families (DEVICE) | BLOCKED | No tablets. Host layouts only (not device evidence): every session screen lays out without overflow at the six tablet sizes and at 200% text, with goldens in both orientations; layouts follow the window, not the preference; the preference is requested from the OS at run time. Device: section 8 |
+| AC-0709 After finish, booth resets without showing previous guest imagery | PASS (host); device BLOCKED | Controller: after Next guest the finished photo, the session's photos and their sizes are forgotten, the image cache and live images are empty, the camera is released. Flow test at six sizes: the welcome shows no finished photo, no session photo and no image of the last guest; the screen switch drops the last screen at once when the welcome returns. Device: section 2 |
+
+### M07 exit gate
+
+| Gate | Status |
+| --- | --- |
+| Both devices complete airplane-mode photo → composition → local saved output → new guest with no operator intervention | BLOCKED: no physical iPad or Android tablet. On the host the same flow passes at every tablet size on the simulated camera, and one session runs with the real renderer and file export; the scripted device session (`integration_test/guest_session_test.dart`) and the procedure are ready |
+
+### CI (GitHub Actions)
+
+[#23](https://github.com/classamusic-spec/BOOTHD/actions/runs/39180390737)
+on `053a283` and
+[#24](https://github.com/classamusic-spec/BOOTHD/actions/runs/39181815227)
+on `f657d4e`: success (checks and the Android release build).
+[#25](https://github.com/classamusic-spec/BOOTHD/actions/runs/39184787557)
+on `25138ec`:
+
+| Job (#25) | Conclusion | Notes |
+| --- | --- | --- |
+| Format, analyze, test, licences | success | `tool/check.sh` in 10 min 24 s: generated code current, format and analyze clean, all tests passed as locally (goldens, including the 30 new session goldens, compared on Linux) |
+| Android release smoke build | success | `assembleRelease` 364.8 s; `app-release.apk` 71,973,513 bytes (the local size), SHA-256 `4562f9e510f004a7943e20e91fa1875d2e42ced360e4832152ccf3e4ff2a1b3e` (signed with the runner's own debug key, so the hash differs from row 4) |
+| iPadOS unsigned build | skipped | Manual dispatch only, by design; not run (macOS minutes), so iPadOS has still not been compiled |
+
+### Security and privacy notes (M07)
+
+- No network: sessions, renders and saves are local, and the scripted
+  device session runs in airplane mode. No new packages or permissions
+  (row 4).
+- Guest screens never show a code, a path or a photo of another guest.
+  The operator sees the last problem's code and time only after entering
+  the PIN, and it is cleared when Booth Mode ends.
+- Session records hold ids, times, counts, the frozen settings and file
+  checksums: no names, contacts or other guest data. Originals and
+  finished photos stay in the app's private support directory.
+- Nothing is deleted by a session: abandoned sessions and late photos
+  keep their originals until the operator's retention tools (M08).
+- At each reset the image cache is cleared and the camera released;
+  photos are decoded at their shown size, and only the photos in use are
+  held in memory.
+- The hidden hold ends the session before the PIN screen opens; the PIN
+  screen returns to guests after 45 seconds untouched.
