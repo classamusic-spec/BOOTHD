@@ -21,13 +21,18 @@ import UIKit
   }
 }
 
-/// Free space for the launch checks (ADR-0012): Dart has no API for it.
-/// Reports only a number of bytes.
+/// Free space for the launch checks (ADR-0012), and keeping the booth's
+/// files out of iCloud and computer backups (ADR-0016): Dart has no API
+/// for either. Reports only a number of bytes.
 enum DeviceStorageChannel {
   static func register(with messenger: FlutterBinaryMessenger) {
     let channel = FlutterMethodChannel(
       name: "porcelain/device_storage", binaryMessenger: messenger)
     channel.setMethodCallHandler { call, result in
+      if call.method == "excludeFromBackup" {
+        DeviceStorageChannel.excludeFromBackup(call, result)
+        return
+      }
       guard call.method == "freeBytes" else {
         result(FlutterMethodNotImplemented)
         return
@@ -45,6 +50,28 @@ enum DeviceStorageChannel {
       } catch {
         result(FlutterError(code: "unavailable", message: nil, details: nil))
       }
+    }
+  }
+
+  /// Marks the directory, and so everything in it, as excluded from
+  /// backups.
+  private static func excludeFromBackup(
+    _ call: FlutterMethodCall, _ result: FlutterResult
+  ) {
+    guard let arguments = call.arguments as? [String: Any],
+      let path = arguments["path"] as? String
+    else {
+      result(FlutterError(code: "bad_arguments", message: nil, details: nil))
+      return
+    }
+    var url = URL(fileURLWithPath: path, isDirectory: true)
+    var values = URLResourceValues()
+    values.isExcludedFromBackup = true
+    do {
+      try url.setResourceValues(values)
+      result(nil)
+    } catch {
+      result(FlutterError(code: "unavailable", message: nil, details: nil))
     }
   }
 }

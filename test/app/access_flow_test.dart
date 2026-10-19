@@ -535,5 +535,25 @@ void main() {
       expect(find.byType(UnlockScreen), findsOneWidget);
       expect(booth.accessState.phase, AccessPhase.locked);
     });
+
+    testWidgets('a restore that could not finish its swap says so and can '
+        'be retried (M10)', (tester) async {
+      useViewport(tester, TabletViewport.ipadPortrait);
+      final storage = FakeManagedStorage()
+        ..prepareError = const ManagedStorageException('RESTORE_INCOMPLETE');
+      final booth = await pumpApp(
+        tester,
+        startAs: StartAs.locked,
+        storage: storage,
+      );
+      expect(find.text("The restore hasn't finished"), findsOneWidget);
+      expect(find.text('Code: RESTORE_INCOMPLETE'), findsOneWidget);
+      expect(find.textContaining('Exception'), findsNothing);
+
+      storage.prepareError = null;
+      await tapText(tester, 'Try again');
+      expect(find.byType(UnlockScreen), findsOneWidget);
+      expect(booth.accessState.phase, AccessPhase.locked);
+    });
   });
 }

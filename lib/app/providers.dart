@@ -85,7 +85,10 @@ final _originalStoreProvider = Provider<OriginalStore>((ref) {
 
 /// Managed storage under the app's private support directory (A-11).
 final _managedStorageProvider = Provider<FileManagedStorage>(
-  (ref) => FileManagedStorage(root: getApplicationSupportDirectory),
+  (ref) => FileManagedStorage(
+    root: getApplicationSupportDirectory,
+    keepOutOfDeviceBackups: const PlatformDeviceStorage().excludeFromBackup,
+  ),
 );
 
 /// The booth database, opened on first use on a background isolate.

@@ -503,6 +503,12 @@ final class BoothSessionController extends ChangeNotifier {
         _photos[still.id] = _quiet(_originals.read(still));
         _set(_flow.photoSaved(photo));
         _forgetReplaced();
+      // The tablet filled up: trying again cannot help, so the guest is
+      // sent to the host (AC-1005). Photos already taken stay saved.
+      case CaptureFailed(:final failure)
+          when failure.code == CameraFailureCode.originalNotPersisted &&
+              failure.detail == 'no-space':
+        _fail(GuestProblemKind.storage, 'STORAGE_FULL');
       case CaptureFailed(:final failure):
         _fail(GuestProblemKind.capture, failure.code.diagnostic);
       case CaptureIgnored():

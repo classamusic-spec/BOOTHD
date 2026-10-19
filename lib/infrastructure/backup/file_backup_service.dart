@@ -14,6 +14,7 @@ import '../../domain/services/operator_files.dart';
 import '../../domain/value_objects/clock.dart';
 import '../database/booth_database.dart';
 import '../file_store/managed_storage.dart';
+import 'backup_staging.dart';
 import 'pending_restore.dart';
 import 'tar_archive.dart';
 
@@ -95,8 +96,8 @@ final class FileBackupService implements BackupService {
     if (!estimate.fits) throw const BackupException(BackupProblem.noSpace);
     final staging = await _storage.directory(ManagedArea.staging);
     final id = _id();
-    final snapshot = File('${staging.path}/backup-$id.sqlite');
-    final archive = File('${staging.path}/backup-$id.tar');
+    final snapshot = File('${staging.path}/${BackupStaging.snapshot(id)}');
+    final archive = File('${staging.path}/${BackupStaging.archive(id)}');
     try {
       await _db.customStatement('VACUUM INTO ?', [snapshot.path]);
       _scrub(snapshot, contents);
@@ -210,7 +211,8 @@ final class FileBackupService implements BackupService {
     }
     final id = _id();
     final copy = File(
-      '${(await _storage.directory(ManagedArea.staging)).path}/restore-$id.tar',
+      '${(await _storage.directory(ManagedArea.staging)).path}/'
+      '${BackupStaging.restoreCopy(id)}',
     );
     try {
       var copied = 0;
@@ -345,7 +347,7 @@ final class FileBackupService implements BackupService {
       throw const BackupException(BackupProblem.invalidArchive);
     }
     final staging = await _storage.directory(ManagedArea.staging);
-    return File('${staging.path}/restore-${candidate.id}.tar');
+    return File('${staging.path}/${BackupStaging.restoreCopy(candidate.id)}');
   }
 
   /// Reads [archive] end to end: structure, names, limits, checksums,

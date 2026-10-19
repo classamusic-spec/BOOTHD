@@ -407,6 +407,36 @@ void main() {
     expect(await booth.sessions.unfinished(), isEmpty);
   });
 
+  testWidgets('a tablet that fills up during a session never says the '
+      'photo was saved and keeps the photos already taken (AC-1005)', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    final booth = await _booth(tester);
+    await _tap(tester, 'Start');
+    await _countdown(tester);
+    expect(booth.stills.stills, hasLength(1), reason: 'the first photo');
+    booth.camera.captureFailure = const CameraFailure(
+      CameraFailureCode.originalNotPersisted,
+      detail: 'no-space',
+    );
+    await tester.pump(const Duration(seconds: 3));
+    await _countdown(tester);
+    expect(
+      find.text(BoothCopy.problem(GuestProblemKind.storage).$1),
+      findsOneWidget,
+      reason: 'ask the host: trying again cannot help',
+    );
+    expect(_controls(tester), [BoothCopy.done]);
+    expect(booth.stills.stills, hasLength(1));
+    final session = await _only(booth);
+    expect(session.photos, hasLength(1), reason: 'the first photo is kept');
+    await _tap(tester, BoothCopy.done);
+    expect(_controls(tester), ['Start']);
+    expect(booth.stills.stills, hasLength(1), reason: 'never deleted');
+    semantics.dispose();
+  });
+
   testWidgets('a pause shows Welcome back, and nothing happens until the '
       'guest taps Continue (AC-0702)', (tester) async {
     final booth = await _booth(tester);

@@ -76,6 +76,15 @@ final class FakeStorageCleanup implements StorageCleanup {
     }
     return CleanupResult(removed: pending.length, remaining: 0);
   }
+
+  /// Startup sweeps, counted (the real sweep is tested on files).
+  var sweeps = 0;
+
+  @override
+  Future<OrphanSweepResult> sweepOrphans() async {
+    sweeps++;
+    return const OrphanSweepResult(removed: 0, quarantined: 0);
+  }
 }
 
 /// The exporter with the share sheet scripted: what it reports, and which

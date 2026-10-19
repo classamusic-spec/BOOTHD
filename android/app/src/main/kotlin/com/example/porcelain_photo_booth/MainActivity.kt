@@ -13,14 +13,16 @@ class MainActivity : FlutterActivity() {
         // it. Reports only a number of bytes.
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "porcelain/device_storage")
             .setMethodCallHandler { call, result ->
-                if (call.method == "freeBytes") {
-                    try {
+                when (call.method) {
+                    "freeBytes" -> try {
                         result.success(StatFs(filesDir.path).availableBytes)
                     } catch (error: IllegalArgumentException) {
                         result.error("unavailable", null, null)
                     }
-                } else {
-                    result.notImplemented()
+                    // The manifest already keeps app data out of cloud
+                    // backup and device transfer (ADR-0009, ADR-0016).
+                    "excludeFromBackup" -> result.success(null)
+                    else -> result.notImplemented()
                 }
             }
         // Whether the tablet is locked to this app (ADR-0016): Dart has no

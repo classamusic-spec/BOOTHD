@@ -95,8 +95,27 @@ final class CleanupResult {
   final int remaining;
 }
 
+/// What a startup sweep did with files no record refers to (M10,
+/// AC-1004).
+@immutable
+final class OrphanSweepResult {
+  const OrphanSweepResult({required this.removed, required this.quarantined});
+
+  /// Finished photos, template files and images removed.
+  final int removed;
+
+  /// Camera photos moved aside, never deleted.
+  final int quarantined;
+}
+
 /// Removes the files of deleted records from the deletion journal (A-11).
 /// Runs after every deletion and at startup.
 abstract interface class StorageCleanup {
   Future<CleanupResult> run();
+
+  /// At startup only, before anything writes: files in the managed areas
+  /// that no record refers to, left by a crash between a file's rename
+  /// and its record, are removed; camera photos are moved aside to
+  /// `originals/.quarantine`, never deleted (M10, AC-1004).
+  Future<OrphanSweepResult> sweepOrphans();
 }

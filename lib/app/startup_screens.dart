@@ -68,6 +68,14 @@ class StartupProblemScreen extends ConsumerWidget {
             'been changed. Contact support with the code below.',
         false,
       ),
+      ManagedStorageException(code: 'RESTORE_INCOMPLETE') => (
+        'RESTORE_INCOMPLETE',
+        "The restore hasn't finished",
+        "The backup being restored couldn't all be moved into place yet. "
+            'Free some space or restart the tablet, then try again: the '
+            'restore carries on where it stopped.',
+        true,
+      ),
       ManagedStorageException(:final code) => (
         code,
         "The tablet's storage isn't available",

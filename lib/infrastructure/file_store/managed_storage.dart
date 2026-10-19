@@ -2,9 +2,11 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
+import '../../core/diagnostics/safe_log.dart';
 import '../../domain/repositories/storage_errors.dart';
 import '../../domain/services/booth_capabilities.dart';
 import '../../domain/services/managed_storage.dart';
+import '../backup/backup_staging.dart';
 import '../backup/pending_restore.dart';
 import 'atomic_file_writer.dart';
 
@@ -39,13 +41,21 @@ enum ManagedArea {
 /// Managed storage on the local file system (A-11). Everything lives below
 /// one root; callers name areas, never paths.
 final class FileManagedStorage implements ManagedStorage {
-  FileManagedStorage({required this._root, Random? random})
-    : _random = random ?? Random.secure();
+  FileManagedStorage({
+    required this._root,
+    Random? random,
+    this._keepOutOfDeviceBackups,
+  }) : _random = random ?? Random.secure();
 
   static const databaseFileName = 'porcelain_booth.sqlite';
 
   final Future<Directory> Function() _root;
   final Random _random;
+
+  /// Marks the root so the tablet's own backups (iCloud, a computer) leave
+  /// the booth's data out (ADR-0009, ADR-0016); Android does this through
+  /// its manifest. Best effort: the booth works if it fails.
+  final Future<void> Function(Directory root)? _keepOutOfDeviceBackups;
 
   Future<Directory> directory(ManagedArea area) async =>
       Directory('${(await _root()).path}/${area.directoryName}');
@@ -66,6 +76,11 @@ final class FileManagedStorage implements ManagedStorage {
     } on FileSystemException {
       throw const ManagedStorageException('STORAGE_UNAVAILABLE');
     }
+    try {
+      await _keepOutOfDeviceBackups?.call(await _root());
+    } on Exception catch (error, stack) {
+      SafeLog.error(error, stack, context: 'device backup exclusion');
+    }
     // A restore marked ready is swapped in before anything opens the
     // database; one never marked ready is discarded (M10, AC-1006).
     try {
@@ -77,8 +92,11 @@ final class FileManagedStorage implements ManagedStorage {
       throw const ManagedStorageException('RESTORE_INCOMPLETE');
     }
     // Startup reconciliation (A-11): nothing writes before startup, so a
-    // staged file now belongs to a write the app never finished.
-    await AtomicFileWriter.discardStaged(await directory(ManagedArea.staging));
+    // staged file now belongs to a write the app never finished, and a
+    // backup or restore working file to one cut off (M10).
+    final staging = await directory(ManagedArea.staging);
+    await AtomicFileWriter.discardStaged(staging);
+    await BackupStaging.discard(staging);
     // Copies prepared for an earlier export (M08) are never needed again.
     final outgoing = await directory(ManagedArea.outgoing);
     for (final entry in outgoing.listSync(followLinks: false)) {
