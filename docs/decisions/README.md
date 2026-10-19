@@ -19,6 +19,7 @@ decisions taken while executing milestones, plus owner change requests (CR).
 | [ADR-0011](ADR-0011-template-studio-editing.md) | Template Studio editing, drafts, library and display-scale decoding | Accepted | M05 |
 | [ADR-0012](ADR-0012-production-camera-service.md) | Production camera service, permissions, originals and the camera test | Accepted | M06 |
 | [ADR-0013](ADR-0013-guest-session-state-machine.md) | Guest sessions: state machine, durable checkpoints and guest screens | Accepted | M07 |
+| [ADR-0014](ADR-0014-gallery-export-and-printer-boundary.md) | Operator gallery, export, deletion and the printer boundary | Accepted | M08 |
 | [CR-001](CR-001-premium-ux-quality-bar.md) | Premium UX quality bar: exceed the 15-screen board | Approved by owner 2026-10-17 | Binding from M02 |
 | [CR-002](CR-002-reference-boards.md) | Match the owner's reference boards | Requested by owner 2026-10-18 | M05 onward |
 

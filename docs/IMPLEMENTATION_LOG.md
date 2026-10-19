@@ -3,6 +3,131 @@
 Newest milestone first. Each entry: scope, plan, changes, commands and exit
 codes, platform results, spec issues raised, risks, next step.
 
+## M08: operator gallery, export-ready workflow and printer boundary
+
+- Date: 2026-10-19 (UTC)
+- Authorised by: the owner's instruction "approve start M08-M10" after the
+  M07 report. M08 first; M09 and M10 follow with their own reports. M08
+  scope only: no print submission, printer hardware, QR hosting, email or
+  cloud.
+- Quality bar: CR-001 for every Studio screen. The owner's boards have no
+  gallery screen; it follows the Porcelain Studio screens.
+- Host: the same Linux cloud session as M00 to M07. No tablet, no Mac.
+
+### Plan (as executed)
+
+1. Domain: printer boundary (`PrintService`, `PrintRequest`,
+   `PrintCapabilities`, `PrintJobStatus`, `UnconfiguredPrintService`);
+   gallery views, filters and search; retention cutoffs; export names,
+   plans in parts and reports; print-file facts and the print-ready check.
+2. Schema v6: session numbers, output origin, export history, deletion
+   journal; migration 5 to 6 and a seeded v6 fixture.
+3. Gallery repository, re-render through a `SessionRenderer` shared with
+   the booth, journaled deletion and startup cleanup, thumbnails, export
+   copies offered to the share sheet with per-file reports.
+4. Screens: Gallery (S13), Session Detail (S14), export and deletion
+   sheets, Settings > Storage, Output Settings (S16) through the print
+   service, Delete for archived events.
+5. Tests at large counts, failures and offline export; screen catalog and
+   goldens; ADR-0014, device procedure, evidence, checks, builds, CI.
+
+### Changes
+
+- Domain: `services/print_service.dart`; `gallery/gallery_models.dart`,
+  `gallery/gallery_search.dart`, `gallery/retention.dart`,
+  `gallery/export_plan.dart`, `gallery/print_file_facts.dart`;
+  `repositories/gallery_repository.dart`; `services/gallery_services.dart`
+  (exporter, thumbnails, cleanup ports); `ShareReport`;
+  `SessionRecord.number`, `SessionOutput.origin`,
+  `SessionRepository.outputs` and `addRerender`.
+- Infrastructure: schema v6 with dumps, steps, test schemas and
+  `seed_v6.sql`; `database/drift_gallery_repository.dart`;
+  `file_store/managed_thumbnail_store.dart`,
+  `file_store/managed_storage_cleanup.dart`;
+  `files/managed_gallery_exporter.dart` and
+  `shareFilesWithPlatformSheet` (iPadOS Print excluded); managed areas
+  `thumbnails` and `outgoing` (cleared at start);
+  `AtomicFileWriter.isNoSpace`; `OriginalStore.stillOf`.
+- Core: `booth/session_renderer.dart` (the booth controller now uses it);
+  `gallery/gallery_service.dart`, `gallery/gallery_export_run.dart`,
+  `gallery/gallery_providers.dart`; providers for the gallery services
+  and the print service; startup runs the deletion journal.
+- Features and shared: `gallery/gallery_screen.dart`,
+  `session_tile.dart`, `gallery_thumbnail.dart`,
+  `session_detail_screen.dart`, `export_sheet.dart`;
+  `shared/gallery/gallery_copy.dart` and `gallery_actions.dart` (used by
+  Gallery, Settings and Events); `settings/storage_settings.dart`;
+  Output Settings rework; Events: Photos and Delete for archived events;
+  the Privacy tab's retention note; `StudioSliverPage`; `formatClock`,
+  `formatDay`, `formatSpan`, `formatBytes`; routes `?event=` and
+  `/studio/gallery/:sessionId`.
+- Tests: `persistence/gallery_repository_test.dart`,
+  `infrastructure/gallery_files_test.dart`,
+  `rendering/rerender_test.dart`, `rendering/external_viewer_test.dart`,
+  `domain/gallery_rules_test.dart`, `domain/print_file_facts_test.dart`,
+  `core/gallery_export_run_test.dart`, `widgets/gallery_flow_test.dart`;
+  migration test v6 checks; support: `gallery_seed.dart` (bulk sessions,
+  optional real files), `fake_gallery.dart` (thumbnails, exporter,
+  cleanup, a print-size stand-in), the simulated originals store finds
+  originals recorded in the database; twelve gallery and settings states
+  in the screen catalog; 30 new goldens and the changed gallery and
+  settings goldens.
+- Docs: ADR-0014, `docs/device_tests/M08_DEVICE_PROCEDURE.md`, ADR index.
+
+### Problems met and how they were handled
+
+- The thumbnail store's de-duplication waited for itself: the callback
+  that forgot an in-flight thumbnail returned the very future it was
+  attached to, so every thumbnail hung. Found by the first thumbnail test;
+  the callback no longer returns it.
+- The first retention deletion left its warning on screen: the
+  past-retention list was not refreshed with the rest of the gallery.
+  Found by the flow test; it is now refreshed with everything else.
+- Select mode first kept Export and Delete in the page header, which
+  scrolls away with the grid: the screen catalog could not reach them
+  after selecting a session further down, and neither could an operator.
+  They are now in a bar pinned below the grid, with Done.
+- The event cards had a fixed height and overflowed at 200% text; the
+  long-press shortcut added an unlabelled tap target. The cards grow
+  with the text; the shortcut is excluded from semantics (Select does
+  the same).
+- Cross-feature imports: Settings and Events needed the gallery's words
+  and deletion sheets, which features may not import from each other;
+  they moved to `shared/gallery`.
+- ImageMagick reports a PNG's resolution per centimetre (PNG stores it
+  per metre): 118.11 px/cm is 300 dpi. The external viewer test converts
+  units rather than loosening the check.
+- Layout review on the goldens: filters wrapped in portrait and the grid
+  started below the fold in landscape. The filters were renamed (To
+  finish, Ended early), search moved into the header and the summary was
+  made a single row.
+
+### Spec issues raised
+
+- P-12 asks for the exact target location of an export. The maintained
+  plugins can only report what the share sheet reports (the chosen
+  activity or app), not a folder; a native export-to-folder bridge is an
+  owner question (ADR-0014 section 11).
+- AC-0805 "recoverable cleanup" is built as cleanup that recovers from
+  interruption (journal finished at start); there is no trash bin
+  (owner question).
+- Retention is operator-confirmed, never automatic, as CLAUDE.md asks for
+  operator-controlled retention.
+
+### Risks carried forward
+
+- No physical tablet: every device half of AC-0801..AC-0807 is BLOCKED;
+  the procedure is ready.
+- What each Android share target reports varies by app; some report
+  nothing ("the tablet was not told where they went").
+- Re-render byte-identity is shown on the host only.
+- iPadOS has still not been compiled (no Mac; CI's manual job not run).
+
+### Next
+
+M09 (secure phone photo delivery), then M10, as the owner approved;
+stop for approval after M10.
+
 ## M07: end-to-end guest booth and persistent session state machine
 
 - Date: 2026-10-18 to 2026-10-19 (UTC)
