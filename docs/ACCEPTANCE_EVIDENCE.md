@@ -767,6 +767,9 @@ Owner approval requested: YES (after M10, as instructed: "approve start M08-M10"
 | 6 | `tool/build_ios.sh release` | 3 | BLOCKED: Linux host |
 | 7 | External decoders on exported files (inside row 3: `external_viewer_test.dart`) | 0 | ImageMagick 6 `identify`/`convert -regard-warnings` and Python Pillow 12.3 open the exported finished photo: `JPEG 1200 1800 300 300 PixelsPerInch`, and `PNG 1200 1800`, 118.11 px/cm (= 300 dpi), full decode without warnings; the exported camera photos open too |
 | 8 | M08 device procedure (`docs/device_tests/M08_DEVICE_PROCEDURE.md`) | not run | BLOCKED: no iPad, no Android tablet |
+| 9 | GitHub Actions CI #27 on `f26de01` (part 1) | 1 | Analyze failed on one info: an unnecessary `dart:typed_data` import in `test/support/gallery_seed.dart` (part 1 was pushed before its full check). Removed in part 2 (`3f94d45`) |
+| 10 | CI #28 on `3f94d45` (part 2) | 1 | 2,380 passed, 2 failed, 1 skipped: the same two Privacy goldens as row 2, fixed in `8c1654a` |
+| 11 | CI #29 on `b03bb46` (this evidence, with `38c83f2` and `8c1654a`) | 0 | Format, analyze, test, licences: PASS, 2,387 passed, 3 skipped (the two external-decoder tests of row 7 skip on the runner, which has no ImageMagick or Pillow; they ran on the host; and the device comparison). Android release smoke build: attempt 1 failed while the runner installed NDK 28.2 ("Error on ZipFile unknown archive", a corrupt download before any project code compiled); the one allowed re-run passed (attempt 2). iPadOS unsigned build: skipped (manual macOS job, as in M07) |
 
 ### Acceptance items
 
