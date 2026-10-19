@@ -177,7 +177,20 @@ abstract final class Preflight {
       fromCapability(PreflightCheckId.templateAssets, device.templateAssets),
       fromCapability(PreflightCheckId.camera, device.camera),
       fromCapability(PreflightCheckId.storageWrite, device.storageWrite),
-      fromCapability(PreflightCheckId.freeSpace, device.freeSpace),
+      // Low or unknown space is worth fixing; only a tablet too full for
+      // one guest session blocks (each session checks again before it
+      // starts, M07).
+      switch (device.freeSpace) {
+        CapabilityProblem(
+          code: final code && ('STORAGE_LOW' || 'STORAGE_FREE_UNKNOWN'),
+        ) =>
+          PreflightCheck(
+            PreflightCheckId.freeSpace,
+            PreflightStatus.warning,
+            problemCode: code,
+          ),
+        final status => fromCapability(PreflightCheckId.freeSpace, status),
+      },
       // Guest screens adapt to whatever window they get (ADR-0004), so a
       // mismatch is worth fixing but never blocks.
       PreflightCheck(

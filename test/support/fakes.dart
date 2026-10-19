@@ -2,6 +2,7 @@ import 'package:porcelain_photo_booth/domain/models/booth_event.dart';
 import 'package:porcelain_photo_booth/domain/models/template_revision_summary.dart';
 import 'package:porcelain_photo_booth/domain/repositories/operator_access_repository.dart';
 import 'package:porcelain_photo_booth/domain/services/booth_capabilities.dart';
+import 'package:porcelain_photo_booth/domain/services/kiosk_lock.dart';
 import 'package:porcelain_photo_booth/domain/services/operator_secrets.dart';
 import 'package:porcelain_photo_booth/domain/value_objects/clock.dart';
 import 'package:porcelain_photo_booth/domain/value_objects/entity_id.dart';
@@ -96,10 +97,10 @@ final class FastTestHasher implements PinHasher {
   bool needsRehash(String verifier) => false;
 }
 
-/// Device checks with chosen answers; by default what the M06 production
+/// Device checks with chosen answers; by default what the production
 /// probe reports on a working tablet with camera access and intact
-/// templates: everything passes except the kiosk lock, which the app
-/// cannot check yet (M10).
+/// templates that is not (yet) locked to the app: everything passes except
+/// the kiosk lock, which warns (M10).
 final class FakeCapabilityProbe implements BoothCapabilityProbe {
   FakeCapabilityProbe({
     this.cameraStatus = const CapabilityReady(),
@@ -107,10 +108,10 @@ final class FakeCapabilityProbe implements BoothCapabilityProbe {
     this.freeSpaceStatus = const CapabilityReady(),
     this.rendererStatus = const CapabilityReady(),
     this.assetsStatus = const CapabilityReady(),
-    this.kioskStatus = const CapabilityNotYetAvailable('M10'),
+    this.kioskStatus = const CapabilityProblem('KIOSK_NOT_LOCKED'),
   });
 
-  /// Every device check passes, as later milestones will make possible.
+  /// Every device check passes, the tablet locked to the app.
   FakeCapabilityProbe.allReady()
     : cameraStatus = const CapabilityReady(),
       storageStatus = const CapabilityReady(),
@@ -149,4 +150,20 @@ final class FakeCapabilityProbe implements BoothCapabilityProbe {
 
   @override
   Future<CapabilityStatus> kioskLock() async => kioskStatus;
+}
+
+/// The tablet's kiosk lock, as a test sets it (M10).
+final class FakeKioskLock implements KioskLockInfo {
+  FakeKioskLock([this.lock = KioskLock.none]);
+
+  KioskLock lock;
+
+  /// How many times the lock was read.
+  var reads = 0;
+
+  @override
+  Future<KioskLock> current() async {
+    reads++;
+    return lock;
+  }
 }

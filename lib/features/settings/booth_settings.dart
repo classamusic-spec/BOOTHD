@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/access/access_controller.dart';
 import '../../core/booth/booth_providers.dart';
@@ -9,6 +10,7 @@ import '../../core/design_system/porcelain_icons.dart';
 import '../../core/design_system/porcelain_metrics.dart';
 import '../../core/design_system/porcelain_theme.dart';
 import '../../core/di/service_providers.dart';
+import '../../core/routing/route_paths.dart';
 import '../../domain/models/booth_profile.dart';
 import '../../domain/services/operator_auth_service.dart';
 import '../../domain/value_objects/orientation.dart';
@@ -24,16 +26,14 @@ import '../../shared/widgets/porcelain_sheet.dart';
 import '../../shared/widgets/porcelain_text_field.dart';
 import '../../shared/widgets/porcelain_toast.dart';
 import '../../shared/widgets/skeleton.dart';
-import '../../shared/widgets/status_badge.dart';
 import '../../shared/widgets/tone.dart';
 
 /// Booth identity, the default guest orientation for new events, and
 /// operator security: change the PIN, replace the recovery code, lock the
-/// Studio (S01, S28, P-14). Kiosk lock guidance arrives in M10.
+/// Studio (S01, S28, P-14), and the way to the kiosk lock (M10).
 class BoothSettings extends ConsumerWidget {
   const BoothSettings({super.key});
 
-  static const kioskReason = 'Kiosk lock guidance arrives in M10.';
   static const saveFailed =
       "That change couldn't be saved on the tablet. Try again.";
 
@@ -231,12 +231,14 @@ class _BodyState extends ConsumerState<_Body> {
                 onPressed: () =>
                     ref.read(accessControllerProvider.notifier).lock(),
               ),
-              const PorcelainListRow(
-                icon: PorcelainIcons.locked,
+              PorcelainListRow(
+                icon: PorcelainIcons.kiosk,
                 title: 'Kiosk lock',
-                subtitle: 'Guided Access on iPad, lock task on Android.',
-                trailing: StatusBadge(label: 'M10'),
-                disabledReason: BoothSettings.kioskReason,
+                subtitle:
+                    "Keep guests inside the booth app with the tablet's own "
+                    'lock.',
+                onPressed: () =>
+                    context.go(RoutePaths.settingsSection('kiosk')),
               ),
             ],
           ),

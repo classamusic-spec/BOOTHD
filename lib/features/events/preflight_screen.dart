@@ -9,15 +9,18 @@ import '../../core/design_system/porcelain_icons.dart';
 import '../../core/design_system/porcelain_metrics.dart';
 import '../../core/design_system/porcelain_theme.dart';
 import '../../core/di/service_providers.dart';
+import '../../core/platform/app_environment.dart';
 import '../../core/routing/route_paths.dart';
 import '../../domain/models/booth_event.dart';
 import '../../domain/models/template_revision_summary.dart';
 import '../../domain/services/booth_capabilities.dart';
 import '../../domain/services/preflight.dart';
 import '../../domain/value_objects/orientation.dart';
+import '../../shared/kiosk/kiosk_guide.dart';
 import '../../shared/widgets/empty_state.dart';
 import '../../shared/widgets/porcelain_button.dart';
 import '../../shared/widgets/porcelain_card.dart';
+import '../../shared/widgets/porcelain_sheet.dart';
 import '../../shared/widgets/skeleton.dart';
 import '../../shared/widgets/status_badge.dart';
 import '../../shared/widgets/tone.dart';
@@ -360,7 +363,7 @@ class _Report extends StatelessWidget {
   }
 }
 
-class _CheckRow extends StatelessWidget {
+class _CheckRow extends ConsumerWidget {
   const _CheckRow({
     required this.check,
     required this.event,
@@ -398,7 +401,7 @@ class _CheckRow extends StatelessWidget {
   };
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = context.porcelain;
     final colors = theme.colors;
     final tone = EventCopy.checkTone(check.status);
@@ -406,6 +409,7 @@ class _CheckRow extends StatelessWidget {
       check,
       event,
       viewport: viewport,
+      platform: ref.watch(appEnvironmentProvider).platform,
       templateName: (id) => library[id]?.templateName ?? 'A template',
     );
     final repair = _repair;
@@ -461,6 +465,21 @@ class _CheckRow extends StatelessWidget {
               label: repair.$1,
               size: PorcelainButtonSize.compact,
               onPressed: () => unawaited(context.push(repair.$2)),
+            ),
+          ] else if (check.id == PreflightCheckId.kioskLock &&
+              check.status == PreflightStatus.warning) ...[
+            // Only the tablet can lock itself: the guide says how.
+            const SizedBox(width: PorcelainSpace.sm),
+            PorcelainButton(
+              label: 'How to lock',
+              size: PorcelainButtonSize.compact,
+              onPressed: () => unawaited(
+                showPorcelainSheet<void>(
+                  context: context,
+                  title: 'Kiosk lock',
+                  body: const KioskGuide(),
+                ),
+              ),
             ),
           ],
         ],

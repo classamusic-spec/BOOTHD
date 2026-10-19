@@ -1,6 +1,6 @@
 // Launch checks (S19, A-14): storage, free space, the camera, the renderer
-// and template assets are checked for real (M03, M04, M06); the kiosk lock
-// names the milestone that adds it and is never reported as ready.
+// and template assets are checked for real (M03, M04, M06), and the kiosk
+// lock as the operating system reports it (M10): ready only when locked.
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -8,6 +8,7 @@ import 'package:porcelain_photo_booth/domain/models/booth_event.dart';
 import 'package:porcelain_photo_booth/domain/models/template_revision_summary.dart';
 import 'package:porcelain_photo_booth/domain/services/booth_capabilities.dart';
 import 'package:porcelain_photo_booth/domain/services/camera_service.dart';
+import 'package:porcelain_photo_booth/domain/services/kiosk_lock.dart';
 import 'package:porcelain_photo_booth/domain/value_objects/orientation.dart';
 import 'package:porcelain_photo_booth/features/diagnostics/render_lab/render_fixtures.dart';
 import 'package:porcelain_photo_booth/infrastructure/composition/dart_ui_composition_renderer.dart';
@@ -16,6 +17,13 @@ import 'package:porcelain_photo_booth/infrastructure/device/device_capability_pr
 import '../support/simulated_camera.dart';
 import '../support/template_store_harness.dart';
 
+final class _Kiosk implements KioskLockInfo {
+  KioskLock lock = KioskLock.none;
+
+  @override
+  Future<KioskLock> current() async => lock;
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   final fixtures = [fix01(), fix02(), fix03(), clipAndFit(), fix05()];
@@ -23,12 +31,14 @@ void main() {
   late DeviceCapabilityProbe probe;
   late SimulatedCameraService camera;
   late FakeDeviceStorage space;
+  late _Kiosk kiosk;
   late List<TemplateRevisionSummary> templates;
 
   setUp(() async {
     harness = await TemplateStoreHarness.create();
     camera = SimulatedCameraService();
     space = FakeDeviceStorage();
+    kiosk = _Kiosk();
     probe = DeviceCapabilityProbe(
       harness.storage,
       renderer: DartUiCompositionRenderer(),
@@ -36,6 +46,7 @@ void main() {
       assets: harness.assets,
       camera: camera,
       space: space,
+      kiosk: kiosk,
     );
     templates = [
       for (final (i, fixture) in fixtures.indexed)
@@ -166,15 +177,39 @@ void main() {
     expect(await probe.freeSpace(), isA<CapabilityReady>());
     space.free = StorageBudget.minimumFreeBytes - 1;
     expect(problem(await probe.freeSpace()), 'STORAGE_LOW');
+    space.free = StorageBudget.minimumSessionFreeBytes;
+    expect(problem(await probe.freeSpace()), 'STORAGE_LOW');
+    space.free = StorageBudget.minimumSessionFreeBytes - 1;
+    expect(
+      problem(await probe.freeSpace()),
+      'STORAGE_FULL',
+      reason: 'not even one guest session fits',
+    );
     space.free = null;
     expect(problem(await probe.freeSpace()), 'STORAGE_FREE_UNKNOWN');
   });
 
-  test('storage is checked for real; the kiosk lock names M10', () async {
+  test('the kiosk lock is ready only when the tablet reports a lock', () async {
+    for (final lock in [
+      KioskLock.guidedAccess,
+      KioskLock.pinned,
+      KioskLock.managed,
+    ]) {
+      kiosk.lock = lock;
+      expect(await probe.kioskLock(), isA<CapabilityReady>(), reason: '$lock');
+    }
+    kiosk.lock = KioskLock.none;
+    expect(problem(await probe.kioskLock()), 'KIOSK_NOT_LOCKED');
+    kiosk.lock = KioskLock.unknown;
+    expect(
+      problem(await probe.kioskLock()),
+      'KIOSK_UNKNOWN',
+      reason: 'a tablet that does not say is never taken as locked',
+    );
+  });
+
+  test('storage is checked for real', () async {
     expect(await probe.storageWrite(), isA<CapabilityReady>());
-    String? milestone(CapabilityStatus status) =>
-        (status as CapabilityNotYetAvailable).milestone;
-    expect(milestone(await probe.kioskLock()), 'M10');
     expect(
       Directory('${harness.root.path}/outputs').listSync(),
       isEmpty,

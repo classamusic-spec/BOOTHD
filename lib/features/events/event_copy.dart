@@ -7,6 +7,7 @@ import '../../domain/services/booth_capabilities.dart';
 import '../../domain/services/camera_service.dart';
 import '../../domain/services/preflight.dart';
 import '../../domain/value_objects/orientation.dart';
+import '../../shared/kiosk/kiosk_copy.dart';
 import '../../shared/widgets/tone.dart';
 
 /// Words for events (S03, S04, S19). Rules and checks are typed values in
@@ -202,11 +203,13 @@ abstract final class EventCopy {
     PreflightStatus.notYetAvailable => PorcelainIcons.pending,
   };
 
-  /// What a check found, in a sentence or two.
+  /// What a check found, in a sentence or two. [platform] names the
+  /// tablet's own kiosk lock.
   static List<String> checkDetail(
     PreflightCheck check,
     BoothEvent event, {
     required ViewportOrientation viewport,
+    required TargetPlatform platform,
     String Function(String revisionId)? templateName,
   }) {
     final issues = [
@@ -277,12 +280,21 @@ abstract final class EventCopy {
             'free. Diagnostics shows the exact amount.',
       ],
       PreflightCheckId.freeSpace when !notYet => [
-        check.problemCode == 'STORAGE_LOW'
-            ? 'Less than '
-                  '${StorageBudget.minimumFreeBytes ~/ (1024 * 1024 * 1024)} '
-                  'GB free. Free up space on the tablet before guests arrive.'
-            : "The tablet didn't say how much space is free "
-                  '(${check.problemCode}).',
+        switch (check.problemCode) {
+          'STORAGE_LOW' =>
+            'Less than '
+                '${StorageBudget.minimumFreeBytes ~/ (1024 * 1024 * 1024)} GB '
+                'free: room for fewer than '
+                '${StorageBudget.sessionsFor(StorageBudget.minimumFreeBytes)} '
+                'sessions. Free up space on the tablet before a long event.',
+          'STORAGE_FULL' =>
+            'Not enough free space for even one guest session. Free up '
+                'space on the tablet (Settings > Storage shows what the booth '
+                'uses).',
+          final code =>
+            "The tablet didn't say how much space is free ($code). Check "
+                'its storage before guests arrive.',
+        },
       ],
       PreflightCheckId.freeSpace when notYet => [
         'Measuring free space arrives with device diagnostics ($milestone).',
@@ -296,10 +308,18 @@ abstract final class EventCopy {
       PreflightCheckId.renderer when !notYet => [
         "A template couldn't be rendered (${check.problemCode}).",
       ],
+      PreflightCheckId.kioskLock when check.status == PreflightStatus.pass => [
+        'The tablet reports the booth app is locked in front.',
+      ],
+      PreflightCheckId.kioskLock when check.problemCode == 'KIOSK_NOT_LOCKED' =>
+        [
+          'Not locked: guests could leave the booth app. '
+              '${KioskCopy.turnOn(platform)}',
+        ],
       PreflightCheckId.kioskLock => [
-        'Not checked by the app yet${milestone == null ? '' : ' ($milestone)'}. '
-            'Turn on Guided Access (iPad) or app pinning (Android) before '
-            'guests arrive.',
+        "The tablet didn't say whether the booth app is locked in front"
+            '${milestone == null ? '' : ' ($milestone)'}. '
+            '${KioskCopy.turnOn(platform)}',
       ],
       PreflightCheckId.storageWrite when check.status == PreflightStatus.pass =>
         ['A test file was written, read back and removed.'],

@@ -27,6 +27,7 @@ import '../infrastructure/delivery/jpeg_preview_maker.dart';
 import '../infrastructure/delivery/secure_delivery_secrets.dart';
 import '../infrastructure/device/device_capability_probe.dart';
 import '../infrastructure/device/platform_device_storage.dart';
+import '../infrastructure/device/platform_kiosk_lock.dart';
 import '../infrastructure/file_store/file_export_service.dart';
 import '../infrastructure/file_store/managed_finished_photos.dart';
 import '../infrastructure/file_store/managed_storage.dart';
@@ -172,6 +173,7 @@ List<Override> productionOverrides() => [
     ),
   ),
   deviceStorageInfoProvider.overrideWithValue(const PlatformDeviceStorage()),
+  kioskLockInfoProvider.overrideWithValue(const PlatformKioskLock()),
   sessionRepositoryProvider.overrideWith(
     (ref) => DriftSessionRepository(
       ref.watch(_boothDatabaseProvider),
@@ -227,6 +229,7 @@ List<Override> productionOverrides() => [
       assets: ref.watch(assetRepositoryProvider),
       camera: ref.watch(cameraServiceProvider),
       space: ref.watch(deviceStorageInfoProvider),
+      kiosk: ref.watch(kioskLockInfoProvider),
     ),
   ),
 ];

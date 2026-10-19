@@ -8,6 +8,7 @@ import '../../domain/repositories/template_store.dart';
 import '../../domain/services/booth_capabilities.dart';
 import '../../domain/services/camera_service.dart';
 import '../../domain/services/composition_renderer.dart';
+import '../../domain/services/kiosk_lock.dart';
 import '../../domain/services/managed_storage.dart';
 import '../../domain/template/geometry.dart';
 import '../../domain/template/page_spec.dart';
@@ -16,10 +17,9 @@ import '../../domain/template/template_document.dart';
 import '../../domain/template/template_layers.dart';
 import '../codecs/jpeg_encoder.dart';
 
-/// The launch checks this build can actually make. Storage writes, free
-/// space, the camera, the renderer and template assets are tested for real
-/// (M03, M04, M06); the kiosk lock names the milestone that adds its check
-/// and is never reported as ready.
+/// The launch checks, each tested for real: storage writes, free space,
+/// the camera, the renderer and template assets (M03, M04, M06) and the
+/// kiosk lock as the operating system reports it (M10).
 final class DeviceCapabilityProbe implements BoothCapabilityProbe {
   DeviceCapabilityProbe(
     this._storage, {
@@ -28,6 +28,7 @@ final class DeviceCapabilityProbe implements BoothCapabilityProbe {
     required this._assets,
     required this._camera,
     required this._space,
+    required this._kiosk,
   });
 
   final ManagedStorage _storage;
@@ -36,6 +37,7 @@ final class DeviceCapabilityProbe implements BoothCapabilityProbe {
   final AssetRepository _assets;
   final CameraService _camera;
   final DeviceStorageInfo _space;
+  final KioskLockInfo _kiosk;
 
   /// Permission (read, never asked here) and a built-in camera of the
   /// event's lens. Opening the camera is the camera test's job (S18).
@@ -61,10 +63,15 @@ final class DeviceCapabilityProbe implements BoothCapabilityProbe {
   @override
   Future<CapabilityStatus> storageWrite() => _storage.probeWrite();
 
+  /// `STORAGE_FULL` below what one guest session needs, `STORAGE_LOW`
+  /// below the booth's budget for an event.
   @override
   Future<CapabilityStatus> freeSpace() async {
     final free = await _space.freeBytes();
     if (free == null) return const CapabilityProblem('STORAGE_FREE_UNKNOWN');
+    if (free < StorageBudget.minimumSessionFreeBytes) {
+      return const CapabilityProblem('STORAGE_FULL');
+    }
     return free < StorageBudget.minimumFreeBytes
         ? const CapabilityProblem('STORAGE_LOW')
         : const CapabilityReady();
@@ -150,9 +157,15 @@ final class DeviceCapabilityProbe implements BoothCapabilityProbe {
     return const CapabilityReady();
   }
 
+  /// Ready only when the operating system reports the app locked in front.
   @override
-  Future<CapabilityStatus> kioskLock() async =>
-      const CapabilityNotYetAvailable('M10');
+  Future<CapabilityStatus> kioskLock() async {
+    final lock = await _kiosk.current();
+    if (lock.locked) return const CapabilityReady();
+    return CapabilityProblem(
+      lock == KioskLock.none ? 'KIOSK_NOT_LOCKED' : 'KIOSK_UNKNOWN',
+    );
+  }
 
   static const _standInId = 'launch-check';
 

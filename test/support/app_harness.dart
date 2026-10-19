@@ -16,6 +16,7 @@ import 'package:porcelain_photo_booth/core/routing/route_paths.dart';
 import 'package:porcelain_photo_booth/domain/models/booth_event.dart';
 import 'package:porcelain_photo_booth/domain/services/booth_capabilities.dart';
 import 'package:porcelain_photo_booth/domain/services/composition_renderer.dart';
+import 'package:porcelain_photo_booth/domain/services/kiosk_lock.dart';
 import 'package:porcelain_photo_booth/domain/services/managed_storage.dart';
 import 'package:porcelain_photo_booth/domain/services/operator_auth_service.dart';
 import 'package:porcelain_photo_booth/domain/services/operator_secrets.dart';
@@ -101,6 +102,7 @@ final class TestBooth {
     required this.secrets,
     required this.previews,
     required this.backups,
+    required this.kiosk,
   });
 
   final BoothDatabase db;
@@ -140,6 +142,9 @@ final class TestBooth {
   /// start again (after a restore is staged).
   final FakeBackupService backups;
   var restarts = 0;
+
+  /// The tablet's kiosk lock as the operating system reports it (M10).
+  final FakeKioskLock kiosk;
   final MemoryDeliverySecrets secrets;
   final FakePreviewMaker previews;
 
@@ -224,6 +229,7 @@ Future<TestBooth> pumpApp(
   FakeDeliveryApi? delivery,
   MemoryDeliverySecrets? secrets,
   FakeBackupService? backups,
+  KioskLock kiosk = KioskLock.none,
 }) async {
   final testClock = clock ?? FakeClock();
   final db = database ?? memoryDatabase(clock: testClock);
@@ -266,6 +272,7 @@ Future<TestBooth> pumpApp(
     secrets: secrets ?? MemoryDeliverySecrets(),
     previews: FakePreviewMaker(),
     backups: backups ?? FakeBackupService(),
+    kiosk: FakeKioskLock(kiosk),
   );
   booth.thumbnails.exports ??= booth.exports;
   // Sessions refer to originals, which the real store records in the
@@ -303,6 +310,7 @@ Future<TestBooth> pumpApp(
         capturedStillStoreProvider.overrideWithValue(booth.stills),
         cameraPreviewBuilderProvider.overrideWithValue(simulatedPreview),
         deviceStorageInfoProvider.overrideWithValue(booth.space),
+        kioskLockInfoProvider.overrideWithValue(booth.kiosk),
         sessionRepositoryProvider.overrideWith((ref) => booth.sessions),
         exportServiceProvider.overrideWithValue(booth.exports),
         finishedPhotosProvider.overrideWithValue(booth.exports.finished),

@@ -7,8 +7,8 @@
 // step of a guest session; M08 the gallery, its selection, export and
 // deletion sheets, a session's details and Storage; M09 texting a photo
 // (S30 to S32) and the operator's texting settings, texts and pairing
-// (S34 to S36); M10 Settings > Backup and restoring a backup on the first
-// screen.
+// (S34 to S36); M10 Settings > Backup, restoring a backup on the first
+// screen and the kiosk lock guide.
 //
 // Rendered at 1x to keep the repository small; text and blur rasterise
 // differently on macOS and Windows, so goldens are compared on Linux only
@@ -101,6 +101,8 @@ const states = [
   'setup restore checked',
   'setup restore refused',
   'setup restored',
+  'settings kiosk',
+  'settings kiosk ipad locked',
 ];
 
 /// Booth Mode, guest and operator screens alike, wears the event's theme

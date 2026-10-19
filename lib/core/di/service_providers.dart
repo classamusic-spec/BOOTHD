@@ -19,6 +19,7 @@ import '../../domain/services/event_service.dart';
 import '../../domain/services/export_service.dart';
 import '../../domain/services/finished_photos.dart';
 import '../../domain/services/gallery_services.dart';
+import '../../domain/services/kiosk_lock.dart';
 import '../../domain/services/managed_storage.dart';
 import '../../domain/services/operator_auth_service.dart';
 import '../../domain/services/operator_files.dart';
@@ -122,6 +123,11 @@ final printServiceProvider = Provider<PrintService>(
 /// Free space on the booth's volume (M06, ADR-0012).
 final deviceStorageInfoProvider = Provider<DeviceStorageInfo>(
   (ref) => _unbound('deviceStorageInfoProvider'),
+);
+
+/// The operating system's kiosk lock, read only (M10, ADR-0016).
+final kioskLockInfoProvider = Provider<KioskLockInfo>(
+  (ref) => _unbound('kioskLockInfoProvider'),
 );
 
 // Storage and security (M03, ADR-0009).

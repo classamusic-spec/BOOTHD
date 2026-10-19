@@ -322,7 +322,8 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Choose at least one template.'), findsOneWidget);
-      // Only the kiosk lock is beyond this build, and it only reminds.
+      // Every check is made; the tablet is not locked to the app, which
+      // only warns.
       expect(find.text('Not yet available'), findsNothing);
       expect(find.text('Passed'), findsWidgets);
       expect(

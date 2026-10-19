@@ -1,5 +1,6 @@
 package com.example.porcelain_photo_booth
 
+import android.app.ActivityManager
 import android.os.StatFs
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -18,6 +19,24 @@ class MainActivity : FlutterActivity() {
                     } catch (error: IllegalArgumentException) {
                         result.error("unavailable", null, null)
                     }
+                } else {
+                    result.notImplemented()
+                }
+            }
+        // Whether the tablet is locked to this app (ADR-0016): Dart has no
+        // API for it. Read only: the app never starts or stops a lock.
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "porcelain/kiosk")
+            .setMethodCallHandler { call, result ->
+                if (call.method == "lockState") {
+                    val activities = getSystemService(ActivityManager::class.java)
+                    result.success(
+                        when (activities?.lockTaskModeState) {
+                            ActivityManager.LOCK_TASK_MODE_LOCKED -> "managed"
+                            ActivityManager.LOCK_TASK_MODE_PINNED -> "pinned"
+                            ActivityManager.LOCK_TASK_MODE_NONE -> "none"
+                            else -> "unknown"
+                        },
+                    )
                 } else {
                     result.notImplemented()
                 }

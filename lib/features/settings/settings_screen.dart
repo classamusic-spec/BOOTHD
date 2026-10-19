@@ -5,6 +5,7 @@ import '../../core/design_system/porcelain_icons.dart';
 import '../../core/design_system/porcelain_metrics.dart';
 import '../../core/design_system/porcelain_theme.dart';
 import '../../core/routing/route_paths.dart';
+import '../../shared/kiosk/kiosk_guide.dart';
 import '../../shared/widgets/page_header.dart';
 import '../../shared/widgets/porcelain_button.dart';
 import '../../shared/widgets/porcelain_list_row.dart';
@@ -61,6 +62,12 @@ enum SettingsSection {
     'Booth and security',
     'Booth name, orientation and operator PIN',
     PorcelainIcons.security,
+  ),
+  kiosk(
+    'kiosk',
+    'Kiosk lock',
+    'Keep guests inside the booth app',
+    PorcelainIcons.kiosk,
   ),
   about(
     'about',
@@ -177,6 +184,7 @@ class _SectionDetail extends StatelessWidget {
       SettingsSection.backup => const BackupSettings(),
       SettingsSection.delivery => const DeliverySettings(),
       SettingsSection.booth => const BoothSettings(),
+      SettingsSection.kiosk => const KioskGuide(),
       SettingsSection.about => const AboutSettings(),
     };
     return StudioPage(

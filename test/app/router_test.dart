@@ -125,6 +125,9 @@ void main() {
     useViewport(tester, TabletViewport.ipadLandscape);
     await pumpApp(tester, location: RoutePaths.settings);
     expect(find.text('Theme'), findsOneWidget, reason: 'Appearance by default');
+    // The list is taller than the screen: About is scrolled to.
+    await tester.ensureVisible(find.text('About').first);
+    await tester.pumpAndSettle();
     await tester.tap(find.text('About').first);
     await tester.pumpAndSettle();
     expect(find.text('Open licences'), findsOneWidget);

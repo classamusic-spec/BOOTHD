@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:porcelain_photo_booth/core/design_system/appearance.dart';
+import 'package:porcelain_photo_booth/core/platform/app_environment.dart';
 import 'package:porcelain_photo_booth/core/routing/route_paths.dart';
 import 'package:porcelain_photo_booth/domain/backup/backup_manifest.dart';
 import 'package:porcelain_photo_booth/domain/delivery/consent.dart';
@@ -11,6 +12,7 @@ import 'package:porcelain_photo_booth/domain/delivery/delivery_settings.dart';
 import 'package:porcelain_photo_booth/domain/models/booth_event.dart';
 import 'package:porcelain_photo_booth/domain/services/backup_service.dart';
 import 'package:porcelain_photo_booth/domain/services/camera_service.dart';
+import 'package:porcelain_photo_booth/domain/services/kiosk_lock.dart';
 import 'package:porcelain_photo_booth/domain/services/operator_files.dart';
 import 'package:porcelain_photo_booth/domain/session/guest_flow.dart';
 import 'package:porcelain_photo_booth/features/booth/booth_copy.dart';
@@ -54,6 +56,8 @@ final class ScreenSpec {
     this.offline = false,
     this.texts,
     this.backups,
+    this.kiosk = KioskLock.none,
+    this.environment = debugAndroid,
   });
 
   final String location;
@@ -104,6 +108,12 @@ final class ScreenSpec {
 
   /// Backups and restores, when the screen needs a particular state (M10).
   final FakeBackupService Function()? backups;
+
+  /// The kiosk lock the tablet reports (M10).
+  final KioskLock kiosk;
+
+  /// The platform, for screens that differ between iPad and Android.
+  final AppEnvironment environment;
 }
 
 Future<void> _tap(WidgetTester tester, String text) async {
@@ -392,6 +402,12 @@ final screens = <String, ScreenSpec>{
     then: (tester) => _tap(tester, 'Make a backup'),
   ),
   'settings booth': const ScreenSpec('/studio/settings?section=booth'),
+  'settings kiosk': const ScreenSpec('/studio/settings?section=kiosk'),
+  'settings kiosk ipad locked': const ScreenSpec(
+    '/studio/settings?section=kiosk',
+    kiosk: KioskLock.guidedAccess,
+    environment: releaseIpad,
+  ),
   'settings about': const ScreenSpec('/studio/settings?section=about'),
   'diagnostics': const ScreenSpec('/studio/diagnostics'),
   'diagnostics self-test': ScreenSpec(
@@ -1033,6 +1049,8 @@ Future<void> show(
         : null,
     camera: spec.camera?.call(),
     backups: spec.backups?.call(),
+    kiosk: spec.kiosk,
+    environment: spec.environment,
     settle: settles(name) && !spec.renders,
   );
   if (spec.renders) {

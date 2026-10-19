@@ -55,7 +55,7 @@ const _uncheckedDevice = DeviceFacts(
   freeSpace: CapabilityNotYetAvailable('M06'),
   renderer: CapabilityReady(),
   templateAssets: CapabilityReady(),
-  kioskLock: CapabilityNotYetAvailable('M10'),
+  kioskLock: CapabilityProblem('KIOSK_NOT_LOCKED'),
   viewport: ViewportOrientation.portrait,
   operatorPinAvailable: true,
 );
@@ -112,8 +112,160 @@ void main() {
     expect(
       report[PreflightCheckId.kioskLock].status,
       PreflightStatus.warning,
-      reason: 'an unverifiable kiosk lock reminds, never blocks',
+      reason: 'an unlocked tablet reminds, never blocks',
     );
+  });
+
+  DeviceFacts withDevice({
+    CapabilityStatus freeSpace = const CapabilityReady(),
+    CapabilityStatus kioskLock = const CapabilityReady(),
+  }) => DeviceFacts(
+    camera: const CapabilityReady(),
+    storageWrite: const CapabilityReady(),
+    freeSpace: freeSpace,
+    renderer: const CapabilityReady(),
+    templateAssets: const CapabilityReady(),
+    kioskLock: kioskLock,
+    viewport: ViewportOrientation.portrait,
+    operatorPinAvailable: true,
+  );
+
+  test('the kiosk lock passes only when the tablet reports one, and '
+      'otherwise warns without blocking (AC-1002, AC-1003)', () {
+    final locked = _evaluate(_event(), device: withDevice());
+    expect(locked[PreflightCheckId.kioskLock].status, PreflightStatus.pass);
+    for (final code in ['KIOSK_NOT_LOCKED', 'KIOSK_UNKNOWN']) {
+      final report = _evaluate(
+        _event(),
+        device: withDevice(kioskLock: CapabilityProblem(code)),
+      );
+      final check = report[PreflightCheckId.kioskLock];
+      expect(check.status, PreflightStatus.warning, reason: code);
+      expect(check.problemCode, code);
+      expect(report.canLaunch, isTrue, reason: code);
+    }
+  });
+
+  test('free space blocks only when not even one session fits (AC-1003, '
+      'AC-1005)', () {
+    for (final (code, status) in [
+      ('STORAGE_LOW', PreflightStatus.warning),
+      ('STORAGE_FREE_UNKNOWN', PreflightStatus.warning),
+      ('STORAGE_FULL', PreflightStatus.blocked),
+    ]) {
+      final report = _evaluate(
+        _event(),
+        device: withDevice(freeSpace: CapabilityProblem(code)),
+      );
+      final check = report[PreflightCheckId.freeSpace];
+      expect(check.status, status, reason: code);
+      expect(check.problemCode, code);
+      expect(report.canLaunch, status != PreflightStatus.blocked);
+    }
+  });
+
+  test('only critical problems block the launch (AC-1003)', () {
+    // Each device problem on its own, and whether guests could still be
+    // served with it: no camera, nowhere to save, no room for a session,
+    // no finished photo or no way out of Booth Mode block; the rest warn.
+    final cases = <(String, DeviceFacts, bool)>[
+      (
+        'camera refused',
+        DeviceFacts(
+          camera: const CapabilityProblem('CAMERA_PERMISSION_DENIED'),
+          storageWrite: const CapabilityReady(),
+          freeSpace: const CapabilityReady(),
+          renderer: const CapabilityReady(),
+          templateAssets: const CapabilityReady(),
+          kioskLock: const CapabilityReady(),
+          viewport: ViewportOrientation.portrait,
+          operatorPinAvailable: true,
+        ),
+        true,
+      ),
+      (
+        'storage not writable',
+        DeviceFacts(
+          camera: const CapabilityReady(),
+          storageWrite: const CapabilityProblem('STORAGE_NOT_WRITABLE'),
+          freeSpace: const CapabilityReady(),
+          renderer: const CapabilityReady(),
+          templateAssets: const CapabilityReady(),
+          kioskLock: const CapabilityReady(),
+          viewport: ViewportOrientation.portrait,
+          operatorPinAvailable: true,
+        ),
+        true,
+      ),
+      (
+        'no room for a session',
+        withDevice(freeSpace: const CapabilityProblem('STORAGE_FULL')),
+        true,
+      ),
+      (
+        'template cannot render',
+        DeviceFacts(
+          camera: const CapabilityReady(),
+          storageWrite: const CapabilityReady(),
+          freeSpace: const CapabilityReady(),
+          renderer: const CapabilityProblem('RENDER_MISSING_ASSET'),
+          templateAssets: const CapabilityReady(),
+          kioskLock: const CapabilityReady(),
+          viewport: ViewportOrientation.portrait,
+          operatorPinAvailable: true,
+        ),
+        true,
+      ),
+      (
+        'PIN unreadable',
+        DeviceFacts(
+          camera: const CapabilityReady(),
+          storageWrite: const CapabilityReady(),
+          freeSpace: const CapabilityReady(),
+          renderer: const CapabilityReady(),
+          templateAssets: const CapabilityReady(),
+          kioskLock: const CapabilityReady(),
+          viewport: ViewportOrientation.portrait,
+          operatorPinAvailable: false,
+        ),
+        true,
+      ),
+      (
+        'space low',
+        withDevice(freeSpace: const CapabilityProblem('STORAGE_LOW')),
+        false,
+      ),
+      (
+        'space unknown',
+        withDevice(freeSpace: const CapabilityProblem('STORAGE_FREE_UNKNOWN')),
+        false,
+      ),
+      (
+        'not locked',
+        withDevice(kioskLock: const CapabilityProblem('KIOSK_NOT_LOCKED')),
+        false,
+      ),
+      (
+        'tablet the other way round',
+        DeviceFacts(
+          camera: const CapabilityReady(),
+          storageWrite: const CapabilityReady(),
+          freeSpace: const CapabilityReady(),
+          renderer: const CapabilityReady(),
+          templateAssets: const CapabilityReady(),
+          kioskLock: const CapabilityReady(),
+          viewport: ViewportOrientation.landscape,
+          operatorPinAvailable: true,
+        ),
+        false,
+      ),
+    ];
+    for (final (name, device, blocks) in cases) {
+      final report = _evaluate(_event(), device: device);
+      expect(report.canLaunch, !blocks, reason: name);
+      expect(report.blockerCount, blocks ? 1 : 0, reason: name);
+      if (!blocks) expect(report.warningCount, 1, reason: name);
+    }
   });
 
   test('a template that cannot be rendered or has damaged files blocks, '
