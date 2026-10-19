@@ -200,7 +200,7 @@ print size, format and quality explicitly.
 
 ## Consequences
 
-- Schema version 6; 30 new goldens of gallery screens; Settings gains
+- Schema version 6; 32 new goldens of gallery screens; Settings gains
   Storage.
 - The booth controller delegates rendering to `SessionRenderer`; its
   behaviour is unchanged (M07 tests pass as before).

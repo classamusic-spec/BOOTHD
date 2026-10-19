@@ -740,3 +740,63 @@ on `25138ec`:
   held in memory.
 - The hidden hold ends the session before the PIN screen opens; the PIN
   screen returns to guests after 45 seconds untouched.
+
+## M08: operator gallery, export-ready workflow and printer boundary
+
+```text
+Milestone: M08 | code commits f26de01, 3f94d45 (part 2), 38c83f2, 8c1654a | build 0.1.0+1
+Host: same Linux cloud VM as M00 to M07 (4 cores, no KVM, no macOS, no attached devices)
+Flutter 3.47.7 / Dart 3.13.5; no new packages; schema version 6
+iPad: BLOCKED (no physical iPad, no Mac)
+Android: builds PASS; no physical tablet
+Gallery, export, re-render and deletion tested on the host only: repositories and file
+  services over real temporary storage, the real renderer for re-renders and exported
+  files, and every screen on the in-memory booth. No tablet: every device half is BLOCKED.
+Owner approval requested: YES (after M10, as instructed: "approve start M08-M10")
+```
+
+### Commands and exit codes (2026-10-19 UTC)
+
+| # | Command | Exit | Result |
+| --- | --- | --- | --- |
+| 1 | `tool/check.sh` on the tree committed as `8c1654a` | 0 | 14 min 2 s. Generated code current (build_runner and `drift_dev make-migrations` changed nothing, including the schema v6 dump, steps and test schemas). Format: 352 files, 0 changed. Analyze: no issues. Tests: 2,389 passed, 1 skipped (device comparison, no device results), 0 failed. Licence report current |
+| 2 | The same script one run earlier, on `38c83f2` | 1 | 14 min 12 s; two failures, both the Privacy tab's goldens (`event_privacy`, 0.86% of pixels): M08 rewrote its retention note. Regenerated and checked (only the note's text changed) in `8c1654a`; row 1 passes |
+| 3 | `flutter test --reporter json` on the M08 test files at `8c1654a` | 0 | `gallery_repository_test.dart` 13, `gallery_files_test.dart` 12, `rerender_test.dart` 4, `external_viewer_test.dart` 2, `gallery_rules_test.dart` 13, `print_file_facts_test.dart` 5, `gallery_export_run_test.dart` 4, `gallery_flow_test.dart` 11, `migration_test.dart` 12; 0 failed. The screen catalog adds 192 checks for twelve gallery, session, storage and events states (overflow at six sizes, 200% text, tap targets, labels, contrast in three themes, no dead controls); 32 new goldens (4.8 MB) and 38 updated (gallery, settings, privacy) |
+| 4 | `tool/build_android.sh release` on `8c1654a` | 0 | 3 min 25 s. `app-release.apk`, 72,907,629 bytes, SHA-256 `482f6514e31b92e83382d003c470055fa8c71bc83cfcaf3a818edb389898a69f`. `aapt2`: compileSdk 37, targetSdk 36; permissions unchanged (`CAMERA`, `ACCESS_NETWORK_STATE`, the AndroidX receiver permission): export needs none; components as in M07 (share provider and receiver not exported); `allowBackup=false`, `fullBackupContent=false`, `dataExtractionRules` present |
+| 5 | `tool/build_android.sh debug` on `8c1654a` | 0 | `app-debug.apk`, 241,429,344 bytes, SHA-256 `1da3e64a42e046fb6d530324c5d75cae28b2c9abd9fb9b2ffb30a4e895c76ec7`; adds only `INTERNET` (Flutter debug tooling), as before |
+| 6 | `tool/build_ios.sh release` | 3 | BLOCKED: Linux host |
+| 7 | External decoders on exported files (inside row 3: `external_viewer_test.dart`) | 0 | ImageMagick 6 `identify`/`convert -regard-warnings` and Python Pillow 12.3 open the exported finished photo: `JPEG 1200 1800 300 300 PixelsPerInch`, and `PNG 1200 1800`, 118.11 px/cm (= 300 dpi), full decode without warnings; the exported camera photos open too |
+| 8 | M08 device procedure (`docs/device_tests/M08_DEVICE_PROCEDURE.md`) | not run | BLOCKED: no iPad, no Android tablet |
+
+### Acceptance items
+
+| AC | Status | Evidence |
+| --- | --- | --- |
+| AC-0801 Local Gallery thumbnails and event/session filters work at large sample counts | PASS (host); device BLOCKED | Repository: the index of 5,000 sessions in one query in 340 ms (host, in memory), filter counts exact for every state, search by number and time of day. Screen with 2,000 sessions: counts and filters correct; the grid builds only tiles near the screen (fewer than 60 at the top, fewer than 80 after scrolling far) and asks for thumbnails only for built tiles; search `#1234` finds one tile. Thumbnails: made once (concurrent requests share one), small (320 x 480 JPEG under 60 KB), cached in managed storage, cleared safely. Device: procedure section 1 |
+| AC-0802 Originals, attempts, chosen slot bindings, immutable template revision and final outputs inspectable by operator | PASS (host); device BLOCKED | Repository detail: every photo with its attempt and set, the originals' facts (size, lens), bindings (the retake fills the space, the first attempt kept), the template revision summary, every finished photo with its origin, the export history. Screen: "Photo 2, retake 1", "In the finished photo" on the photos used and "Photo 2, not used" on the kept attempt, "Two-up classic, revision 1", 1200 × 1800 px, 4 × 6 in at 300 dpi, "Print-ready" from the file read back; a file that no longer matches its record shows "Needs attention". Device: section 2 |
+| AC-0803 Batch export returns actual file/share results and reports individual failures accurately | PASS (host); device BLOCKED | Exporter over real files: verified byte-for-byte copies under export names; missing and damaged files reported one by one while the rest go; no space for the copies: nothing copied and the space needed and free reported; a full volume part-way: the files not copied each named; the share sheet's answer passed on as given (destination, closed, or unknown). Run: parts of 200; a closed sheet records nothing and can be offered again; parts that left are recorded with the platform's destination. Screen: "1 file handed to Save to Files." and "Session 15, finished photo: no finished photo yet (EXPORT_NO_FINISHED_PHOTO)". What each platform's share targets report is a device check: section 4 |
+| AC-0804 Re-render from originals + stored template revision is deterministic; prior output preserved | PASS (host); device BLOCKED | `rerender_test.dart` with the real renderer, originals store and file export: two re-renders give byte-identical files to the first render (same SHA-256), each a new output; the first file, the originals' files and the session record (status, output, update time, attempts) unchanged. Waiting sessions are finished; failed and abandoned sessions with a full set get a re-render and keep their outcome; incomplete sets and missing originals are refused with nothing recorded or left on disk. Screen: Make again adds version 2; a failed session reads "made later in the gallery". Device determinism: section 3 |
+| AC-0805 Event/session deletion honors retention policy with explicit confirmation and recoverable cleanup | PASS (host); device BLOCKED | Every deletion is confirmed; Keep leaves everything. One transaction removes the records and journals every file, thumbnails included; a refused deletion changes nothing; a session a guest is in is never deleted. Cleanup: files removed after the records; an interruption between the two only delays it (files go at the next run or start); a file that cannot be removed stays journaled; nothing outside the photo areas is touched. Retention: sessions past "30 days" are offered, never deleted silently, and need the explicit "Delete them permanently"; only archived events can be deleted, with all their sessions. Device: section 5 (including a forced kill mid-deletion) |
+| AC-0806 PrintService returns 'unconfigured' honestly; no fake button/physical success or required printer | PASS | `UnconfiguredPrintService`: not configured, no adapter, no media, a request returns `unconfigured` with no job id, status of any job `unconfigured`. Output Settings reads it ("Not configured"); no Print control on the gallery, session or Output screens; iPadOS's share-sheet Print action is excluded. No printer is needed for anything. Android's share sheet may list a system print app the app cannot hide or track (ADR-0014); device check: section 6 |
+| AC-0807 Output presets/orientation/quality explicit and files re-openable in external image viewers | PASS (host); device BLOCKED | Output Settings lists each print size with its pixels, orientation and resolution; JPEG quality and PNG explicit per event and in every finished photo's detail. Exported finished photos open in ImageMagick and Pillow at 1200 × 1800 and 300 dpi, JPEG and PNG, with a full decode (row 7); the print-facts parser checks format, size, resolution tag and completeness. Opening on the tablets and a computer: section 4 |
+
+### M08 exit gate
+
+| Gate | Status |
+| --- | --- |
+| Operator can inspect, re-render, and export all assets offline; printing is explicitly unsupported pending hardware | Host: PASS (no network is used by any part of it, and every step is tested offline); devices BLOCKED: no physical iPad or Android tablet. Printing: explicitly not configured, no print control |
+
+### Security and privacy notes (M08)
+
+- No network: the gallery, re-render, export and deletion are local;
+  export hands files to the platform share sheet, whose destinations are
+  the operator's choice. No new packages or permissions (row 4).
+- Export copies live in the app's private `outgoing/` area until the next
+  export or start; sources are only read. File names carry the event's
+  name, the session number and time: no guest data.
+- Deletion is permanent and journaled; there is no trash bin (owner
+  question in ADR-0014). Retention never deletes without the operator.
+- The gallery is Studio-only: Booth Mode deep links to the gallery, a
+  session or Storage stay on the welcome screen (flow test).
+- Export history records the platform's destination identifier, counts
+  and file names: no guest data.

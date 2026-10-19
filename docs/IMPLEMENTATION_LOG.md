@@ -70,7 +70,7 @@ codes, platform results, spec issues raised, risks, next step.
   optional real files), `fake_gallery.dart` (thumbnails, exporter,
   cleanup, a print-size stand-in), the simulated originals store finds
   originals recorded in the database; twelve gallery and settings states
-  in the screen catalog; 30 new goldens and the changed gallery and
+  in the screen catalog; 32 new goldens and the changed gallery and
   settings goldens.
 - Docs: ADR-0014, `docs/device_tests/M08_DEVICE_PROCEDURE.md`, ADR index.
 
