@@ -6,8 +6,10 @@ import 'package:flutter/material.dart';
 import '../../core/design_system/porcelain_icons.dart';
 import '../../core/design_system/porcelain_metrics.dart';
 import '../../core/design_system/porcelain_theme.dart';
+import '../../domain/experience/experience_pack.dart';
+import '../../shared/guest/guest_button.dart';
 import '../../shared/guest/guest_layout.dart';
-import '../../shared/widgets/porcelain_button.dart';
+import '../../shared/guest/guest_words.dart';
 import 'booth_copy.dart';
 import 'delivery_copy.dart';
 import 'guest_parts.dart';
@@ -101,7 +103,7 @@ class GuestFinished extends StatelessWidget {
                       ConstrainedBox(
                         constraints: BoxConstraints(maxWidth: scale(420)),
                         child: GuestHeading(
-                          title: BoothCopy.readyTitle,
+                          title: context.guestCopy[GuestCopyKey.readyTitle],
                           scale: scale,
                         ),
                       ),
@@ -116,25 +118,25 @@ class GuestFinished extends StatelessWidget {
                       ),
                       SizedBox(height: scale(PorcelainSpace.lg)),
                       Text(
-                        BoothCopy.savedToGallery,
+                        context.guestCopy[GuestCopyKey.savedMessage],
                         textAlign: TextAlign.center,
                         style: scale.text(theme.text.guestBody),
                       ),
                       SizedBox(height: scale(PorcelainSpace.xxxl)),
                       if (onTextPhotos case final textPhotos?) ...[
-                        PorcelainButton(
-                          label: DeliveryCopy.textMyPhotos,
+                        GuestButton(
+                          label: context.guestCopy[GuestCopyKey.textMyPhotos],
                           icon: PorcelainIcons.textMessage,
-                          variant: PorcelainButtonVariant.primary,
-                          size: PorcelainButtonSize.guest,
+                          size: GuestButtonSize.large,
                           caps: true,
                           onPressed: textPhotos,
                         ),
                         SizedBox(height: scale(PorcelainSpace.md)),
-                        PorcelainButton(
+                        GuestButton(
                           label: DeliveryCopy.noThanksFinish,
-                          size: PorcelainButtonSize.large,
+                          size: GuestButtonSize.regular,
                           onPressed: onNextGuest,
+                          emphasis: GuestButtonEmphasis.secondary,
                         ),
                         if (offline) ...[
                           SizedBox(height: scale(PorcelainSpace.md)),
@@ -148,12 +150,13 @@ class GuestFinished extends StatelessWidget {
                           ),
                         ],
                       ] else
-                        PorcelainButton(
-                          label: BoothCopy.nextGuest,
+                        GuestButton(
+                          label: context.guestCopy[GuestCopyKey.nextGuest],
                           icon: PorcelainIcons.nextGuest,
-                          size: PorcelainButtonSize.guest,
+                          size: GuestButtonSize.large,
                           caps: true,
                           onPressed: onNextGuest,
+                          emphasis: GuestButtonEmphasis.secondary,
                         ),
                       SizedBox(height: scale(PorcelainSpace.md)),
                       ConstrainedBox(

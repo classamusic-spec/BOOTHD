@@ -10,8 +10,10 @@ import '../../core/design_system/porcelain_metrics.dart';
 import '../../core/design_system/porcelain_motion.dart';
 import '../../core/design_system/porcelain_theme.dart';
 import '../../core/templates/template_thumbnails.dart';
+import '../../domain/experience/experience_pack.dart';
+import '../../shared/guest/guest_button.dart';
 import '../../shared/guest/guest_layout.dart';
-import '../../shared/widgets/porcelain_button.dart';
+import '../../shared/guest/guest_words.dart';
 import '../../shared/widgets/pressable.dart';
 import '../../shared/widgets/tactile_surface.dart';
 import 'booth_copy.dart';
@@ -71,7 +73,7 @@ class _GuestTemplateChoiceState extends State<GuestTemplateChoice> {
               child: Column(
                 children: [
                   GuestHeading(
-                    title: BoothCopy.chooseTitle,
+                    title: context.guestCopy[GuestCopyKey.chooseTitle],
                     subtitle: BoothCopy.chooseSubtitle,
                     caps: true,
                     scale: scale,
@@ -92,10 +94,9 @@ class _GuestTemplateChoiceState extends State<GuestTemplateChoice> {
                       constraints.maxWidth - 2 * side,
                       scale(520),
                     ),
-                    child: PorcelainButton(
+                    child: GuestButton(
                       label: BoothCopy.continueLabel,
-                      variant: PorcelainButtonVariant.primary,
-                      size: PorcelainButtonSize.guest,
+                      size: GuestButtonSize.large,
                       caps: true,
                       expand: true,
                       onPressed: () => widget.onChosen(_selected),

@@ -182,6 +182,15 @@ final class SessionShots {
       ? retakeAll().withPhoto(photo)
       : withPhoto(photo);
 
+  /// Photo space to original for the shots already taken in this round,
+  /// at any point of the session: what the live template (EP06) shows
+  /// around the shot being taken. Never used for a print.
+  Map<int, String> get takenBindings => {
+    for (var shot = 0; shot < shotCount; shot++)
+      if (selected(shot) case final photo? when photo.round == round)
+        plan.slotFor(shot): photo.originalId,
+  };
+
   /// Photo space to original, for rendering; only once complete.
   Map<int, String> get slotBindings {
     if (!isComplete) {

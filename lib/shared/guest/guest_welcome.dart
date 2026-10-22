@@ -3,8 +3,14 @@ import 'package:flutter/widgets.dart';
 import '../../core/design_system/porcelain_icons.dart';
 import '../../core/design_system/porcelain_metrics.dart';
 import '../../core/design_system/porcelain_theme.dart';
+import '../../core/experience/guest_cues.dart';
+import '../../core/experience/guest_experience.dart';
+import '../../domain/experience/experience_catalog.dart';
+import '../../domain/experience/experience_pack.dart';
+import 'guest_button.dart';
 import 'guest_layout.dart';
 import 'guest_start_button.dart';
+import 'guest_welcome_sample.dart';
 
 /// Words on the guest welcome screen (S20). Supplied by the caller, so the
 /// event can personalise them and they can be localised.
@@ -70,13 +76,7 @@ class GuestWelcome extends StatelessWidget {
         return GuestLayout(
           header: _Wordmark(copy: copy, scale: scale),
           message: _Message(copy: copy, scale: scale),
-          action: GuestStartButton(
-            label: copy.startLabel,
-            prompt: copy.startPrompt,
-            semanticHint: copy.startHint,
-            onPressed: onStart,
-            scale: scale.factor,
-          ),
+          action: _StartAction(copy: copy, scale: scale, onStart: onStart),
           preview: preview == null
               ? null
               : _TiltedPrint(scale: scale, child: preview!),
@@ -323,6 +323,50 @@ class _PrivacyNote extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// The guest's Start (EP06): the pearl shutter of the porcelain family,
+/// or the pack's own hero button. Pack words replace the standard "Start"
+/// only where the event kept the standard welcome.
+class _StartAction extends StatelessWidget {
+  const _StartAction({
+    required this.copy,
+    required this.scale,
+    required this.onStart,
+  });
+
+  final GuestWelcomeCopy copy;
+  final GuestScale scale;
+  final VoidCallback onStart;
+
+  @override
+  Widget build(BuildContext context) {
+    final experience = GuestExperience.experienceOf(context);
+    final label = copy.startLabel == sampleGuestWelcomeCopy.startLabel
+        ? experience.copy[GuestCopyKey.start]
+        : copy.startLabel;
+    void start() {
+      GuestCueScope.play(context, SoundCue.press);
+      onStart();
+    }
+
+    if (experience.buttonStyle == GuestButtonStyle.porcelain) {
+      return GuestStartButton(
+        label: label,
+        prompt: copy.startPrompt,
+        semanticHint: copy.startHint,
+        onPressed: start,
+        scale: scale.factor,
+      );
+    }
+    return GuestButton(
+      label: label,
+      icon: PorcelainIcons.camera,
+      size: GuestButtonSize.hero,
+      semanticHint: copy.startHint,
+      onPressed: onStart,
     );
   }
 }

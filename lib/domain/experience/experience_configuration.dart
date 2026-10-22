@@ -23,7 +23,7 @@ final class EventExperienceConfiguration {
     this.soundVolume = 70,
     this.animation,
     this.celebrationEnabled = true,
-    this.cameraStage = CameraStageMode.fullTemplate,
+    this.cameraStage = CameraStageMode.cameraFocused,
     this.recommendedTemplateIds = const [],
     this.childrenMayBeGuests = false,
     this.revision = 1,
@@ -57,6 +57,10 @@ final class EventExperienceConfiguration {
   /// Null follows the pack's default.
   final AnimationIntensity? animation;
   final bool celebrationEnabled;
+
+  /// Camera-focused unless the operator asks for the live template: the
+  /// live template's cost on tablets is unproven until the device run
+  /// (ADR-0017).
   final CameraStageMode cameraStage;
 
   /// Template library ids the operator linked as suggestions.

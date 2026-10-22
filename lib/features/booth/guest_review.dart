@@ -7,10 +7,12 @@ import '../../core/design_system/porcelain_icons.dart';
 import '../../core/design_system/porcelain_metrics.dart';
 import '../../core/design_system/porcelain_motion.dart';
 import '../../core/design_system/porcelain_theme.dart';
+import '../../domain/experience/experience_pack.dart';
 import '../../domain/models/booth_event.dart';
 import '../../domain/session/session_shots.dart';
+import '../../shared/guest/guest_button.dart';
 import '../../shared/guest/guest_layout.dart';
-import '../../shared/widgets/porcelain_button.dart';
+import '../../shared/guest/guest_words.dart';
 import 'booth_copy.dart';
 import 'guest_parts.dart';
 
@@ -70,7 +72,7 @@ class _GuestReviewState extends State<GuestReview> {
                   final heading = GuestHeading(
                     title: one
                         ? BoothCopy.reviewTitleOne
-                        : BoothCopy.reviewTitle,
+                        : context.guestCopy[GuestCopyKey.reviewTitle],
                     scale: scale,
                   );
                   final photos = _Photos(
@@ -180,7 +182,10 @@ class _Photos extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, area) {
         final gap = scale(PorcelainSpace.xl);
-        final controls = perShot ? scale(116) : scale(36);
+        // Retake (a guest button, not scaled), its gaps and its caption.
+        final controls = perShot
+            ? GuestButtonSize.regular.height + scale(PorcelainSpace.md * 2 + 32)
+            : scale(36);
         // As many columns as make the photos largest.
         var columns = 1;
         var best = 0.0;
@@ -196,8 +201,10 @@ class _Photos extends StatelessWidget {
         }
         final rows = (count / columns).ceil();
         final cellWidth = (area.maxWidth - gap * (columns - 1)) / columns;
-        final cellHeight =
-            (area.maxHeight - gap * (rows - 1)) / rows - controls;
+        final cellHeight = math.max(
+          (area.maxHeight - gap * (rows - 1)) / rows,
+          scale(140) + controls,
+        );
         return Center(
           child: SingleChildScrollView(
             child: Wrap(
@@ -208,12 +215,11 @@ class _Photos extends StatelessWidget {
                 for (var shot = 0; shot < count; shot++)
                   SizedBox(
                     width: cellWidth,
+                    height: cellHeight,
                     child: _ReviewPhoto(
                       review: review,
                       shot: shot,
                       angle: _angles[shot % _angles.length],
-                      maxWidth: cellWidth,
-                      maxHeight: math.max(cellHeight, scale(140)),
                       scale: scale,
                       perShot: perShot,
                     ),
@@ -232,8 +238,6 @@ class _ReviewPhoto extends StatelessWidget {
     required this.review,
     required this.shot,
     required this.angle,
-    required this.maxWidth,
-    required this.maxHeight,
     required this.scale,
     required this.perShot,
   });
@@ -241,8 +245,6 @@ class _ReviewPhoto extends StatelessWidget {
   final GuestReview review;
   final int shot;
   final double angle;
-  final double maxWidth;
-  final double maxHeight;
   final GuestScale scale;
   final bool perShot;
 
@@ -254,48 +256,57 @@ class _ReviewPhoto extends StatelessWidget {
     final border = scale(10);
     final aspect =
         (selected == null ? null : review.aspect(selected.originalId)) ?? 3 / 4;
-    // The print (photo and border) as large as the cell allows.
-    var width = maxWidth * 0.9;
-    var height = (width - 2 * border) / aspect + 2 * border;
-    if (height > maxHeight) {
-      height = maxHeight;
-      width = (height - 2 * border) * aspect + 2 * border;
-    }
     final left = shots.retakesLeft(shot);
     final number = shot + 1;
+    // The controls take what they need (a pack's button face may be
+    // deeper than another's); the print fills the rest of the cell.
     return Column(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Semantics(
-          label: BoothCopy.photoNumber(number),
-          image: true,
-          child: GuestPrint(
-            scale: scale,
-            angle: angle,
-            child: SizedBox(
-              width: width - 2 * border,
-              height: height - 2 * border,
-              child: selected == null
-                  ? const SizedBox.shrink()
-                  : GuestPhoto(
-                      bytes: review.photo(selected.originalId),
-                      mirrored: review.mirrored,
-                    ),
-            ),
+        Flexible(
+          child: LayoutBuilder(
+            builder: (context, box) {
+              var width = box.maxWidth * 0.9;
+              var height = (width - 2 * border) / aspect + 2 * border;
+              if (height > box.maxHeight) {
+                height = box.maxHeight;
+                width = (height - 2 * border) * aspect + 2 * border;
+              }
+              return Semantics(
+                label: BoothCopy.photoNumber(number),
+                image: true,
+                child: GuestPrint(
+                  scale: scale,
+                  angle: angle,
+                  child: SizedBox(
+                    width: math.max(0, width - 2 * border),
+                    height: math.max(0, height - 2 * border),
+                    child: selected == null
+                        ? const SizedBox.shrink()
+                        : GuestPhoto(
+                            bytes: review.photo(selected.originalId),
+                            mirrored: review.mirrored,
+                          ),
+                  ),
+                ),
+              );
+            },
           ),
         ),
         SizedBox(height: scale(PorcelainSpace.md)),
         if (perShot) ...[
           if (shots.canRetake(shot))
-            PorcelainButton(
-              label: BoothCopy.retake,
+            GuestButton(
+              label: context.guestCopy[GuestCopyKey.retake],
               icon: PorcelainIcons.retake,
-              size: PorcelainButtonSize.large,
+              size: GuestButtonSize.regular,
               caps: true,
               semanticHint: BoothCopy.photoNumber(number),
               onPressed: () => review.onRetake(shot),
+              emphasis: GuestButtonEmphasis.secondary,
             ),
-          SizedBox(height: scale(PorcelainSpace.xs)),
+          // Clear of the button's shadow, which reaches below its bounds.
+          SizedBox(height: scale(PorcelainSpace.md)),
           Text(
             left > 0 ? BoothCopy.retakesLeft(left) : BoothCopy.noRetakesLeft,
             textAlign: TextAlign.center,
@@ -331,11 +342,12 @@ class _Actions extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = context.porcelain;
     final onRetakeAll = this.onRetakeAll;
-    final keep = PorcelainButton(
-      label: one ? BoothCopy.keepIt : BoothCopy.keepThese,
+    final keep = GuestButton(
+      label: one
+          ? context.guestCopy[GuestCopyKey.keepIt]
+          : context.guestCopy[GuestCopyKey.keepThese],
       icon: PorcelainIcons.check,
-      variant: PorcelainButtonVariant.primary,
-      size: PorcelainButtonSize.guest,
+      size: GuestButtonSize.large,
       caps: true,
       expand: vertical,
       onPressed: onKeep,
@@ -346,15 +358,16 @@ class _Actions extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (shots.canRetakeAll)
-                PorcelainButton(
-                  label: BoothCopy.retakeAll,
+                GuestButton(
+                  label: context.guestCopy[GuestCopyKey.retakeAll],
                   icon: PorcelainIcons.retake,
-                  size: PorcelainButtonSize.guest,
+                  size: GuestButtonSize.large,
                   caps: true,
                   expand: vertical,
                   onPressed: onRetakeAll,
+                  emphasis: GuestButtonEmphasis.secondary,
                 ),
-              SizedBox(height: scale(PorcelainSpace.xs)),
+              SizedBox(height: scale(PorcelainSpace.md)),
               Text(
                 shots.roundsLeft > 0
                     ? BoothCopy.retakesLeft(shots.roundsLeft)
@@ -466,17 +479,18 @@ class _ConfirmRetakeAll extends StatelessWidget {
                               spacing: scale(PorcelainSpace.lg),
                               runSpacing: scale(PorcelainSpace.md),
                               children: [
-                                PorcelainButton(
+                                GuestButton(
                                   label: BoothCopy.cancel,
-                                  size: PorcelainButtonSize.guest,
+                                  size: GuestButtonSize.large,
                                   caps: true,
                                   onPressed: onCancel,
+                                  emphasis: GuestButtonEmphasis.secondary,
                                 ),
-                                PorcelainButton(
-                                  label: BoothCopy.retakeAll,
+                                GuestButton(
+                                  label:
+                                      context.guestCopy[GuestCopyKey.retakeAll],
                                   icon: PorcelainIcons.retake,
-                                  variant: PorcelainButtonVariant.primary,
-                                  size: PorcelainButtonSize.guest,
+                                  size: GuestButtonSize.large,
                                   caps: true,
                                   onPressed: onConfirm,
                                 ),

@@ -7,8 +7,8 @@ import '../../core/design_system/porcelain_depth.dart';
 import '../../core/design_system/porcelain_icons.dart';
 import '../../core/design_system/porcelain_metrics.dart';
 import '../../core/design_system/porcelain_theme.dart';
-import '../../core/design_system/porcelain_theme_data.dart';
 import '../../core/di/service_providers.dart';
+import '../../core/experience/guest_theme.dart';
 import '../../core/gallery/gallery_providers.dart';
 import '../../core/routing/route_paths.dart';
 import '../../domain/experience/experience_registry.dart';
@@ -474,9 +474,6 @@ class _GuestPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = context.porcelain;
     final event = this.event;
-    final override = event == null
-        ? null
-        : ExperienceRegistry.legacyAppearance(event.experience);
     Widget frame = TabletFrame(
       logicalSize: const Size(820, 1180),
       semanticLabel: event == null
@@ -487,9 +484,9 @@ class _GuestPreview extends StatelessWidget {
         onStart: () {},
       ),
     );
-    if (override != null) {
-      frame = Theme(
-        data: porcelainThemeData(override, highContrast: theme.highContrast),
+    if (event != null) {
+      frame = GuestExperienceScope(
+        experience: ExperienceRegistry.bundled.resolve(event.experience),
         child: frame,
       );
     }

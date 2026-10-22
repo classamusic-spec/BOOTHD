@@ -4,14 +4,13 @@ import '../../../core/design_system/porcelain_icons.dart';
 import '../../../core/design_system/porcelain_metrics.dart';
 import '../../../core/design_system/porcelain_motion.dart';
 import '../../../core/design_system/porcelain_theme.dart';
-import '../../../core/design_system/porcelain_theme_data.dart';
 import '../../../core/design_system/theme_profiles.dart';
+import '../../../core/experience/guest_theme.dart';
 import '../../../domain/experience/experience_configuration.dart';
 import '../../../domain/experience/experience_pack.dart';
 import '../../../domain/experience/experience_registry.dart';
 import '../../../domain/models/event_rules.dart';
 import '../../../domain/value_objects/orientation.dart';
-import '../../../shared/formatters/theme_profile_names.dart';
 import '../../../shared/guest/event_welcome_copy.dart';
 import '../../../shared/guest/guest_welcome.dart';
 import '../../../shared/guest/guest_welcome_sample.dart';
@@ -97,14 +96,11 @@ class _GuestTabState extends State<GuestTab> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.porcelain;
     final tab = widget.tab;
     final event = tab.event;
     final guest = event.guest;
     final reason = tab.readOnlyReason;
-    final shown =
-        ExperienceRegistry.legacyAppearance(event.experience) ??
-        widget.boothTheme;
+    final shown = ExperienceRegistry.bundled.resolve(event.experience);
     final landscape =
         event.capture.orientation == GuestOrientationPreference.landscape;
     final frame = landscape ? const Size(1180, 820) : const Size(820, 1180);
@@ -157,9 +153,8 @@ class _GuestTabState extends State<GuestTab> {
         EditorCard(
           title: 'Choose guest experience',
           subtitle:
-              'The look of every guest screen. The Studio keeps the booth '
-              'theme. A pack whose own guest screens are still to come '
-              'shows in the booth theme for now.',
+              'The look, words, buttons, countdown and sounds of every '
+              'guest screen. The Studio keeps the booth theme.',
           children: [
             Wrap(
               spacing: PorcelainSpace.md,
@@ -167,11 +162,9 @@ class _GuestTabState extends State<GuestTab> {
               children: [
                 for (final choice in _ExperienceChoice.all())
                   _ExperienceCard(
-                    profile:
-                        ExperienceRegistry.legacyAppearance(
-                          choice.applyTo(event.experience),
-                        ) ??
-                        widget.boothTheme,
+                    experience: ExperienceRegistry.bundled.resolve(
+                      choice.applyTo(event.experience),
+                    ),
                     title: choice.title,
                     selected: choice.isChosenIn(event.experience),
                     disabledReason: reason,
@@ -207,15 +200,12 @@ class _GuestTabState extends State<GuestTab> {
               child: SizedBox(
                 height: 260,
                 width: 260 * frame.width / frame.height + 18,
-                child: Theme(
-                  data: porcelainThemeData(
-                    shown,
-                    highContrast: theme.highContrast,
-                  ),
+                child: GuestExperienceScope(
+                  experience: shown,
                   child: TabletFrame(
                     logicalSize: frame,
                     semanticLabel:
-                        'Preview of the guest welcome in ${shown.title}, '
+                        'Preview of the guest welcome in ${shown.displayName}, '
                         '${EventCopy.orientation(event.capture.orientation).toLowerCase()}',
                     child: GuestWelcome(
                       copy: welcomeCopyFor(event),
@@ -272,14 +262,14 @@ class _GuestTabState extends State<GuestTab> {
 /// check mark when chosen.
 class _ExperienceCard extends StatelessWidget {
   const _ExperienceCard({
-    required this.profile,
+    required this.experience,
     required this.title,
     required this.selected,
     required this.onPressed,
     this.disabledReason,
   });
 
-  final PorcelainThemeProfile profile;
+  final ResolvedExperience experience;
   final String title;
   final bool selected;
   final VoidCallback? onPressed;
@@ -317,11 +307,8 @@ class _ExperienceCard extends StatelessWidget {
           children: [
             Column(
               children: [
-                Theme(
-                  data: porcelainThemeData(
-                    profile,
-                    highContrast: theme.highContrast,
-                  ),
+                GuestExperienceScope(
+                  experience: experience,
                   child: const _ExperienceEmblem(),
                 ),
                 const SizedBox(height: PorcelainSpace.sm),

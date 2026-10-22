@@ -17,8 +17,10 @@ import '../../core/design_system/porcelain_theme.dart';
 import '../../core/di/service_providers.dart';
 import '../../core/experience/guest_cues.dart';
 import '../../core/experience/guest_experience.dart';
+import '../../core/experience/live_template.dart';
 import '../../core/routing/route_paths.dart';
 import '../../core/templates/template_thumbnails.dart';
+import '../../domain/experience/experience_catalog.dart';
 import '../../domain/experience/experience_registry.dart';
 import '../../domain/models/booth_event.dart';
 import '../../domain/services/camera_service.dart';
@@ -119,6 +121,11 @@ class _BoothSessionViewState extends ConsumerState<BoothSessionView> {
   late GuestFlow _heard;
   late ResolvedExperience _eventExperience;
 
+  /// Full Template mode (EP06): the template around the current shot,
+  /// and which shot it was made for.
+  LiveTemplate? _live;
+  String? _liveKey;
+
   @override
   void initState() {
     super.initState();
@@ -137,7 +144,8 @@ class _BoothSessionViewState extends ConsumerState<BoothSessionView> {
     );
     _session
       ..addListener(_reportProblem)
-      ..addListener(_cue);
+      ..addListener(_cue)
+      ..addListener(_updateLive);
     // Sounds follow the event until a session freezes its own (EP03).
     _cues = GuestCuePlayer(ref.read(guestSoundServiceProvider));
     _heard = _session.flow;
@@ -169,7 +177,9 @@ class _BoothSessionViewState extends ConsumerState<BoothSessionView> {
     _session
       ..removeListener(_reportProblem)
       ..removeListener(_cue)
+      ..removeListener(_updateLive)
       ..dispose();
+    _live?.dispose();
     unawaited(SystemChrome.setPreferredOrientations(const []));
     super.dispose();
   }
@@ -179,6 +189,57 @@ class _BoothSessionViewState extends ConsumerState<BoothSessionView> {
   /// The experience on show: the session's frozen one, else the event's.
   ResolvedExperience get _experience =>
       _session.flow.shots?.plan.experience ?? _eventExperience;
+
+  /// Loads the template for the shot being taken when the event asked
+  /// for Full Template mode. While it loads, or if it cannot be shown
+  /// live, the camera-focused stage shows instead; nothing waits for it.
+  void _updateLive() {
+    final flow = _session.flow;
+    final shots = flow.shots;
+    final shot = flow.shot;
+    final document = _session.templateDocument;
+    final onCamera = switch (flow.stage) {
+      GuestStage.preparing ||
+      GuestStage.countdown ||
+      GuestStage.capturing ||
+      GuestStage.shotSaved => true,
+      _ => false,
+    };
+    final wanted =
+        _experience.cameraStage == CameraStageMode.fullTemplate &&
+            onCamera &&
+            shots != null &&
+            shot != null &&
+            document != null
+        ? '${shots.round}:$shot:${shots.photos.length}'
+        : null;
+    if (wanted == _liveKey) return;
+    _liveKey = wanted;
+    final old = _live;
+    _live = null;
+    if (old != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => old.dispose());
+    }
+    if (wanted == null) return;
+    LiveTemplate.load(
+      document: document!,
+      shots: shots!,
+      shot: shot!,
+      assets: ref.read(assetRepositoryProvider),
+      readOriginal: _session.photo,
+    ).then(
+      (template) {
+        if (!mounted || _liveKey != wanted) {
+          template?.dispose();
+          return;
+        }
+        setState(() => _live = template);
+      },
+      onError: (Object _) {
+        // Shown camera-focused instead.
+      },
+    );
+  }
 
   /// Sounds the guest moment that just happened. Never waits.
   void _cue() {
@@ -347,6 +408,8 @@ class _BoothSessionViewState extends ConsumerState<BoothSessionView> {
       previewAspect: status.capabilities?.previewAspectRatio ?? 4 / 3,
       mirroredPhotos: capture.mirrorOutput,
       flashKey: '${shots?.photos.length ?? 0}:$shot',
+      countdownSeconds: capture.countdownSeconds,
+      liveTemplate: _live,
     );
   }
 }

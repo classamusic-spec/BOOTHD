@@ -4,7 +4,10 @@ import 'package:flutter/widgets.dart';
 
 import '../../core/design_system/porcelain_metrics.dart';
 import '../../core/design_system/porcelain_theme.dart';
+import '../../core/experience/guest_experience.dart';
+import '../../core/experience/guest_theme.dart';
 import '../widgets/floral_spray.dart';
+import 'guest_decorations.dart';
 
 /// Scales guest typography and controls to the space a guest screen
 /// actually has: 1.0 on a typical 11-inch tablet, down to 0.72 on the
@@ -276,6 +279,27 @@ class GuestBackdrop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.porcelain.colors;
+    final experience = GuestExperience.maybeOf(context)?.experience;
+    if (experience != null &&
+        GuestTheme.originalAppearance(experience) == null) {
+      // A pack's own look (EP06): its backdrop and decorations.
+      return DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            center: const Alignment(0, -0.2),
+            radius: 1.1,
+            colors: [colors.canvas, colors.rail],
+          ),
+        ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Positioned.fill(child: GuestDecorationLayer(dense: dense)),
+            child,
+          ],
+        ),
+      );
+    }
     return LayoutBuilder(
       builder: (context, constraints) {
         final size = constraints.biggest;

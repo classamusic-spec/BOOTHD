@@ -136,6 +136,10 @@ final class BoothSessionController extends ChangeNotifier {
   /// The camera as the session uses it: its live picture and status.
   CameraStatus get cameraStatus => _camera.status;
 
+  /// The session's template, once the session is recorded: what the Live
+  /// Template Camera draws around the live picture (EP06). Read only.
+  TemplateDocument? get templateDocument => _document;
+
   /// The finished photo's record, once saved (S27).
   SessionOutput? get output => _output;
 

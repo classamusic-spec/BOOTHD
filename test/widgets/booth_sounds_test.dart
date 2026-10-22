@@ -5,9 +5,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:porcelain_photo_booth/domain/experience/experience_catalog.dart';
 import 'package:porcelain_photo_booth/domain/experience/experience_configuration.dart';
+import 'package:porcelain_photo_booth/domain/experience/experience_pack.dart';
 import 'package:porcelain_photo_booth/domain/experience/experience_registry.dart';
 import 'package:porcelain_photo_booth/domain/services/guest_sound_service.dart';
-import 'package:porcelain_photo_booth/features/booth/booth_copy.dart';
 import 'package:porcelain_photo_booth/features/booth/guest_finished.dart';
 
 import '../support/app_harness.dart';
@@ -52,7 +52,8 @@ Future<void> _frames(WidgetTester tester) async {
 /// countdown: when the photos were taken.
 Future<List<int>> _session(WidgetTester tester, TestBooth booth) async {
   final saved = <int>[];
-  await tester.tap(find.bySemanticsLabel('Start').last);
+  final words = ExperienceRegistry.bundled.resolve(_quest).copy;
+  await tester.tap(find.bySemanticsLabel(words[GuestCopyKey.start]).last);
   await _frames(tester);
   for (var photo = 0; photo < 2; photo++) {
     for (var i = 0; i < 3; i++) {
@@ -63,7 +64,7 @@ Future<List<int>> _session(WidgetTester tester, TestBooth booth) async {
     saved.add(booth.stills.stills.length);
     if (photo == 0) await tester.pump(const Duration(seconds: 3));
   }
-  await tester.tap(find.bySemanticsLabel(BoothCopy.keepThese).last);
+  await tester.tap(find.bySemanticsLabel(words[GuestCopyKey.keepThese]).last);
   await _frames(tester);
   await _frames(tester);
   expect(find.byType(GuestFinished), findsOneWidget);
@@ -80,7 +81,7 @@ void main() {
     final pack = ExperienceRegistry.bundled.resolve(_quest).sounds;
     final heard = [for (final (id, _) in sounds.played) id];
     expect(sounds.played.map((p) => p.$2).toSet(), {0.6});
-    expect(heard.first, pack[SoundCue.start]);
+    expect(heard.take(2), [pack[SoundCue.press], pack[SoundCue.start]]);
     expect(
       heard.where((id) => id == pack[SoundCue.tick]),
       hasLength(4),

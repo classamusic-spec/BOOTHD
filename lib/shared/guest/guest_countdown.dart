@@ -209,6 +209,11 @@ void _arc(
 final class PorcelainPressCountdown extends CountdownPreset {
   const PorcelainPressCountdown();
 
+  /// Large within the ring: the medallion is read from across a room.
+  @override
+  TextStyle numeral(GuestTokens t, double size) =>
+      t.display(size * 0.54).copyWith(height: 1);
+
   @override
   double numeralScale(double beat) => 1.08 - 0.08 * beat;
 
@@ -679,12 +684,15 @@ final class HandheldBootCountdown extends CountdownPreset {
 final class GalaElegantCountdown extends CountdownPreset {
   const GalaElegantCountdown();
 
+  /// Fades up in the first quarter of the second, then holds: a
+  /// hairline face must stay fully readable for most of each second.
   @override
-  double numeralOpacity(double beat) => 0.35 + 0.65 * beat;
+  double numeralOpacity(double beat) =>
+      0.35 + 0.65 * (beat * 4).clamp(0.0, 1.0);
 
   @override
   TextStyle numeral(GuestTokens t, double size) =>
-      super.numeral(t, size).copyWith(fontWeight: FontWeight.w500);
+      t.display(size * 0.56).copyWith(height: 1, fontWeight: FontWeight.w500);
 
   @override
   void paintFrame(

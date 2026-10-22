@@ -1121,3 +1121,43 @@ The whole suite runs again on the EP06 tree.
 | EP04 Children consent line | PASS (host) | The guardian line shows only when the event says guests may be children; the consent box and its text are unchanged (`guest_delivery_flow_test.dart`); Kid Party Arcade turns the setting on when chosen |
 | AC-EP17 No copyrighted game UI or unlicensed assets | PASS (self-review); owner review open | `docs/experience_packs/ORIGINALITY_REVIEW.md`; every new file's source and hash in `docs/ASSET_PROVENANCE.md` (checked by `app_info_and_licences_test.dart`) |
 | Template parity (AC-0510) for the new designs | PASS (host) | Row 3 |
+
+## EP06: every pack on the shared guest screens, and the Live Template camera
+
+```text
+Stage: EP06 | commit adding this entry | build 0.1.0+1
+Host: same Linux cloud VM; Flutter 3.47.7 / Dart 3.13.5; schema v8; no new packages
+iPad: BLOCKED (no Mac, no iPad); Android: debug build PASS, no tablet
+```
+
+### Commands and exit codes (2026-10-22 UTC)
+
+| # | Command | Exit | Result |
+| --- | --- | --- | --- |
+| 1 | Affected widget tests (`screens_test`, `booth_session_flow_test`, isolation, kiosk, operator polish, `test/experience`) | 1 | 1,624 passed, 3 failed: the review screen's "1 retake left" line sat inside the new button's shadow (text contrast check). Fixed by layout (the line clears the shadow; each review cell measures its controls), not by the check |
+| 2 | `flutter test test/goldens` | 1 | 48 booth goldens and 2 event-editor goldens changed (guest buttons, pack countdown, Experience card emblems). Reviewed side by side; two real defects found and fixed: the second photo's caption cut off in landscape review, and a smaller Porcelain countdown numeral |
+| 3 | `flutter test --update-goldens test/goldens/guest_packs_golden_test.dart` | 0 | 74 new half-resolution goldens: nine looks x welcome, countdown, review, finished x portrait and landscape, plus Full Template. Review found three more defects, fixed before acceptance: Storybook Garden's start word shrunk unreadable (now wraps), retro emblems colliding with titles (moved to bottom corners), Gala's hairline numeral too faint (larger, full opacity after a quarter second) |
+| 4 | `flutter test test/widgets/guest_packs_test.dart test/experience/live_template_test.dart` | 0 | 7 passed. The first run failed: Full Template never showed (bindings threw until every shot was taken). Fixed in code (`SessionShots.takenBindings`) |
+| 5 | `flutter test --update-goldens test/goldens` after review | 0 | 405 passed; 53 changed files, all reviewed |
+| 6 | `dart format --output=none --set-exit-if-changed lib test tool`; `flutter analyze` | 0 | Clean |
+| 7 | `flutter test` (whole suite) | 0 | 22 min 2 s: 3,256 passed, 2 skipped, 0 failed |
+| 8 | `tool/build_android.sh debug`; `tool/audit_permissions.sh` | 0 | `app-debug.apk` 242,325,388 bytes, SHA-256 `5787a2fde727efbc70f1a6f49c3b545845b18209a99e0e3cca768f45a41e4f47`; audit passed |
+
+### Acceptance items
+
+| AC | Status | Evidence |
+| --- | --- | --- |
+| AC-EP05 Guest-facing screens consistently follow the selected pack | PASS (host) | Every pack and variant runs the whole journey with its own words, buttons, countdown and decorations (`guest_packs_test.dart`); 74 reviewed goldens; derived palettes keep the guest text contrasts (`guest_theme_test.dart`); original looks unchanged |
+| AC-EP06 Portrait and landscape experiences are fully functional | PASS (host); devices BLOCKED | Same journey test at iPad portrait and Android landscape; goldens in both orientations |
+| AC-EP09 Live camera integration uses the existing template scene graph | PASS (host); devices BLOCKED | `live_template_test.dart` (the export's compiler, layers split around the active slot, photos taken shown, masked slot falls back); Full Template journey shows the live stage for both photos |
+| AC-EP10 Captured photographs render correctly into the selected photo template | PASS (host) | Every pack's export request is the same document and photos as Porcelain's; Full Template's equals camera-focused's (`guest_packs_test.dart`); print rendering unchanged (M04 tests) |
+| AC-EP11 Final exports never contain temporary UI countdown graphics | PASS (host) | Exports render from originals through `TemplateRender`; `paintScene`'s `include` filter is never passed by an export; the export request is identical whatever the pack or camera stage |
+| AC-EP13 Missing optional theme assets do not cause session failures | PASS (host) | Unknown decoration ids draw nothing; every pack decoration is drawable (`guest_packs_test.dart`); a live template that cannot load falls back to camera-focused |
+| AC-EP14 Reduced-motion and muted versions are usable | PASS (host) for EP06 screens | Countdown still forms (EP03); sound off by default; the journeys run silent |
+| AC-EP16 Physical iPad and Android testing is documented | BLOCKED | No devices; procedure in EP09 |
+
+### Security and privacy notes (EP06)
+
+- No new data, storage or network paths. The live template reads the
+  session's own originals for display only and keeps them in memory
+  while the camera shows; nothing is written.

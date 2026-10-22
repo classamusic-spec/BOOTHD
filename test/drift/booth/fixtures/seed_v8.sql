@@ -41,7 +41,7 @@ INSERT INTO events VALUES
    'Spring fair', NULL, NULL, NULL, 'draft',
    'front', 1, 0, 'portrait', 3, 3, 3, 'perShot', 1,
    NULL, NULL, NULL, 0, 30,
-   '{"schemaVersion":1,"packId":"vintage-oak","packVersion":1,"soundVolume":70,"celebrationEnabled":true,"cameraStage":"fullTemplate","recommendedTemplateIds":[],"childrenMayBeGuests":false,"revision":1}',
+   '{"schemaVersion":1,"packId":"vintage-oak","packVersion":1,"soundVolume":70,"celebrationEnabled":true,"cameraStage":"cameraFocused","recommendedTemplateIds":[],"childrenMayBeGuests":false,"revision":1}',
    'jpeg', 92, 'keepUntilDeleted', NULL,
    '2026-10-10T09:00:00.000Z', '2026-10-10T09:05:00.000Z', NULL),
   -- The active event the booth is running, with two templates.
@@ -51,7 +51,7 @@ INSERT INTO events VALUES
    'back', 0, 1, 'landscape', 2, 5, 4, 'wholeSession', 2,
    'Welcome, friends', 'Two photos, then you''re done.', 'Photos stay on this booth.',
    1, 45,
-   '{"schemaVersion":1,"packId":"porcelain-classic","packVersion":1,"variantId":"darkroom","soundVolume":70,"celebrationEnabled":true,"cameraStage":"fullTemplate","recommendedTemplateIds":[],"childrenMayBeGuests":false,"revision":2}',
+   '{"schemaVersion":1,"packId":"porcelain-classic","packVersion":1,"variantId":"darkroom","soundVolume":70,"celebrationEnabled":true,"cameraStage":"cameraFocused","recommendedTemplateIds":[],"childrenMayBeGuests":false,"revision":2}',
    'png', 95, 'deleteAfterDays', 30,
    '2026-10-11T09:00:00.000Z', '2026-10-17T18:00:00.000Z', NULL),
   -- An archived event.
@@ -59,7 +59,7 @@ INSERT INTO events VALUES
    'Office party', '2025-12-19', NULL, NULL, 'archived',
    'front', 1, 0, 'portrait', 1, 10, 1, 'none', 0,
    NULL, NULL, NULL, 0, 120,
-   '{"schemaVersion":1,"packId":"porcelain-classic","packVersion":1,"soundVolume":70,"celebrationEnabled":true,"cameraStage":"fullTemplate","recommendedTemplateIds":[],"childrenMayBeGuests":false,"revision":1}',
+   '{"schemaVersion":1,"packId":"porcelain-classic","packVersion":1,"soundVolume":70,"celebrationEnabled":true,"cameraStage":"cameraFocused","recommendedTemplateIds":[],"childrenMayBeGuests":false,"revision":1}',
    'jpeg', 80,
    'keepUntilDeleted', NULL,
    '2025-12-01T09:00:00.000Z', '2026-01-05T09:00:00.000Z',
@@ -164,7 +164,7 @@ INSERT INTO capture_sessions VALUES
   ('c0000000-0000-4000-8000-000000000002',
    'e0000000-0000-4000-8000-000000000002', 2,
    'a1000000-0000-4000-8000-0000000000a1', 2,
-   '{"schemaVersion":1,"eventId":"e0000000-0000-4000-8000-000000000002","templateRevisionId":"a1000000-0000-4000-8000-0000000000a1","slotIndexes":[0,1],"capture":{"lens":"back","mirrorPreview":false,"mirrorOutput":true,"orientation":"landscape","shotCount":2,"countdownSeconds":5,"shotIntervalSeconds":4,"retakePolicy":"perShot","retakeLimit":2},"output":{"format":"png","jpegQuality":95},"finishTimeoutSeconds":45,"experience":{"schemaVersion":1,"packId":"porcelain-classic","packVersion":1,"variantId":"darkroom","displayName":"Porcelain Classic · Darkroom","themeFamily":"porcelain","palette":{"backdrop":"#FF16110D","backdropAccent":"#FF231C16","panel":"#FF2F261F","panelEdge":"#FF4A3D31","ink":"#FFF3EADF","inkMuted":"#FFC4B4A2","accent":"#FFD8B57B","onAccent":"#FF1C140D","accentEdge":"#FFEBD3A4","highlight":"#FF3E3329","decorationA":"#FFB08F5C","decorationB":"#FF7E8C62"},"typography":{"display":"cormorant","body":"inter"},"layoutPresetId":"porcelain-stage","buttonStyle":"porcelain","copy":{"start":"Start","chooseTitle":"Choose your style","getReady":"Get ready!","lookHere":"Look at the camera","countdownLead":"Get ready","countdownGo":"Smile!","snap":"Snap!","lovely":"Lovely!","nextPhotoSoon":"Next photo coming up","shotProgress":"Photo {n} of {total}","reviewTitle":"How do they look?","keepThese":"Keep these","keepIt":"Keep it","retake":"Retake","retakeAll":"Retake all","creatingTitle":"Creating your photos","readyTitle":"Your photos are ready!","savedMessage":"Saved to the booth gallery.","textMyPhotos":"Text my photos","nextGuest":"Next guest"},"countdownPresetId":"porcelain-press","transitionPresetIds":["fade","rise"],"shutterEffectPresetId":"soft-glow","sounds":{"press":"porcelain-tap","start":"porcelain-chime","tick":"porcelain-tap","go":"porcelain-chime","shutter":"shutter-soft","success":"porcelain-chime","celebrate":"porcelain-chime"},"soundEnabled":false,"soundVolume":70,"celebrationPresetId":"sparkles","decorations":["floral-spray"],"animation":"gentle","cameraStage":"fullTemplate","minTouchTarget":72.0,"childrenMayBeGuests":false,"configurationRevision":1}}',
+   '{"schemaVersion":1,"eventId":"e0000000-0000-4000-8000-000000000002","templateRevisionId":"a1000000-0000-4000-8000-0000000000a1","slotIndexes":[0,1],"capture":{"lens":"back","mirrorPreview":false,"mirrorOutput":true,"orientation":"landscape","shotCount":2,"countdownSeconds":5,"shotIntervalSeconds":4,"retakePolicy":"perShot","retakeLimit":2},"output":{"format":"png","jpegQuality":95},"finishTimeoutSeconds":45,"experience":{"schemaVersion":1,"packId":"porcelain-classic","packVersion":1,"variantId":"darkroom","displayName":"Porcelain Classic · Darkroom","themeFamily":"porcelain","palette":{"backdrop":"#FF16110D","backdropAccent":"#FF231C16","panel":"#FF2F261F","panelEdge":"#FF4A3D31","ink":"#FFF3EADF","inkMuted":"#FFC4B4A2","accent":"#FFD8B57B","onAccent":"#FF1C140D","accentEdge":"#FFEBD3A4","highlight":"#FF3E3329","decorationA":"#FFB08F5C","decorationB":"#FF7E8C62"},"typography":{"display":"cormorant","body":"inter"},"layoutPresetId":"porcelain-stage","buttonStyle":"porcelain","copy":{"start":"Start","chooseTitle":"Choose your style","getReady":"Get ready!","lookHere":"Look at the camera","countdownLead":"Get ready","countdownGo":"Smile!","snap":"Snap!","lovely":"Lovely!","nextPhotoSoon":"Next photo coming up","shotProgress":"Photo {n} of {total}","reviewTitle":"How do they look?","keepThese":"Keep these","keepIt":"Keep it","retake":"Retake","retakeAll":"Retake all","creatingTitle":"Creating your photos","readyTitle":"Your photos are ready!","savedMessage":"Saved to the booth gallery.","textMyPhotos":"Text my photos","nextGuest":"Next guest"},"countdownPresetId":"porcelain-press","transitionPresetIds":["fade","rise"],"shutterEffectPresetId":"soft-glow","sounds":{"press":"porcelain-tap","start":"porcelain-chime","tick":"porcelain-tap","go":"porcelain-chime","shutter":"shutter-soft","success":"porcelain-chime","celebrate":"porcelain-chime"},"soundEnabled":false,"soundVolume":70,"celebrationPresetId":"sparkles","decorations":["floral-spray"],"animation":"gentle","cameraStage":"cameraFocused","minTouchTarget":72.0,"childrenMayBeGuests":false,"configurationRevision":1}}',
    'rendering', NULL, 1, NULL,
    '2026-11-14T18:19:50.000Z', '2026-11-14T18:20:30.000Z', NULL);
 

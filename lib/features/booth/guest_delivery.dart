@@ -13,6 +13,7 @@ import '../../core/experience/guest_experience.dart';
 import '../../domain/delivery/consent.dart';
 import '../../domain/delivery/delivery_intent.dart';
 import '../../domain/delivery/phone_number.dart';
+import '../../shared/guest/guest_button.dart';
 import '../../shared/guest/guest_layout.dart';
 import '../../shared/widgets/porcelain_button.dart';
 import '../../shared/widgets/pressable.dart';
@@ -218,19 +219,19 @@ class _GuestDeliveryFlowState extends State<GuestDeliveryFlow> {
                   body: _parsed?.number?.national ?? '',
                   bodyIsNumber: true,
                   actions: [
-                    PorcelainButton(
+                    GuestButton(
                       label: DeliveryCopy.editNumber,
                       icon: PorcelainIcons.edit,
-                      size: PorcelainButtonSize.large,
+                      size: GuestButtonSize.regular,
                       onPressed: _sending
                           ? null
                           : () => _touch(() => _confirming = false),
+                      emphasis: GuestButtonEmphasis.secondary,
                     ),
-                    PorcelainButton(
+                    GuestButton(
                       label: DeliveryCopy.send,
                       icon: PorcelainIcons.send,
-                      variant: PorcelainButtonVariant.primary,
-                      size: PorcelainButtonSize.large,
+                      size: GuestButtonSize.regular,
                       busy: _sending,
                       onPressed: _sending ? null : () => unawaited(_send()),
                     ),
@@ -250,10 +251,11 @@ class _GuestDeliveryFlowState extends State<GuestDeliveryFlow> {
                   ),
                   note: DeliveryCopy.help(widget.terms.supportContact),
                   actions: [
-                    PorcelainButton(
+                    GuestButton(
                       label: DeliveryCopy.close,
-                      size: PorcelainButtonSize.large,
+                      size: GuestButtonSize.regular,
                       onPressed: () => _touch(() => _info = null),
+                      emphasis: GuestButtonEmphasis.secondary,
                     ),
                   ],
                 ),
@@ -386,16 +388,16 @@ class _PhoneEntry extends StatelessWidget {
                   spacing: scale(PorcelainSpace.lg),
                   runSpacing: scale(PorcelainSpace.sm),
                   children: [
-                    PorcelainButton(
+                    GuestButton(
                       label: DeliveryCopy.noThanks,
-                      size: PorcelainButtonSize.large,
+                      size: GuestButtonSize.regular,
                       onPressed: onNoThanks,
+                      emphasis: GuestButtonEmphasis.secondary,
                     ),
-                    PorcelainButton(
+                    GuestButton(
                       label: DeliveryCopy.sendMyPhotos,
                       icon: PorcelainIcons.send,
-                      variant: PorcelainButtonVariant.primary,
-                      size: PorcelainButtonSize.large,
+                      size: GuestButtonSize.regular,
                       disabledReason: !ready
                           ? DeliveryCopy.needNumber
                           : (!consent ? DeliveryCopy.needConsent : null),
@@ -1082,11 +1084,10 @@ class _Result extends StatelessWidget {
     icon: icon,
     busy: busy,
     actions: [
-      PorcelainButton(
+      GuestButton(
         label: DeliveryCopy.done,
         icon: PorcelainIcons.nextGuest,
-        variant: PorcelainButtonVariant.primary,
-        size: PorcelainButtonSize.guest,
+        size: GuestButtonSize.large,
         caps: true,
         onPressed: onDone,
       ),

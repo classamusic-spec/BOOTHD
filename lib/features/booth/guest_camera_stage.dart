@@ -8,7 +8,12 @@ import '../../core/design_system/porcelain_icons.dart';
 import '../../core/design_system/porcelain_metrics.dart';
 import '../../core/design_system/porcelain_motion.dart';
 import '../../core/design_system/porcelain_theme.dart';
+import '../../core/experience/live_template.dart';
+import '../../domain/experience/experience_pack.dart';
+import '../../domain/session/countdown_state.dart';
+import '../../shared/guest/guest_countdown.dart';
 import '../../shared/guest/guest_layout.dart';
+import '../../shared/guest/guest_words.dart';
 import '../../shared/widgets/porcelain_spinner.dart';
 import 'booth_copy.dart';
 import 'guest_parts.dart';
@@ -63,6 +68,8 @@ class GuestCameraStage extends StatelessWidget {
     required this.previewAspect,
     required this.mirroredPhotos,
     required this.flashKey,
+    this.countdownSeconds = 3,
+    this.liveTemplate,
   });
 
   final CameraStep step;
@@ -88,9 +95,16 @@ class GuestCameraStage extends StatelessWidget {
   /// Changes with every photo taken, so the flash plays each time.
   final Object flashKey;
 
-  String get _shotLabel => retaking
+  /// The full countdown, so the pack's countdown can show its progress.
+  final int countdownSeconds;
+
+  /// Full Template mode (EP06): the session's template around the live
+  /// picture. Null shows the camera-focused stage.
+  final LiveTemplate? liveTemplate;
+
+  String _shotLabelIn(BuildContext context) => retaking
       ? BoothCopy.retaking(shotNumber)
-      : BoothCopy.photoOf(shotNumber, shotCount);
+      : context.guestCopy.shotProgress(shotNumber, shotCount);
 
   @override
   Widget build(BuildContext context) {
@@ -123,10 +137,10 @@ class GuestCameraStage extends StatelessWidget {
       child: Column(
         children: [
           GuestHeading(
-            eyebrow: _shotLabel,
+            eyebrow: _shotLabelIn(context),
             title: step == CameraStep.saved
-                ? BoothCopy.lovely
-                : BoothCopy.getReady,
+                ? context.guestCopy[GuestCopyKey.lovely]
+                : context.guestCopy[GuestCopyKey.getReady],
             scale: scale,
           ),
           SizedBox(height: scale(PorcelainSpace.lg)),
@@ -144,7 +158,7 @@ class GuestCameraStage extends StatelessWidget {
             scale: scale,
             vertical: false,
             mirrored: mirroredPhotos,
-            label: _shotLabel,
+            label: _shotLabelIn(context),
           ),
         ],
       ),
@@ -177,12 +191,12 @@ class GuestCameraStage extends StatelessWidget {
                   scale: scale,
                   vertical: true,
                   mirrored: mirroredPhotos,
-                  label: _shotLabel,
+                  label: _shotLabelIn(context),
                 ),
                 SizedBox(height: scale(PorcelainSpace.sm)),
                 ExcludeSemantics(
                   child: Text(
-                    _shotLabel,
+                    _shotLabelIn(context),
                     textAlign: TextAlign.center,
                     style: scale.text(theme.text.guestCaption),
                   ),
@@ -226,17 +240,26 @@ class _Picture extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, area) {
         final overlap = plaqueHeight * 0.3;
-        // The live picture stands the way the screen does.
-        final shape = portrait ? 1 / stage.previewAspect : stage.previewAspect;
+        // The live picture stands the way the screen does; in Full
+        // Template mode the stage takes the template's page shape.
+        final live = stage.liveTemplate;
+        final shape = live != null && stage.preview != null
+            ? live.scene.widthPx / live.scene.heightPx
+            : portrait
+            ? 1 / stage.previewAspect
+            : stage.previewAspect;
         final maxHeight = math.max(
           0.0,
           area.maxHeight - (plaqueHeight - overlap),
         );
+        // The viewfinder's rim surrounds the picture: the picture, not
+        // the frame, keeps the shape (a template page shows no gap).
+        final rim = 2 * scale(10);
         var width = area.maxWidth;
-        var height = width / shape;
+        var height = (width - rim) / shape + rim;
         if (height > maxHeight) {
           height = maxHeight;
-          width = height * shape;
+          width = (height - rim) * shape + rim;
         }
         final plaqueWidth = math.min(
           math.max(width * 0.84, scale(320)),
@@ -256,7 +279,7 @@ class _Picture extends StatelessWidget {
                   height: height,
                   child: GuestViewfinder(
                     scale: scale,
-                    child: _Live(stage: stage),
+                    child: _Live(stage: stage, portrait: portrait),
                   ),
                 ),
                 Positioned(
@@ -285,20 +308,32 @@ class _Picture extends StatelessWidget {
 /// The live picture (or a quiet wait while the camera opens) and the
 /// flash when a photo is taken.
 class _Live extends StatelessWidget {
-  const _Live({required this.stage});
+  const _Live({required this.stage, required this.portrait});
 
   final GuestCameraStage stage;
+  final bool portrait;
 
   @override
   Widget build(BuildContext context) {
     final preview = stage.preview;
+    final live = stage.liveTemplate;
     final flash =
         stage.step == CameraStep.capturing &&
         !PorcelainMotion.of(context).isReduced;
     return Stack(
       fit: StackFit.expand,
       children: [
-        if (preview != null)
+        if (preview != null && live != null)
+          Center(
+            child: LiveTemplateStage(
+              template: live,
+              preview: preview,
+              previewAspect: portrait
+                  ? 1 / stage.previewAspect
+                  : stage.previewAspect,
+            ),
+          )
+        else if (preview != null)
           // Centred, so the picture keeps its own shape: never stretched.
           Center(child: preview)
         else
@@ -360,7 +395,8 @@ class _PlaqueContent extends StatelessWidget {
         key: const ValueKey('preparing'),
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (showTitle) Text(BoothCopy.getReady, style: serif),
+          if (showTitle)
+            Text(context.guestCopy[GuestCopyKey.getReady], style: serif),
           if (stage.preview == null)
             Row(
               mainAxisSize: MainAxisSize.min,
@@ -374,32 +410,22 @@ class _PlaqueContent extends StatelessWidget {
               ],
             )
           else
-            Text(BoothCopy.lookHere, style: message),
+            Text(context.guestCopy[GuestCopyKey.lookHere], style: message),
         ],
       ),
       CameraStep.countdown => Semantics(
         key: const ValueKey('countdown'),
         liveRegion: true,
         label: BoothCopy.countdownLabel(stage.secondsLeft),
-        child: ExcludeSemantics(
-          child: AnimatedSwitcher(
-            duration: motion.standard,
-            transitionBuilder: (child, animation) => FadeTransition(
-              opacity: animation,
-              child: ScaleTransition(
-                scale: Tween(begin: 1.35, end: 1.0).animate(animation),
-                child: child,
-              ),
-            ),
-            child: Text(
-              '${stage.secondsLeft}',
-              key: ValueKey(stage.secondsLeft),
-              style: theme.text.countdown.copyWith(
-                fontSize: 170 * unit,
-                height: 1,
-                color: colors.guestAccentText,
-              ),
-            ),
+        // The pack's countdown (EP03, EP06): drawn from the controller's
+        // state only; it cannot move the photo.
+        child: GuestCountdown(
+          size: 190 * unit,
+          state: CountdownState(
+            remaining: stage.secondsLeft,
+            total: math.max(stage.countdownSeconds, stage.secondsLeft),
+            shot: stage.shotNumber - 1,
+            shotCount: stage.shotCount,
           ),
         ),
       ),
@@ -413,14 +439,18 @@ class _PlaqueContent extends StatelessWidget {
             size: 96,
           ),
           SizedBox(height: 10 * unit),
-          Text(BoothCopy.snap, style: serif.copyWith(fontSize: 44 * unit)),
+          Text(
+            context.guestCopy[GuestCopyKey.snap],
+            style: serif.copyWith(fontSize: 44 * unit),
+          ),
         ],
       ),
       CameraStep.saved => Column(
         key: const ValueKey('saved'),
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (showTitle) Text(BoothCopy.lovely, style: serif),
+          if (showTitle)
+            Text(context.guestCopy[GuestCopyKey.lovely], style: serif),
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -431,7 +461,12 @@ class _PlaqueContent extends StatelessWidget {
                 fill: 1,
               ),
               SizedBox(width: 10 * unit),
-              Flexible(child: Text(BoothCopy.nextPhotoSoon, style: message)),
+              Flexible(
+                child: Text(
+                  context.guestCopy[GuestCopyKey.nextPhotoSoon],
+                  style: message,
+                ),
+              ),
             ],
           ),
         ],

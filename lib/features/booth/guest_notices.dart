@@ -1,8 +1,10 @@
 import 'package:flutter/widgets.dart';
 
 import '../../core/design_system/porcelain_icons.dart';
+import '../../domain/experience/experience_pack.dart';
 import '../../domain/session/guest_flow.dart';
-import '../../shared/widgets/porcelain_button.dart';
+import '../../shared/guest/guest_button.dart';
+import '../../shared/guest/guest_words.dart';
 import 'booth_copy.dart';
 import 'guest_parts.dart';
 
@@ -13,8 +15,8 @@ class GuestRendering extends StatelessWidget {
   const GuestRendering({super.key});
 
   @override
-  Widget build(BuildContext context) => const GuestNotice(
-    title: BoothCopy.creatingTitle,
+  Widget build(BuildContext context) => GuestNotice(
+    title: context.guestCopy[GuestCopyKey.creatingTitle],
     body: BoothCopy.creatingBody,
     busy: true,
   );
@@ -42,10 +44,9 @@ class GuestPaused extends StatelessWidget {
         ? '${BoothCopy.pausedSafe} ${BoothCopy.pausedBody}'
         : BoothCopy.pausedBody,
     actions: [
-      PorcelainButton(
+      GuestButton(
         label: BoothCopy.continueLabel,
-        variant: PorcelainButtonVariant.primary,
-        size: PorcelainButtonSize.guest,
+        size: GuestButtonSize.large,
         caps: true,
         onPressed: onContinue,
       ),
@@ -85,26 +86,25 @@ class GuestProblemNotice extends StatelessWidget {
       body: body,
       actions: problem.recoverable
           ? [
-              PorcelainButton(
+              GuestButton(
                 label: BoothCopy.startOver,
-                size: PorcelainButtonSize.guest,
+                size: GuestButtonSize.large,
                 caps: true,
                 onPressed: onStartOver,
+                emphasis: GuestButtonEmphasis.secondary,
               ),
-              PorcelainButton(
+              GuestButton(
                 label: BoothCopy.tryAgain,
                 icon: PorcelainIcons.retry,
-                variant: PorcelainButtonVariant.primary,
-                size: PorcelainButtonSize.guest,
+                size: GuestButtonSize.large,
                 caps: true,
                 onPressed: onRetry,
               ),
             ]
           : [
-              PorcelainButton(
+              GuestButton(
                 label: BoothCopy.done,
-                variant: PorcelainButtonVariant.primary,
-                size: PorcelainButtonSize.guest,
+                size: GuestButtonSize.large,
                 caps: true,
                 onPressed: onStartOver,
               ),

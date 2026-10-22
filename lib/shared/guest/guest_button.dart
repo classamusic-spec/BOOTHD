@@ -8,6 +8,7 @@ import '../../core/experience/guest_cues.dart';
 import '../../core/experience/guest_experience.dart';
 import '../../domain/experience/experience_catalog.dart';
 import '../widgets/porcelain_spinner.dart';
+import '../widgets/porcelain_toast.dart';
 import '../widgets/pressable.dart';
 import 'guest_button_faces.dart';
 
@@ -49,6 +50,7 @@ class GuestButton extends StatelessWidget {
     this.selected,
     this.semanticHint,
     this.expand = false,
+    this.caps = false,
     this.style,
   });
 
@@ -74,6 +76,9 @@ class GuestButton extends StatelessWidget {
   /// Fill the available width.
   final bool expand;
 
+  /// Spaced capitals, as the Porcelain guest buttons have always been.
+  final bool caps;
+
   /// Draw with this family instead of the pack's (previews and goldens).
   final GuestButtonStyle? style;
 
@@ -93,6 +98,14 @@ class GuestButton extends StatelessWidget {
             },
       busy: busy,
       disabledReason: busy ? null : disabledReason,
+      // Tapping an unavailable button says why, as Porcelain buttons do.
+      onDisabledTap: busy || disabledReason == null
+          ? null
+          : () => PorcelainToast.show(
+              context,
+              disabledReason!,
+              icon: PorcelainIcons.locked,
+            ),
       selected: selected,
       semanticLabel: label,
       semanticHint: semanticHint,
@@ -123,13 +136,17 @@ class GuestButton extends StatelessWidget {
               ),
             Flexible(
               child: Text(
-                face.transformLabel(label),
+                caps ? label.toUpperCase() : face.transformLabel(label),
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: face
-                    .labelStyle(tokens, size.fontSize)
-                    .copyWith(color: ink),
+                style: caps
+                    ? face
+                          .labelStyle(tokens, size.fontSize * 0.8)
+                          .copyWith(color: ink, letterSpacing: 2.2)
+                    : face
+                          .labelStyle(tokens, size.fontSize)
+                          .copyWith(color: ink),
               ),
             ),
           ],

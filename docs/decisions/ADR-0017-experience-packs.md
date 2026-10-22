@@ -97,6 +97,31 @@ media), a native `SoundPool`/`AVAudioPlayer` bridge (more native code to
 maintain, against CLAUDE.md's "native only for evidenced gaps"), and
 haptics only (the owner asked for sound).
 
+### 8. Shared screens wear the pack; the live template is display only (EP06)
+
+- `GuestTheme.of(experience)` turns a pack into the Porcelain token set
+  the shared guest screens already read. An unmodified Porcelain Classic,
+  Vintage Light Wood or Darkroom keeps its audited palette exactly; any
+  other pack (or a changed accent) is derived with contrast guards (ink
+  7:1, muted and accent text 4.5:1, outlines 3:1, checked for every pack
+  and variant in `guest_theme_test.dart`).
+- Words come from the frozen pack (`context.guestCopy`), never from code
+  per pack; buttons are `GuestButton` faces; the countdown is the pack's
+  preset; decorations are drawn in code from the pack's colours, kept to
+  the corners (emblems to the bottom corners, clear of titles), and an
+  unknown id draws nothing.
+- Full Template camera mode compiles the session's template with the
+  export's own scene compiler, puts the photos already taken in their
+  slots and the placeholder in the rest, and paints the layers below the
+  active slot, the live picture clipped to the slot's shape, then the
+  layers above it (`paintScene(include:)`, never passed by an export). A
+  slot with an image mask, a load failure or a slow load shows the
+  camera-focused stage instead; the countdown and capture never wait for
+  it. The print is the same `TemplateRender` whatever the pack or stage
+  (`guest_packs_test.dart`).
+- Camera-focused is the default stage for every event: Full Template is
+  an operator choice until its cost is measured on the certified tablets.
+
 ## Consequences
 
 - One new runtime dependency family (`audioplayers` and its platform

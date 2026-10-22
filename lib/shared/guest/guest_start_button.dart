@@ -118,35 +118,50 @@ class GuestStartButton extends StatelessWidget {
                         fit: BoxFit.scaleDown,
                         child: Padding(
                           padding: EdgeInsets.all(size * 0.04),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (prompt != null)
+                          // A long word wraps within the ring; the
+                          // FittedBox only shrinks what still cannot fit.
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxWidth: label.length > 8
+                                  ? size * 0.7
+                                  : double.infinity,
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (prompt != null)
+                                  Text(
+                                    prompt.toUpperCase(),
+                                    style: theme.text.guestLabel.copyWith(
+                                      fontSize: 15 * scale,
+                                      letterSpacing: 3 * scale,
+                                      color: colors.guestAccentText,
+                                    ),
+                                  ),
+                                SizedBox(height: size * 0.025),
+                                Icon(
+                                  PorcelainIcons.camera,
+                                  size: size * 0.15,
+                                  color: colors.guestAccentText,
+                                ),
+                                SizedBox(height: size * 0.01),
+                                // A long word (a pack's "Once upon a
+                                // photo") wraps rather than shrinking to
+                                // an unreadable single line.
                                 Text(
-                                  prompt.toUpperCase(),
-                                  style: theme.text.guestLabel.copyWith(
-                                    fontSize: 15 * scale,
-                                    letterSpacing: 3 * scale,
+                                  label.toUpperCase(),
+                                  textAlign: TextAlign.center,
+                                  maxLines: 3,
+                                  style: theme.text.guestTitle.copyWith(
+                                    fontSize:
+                                        (label.length > 8 ? 34 : 46) * scale,
+                                    height: 1.05,
+                                    letterSpacing: 2 * scale,
                                     color: colors.guestAccentText,
                                   ),
                                 ),
-                              SizedBox(height: size * 0.025),
-                              Icon(
-                                PorcelainIcons.camera,
-                                size: size * 0.15,
-                                color: colors.guestAccentText,
-                              ),
-                              SizedBox(height: size * 0.01),
-                              Text(
-                                label.toUpperCase(),
-                                style: theme.text.guestTitle.copyWith(
-                                  fontSize: 46 * scale,
-                                  height: 1.05,
-                                  letterSpacing: 2 * scale,
-                                  color: colors.guestAccentText,
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),

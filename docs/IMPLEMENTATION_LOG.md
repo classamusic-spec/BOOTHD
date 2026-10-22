@@ -3,6 +3,67 @@
 Newest milestone first. Each entry: scope, plan, changes, commands and exit
 codes, platform results, spec issues raised, risks, next step.
 
+## EP06: every pack on the shared guest screens, and the Live Template camera
+
+- Date: 2026-10-22 (UTC)
+- Authorised by: the owner's EP00 reply ("build ep01 - ep09").
+
+### Changes
+
+- `GuestTheme` (`lib/core/experience/guest_theme.dart`): a pack becomes
+  the Porcelain token set the shared guest screens read; the three
+  original looks keep their audited palettes exactly; derived palettes
+  are held to the guest text contrasts. `GuestExperienceScope` gives Booth
+  Mode, the dashboard preview and the event editor's preview the event's
+  pack.
+- Words: every guest screen reads the frozen pack's words
+  (`context.guestCopy`): welcome, get ready, review, keep, retake,
+  finished, saved, next guest, choose and texting. Event customisations
+  still win (the welcome title, a custom Start label).
+- Buttons: the guest screens use `GuestButton` faces (review, finished,
+  notices, template choice, texting); presses sound the pack's press cue
+  when sound is on; a disabled button says why when tapped, as before.
+  The Porcelain family keeps its round Start button, which now wraps a
+  long word ("Once upon a photo") instead of shrinking it.
+- Countdown: the camera's plaque shows the pack's preset
+  (`GuestCountdown`); the Porcelain Press numeral is larger, Gala
+  Elegant's hairline numeral larger and fully visible after a quarter of
+  each second.
+- Decorations (`lib/shared/guest/guest_decorations.dart`): fourteen
+  code-drawn decorations from the pack's colours, at the corners, never
+  hit-tested or read out; the retro emblems sit at the bottom corners,
+  clear of titles; unknown ids draw nothing.
+- Live Template camera (`lib/core/experience/live_template.dart`): Full
+  Template mode shows the session's template around the live picture,
+  compiled by the export's own scene compiler, photos already taken in
+  their slots (`SessionShots.takenBindings`), artwork above the active
+  slot drawn over the live picture. `paintScene` gains an `include`
+  filter used only here. Image-masked slots and load failures fall back
+  to the camera-focused stage; nothing waits for it. The camera frame now
+  keeps the picture's shape inside its rim, so a template page shows no
+  gap.
+- Default camera stage is camera-focused (v8 seed and constants updated).
+- Review screen: each photo's cell measures its controls (a pack's button
+  face can be deeper), so the "retakes left" line is never cut off or
+  covered; the line clears the button's shadow.
+
+### Fixed on the way
+
+- Full Template failed on every shot before the last: it asked for the
+  complete slot bindings, which throw until every shot is taken. Found by
+  the new journey test; `takenBindings` gives the photos taken so far.
+
+### Tests
+
+- `test/widgets/guest_packs_test.dart`: all eight packs and every variant
+  run the whole journey on the simulated camera in portrait and
+  landscape; each export request is identical; Full Template shows the
+  live stage for both photos and prints the same.
+- `test/experience/live_template_test.dart`, `guest_theme_test.dart`.
+- `test/goldens/guest_packs_golden_test.dart`: nine looks x welcome,
+  countdown, review, finished x two orientations, plus Full Template
+  (74 half-resolution goldens, reviewed).
+
 ## EP04 and EP05: Kid Party Arcade, Retro Game Quest and 14 starter designs
 
 - Date: 2026-10-22 (UTC)

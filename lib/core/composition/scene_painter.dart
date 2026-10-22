@@ -38,6 +38,11 @@ final class SceneResources {
 /// outside the page (exports); without it, artwork beyond the page edge
 /// shows (the editor workspace). Returns what the operator should know:
 /// fonts that fell back and text that overflowed its frame.
+///
+/// [include] limits painting to some nodes (by index and node) without
+/// changing how any node is painted: the Live Template Camera paints the
+/// nodes below the active slot, then the live picture, then the rest
+/// (EP06). Exports never pass it.
 List<RenderWarning> paintScene(
   ui.Canvas canvas,
   DocumentScene scene,
@@ -45,6 +50,7 @@ List<RenderWarning> paintScene(
   ui.Offset origin = ui.Offset.zero,
   double scale = 1,
   bool clipToPage = true,
+  bool Function(int index, SceneNode node)? include,
 }) {
   final warnings = <RenderWarning>[];
   canvas
@@ -61,7 +67,8 @@ List<RenderWarning> paintScene(
       ),
     );
   }
-  for (final node in scene.nodes) {
+  for (final (index, node) in scene.nodes.indexed) {
+    if (include != null && !include(index, node)) continue;
     _paintNode(canvas, node, resources, warnings);
   }
   canvas.restore();

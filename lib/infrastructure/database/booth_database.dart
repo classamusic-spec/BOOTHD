@@ -26,21 +26,23 @@ part 'booth_database.g.dart';
 /// The experiences schema v8 gives existing events (EP01), spelled out as
 /// `EventExperienceConfiguration.toJson` version 1 wrote them so the step
 /// never depends on today's codec. A test checks they still read back.
+/// (Revised before release in EP06: the camera stage defaults to
+/// camera-focused.)
 @visibleForTesting
 const v8PorcelainExperience =
     '{"schemaVersion":1,"packId":"porcelain-classic","packVersion":1,'
-    '"soundVolume":70,"celebrationEnabled":true,"cameraStage":"fullTemplate",'
+    '"soundVolume":70,"celebrationEnabled":true,"cameraStage":"cameraFocused",'
     '"recommendedTemplateIds":[],"childrenMayBeGuests":false,"revision":1}';
 @visibleForTesting
 const v8VintageOakExperience =
     '{"schemaVersion":1,"packId":"vintage-oak","packVersion":1,'
-    '"soundVolume":70,"celebrationEnabled":true,"cameraStage":"fullTemplate",'
+    '"soundVolume":70,"celebrationEnabled":true,"cameraStage":"cameraFocused",'
     '"recommendedTemplateIds":[],"childrenMayBeGuests":false,"revision":1}';
 @visibleForTesting
 const v8DarkroomExperience =
     '{"schemaVersion":1,"packId":"porcelain-classic","packVersion":1,'
     '"variantId":"darkroom","soundVolume":70,"celebrationEnabled":true,'
-    '"cameraStage":"fullTemplate","recommendedTemplateIds":[],'
+    '"cameraStage":"cameraFocused","recommendedTemplateIds":[],'
     '"childrenMayBeGuests":false,"revision":1}';
 
 /// The booth's relational store (A-11, ADR-0009). The schema is defined in
