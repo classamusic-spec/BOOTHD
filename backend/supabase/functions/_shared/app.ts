@@ -13,7 +13,15 @@ import {
 import { capabilities, uploadTest } from './capabilities.ts';
 import type { Deps } from './context.ts';
 import * as deliveries from './deliveries.ts';
-import { ApiError, baseHeaders, errorResponse, json } from './http.ts';
+import {
+  ApiError,
+  baseHeaders,
+  corsHeaders,
+  errorResponse,
+  isBoothApi,
+  json,
+  preflight,
+} from './http.ts';
 import { previewForProvider } from './media.ts';
 import { downloadFile, downloadPage, noticePage } from './page.ts';
 import { inboundWebhook, statusWebhook } from './webhooks.ts';
@@ -198,8 +206,26 @@ export function routePath(pathname: string, prefixes: string[]): string {
 }
 
 export function createHandler(deps: Deps): (request: Request) => Promise<Response> {
+  const respond = handle(deps);
   return async (request: Request) => {
     const path = routePath(new URL(request.url).pathname, deps.config.pathPrefixes);
+    const origin = request.headers.get('origin');
+    if (origin === null || !isBoothApi(path)) return await respond(request, path);
+    // A browser booth page (ADR-0018): only the configured origins.
+    const allowed = deps.config.boothOrigins.includes(origin);
+    if (request.method === 'OPTIONS') {
+      return allowed ? preflight(origin) : json(403, { error: { code: 'ORIGIN_NOT_ALLOWED' } });
+    }
+    const response = await respond(request, path);
+    if (!allowed) return response;
+    const headers = new Headers(response.headers);
+    for (const [name, value] of Object.entries(corsHeaders(origin))) headers.set(name, value);
+    return new Response(response.body, { status: response.status, headers });
+  };
+}
+
+function handle(deps: Deps): (request: Request, path: string) => Promise<Response> {
+  return async (request: Request, path: string) => {
     const guestPage = path.startsWith('/p/');
     try {
       let allowed: string[] = [];

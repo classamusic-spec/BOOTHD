@@ -22,6 +22,38 @@ export const baseHeaders: Record<string, string> = {
   'strict-transport-security': 'max-age=31536000',
 };
 
+/**
+ * Whether [path] is the booth API, the only part a browser page may call
+ * across origins (ADR-0018): never the administrator API, Twilio's
+ * webhooks or the guest pages.
+ */
+export function isBoothApi(path: string): boolean {
+  return /^\/v1\/(booths|deliveries|uploads|delivery|diagnostics)(\/|$)/.test(path);
+}
+
+/** CORS headers for an allowed booth page; no cookies are ever allowed. */
+export function corsHeaders(origin: string): Record<string, string> {
+  return {
+    'access-control-allow-origin': origin,
+    'access-control-expose-headers': 'retry-after',
+    vary: 'Origin',
+  };
+}
+
+/** The answer to an allowed booth page's preflight request. */
+export function preflight(origin: string): Response {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      ...baseHeaders,
+      ...corsHeaders(origin),
+      'access-control-allow-methods': 'GET, POST, PUT',
+      'access-control-allow-headers': 'authorization, content-type, accept',
+      'access-control-max-age': '600',
+    },
+  });
+}
+
 export function json(
   status: number,
   body: unknown,

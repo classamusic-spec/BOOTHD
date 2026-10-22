@@ -17,6 +17,7 @@ import { type FakeTwilio, startFakeTwilio } from './fake_twilio.ts';
 export const adminToken = 'admin-token-for-tests-0123456789abcdef0123456789';
 export const authToken = 'fake-twilio-auth-token-0123456789';
 export const messagingServiceSid = `MG${'ab'.repeat(16)}`;
+export const boothOrigin = 'https://booth.example.test';
 
 export interface Harness {
   db: TestDatabase;
@@ -59,6 +60,7 @@ export async function startHarness(
     // the public address may give one.
     publicBaseUrl: publicBaseUrl ?? baseUrl,
     pathPrefixes: ['/functions/v1/delivery', '/delivery'],
+    boothOrigins: [boothOrigin],
     databaseUrl: db.url,
     phoneKey: base64Url(crypto.getRandomValues(new Uint8Array(32))),
     digestKey: 'digest-key-for-tests-0123456789abcdef',

@@ -27,6 +27,11 @@ export interface DeliveryConfig {
   publicBaseUrl: string;
   /** Path prefixes the platform adds before ours (`/delivery`). */
   pathPrefixes: string[];
+  /**
+   * Web pages allowed to call the booth API from a browser (the web test
+   * build, ADR-0018): exact origins, empty for tablets only.
+   */
+  boothOrigins: string[];
   databaseUrl: string;
   /** AES-256 key (base64url, 32 bytes) for stored phone numbers. */
   phoneKey: string;
@@ -62,6 +67,33 @@ function required(env: Env, name: string): string {
 function optional(env: Env, name: string): string | undefined {
   const value = env(name)?.trim();
   return value ? value : undefined;
+}
+
+/**
+ * The browser origins of DELIVERY_BOOTH_ORIGINS (comma separated). Each is
+ * an exact `https://host[:port]`; plain `http` only for localhost outside
+ * production. No wildcard: a booth page's origin is known.
+ */
+export function boothOriginsFrom(value: string | undefined, environment: Environment): string[] {
+  if (!value) return [];
+  const origins = value.split(',').map((origin) => origin.trim()).filter((origin) => origin);
+  for (const origin of origins) {
+    let url: URL;
+    try {
+      url = new URL(origin);
+    } catch {
+      throw new ConfigError('DELIVERY_BOOTH_ORIGINS holds an invalid origin');
+    }
+    const local = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+    const secure = url.protocol === 'https:' ||
+      (url.protocol === 'http:' && local && environment !== 'production');
+    if (!secure || url.origin !== origin) {
+      throw new ConfigError(
+        'DELIVERY_BOOTH_ORIGINS must list exact https origins (scheme and host, no path)',
+      );
+    }
+  }
+  return [...new Set(origins)];
 }
 
 /** Reads and checks the configuration; throws [ConfigError] if unusable. */
@@ -119,6 +151,7 @@ export function configFromEnv(env: Env): DeliveryConfig {
       .split(',')
       .map((prefix) => prefix.trim().replace(/\/+$/, ''))
       .filter((prefix) => prefix.startsWith('/')),
+    boothOrigins: boothOriginsFrom(optional(env, 'DELIVERY_BOOTH_ORIGINS'), environment),
     databaseUrl: required(env, 'DELIVERY_DATABASE_URL'),
     phoneKey: required(env, 'DELIVERY_PHONE_KEY'),
     digestKey,

@@ -1,10 +1,10 @@
 import 'dart:convert';
-import 'dart:isolate';
 import 'dart:math';
 import 'dart:typed_data';
 
 import '../../domain/services/operator_secrets.dart';
 import 'pbkdf2.dart';
+import 'pbkdf2_derive.dart';
 
 /// Slow, salted verifiers for the operator PIN and recovery code (A-12,
 /// ADR-0009): PBKDF2-HMAC-SHA256 with a 16-byte random salt and a 32-byte
@@ -12,7 +12,8 @@ import 'pbkdf2.dart';
 ///
 /// The iteration count is stored in each verifier, so raising [iterations]
 /// upgrades old verifiers after their next successful check. Derivation
-/// runs on a short-lived isolate, never on the UI isolate.
+/// runs on a short-lived isolate, never on the UI isolate (in the web test
+/// build, the browser's Web Crypto: ADR-0018).
 final class Pbkdf2PinHasher implements PinHasher {
   Pbkdf2PinHasher({
     this.iterations = defaultIterations,
@@ -61,13 +62,22 @@ final class Pbkdf2PinHasher implements PinHasher {
 
   Future<Uint8List> _derive(String secret, Uint8List salt, int rounds) {
     final password = utf8.encode(secret);
-    Uint8List run() => pbkdf2HmacSha256(
-      password: password,
-      salt: salt,
-      iterations: rounds,
-      length: _hashLength,
+    if (_useIsolate) {
+      return derivePbkdf2Sha256(
+        password: password,
+        salt: salt,
+        iterations: rounds,
+        length: _hashLength,
+      );
+    }
+    return Future.sync(
+      () => pbkdf2HmacSha256(
+        password: password,
+        salt: salt,
+        iterations: rounds,
+        length: _hashLength,
+      ),
     );
-    return _useIsolate ? Isolate.run(run) : Future.sync(run);
   }
 
   static String _encode(List<int> bytes) =>

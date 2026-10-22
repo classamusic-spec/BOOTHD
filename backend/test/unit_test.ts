@@ -12,7 +12,11 @@ import {
 } from './helpers/assert.ts';
 import { routePath } from '../supabase/functions/_shared/app.ts';
 import { newPairingCode, normalizePairingCode } from '../supabase/functions/_shared/auth.ts';
-import { ConfigError, configFromEnv } from '../supabase/functions/_shared/config.ts';
+import {
+  boothOriginsFrom,
+  ConfigError,
+  configFromEnv,
+} from '../supabase/functions/_shared/config.ts';
 import {
   base64Url,
   constantTimeEqual,
@@ -255,4 +259,28 @@ Deno.test('configuration refuses unsafe production settings', async () => {
       }),
     ConfigError,
   );
+});
+
+Deno.test('browser booth origins are exact and secure (ADR-0018)', () => {
+  assertEquals(boothOriginsFrom(undefined, 'production'), []);
+  assertEquals(
+    boothOriginsFrom(
+      ' https://booth.example.test , https://b.vercel.app,https://b.vercel.app',
+      'production',
+    ),
+    ['https://booth.example.test', 'https://b.vercel.app'],
+  );
+  assertEquals(boothOriginsFrom('http://localhost:8787', 'staging'), ['http://localhost:8787']);
+  for (
+    const bad of [
+      '*',
+      'http://booth.example.test',
+      'https://booth.example.test/',
+      'https://booth.example.test/app',
+      'booth.example.test',
+    ]
+  ) {
+    assertThrows(() => boothOriginsFrom(bad, 'staging'), ConfigError, undefined, bad);
+  }
+  assertThrows(() => boothOriginsFrom('http://localhost:8787', 'production'), ConfigError);
 });

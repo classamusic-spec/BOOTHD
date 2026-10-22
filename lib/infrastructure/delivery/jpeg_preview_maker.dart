@@ -1,4 +1,3 @@
-import 'dart:isolate';
 import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
@@ -7,6 +6,7 @@ import 'package:crypto/crypto.dart' as crypto;
 
 import '../../core/composition/scene_images.dart';
 import '../../domain/services/delivery_api.dart';
+import '../background/background_work.dart';
 import '../codecs/jpeg_encoder.dart';
 
 /// The MMS preview (PD-04, AC-0909): the finished photo decoded at reduced
@@ -44,7 +44,7 @@ final class JpegPreviewMaker implements PreviewMaker {
         pixels.lengthInBytes,
       );
       for (final quality in _qualities) {
-        final jpeg = await Isolate.run(
+        final jpeg = await runInBackground(
           () => encodeJpeg(
             rgba,
             width: width,

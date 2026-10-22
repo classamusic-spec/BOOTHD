@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import '../../core/composition/scene_images.dart';
 import '../../domain/services/gallery_services.dart';
+import '../background/background_work.dart';
 import '../codecs/jpeg_encoder.dart';
 import 'atomic_file_writer.dart';
 import 'file_system.dart';
@@ -103,7 +103,7 @@ final class ManagedThumbnailStore implements ThumbnailStore {
         pixels.lengthInBytes,
       );
       final quality = this.quality;
-      final jpeg = await Isolate.run(
+      final jpeg = await runInBackground(
         () => encodeJpeg(
           rgba,
           width: width,

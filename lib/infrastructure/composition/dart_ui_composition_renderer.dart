@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io' show ProcessInfo;
-import 'dart:isolate';
 import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
@@ -10,6 +9,7 @@ import '../../core/composition/scene_preparation.dart';
 import '../../core/composition/template_fonts.dart';
 import '../../domain/models/booth_event.dart';
 import '../../domain/services/composition_renderer.dart';
+import '../background/background_work.dart';
 import '../codecs/jpeg_encoder.dart';
 import '../codecs/png_metadata.dart';
 
@@ -222,7 +222,7 @@ final class DartUiCompositionRenderer implements CompositionRenderer {
         case OutputFormat.jpeg:
           final pixels = rgba!;
           try {
-            bytes = await Isolate.run(
+            bytes = await runInBackground(
               () => encodeJpeg(
                 pixels,
                 width: width,
