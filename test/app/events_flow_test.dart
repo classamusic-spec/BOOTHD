@@ -8,9 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:porcelain_photo_booth/core/access/access_controller.dart';
 import 'package:porcelain_photo_booth/core/routing/route_paths.dart';
+import 'package:porcelain_photo_booth/domain/experience/experience_configuration.dart';
 import 'package:porcelain_photo_booth/domain/models/booth_event.dart';
 import 'package:porcelain_photo_booth/domain/services/camera_service.dart';
-import 'package:porcelain_photo_booth/domain/value_objects/appearance.dart';
 import 'package:porcelain_photo_booth/domain/value_objects/orientation.dart';
 import 'package:porcelain_photo_booth/features/booth/booth_screen.dart';
 import 'package:porcelain_photo_booth/features/dashboard/dashboard_screen.dart';
@@ -106,7 +106,7 @@ void main() {
     expect(find.text('Default'), findsOneWidget);
 
     await tapText(tester, 'Experience');
-    await tapText(tester, 'Light Oak');
+    await tapText(tester, 'Vintage Light Wood');
     await tapText(tester, 'Privacy');
     await tapText(tester, 'For a set time');
 
@@ -157,7 +157,10 @@ void main() {
         defaultRevisionId: TestIds.revisionA1,
       ),
     );
-    expect(stored.guest.themeOverride, PorcelainThemeProfile.lightOak);
+    expect(
+      stored.experience,
+      const EventExperienceConfiguration(packId: 'vintage-oak'),
+    );
     expect(stored.retention, const RetentionPolicy.deleteAfterDays(30));
   });
 

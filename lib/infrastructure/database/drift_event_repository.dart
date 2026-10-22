@@ -133,8 +133,8 @@ final class DriftEventRepository implements EventRepository {
         consentText: row.consentText,
         guestChoosesTemplate: row.guestChoosesTemplate,
         finishTimeoutSeconds: row.finishTimeoutSeconds,
-        themeOverride: row.themeOverride,
       ),
+      experience: row.experienceJson,
       output: OutputProfile(
         format: row.outputFormat,
         jpegQuality: row.jpegQuality,
@@ -185,7 +185,7 @@ final class DriftEventRepository implements EventRepository {
     consentText: Value(event.guest.consentText),
     guestChoosesTemplate: event.guest.guestChoosesTemplate,
     finishTimeoutSeconds: event.guest.finishTimeoutSeconds,
-    themeOverride: Value(event.guest.themeOverride),
+    experienceJson: event.experience,
     outputFormat: event.output.format,
     jpegQuality: event.output.jpegQuality,
     retentionMode: event.retention.mode,

@@ -4,6 +4,8 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:porcelain_photo_booth/domain/experience/experience_configuration.dart';
+import 'package:porcelain_photo_booth/domain/experience/experience_registry.dart';
 import 'package:porcelain_photo_booth/domain/models/booth_event.dart';
 import 'package:porcelain_photo_booth/domain/repositories/session_repository.dart';
 import 'package:porcelain_photo_booth/domain/services/camera_service.dart';
@@ -13,6 +15,7 @@ import 'package:porcelain_photo_booth/domain/session/session_plan.dart';
 import 'package:porcelain_photo_booth/domain/session/session_shots.dart';
 import 'package:porcelain_photo_booth/domain/value_objects/orientation.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/booth_database.dart';
+import 'package:porcelain_photo_booth/infrastructure/database/drift_event_repository.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_session_repository.dart';
 
 import '../support/fakes.dart';
@@ -152,6 +155,45 @@ void main() {
     expect(stored.sessionId, _sessionA);
     expect((stored.widthPx, stored.heightPx), (1200, 1800));
     expect(await sessions.unfinished(), isEmpty);
+  });
+
+  // EP01: the experience a guest saw stays with the session, whatever
+  // happens to the event afterwards.
+  test('the frozen experience survives event edits and a restart', () async {
+    final events = DriftEventRepository(db);
+    final event = (await events.findById(SeedIds.active))!;
+    final shown = ExperienceRegistry.bundled.resolve(event.experience);
+    final plan = SessionPlan(
+      eventId: _plan().eventId,
+      templateRevisionId: _plan().templateRevisionId,
+      slotIndexes: _plan().slotIndexes,
+      capture: _plan().capture,
+      output: _plan().output,
+      finishTimeoutSeconds: 30,
+      experience: shown,
+    );
+    await sessions.create(id: _sessionA, plan: plan, startedAtUtc: clock.now());
+    await events.save(
+      event.copyWith(
+        experience: const EventExperienceConfiguration(
+          packId: 'kid-party-arcade',
+          getReadyText: 'Party time!',
+        ),
+      ),
+    );
+    await expectLater(
+      db.customStatement(
+        "UPDATE capture_sessions SET plan_json = '{}' WHERE id = '$_sessionA'",
+      ),
+      throwsA(anything),
+      reason: 'a plan is never rewritten',
+    );
+    await db.close();
+    db = fileDatabase(file, clock: clock);
+    sessions = DriftSessionRepository(db, clock: clock);
+    final record = (await sessions.find(_sessionA))!;
+    expect(record.plan.experience, shown);
+    expect(record.plan.experience!.packId, event.experience.packId);
   });
 
   test('photos must follow the flow rules', () async {

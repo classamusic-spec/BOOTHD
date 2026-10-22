@@ -3,11 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/booth/booth_providers.dart';
+import '../../core/design_system/appearance.dart';
 import '../../core/design_system/porcelain_icons.dart';
 import '../../core/design_system/porcelain_metrics.dart';
 import '../../core/design_system/porcelain_theme.dart';
 import '../../core/gallery/gallery_providers.dart';
 import '../../core/routing/route_paths.dart';
+import '../../domain/experience/experience_registry.dart';
 import '../../domain/models/booth_event.dart';
 import '../../shared/formatters/date_format.dart';
 import '../../shared/gallery/gallery_actions.dart';
@@ -252,12 +254,12 @@ class EventCard extends ConsumerWidget {
                       icon: EventCopy.statusIcon(event.status),
                     ),
                     const Spacer(),
-                    if (event.guest.themeOverride != null)
+                    if (_ownLook(event, ref))
                       Icon(
                         PorcelainIcons.appearance,
                         size: PorcelainSize.iconSmall,
                         color: colors.accentIcon,
-                        semanticLabel: 'Own guest theme',
+                        semanticLabel: 'Own guest look',
                       ),
                   ],
                 ),
@@ -368,4 +370,15 @@ class EventCard extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Whether [event] shows guests a look of its own rather than the one new
+/// events get from the booth's appearance.
+bool _ownLook(BoothEvent event, WidgetRef ref) {
+  final booth = ExperienceRegistry.forAppearance(
+    ref.watch(appearanceProvider).profile,
+  );
+  final own = event.experience;
+  return own.packId != booth.packId ||
+      (own.variantId ?? '') != (booth.variantId ?? '');
 }

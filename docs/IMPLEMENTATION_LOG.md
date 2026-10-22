@@ -3,6 +3,68 @@
 Newest milestone first. Each entry: scope, plan, changes, commands and exit
 codes, platform results, spec issues raised, risks, next step.
 
+## EP01: Experience Pack model, registry, event experience and schema v8
+
+- Date: 2026-10-22 (UTC)
+- Authorised by: the owner's reply to EP00 ("approve EP01 with your
+  recommendations ... 8. build ep01 - ep09"), which accepts decisions 4.1
+  to 4.8 of `docs/experience_packs/EP00_INTEGRATION_PLAN.md`. EP01 to EP09
+  run in sequence before M11; each stage is reported, then work stops
+  after EP09.
+- Host: the same Linux cloud session. No tablet, no Mac.
+
+### Plan (as executed)
+
+1. Domain model with no Flutter imports (`lib/domain/experience/`): the
+   catalog of preset, sound, decoration and font ids; the versioned
+   `ExperiencePack` document and its JSON form; `EventExperienceConfiguration`
+   (what the operator chose); the eight bundled packs as data; the
+   registry that validates packs and resolves a configuration into a
+   `ResolvedExperience` with every fallback reported.
+2. Persistence: schema v8 replaces `events.theme_override` with
+   `events.experience_json` and adds `templates.tags_json`; the migration
+   keeps every guest's look (decision 4.2).
+3. Sessions freeze the resolved experience inside their immutable plan.
+4. Until the guest screens read packs (EP06), screens keep showing the
+   matching original appearance; the guest tab picks a pack and variant.
+
+### Changes
+
+- New: `domain/experience/experience_catalog.dart`, `experience_pack.dart`,
+  `experience_configuration.dart`, `bundled_packs.dart`,
+  `experience_registry.dart`; `domain/template/template_tags.dart`.
+- `BoothEvent.experience` replaces `GuestSettings.themeOverride`; new
+  drafts take the booth's look (`ExperienceRegistry.forAppearance`); the
+  event service moves the experience revision on with every change to it.
+- Schema v8 (`booth_schema.drift`, `booth_database.dart` step `from7To8`,
+  `drift_schema_v8.json`, generated steps and test schema, `seed_v8.sql`):
+  an override keeps its look (Light Oak to Vintage Light Wood, Darkroom
+  Walnut to Porcelain Classic "Darkroom", Porcelain Studio to Porcelain
+  Classic), no override takes the booth's look the same way. The JSON
+  written is spelled out in the step so it never depends on later codecs;
+  a test checks it still reads back as `forAppearance` gives.
+- `SessionPlan.experience`: resolved at session start and stored in the
+  plan JSON, which a trigger already makes immutable, so editing an event
+  never changes a running or finished session. A plan from before
+  experiences, or with an unreadable snapshot, opens with none; the
+  session keeps its photos.
+- Interim presentation: `ExperienceRegistry.legacyAppearance` maps a
+  configuration back to the original appearance for Booth Mode, the
+  dashboard preview and the guest tab preview; packs with no original
+  appearance show the booth's until EP06. The guest tab lists every pack
+  and variant (ten cards).
+
+### Deviations from the EP00 plan
+
+- The plan proposed keeping `theme_override` read-only for one version
+  and adding `capture_sessions.experience_snapshot`. The migration is
+  lossless and total, so the old column is dropped in the same rebuild;
+  the snapshot lives in the already-immutable plan JSON instead of a new
+  column (no new trigger, same guarantee).
+- Porcelain Classic's "none" mapping follows the booth for all three
+  appearances (the plan's table named only Light Oak), which is what "so
+  nothing a guest sees changes" requires for a Darkroom booth.
+
 ## M10: commercial resilience, security, backup and kiosk readiness
 
 - Date: 2026-10-19 (UTC)

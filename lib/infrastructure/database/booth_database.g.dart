@@ -1074,15 +1074,22 @@ class Events extends Table with TableInfo<Events, EventRow> {
     $customConstraints:
         'NOT NULL CHECK (finish_timeout_seconds BETWEEN 10 AND 120)',
   );
-  late final GeneratedColumnWithTypeConverter<PorcelainThemeProfile?, String>
-  themeOverride = GeneratedColumn<String>(
-    'theme_override',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: 'CHECK (theme_override IS NULL OR theme_override IN (\'porcelainStudio\', \'lightOak\', \'darkroomWalnut\'))',
-  ).withConverter<PorcelainThemeProfile?>(Events.$converterthemeOverriden);
+  late final GeneratedColumnWithTypeConverter<
+    EventExperienceConfiguration,
+    String
+  >
+  experienceJson =
+      GeneratedColumn<String>(
+        'experience_json',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+        $customConstraints:
+            'NOT NULL CHECK (length(experience_json) BETWEEN 2 AND 8192)',
+      ).withConverter<EventExperienceConfiguration>(
+        Events.$converterexperienceJson,
+      );
   late final GeneratedColumnWithTypeConverter<OutputFormat, String>
   outputFormat = GeneratedColumn<String>(
     'output_format',
@@ -1179,7 +1186,7 @@ class Events extends Table with TableInfo<Events, EventRow> {
     consentText,
     guestChoosesTemplate,
     finishTimeoutSeconds,
-    themeOverride,
+    experienceJson,
     outputFormat,
     jpegQuality,
     retentionMode,
@@ -1493,11 +1500,11 @@ class Events extends Table with TableInfo<Events, EventRow> {
         DriftSqlType.int,
         data['${effectivePrefix}finish_timeout_seconds'],
       )!,
-      themeOverride: Events.$converterthemeOverriden.fromSql(
+      experienceJson: Events.$converterexperienceJson.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
-          data['${effectivePrefix}theme_override'],
-        ),
+          data['${effectivePrefix}experience_json'],
+        )!,
       ),
       outputFormat: Events.$converteroutputFormat.fromSql(
         attachedDatabase.typeMapping.read(
@@ -1556,12 +1563,8 @@ class Events extends Table with TableInfo<Events, EventRow> {
   $converterretakePolicy = const EnumNameConverter<RetakePolicy>(
     RetakePolicy.values,
   );
-  static JsonTypeConverter2<PorcelainThemeProfile, String, String>
-  $converterthemeOverride = themeProfileByName;
-  static JsonTypeConverter2<PorcelainThemeProfile?, String?, String?>
-  $converterthemeOverriden = JsonTypeConverter2.asNullable(
-    $converterthemeOverride,
-  );
+  static TypeConverter<EventExperienceConfiguration, String>
+  $converterexperienceJson = const ExperienceConfigurationConverter();
   static JsonTypeConverter2<OutputFormat, String, String>
   $converteroutputFormat = const EnumNameConverter<OutputFormat>(
     OutputFormat.values,
@@ -1602,7 +1605,7 @@ class EventRow extends DataClass implements Insertable<EventRow> {
   final String? consentText;
   final bool guestChoosesTemplate;
   final int finishTimeoutSeconds;
-  final PorcelainThemeProfile? themeOverride;
+  final EventExperienceConfiguration experienceJson;
   final OutputFormat outputFormat;
   final int jpegQuality;
   final RetentionMode retentionMode;
@@ -1632,7 +1635,7 @@ class EventRow extends DataClass implements Insertable<EventRow> {
     this.consentText,
     required this.guestChoosesTemplate,
     required this.finishTimeoutSeconds,
-    this.themeOverride,
+    required this.experienceJson,
     required this.outputFormat,
     required this.jpegQuality,
     required this.retentionMode,
@@ -1691,9 +1694,9 @@ class EventRow extends DataClass implements Insertable<EventRow> {
     }
     map['guest_chooses_template'] = Variable<bool>(guestChoosesTemplate);
     map['finish_timeout_seconds'] = Variable<int>(finishTimeoutSeconds);
-    if (!nullToAbsent || themeOverride != null) {
-      map['theme_override'] = Variable<String>(
-        Events.$converterthemeOverriden.toSql(themeOverride),
+    {
+      map['experience_json'] = Variable<String>(
+        Events.$converterexperienceJson.toSql(experienceJson),
       );
     }
     {
@@ -1753,9 +1756,7 @@ class EventRow extends DataClass implements Insertable<EventRow> {
           : Value(consentText),
       guestChoosesTemplate: Value(guestChoosesTemplate),
       finishTimeoutSeconds: Value(finishTimeoutSeconds),
-      themeOverride: themeOverride == null && nullToAbsent
-          ? const Value.absent()
-          : Value(themeOverride),
+      experienceJson: Value(experienceJson),
       outputFormat: Value(outputFormat),
       jpegQuality: Value(jpegQuality),
       retentionMode: Value(retentionMode),
@@ -1811,8 +1812,8 @@ class EventRow extends DataClass implements Insertable<EventRow> {
       finishTimeoutSeconds: serializer.fromJson<int>(
         json['finish_timeout_seconds'],
       ),
-      themeOverride: Events.$converterthemeOverriden.fromJson(
-        serializer.fromJson<String?>(json['theme_override']),
+      experienceJson: serializer.fromJson<EventExperienceConfiguration>(
+        json['experience_json'],
       ),
       outputFormat: Events.$converteroutputFormat.fromJson(
         serializer.fromJson<String>(json['output_format']),
@@ -1858,8 +1859,8 @@ class EventRow extends DataClass implements Insertable<EventRow> {
       'consent_text': serializer.toJson<String?>(consentText),
       'guest_chooses_template': serializer.toJson<bool>(guestChoosesTemplate),
       'finish_timeout_seconds': serializer.toJson<int>(finishTimeoutSeconds),
-      'theme_override': serializer.toJson<String?>(
-        Events.$converterthemeOverriden.toJson(themeOverride),
+      'experience_json': serializer.toJson<EventExperienceConfiguration>(
+        experienceJson,
       ),
       'output_format': serializer.toJson<String>(
         Events.$converteroutputFormat.toJson(outputFormat),
@@ -1897,7 +1898,7 @@ class EventRow extends DataClass implements Insertable<EventRow> {
     Value<String?> consentText = const Value.absent(),
     bool? guestChoosesTemplate,
     int? finishTimeoutSeconds,
-    Value<PorcelainThemeProfile?> themeOverride = const Value.absent(),
+    EventExperienceConfiguration? experienceJson,
     OutputFormat? outputFormat,
     int? jpegQuality,
     RetentionMode? retentionMode,
@@ -1929,9 +1930,7 @@ class EventRow extends DataClass implements Insertable<EventRow> {
     consentText: consentText.present ? consentText.value : this.consentText,
     guestChoosesTemplate: guestChoosesTemplate ?? this.guestChoosesTemplate,
     finishTimeoutSeconds: finishTimeoutSeconds ?? this.finishTimeoutSeconds,
-    themeOverride: themeOverride.present
-        ? themeOverride.value
-        : this.themeOverride,
+    experienceJson: experienceJson ?? this.experienceJson,
     outputFormat: outputFormat ?? this.outputFormat,
     jpegQuality: jpegQuality ?? this.jpegQuality,
     retentionMode: retentionMode ?? this.retentionMode,
@@ -1991,9 +1990,9 @@ class EventRow extends DataClass implements Insertable<EventRow> {
       finishTimeoutSeconds: data.finishTimeoutSeconds.present
           ? data.finishTimeoutSeconds.value
           : this.finishTimeoutSeconds,
-      themeOverride: data.themeOverride.present
-          ? data.themeOverride.value
-          : this.themeOverride,
+      experienceJson: data.experienceJson.present
+          ? data.experienceJson.value
+          : this.experienceJson,
       outputFormat: data.outputFormat.present
           ? data.outputFormat.value
           : this.outputFormat,
@@ -2038,7 +2037,7 @@ class EventRow extends DataClass implements Insertable<EventRow> {
           ..write('consentText: $consentText, ')
           ..write('guestChoosesTemplate: $guestChoosesTemplate, ')
           ..write('finishTimeoutSeconds: $finishTimeoutSeconds, ')
-          ..write('themeOverride: $themeOverride, ')
+          ..write('experienceJson: $experienceJson, ')
           ..write('outputFormat: $outputFormat, ')
           ..write('jpegQuality: $jpegQuality, ')
           ..write('retentionMode: $retentionMode, ')
@@ -2073,7 +2072,7 @@ class EventRow extends DataClass implements Insertable<EventRow> {
     consentText,
     guestChoosesTemplate,
     finishTimeoutSeconds,
-    themeOverride,
+    experienceJson,
     outputFormat,
     jpegQuality,
     retentionMode,
@@ -2107,7 +2106,7 @@ class EventRow extends DataClass implements Insertable<EventRow> {
           other.consentText == this.consentText &&
           other.guestChoosesTemplate == this.guestChoosesTemplate &&
           other.finishTimeoutSeconds == this.finishTimeoutSeconds &&
-          other.themeOverride == this.themeOverride &&
+          other.experienceJson == this.experienceJson &&
           other.outputFormat == this.outputFormat &&
           other.jpegQuality == this.jpegQuality &&
           other.retentionMode == this.retentionMode &&
@@ -2139,7 +2138,7 @@ class EventsCompanion extends UpdateCompanion<EventRow> {
   final Value<String?> consentText;
   final Value<bool> guestChoosesTemplate;
   final Value<int> finishTimeoutSeconds;
-  final Value<PorcelainThemeProfile?> themeOverride;
+  final Value<EventExperienceConfiguration> experienceJson;
   final Value<OutputFormat> outputFormat;
   final Value<int> jpegQuality;
   final Value<RetentionMode> retentionMode;
@@ -2170,7 +2169,7 @@ class EventsCompanion extends UpdateCompanion<EventRow> {
     this.consentText = const Value.absent(),
     this.guestChoosesTemplate = const Value.absent(),
     this.finishTimeoutSeconds = const Value.absent(),
-    this.themeOverride = const Value.absent(),
+    this.experienceJson = const Value.absent(),
     this.outputFormat = const Value.absent(),
     this.jpegQuality = const Value.absent(),
     this.retentionMode = const Value.absent(),
@@ -2202,7 +2201,7 @@ class EventsCompanion extends UpdateCompanion<EventRow> {
     this.consentText = const Value.absent(),
     required bool guestChoosesTemplate,
     required int finishTimeoutSeconds,
-    this.themeOverride = const Value.absent(),
+    required EventExperienceConfiguration experienceJson,
     required OutputFormat outputFormat,
     required int jpegQuality,
     required RetentionMode retentionMode,
@@ -2226,6 +2225,7 @@ class EventsCompanion extends UpdateCompanion<EventRow> {
        retakeLimit = Value(retakeLimit),
        guestChoosesTemplate = Value(guestChoosesTemplate),
        finishTimeoutSeconds = Value(finishTimeoutSeconds),
+       experienceJson = Value(experienceJson),
        outputFormat = Value(outputFormat),
        jpegQuality = Value(jpegQuality),
        retentionMode = Value(retentionMode),
@@ -2253,7 +2253,7 @@ class EventsCompanion extends UpdateCompanion<EventRow> {
     Expression<String>? consentText,
     Expression<bool>? guestChoosesTemplate,
     Expression<int>? finishTimeoutSeconds,
-    Expression<String>? themeOverride,
+    Expression<String>? experienceJson,
     Expression<String>? outputFormat,
     Expression<int>? jpegQuality,
     Expression<String>? retentionMode,
@@ -2288,7 +2288,7 @@ class EventsCompanion extends UpdateCompanion<EventRow> {
         'guest_chooses_template': guestChoosesTemplate,
       if (finishTimeoutSeconds != null)
         'finish_timeout_seconds': finishTimeoutSeconds,
-      if (themeOverride != null) 'theme_override': themeOverride,
+      if (experienceJson != null) 'experience_json': experienceJson,
       if (outputFormat != null) 'output_format': outputFormat,
       if (jpegQuality != null) 'jpeg_quality': jpegQuality,
       if (retentionMode != null) 'retention_mode': retentionMode,
@@ -2322,7 +2322,7 @@ class EventsCompanion extends UpdateCompanion<EventRow> {
     Value<String?>? consentText,
     Value<bool>? guestChoosesTemplate,
     Value<int>? finishTimeoutSeconds,
-    Value<PorcelainThemeProfile?>? themeOverride,
+    Value<EventExperienceConfiguration>? experienceJson,
     Value<OutputFormat>? outputFormat,
     Value<int>? jpegQuality,
     Value<RetentionMode>? retentionMode,
@@ -2354,7 +2354,7 @@ class EventsCompanion extends UpdateCompanion<EventRow> {
       consentText: consentText ?? this.consentText,
       guestChoosesTemplate: guestChoosesTemplate ?? this.guestChoosesTemplate,
       finishTimeoutSeconds: finishTimeoutSeconds ?? this.finishTimeoutSeconds,
-      themeOverride: themeOverride ?? this.themeOverride,
+      experienceJson: experienceJson ?? this.experienceJson,
       outputFormat: outputFormat ?? this.outputFormat,
       jpegQuality: jpegQuality ?? this.jpegQuality,
       retentionMode: retentionMode ?? this.retentionMode,
@@ -2442,9 +2442,9 @@ class EventsCompanion extends UpdateCompanion<EventRow> {
     if (finishTimeoutSeconds.present) {
       map['finish_timeout_seconds'] = Variable<int>(finishTimeoutSeconds.value);
     }
-    if (themeOverride.present) {
-      map['theme_override'] = Variable<String>(
-        Events.$converterthemeOverriden.toSql(themeOverride.value),
+    if (experienceJson.present) {
+      map['experience_json'] = Variable<String>(
+        Events.$converterexperienceJson.toSql(experienceJson.value),
       );
     }
     if (outputFormat.present) {
@@ -2502,7 +2502,7 @@ class EventsCompanion extends UpdateCompanion<EventRow> {
           ..write('consentText: $consentText, ')
           ..write('guestChoosesTemplate: $guestChoosesTemplate, ')
           ..write('finishTimeoutSeconds: $finishTimeoutSeconds, ')
-          ..write('themeOverride: $themeOverride, ')
+          ..write('experienceJson: $experienceJson, ')
           ..write('outputFormat: $outputFormat, ')
           ..write('jpegQuality: $jpegQuality, ')
           ..write('retentionMode: $retentionMode, ')
@@ -3334,6 +3334,16 @@ class Templates extends Table with TableInfo<Templates, TemplateRow> {
     requiredDuringInsert: false,
     $customConstraints: 'CHECK (category IS NULL OR length(category) <= 40)',
   );
+  late final GeneratedColumnWithTypeConverter<TemplateTags?, String> tagsJson =
+      GeneratedColumn<String>(
+        'tags_json',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        $customConstraints:
+            'CHECK (tags_json IS NULL OR length(tags_json) BETWEEN 2 AND 4096)',
+      ).withConverter<TemplateTags?>(Templates.$convertertagsJsonn);
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -3372,6 +3382,7 @@ class Templates extends Table with TableInfo<Templates, TemplateRow> {
     id,
     displayName,
     category,
+    tagsJson,
     createdAt,
     updatedAt,
     archivedAt,
@@ -3453,6 +3464,12 @@ class Templates extends Table with TableInfo<Templates, TemplateRow> {
         DriftSqlType.string,
         data['${effectivePrefix}category'],
       ),
+      tagsJson: Templates.$convertertagsJsonn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}tags_json'],
+        ),
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -3473,6 +3490,10 @@ class Templates extends Table with TableInfo<Templates, TemplateRow> {
     return Templates(attachedDatabase, alias);
   }
 
+  static TypeConverter<TemplateTags, String> $convertertagsJson =
+      const TemplateTagsConverter();
+  static TypeConverter<TemplateTags?, String?> $convertertagsJsonn =
+      NullAwareTypeConverter.wrap($convertertagsJson);
   @override
   bool get dontWriteConstraints => true;
 }
@@ -3481,6 +3502,7 @@ class TemplateRow extends DataClass implements Insertable<TemplateRow> {
   final String id;
   final String displayName;
   final String? category;
+  final TemplateTags? tagsJson;
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? archivedAt;
@@ -3488,6 +3510,7 @@ class TemplateRow extends DataClass implements Insertable<TemplateRow> {
     required this.id,
     required this.displayName,
     this.category,
+    this.tagsJson,
     required this.createdAt,
     required this.updatedAt,
     this.archivedAt,
@@ -3499,6 +3522,11 @@ class TemplateRow extends DataClass implements Insertable<TemplateRow> {
     map['display_name'] = Variable<String>(displayName);
     if (!nullToAbsent || category != null) {
       map['category'] = Variable<String>(category);
+    }
+    if (!nullToAbsent || tagsJson != null) {
+      map['tags_json'] = Variable<String>(
+        Templates.$convertertagsJsonn.toSql(tagsJson),
+      );
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -3515,6 +3543,9 @@ class TemplateRow extends DataClass implements Insertable<TemplateRow> {
       category: category == null && nullToAbsent
           ? const Value.absent()
           : Value(category),
+      tagsJson: tagsJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(tagsJson),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       archivedAt: archivedAt == null && nullToAbsent
@@ -3532,6 +3563,7 @@ class TemplateRow extends DataClass implements Insertable<TemplateRow> {
       id: serializer.fromJson<String>(json['id']),
       displayName: serializer.fromJson<String>(json['display_name']),
       category: serializer.fromJson<String?>(json['category']),
+      tagsJson: serializer.fromJson<TemplateTags?>(json['tags_json']),
       createdAt: serializer.fromJson<DateTime>(json['created_at']),
       updatedAt: serializer.fromJson<DateTime>(json['updated_at']),
       archivedAt: serializer.fromJson<DateTime?>(json['archived_at']),
@@ -3544,6 +3576,7 @@ class TemplateRow extends DataClass implements Insertable<TemplateRow> {
       'id': serializer.toJson<String>(id),
       'display_name': serializer.toJson<String>(displayName),
       'category': serializer.toJson<String?>(category),
+      'tags_json': serializer.toJson<TemplateTags?>(tagsJson),
       'created_at': serializer.toJson<DateTime>(createdAt),
       'updated_at': serializer.toJson<DateTime>(updatedAt),
       'archived_at': serializer.toJson<DateTime?>(archivedAt),
@@ -3554,6 +3587,7 @@ class TemplateRow extends DataClass implements Insertable<TemplateRow> {
     String? id,
     String? displayName,
     Value<String?> category = const Value.absent(),
+    Value<TemplateTags?> tagsJson = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
     Value<DateTime?> archivedAt = const Value.absent(),
@@ -3561,6 +3595,7 @@ class TemplateRow extends DataClass implements Insertable<TemplateRow> {
     id: id ?? this.id,
     displayName: displayName ?? this.displayName,
     category: category.present ? category.value : this.category,
+    tagsJson: tagsJson.present ? tagsJson.value : this.tagsJson,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     archivedAt: archivedAt.present ? archivedAt.value : this.archivedAt,
@@ -3572,6 +3607,7 @@ class TemplateRow extends DataClass implements Insertable<TemplateRow> {
           ? data.displayName.value
           : this.displayName,
       category: data.category.present ? data.category.value : this.category,
+      tagsJson: data.tagsJson.present ? data.tagsJson.value : this.tagsJson,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       archivedAt: data.archivedAt.present
@@ -3586,6 +3622,7 @@ class TemplateRow extends DataClass implements Insertable<TemplateRow> {
           ..write('id: $id, ')
           ..write('displayName: $displayName, ')
           ..write('category: $category, ')
+          ..write('tagsJson: $tagsJson, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('archivedAt: $archivedAt')
@@ -3594,8 +3631,15 @@ class TemplateRow extends DataClass implements Insertable<TemplateRow> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, displayName, category, createdAt, updatedAt, archivedAt);
+  int get hashCode => Object.hash(
+    id,
+    displayName,
+    category,
+    tagsJson,
+    createdAt,
+    updatedAt,
+    archivedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3603,6 +3647,7 @@ class TemplateRow extends DataClass implements Insertable<TemplateRow> {
           other.id == this.id &&
           other.displayName == this.displayName &&
           other.category == this.category &&
+          other.tagsJson == this.tagsJson &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.archivedAt == this.archivedAt);
@@ -3612,6 +3657,7 @@ class TemplatesCompanion extends UpdateCompanion<TemplateRow> {
   final Value<String> id;
   final Value<String> displayName;
   final Value<String?> category;
+  final Value<TemplateTags?> tagsJson;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> archivedAt;
@@ -3620,6 +3666,7 @@ class TemplatesCompanion extends UpdateCompanion<TemplateRow> {
     this.id = const Value.absent(),
     this.displayName = const Value.absent(),
     this.category = const Value.absent(),
+    this.tagsJson = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.archivedAt = const Value.absent(),
@@ -3629,6 +3676,7 @@ class TemplatesCompanion extends UpdateCompanion<TemplateRow> {
     required String id,
     required String displayName,
     this.category = const Value.absent(),
+    this.tagsJson = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.archivedAt = const Value.absent(),
@@ -3641,6 +3689,7 @@ class TemplatesCompanion extends UpdateCompanion<TemplateRow> {
     Expression<String>? id,
     Expression<String>? displayName,
     Expression<String>? category,
+    Expression<String>? tagsJson,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? archivedAt,
@@ -3650,6 +3699,7 @@ class TemplatesCompanion extends UpdateCompanion<TemplateRow> {
       if (id != null) 'id': id,
       if (displayName != null) 'display_name': displayName,
       if (category != null) 'category': category,
+      if (tagsJson != null) 'tags_json': tagsJson,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (archivedAt != null) 'archived_at': archivedAt,
@@ -3661,6 +3711,7 @@ class TemplatesCompanion extends UpdateCompanion<TemplateRow> {
     Value<String>? id,
     Value<String>? displayName,
     Value<String?>? category,
+    Value<TemplateTags?>? tagsJson,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? archivedAt,
@@ -3670,6 +3721,7 @@ class TemplatesCompanion extends UpdateCompanion<TemplateRow> {
       id: id ?? this.id,
       displayName: displayName ?? this.displayName,
       category: category ?? this.category,
+      tagsJson: tagsJson ?? this.tagsJson,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       archivedAt: archivedAt ?? this.archivedAt,
@@ -3688,6 +3740,11 @@ class TemplatesCompanion extends UpdateCompanion<TemplateRow> {
     }
     if (category.present) {
       map['category'] = Variable<String>(category.value);
+    }
+    if (tagsJson.present) {
+      map['tags_json'] = Variable<String>(
+        Templates.$convertertagsJsonn.toSql(tagsJson.value),
+      );
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
@@ -3710,6 +3767,7 @@ class TemplatesCompanion extends UpdateCompanion<TemplateRow> {
           ..write('id: $id, ')
           ..write('displayName: $displayName, ')
           ..write('category: $category, ')
+          ..write('tagsJson: $tagsJson, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('archivedAt: $archivedAt, ')
@@ -13737,7 +13795,7 @@ typedef $EventsCreateCompanionBuilder = EventsCompanion Function({
   Value<String?> consentText,
   required bool guestChoosesTemplate,
   required int finishTimeoutSeconds,
-  Value<PorcelainThemeProfile?> themeOverride,
+  required EventExperienceConfiguration experienceJson,
   required OutputFormat outputFormat,
   required int jpegQuality,
   required RetentionMode retentionMode,
@@ -13769,7 +13827,7 @@ typedef $EventsUpdateCompanionBuilder = EventsCompanion Function({
   Value<String?> consentText,
   Value<bool> guestChoosesTemplate,
   Value<int> finishTimeoutSeconds,
-  Value<PorcelainThemeProfile?> themeOverride,
+  Value<EventExperienceConfiguration> experienceJson,
   Value<OutputFormat> outputFormat,
   Value<int> jpegQuality,
   Value<RetentionMode> retentionMode,
@@ -14002,12 +14060,12 @@ class $EventsFilterComposer extends Composer<_$BoothDatabase, Events> {
   );
 
   ColumnWithTypeConverterFilters<
-    PorcelainThemeProfile?,
-    PorcelainThemeProfile,
+    EventExperienceConfiguration,
+    EventExperienceConfiguration,
     String
   >
-  get themeOverride => $composableBuilder(
-    column: $table.themeOverride,
+  get experienceJson => $composableBuilder(
+    column: $table.experienceJson,
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
@@ -14280,8 +14338,8 @@ class $EventsOrderingComposer extends Composer<_$BoothDatabase, Events> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get themeOverride => $composableBuilder(
-    column: $table.themeOverride,
+  ColumnOrderings<String> get experienceJson => $composableBuilder(
+    column: $table.experienceJson,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -14438,9 +14496,9 @@ class $EventsAnnotationComposer extends Composer<_$BoothDatabase, Events> {
     builder: (column) => column,
   );
 
-  GeneratedColumnWithTypeConverter<PorcelainThemeProfile?, String>
-  get themeOverride => $composableBuilder(
-    column: $table.themeOverride,
+  GeneratedColumnWithTypeConverter<EventExperienceConfiguration, String>
+  get experienceJson => $composableBuilder(
+    column: $table.experienceJson,
     builder: (column) => column,
   );
 
@@ -14657,7 +14715,7 @@ class $EventsTableManager
                 Value<String?> consentText = const Value.absent(),
                 Value<bool> guestChoosesTemplate = const Value.absent(),
                 Value<int> finishTimeoutSeconds = const Value.absent(),
-                Value<PorcelainThemeProfile?> themeOverride =
+                Value<EventExperienceConfiguration> experienceJson =
                     const Value.absent(),
                 Value<OutputFormat> outputFormat = const Value.absent(),
                 Value<int> jpegQuality = const Value.absent(),
@@ -14689,7 +14747,7 @@ class $EventsTableManager
                 consentText: consentText,
                 guestChoosesTemplate: guestChoosesTemplate,
                 finishTimeoutSeconds: finishTimeoutSeconds,
-                themeOverride: themeOverride,
+                experienceJson: experienceJson,
                 outputFormat: outputFormat,
                 jpegQuality: jpegQuality,
                 retentionMode: retentionMode,
@@ -14722,8 +14780,7 @@ class $EventsTableManager
                 Value<String?> consentText = const Value.absent(),
                 required bool guestChoosesTemplate,
                 required int finishTimeoutSeconds,
-                Value<PorcelainThemeProfile?> themeOverride =
-                    const Value.absent(),
+                required EventExperienceConfiguration experienceJson,
                 required OutputFormat outputFormat,
                 required int jpegQuality,
                 required RetentionMode retentionMode,
@@ -14754,7 +14811,7 @@ class $EventsTableManager
                 consentText: consentText,
                 guestChoosesTemplate: guestChoosesTemplate,
                 finishTimeoutSeconds: finishTimeoutSeconds,
-                themeOverride: themeOverride,
+                experienceJson: experienceJson,
                 outputFormat: outputFormat,
                 jpegQuality: jpegQuality,
                 retentionMode: retentionMode,
@@ -15537,6 +15594,7 @@ typedef $TemplatesCreateCompanionBuilder = TemplatesCompanion Function({
   required String id,
   required String displayName,
   Value<String?> category,
+  Value<TemplateTags?> tagsJson,
   required DateTime createdAt,
   required DateTime updatedAt,
   Value<DateTime?> archivedAt,
@@ -15546,6 +15604,7 @@ typedef $TemplatesUpdateCompanionBuilder = TemplatesCompanion Function({
   Value<String> id,
   Value<String> displayName,
   Value<String?> category,
+  Value<TemplateTags?> tagsJson,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<DateTime?> archivedAt,
@@ -15617,6 +15676,12 @@ class $TemplatesFilterComposer extends Composer<_$BoothDatabase, Templates> {
   ColumnFilters<String> get category => $composableBuilder(
     column: $table.category,
     builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<TemplateTags?, TemplateTags, String>
+  get tagsJson => $composableBuilder(
+    column: $table.tagsJson,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
@@ -15708,6 +15773,11 @@ class $TemplatesOrderingComposer extends Composer<_$BoothDatabase, Templates> {
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get tagsJson => $composableBuilder(
+    column: $table.tagsJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -15743,6 +15813,9 @@ class $TemplatesAnnotationComposer
 
   GeneratedColumn<String> get category =>
       $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<TemplateTags?, String> get tagsJson =>
+      $composableBuilder(column: $table.tagsJson, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -15840,6 +15913,7 @@ class $TemplatesTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> displayName = const Value.absent(),
                 Value<String?> category = const Value.absent(),
+                Value<TemplateTags?> tagsJson = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> archivedAt = const Value.absent(),
@@ -15848,6 +15922,7 @@ class $TemplatesTableManager
                 id: id,
                 displayName: displayName,
                 category: category,
+                tagsJson: tagsJson,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 archivedAt: archivedAt,
@@ -15858,6 +15933,7 @@ class $TemplatesTableManager
                 required String id,
                 required String displayName,
                 Value<String?> category = const Value.absent(),
+                Value<TemplateTags?> tagsJson = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<DateTime?> archivedAt = const Value.absent(),
@@ -15866,6 +15942,7 @@ class $TemplatesTableManager
                 id: id,
                 displayName: displayName,
                 category: category,
+                tagsJson: tagsJson,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 archivedAt: archivedAt,

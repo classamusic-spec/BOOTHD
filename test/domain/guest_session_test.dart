@@ -1,7 +1,11 @@
 // AC-0701 (the flow and its rejected steps), AC-0703 (retakes add photos,
 // never replace them), AC-0704 (shots fill the template's photo spaces in
 // slot order; counts must match).
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:porcelain_photo_booth/domain/experience/experience_configuration.dart';
+import 'package:porcelain_photo_booth/domain/experience/experience_pack.dart';
 import 'package:porcelain_photo_booth/domain/models/booth_event.dart';
 import 'package:porcelain_photo_booth/domain/services/camera_service.dart';
 import 'package:porcelain_photo_booth/domain/session/guest_flow.dart';
@@ -152,6 +156,43 @@ void main() {
         () => SessionPlan.fromJson({...plan.toJson(), 'capture': 'x'}),
         throwsFormatException,
       );
+    });
+
+    // EP01: the session freezes what the guest will see and hear.
+    test('freezes the event experience and keeps it through storage', () {
+      final event = _event().copyWith(
+        experience: const EventExperienceConfiguration(
+          packId: 'retro-game-quest',
+          variantId: 'arcade',
+          getReadyText: 'Player one?',
+        ),
+      );
+      final plan = SessionPlan.freeze(
+        event: event,
+        templateRevisionId: 'rev-a',
+        document: sampleDocument(layers: [_slot(0), _slot(1)]),
+      );
+      expect(plan.experience!.packId, 'retro-game-quest');
+      expect(plan.experience!.variantId, 'arcade');
+      expect(plan.experience!.copy[GuestCopyKey.getReady], 'Player one?');
+      final stored = jsonDecode(jsonEncode(plan.toJson()));
+      final again = SessionPlan.fromJson(stored as Map<String, Object?>);
+      expect(again, plan);
+      expect(again.experience, plan.experience);
+    });
+
+    test('a plan from before experiences, or with an unreadable one, '
+        'still opens', () {
+      final plan = _plan();
+      final legacy = {...plan.toJson()}..remove('experience');
+      expect(SessionPlan.fromJson(legacy).experience, isNull);
+      final garbled = {
+        ...plan.toJson(),
+        'experience': {'schemaVersion': 99},
+      };
+      final opened = SessionPlan.fromJson(garbled);
+      expect(opened.experience, isNull);
+      expect(opened.slotIndexes, plan.slotIndexes);
     });
 
     test('asks for the event lens, falling back to the other built-in '

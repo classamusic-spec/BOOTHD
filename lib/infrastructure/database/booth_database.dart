@@ -1,6 +1,8 @@
 import 'package:drift/drift.dart';
+import 'package:meta/meta.dart';
 
 import '../../domain/delivery/delivery_intent.dart';
+import '../../domain/experience/experience_configuration.dart';
 import '../../domain/gallery/export_plan.dart';
 import '../../domain/models/booth_event.dart';
 import '../../domain/models/booth_profile.dart';
@@ -10,6 +12,7 @@ import '../../domain/repositories/template_store.dart';
 import '../../domain/services/camera_service.dart';
 import '../../domain/services/operator_files.dart';
 import '../../domain/template/template_assets.dart';
+import '../../domain/template/template_tags.dart';
 import '../../domain/value_objects/appearance.dart';
 import '../../domain/value_objects/calendar_date.dart';
 import '../../domain/value_objects/clock.dart';
@@ -19,6 +22,26 @@ import 'booth_database.steps.dart';
 import 'converters.dart';
 
 part 'booth_database.g.dart';
+
+/// The experiences schema v8 gives existing events (EP01), spelled out as
+/// `EventExperienceConfiguration.toJson` version 1 wrote them so the step
+/// never depends on today's codec. A test checks they still read back.
+@visibleForTesting
+const v8PorcelainExperience =
+    '{"schemaVersion":1,"packId":"porcelain-classic","packVersion":1,'
+    '"soundVolume":70,"celebrationEnabled":true,"cameraStage":"fullTemplate",'
+    '"recommendedTemplateIds":[],"childrenMayBeGuests":false,"revision":1}';
+@visibleForTesting
+const v8VintageOakExperience =
+    '{"schemaVersion":1,"packId":"vintage-oak","packVersion":1,'
+    '"soundVolume":70,"celebrationEnabled":true,"cameraStage":"fullTemplate",'
+    '"recommendedTemplateIds":[],"childrenMayBeGuests":false,"revision":1}';
+@visibleForTesting
+const v8DarkroomExperience =
+    '{"schemaVersion":1,"packId":"porcelain-classic","packVersion":1,'
+    '"variantId":"darkroom","soundVolume":70,"celebrationEnabled":true,'
+    '"cameraStage":"fullTemplate","recommendedTemplateIds":[],'
+    '"childrenMayBeGuests":false,"revision":1}';
 
 /// The booth's relational store (A-11, ADR-0009). The schema is defined in
 /// `booth_schema.drift`; generated code is committed and checked by
@@ -32,7 +55,7 @@ final class BoothDatabase extends _$BoothDatabase {
 
   /// Bump together with a migration step, a schema dump
   /// (`dart run drift_dev make-migrations`) and a seeded fixture.
-  static const currentSchemaVersion = 7;
+  static const currentSchemaVersion = 8;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -160,6 +183,35 @@ final class BoothDatabase extends _$BoothDatabase {
       await migrator.create(schema.deliveryIntentsByState);
       await migrator.create(schema.deliveryIntentsByEvent);
       await migrator.createTable(schema.deliveryRemoteRevocations);
+    },
+    // EP01: an event's guest experience replaces its theme override, so
+    // nothing a guest sees changes (EP00 decision 4.2): an override keeps
+    // its look, no override takes the booth's look. Templates gain
+    // optional recommendation tags.
+    from7To8: (migrator, schema) async {
+      final events = schema.events;
+      await migrator.alterTable(
+        TableMigration(
+          events,
+          newColumns: [events.experienceJson],
+          columnTransformer: {
+            events.experienceJson: const CustomExpression<String>(
+              'CASE COALESCE(events.theme_override, '
+              '(SELECT theme_profile FROM booth_profiles '
+              'WHERE booth_profiles.id = events.booth_profile_id)) '
+              "WHEN 'lightOak' THEN '$v8VintageOakExperience' "
+              "WHEN 'darkroomWalnut' THEN '$v8DarkroomExperience' "
+              "ELSE '$v8PorcelainExperience' END",
+            ),
+          },
+        ),
+      );
+      await migrator.alterTable(
+        TableMigration(
+          schema.templates,
+          newColumns: [schema.templates.tagsJson],
+        ),
+      );
     },
   );
 

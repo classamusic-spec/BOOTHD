@@ -1,11 +1,13 @@
 // AC-0302, AC-0303: event create, edit, duplicate, archive and reopen, and
 // the lifecycle rules, against the real repositories.
 import 'package:flutter_test/flutter_test.dart';
+import 'package:porcelain_photo_booth/domain/experience/experience_registry.dart';
 import 'package:porcelain_photo_booth/domain/models/booth_event.dart';
 import 'package:porcelain_photo_booth/domain/models/booth_profile.dart';
 import 'package:porcelain_photo_booth/domain/models/event_rules.dart';
 import 'package:porcelain_photo_booth/domain/services/camera_service.dart';
 import 'package:porcelain_photo_booth/domain/services/event_service.dart';
+import 'package:porcelain_photo_booth/domain/value_objects/appearance.dart';
 import 'package:porcelain_photo_booth/domain/value_objects/orientation.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/booth_database.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_booth_settings_repository.dart';
@@ -87,6 +89,52 @@ void main() {
       expect(await events.findById(draft.id), edited);
     },
   );
+
+  // EP01: guests keep the booth's look until the operator picks a pack,
+  // and every change to the experience moves its revision on.
+  test('a new draft takes the booth look; experience changes are '
+      'counted', () async {
+    for (final profile in PorcelainThemeProfile.values) {
+      final draft = service.newDraft(
+        BoothProfile(
+          id: booth.id,
+          name: booth.name,
+          createdAt: booth.createdAt,
+          updatedAt: booth.updatedAt,
+          appearance: AppearanceSettings(profile: profile),
+        ),
+      );
+      expect(
+        draft.experience,
+        ExperienceRegistry.forAppearance(profile),
+        reason: profile.name,
+      );
+    }
+    final first = await savedDraft();
+    expect(first.experience.revision, 1);
+    final retitled = await service.save(first.copyWith(title: 'Gala night'));
+    expect(retitled.experience.revision, 1, reason: 'experience unchanged');
+    final changed = await service.save(
+      retitled.copyWith(
+        experience: retitled.experience.switchPack('disco-nights', 1),
+      ),
+    );
+    expect(changed.experience.revision, 2);
+    expect(
+      (await events.findById(first.id))!.experience.packId,
+      'disco-nights',
+    );
+    // A stale copy cannot move the count backwards.
+    final again = await service.save(
+      changed.copyWith(
+        experience: changed.experience.copyWith(
+          soundEnabled: true,
+          revision: 1,
+        ),
+      ),
+    );
+    expect(again.experience.revision, 3);
+  });
 
   test('invalid settings are refused before anything is stored', () async {
     final draft = service.newDraft(booth);

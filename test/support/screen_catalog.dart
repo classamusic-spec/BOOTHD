@@ -9,6 +9,7 @@ import 'package:porcelain_photo_booth/domain/backup/backup_manifest.dart';
 import 'package:porcelain_photo_booth/domain/delivery/consent.dart';
 import 'package:porcelain_photo_booth/domain/delivery/delivery_intent.dart';
 import 'package:porcelain_photo_booth/domain/delivery/delivery_settings.dart';
+import 'package:porcelain_photo_booth/domain/experience/experience_configuration.dart';
 import 'package:porcelain_photo_booth/domain/models/booth_event.dart';
 import 'package:porcelain_photo_booth/domain/services/backup_service.dart';
 import 'package:porcelain_photo_booth/domain/services/camera_service.dart';
@@ -912,7 +913,7 @@ Future<void> _texts(
 
 /// The seeded event in the booth's own theme (Porcelain Studio).
 BoothEvent _porcelain(BoothEvent event) =>
-    event.copyWith(guest: event.guest.copyWith(themeOverride: null));
+    event.copyWith(experience: const EventExperienceConfiguration());
 
 /// Taps the guest control [label], scrolled into view first (large text
 /// can push it below the fold).

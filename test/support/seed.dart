@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:porcelain_photo_booth/core/templates/starter_designs.dart';
 import 'package:porcelain_photo_booth/core/templates/template_library.dart';
+import 'package:porcelain_photo_booth/domain/experience/experience_configuration.dart';
 import 'package:porcelain_photo_booth/domain/models/booth_event.dart';
 import 'package:porcelain_photo_booth/domain/services/camera_service.dart';
 import 'package:porcelain_photo_booth/domain/services/event_service.dart';
@@ -10,7 +11,6 @@ import 'package:porcelain_photo_booth/domain/template/page_spec.dart';
 import 'package:porcelain_photo_booth/domain/template/template_assets.dart';
 import 'package:porcelain_photo_booth/domain/template/template_document.dart';
 import 'package:porcelain_photo_booth/domain/template/template_layers.dart';
-import 'package:porcelain_photo_booth/domain/value_objects/appearance.dart';
 import 'package:porcelain_photo_booth/domain/value_objects/calendar_date.dart';
 import 'package:porcelain_photo_booth/domain/value_objects/orientation.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/booth_database.dart';
@@ -103,8 +103,8 @@ Future<void> seedEvents(
     guest: const GuestSettings(
       welcomeTitle: 'Welcome, friends',
       welcomeMessage: 'Two photos, a little sparkle, and you are done.',
-      themeOverride: PorcelainThemeProfile.darkroomWalnut,
     ),
+    experience: const EventExperienceConfiguration(variantId: 'darkroom'),
     templates: const TemplateSelection(
       revisionIds: [TestIds.revisionA1, TestIds.revisionB1],
       defaultRevisionId: TestIds.revisionA1,

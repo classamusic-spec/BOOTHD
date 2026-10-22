@@ -9,6 +9,8 @@ import 'package:drift_dev/api/migrations_native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:porcelain_photo_booth/domain/delivery/delivery_intent.dart';
 import 'package:porcelain_photo_booth/domain/delivery/delivery_settings.dart';
+import 'package:porcelain_photo_booth/domain/experience/experience_configuration.dart';
+import 'package:porcelain_photo_booth/domain/experience/experience_registry.dart';
 import 'package:porcelain_photo_booth/domain/models/booth_event.dart';
 import 'package:porcelain_photo_booth/domain/repositories/session_repository.dart';
 import 'package:porcelain_photo_booth/domain/repositories/storage_errors.dart';
@@ -16,6 +18,7 @@ import 'package:porcelain_photo_booth/domain/repositories/template_store.dart';
 import 'package:porcelain_photo_booth/domain/services/camera_service.dart';
 import 'package:porcelain_photo_booth/domain/services/operator_files.dart';
 import 'package:porcelain_photo_booth/domain/template/template_assets.dart';
+import 'package:porcelain_photo_booth/domain/template/template_tags.dart';
 import 'package:porcelain_photo_booth/domain/value_objects/appearance.dart';
 import 'package:porcelain_photo_booth/domain/value_objects/calendar_date.dart';
 import 'package:porcelain_photo_booth/domain/value_objects/orientation.dart';
@@ -170,7 +173,6 @@ void main() {
           consentText: 'Photos stay on this booth.',
           guestChoosesTemplate: true,
           finishTimeoutSeconds: 45,
-          themeOverride: PorcelainThemeProfile.darkroomWalnut,
         ),
       );
       expect(
@@ -196,9 +198,17 @@ void main() {
       expect(archived.archivedAt, DateTime.utc(2026, 1, 5, 9));
       expect(archived.capture.retakePolicy, RetakePolicy.none);
       expect(archived.capture.retakeLimit, 0);
+      // Version 8 (EP01): each event's theme became its guest experience,
+      // keeping the look: an override its own, none the booth's.
       expect(
-        archived.guest.themeOverride,
-        PorcelainThemeProfile.porcelainStudio,
+        active.experience,
+        const EventExperienceConfiguration(variantId: 'darkroom'),
+      );
+      expect(archived.experience, const EventExperienceConfiguration());
+      expect(active.experience.revision, from >= 8 ? 2 : 1);
+      expect(
+        draft.experience,
+        const EventExperienceConfiguration(packId: 'vintage-oak'),
       );
 
       // Version 7 (M09): phone delivery, off for events from older versions.
@@ -272,6 +282,29 @@ void main() {
       expect(referenced[_revisionB1]!.templateArchived, isTrue);
       expect(referenced[_revisionB1]!.photoSlotCount, 3);
       expect(referenced[_revisionA1]!.pageHeightPx, 1800);
+      // Version 8 (EP01): recommendation tags, none on older templates.
+      final templateRows = await db.select(db.templates).get();
+      final twoUp = templateRows.firstWhere(
+        (row) => row.displayName == 'Two-up classic',
+      );
+      expect(
+        twoUp.tagsJson,
+        from >= 8
+            ? const TemplateTags(
+                categoryTags: ['wedding'],
+                recommendedExperienceIds: ['porcelain-classic'],
+                occasionTags: ['evening'],
+                visualStyleTags: ['elegant'],
+                defaultCaptureCount: 2,
+              )
+            : isNull,
+      );
+      expect(
+        templateRows
+            .firstWhere((row) => row.displayName == 'Retro strip')
+            .tagsJson,
+        isNull,
+      );
 
       final access = await DriftOperatorAccessRepository(db).read();
       expect(access.recoveryVerifier, startsWith(r'pbkdf2-sha256$120000$'));
@@ -391,6 +424,17 @@ void main() {
         // Version 6 numbers sessions per event in the order they started.
         expect(completed.number, 1);
         expect(unfinished.single.number, 2);
+        // Version 8 (EP01): a session keeps the experience it showed;
+        // sessions from before experiences have none.
+        expect(completed.plan.experience, isNull);
+        expect(
+          unfinished.single.plan.experience,
+          from >= 8
+              ? ExperienceRegistry.bundled.resolve(
+                  const EventExperienceConfiguration(variantId: 'darkroom'),
+                )
+              : isNull,
+        );
 
         final gallery = DriftGalleryRepository(
           db,
@@ -440,9 +484,44 @@ void main() {
     });
   }
 
+  // EP01 (decision 4.2): every stored theme becomes the experience with
+  // the same look, on every booth appearance.
+  test('v7 themes become experiences that keep their look', () async {
+    for (final booth in PorcelainThemeProfile.values) {
+      for (final override in [null, ...PorcelainThemeProfile.values]) {
+        final schema = await verifier.schemaAt(7);
+        final raw = schema.rawDatabase..execute(seedFor(7));
+        raw
+          ..execute("UPDATE booth_profiles SET theme_profile = '${booth.name}'")
+          ..execute(
+            'UPDATE events SET theme_override = '
+            "${override == null ? 'NULL' : "'${override.name}'"} "
+            "WHERE id = '$_draft'",
+          );
+        final db = currentCode(schema.newConnection());
+        await verifier.migrateAndValidate(
+          db,
+          BoothDatabase.currentSchemaVersion,
+        );
+        final draft = (await DriftEventRepository(db).findById(_draft))!;
+        expect(
+          draft.experience,
+          ExperienceRegistry.forAppearance(override ?? booth),
+          reason: 'booth ${booth.name}, override ${override?.name}',
+        );
+        expect(
+          ExperienceRegistry.legacyAppearance(draft.experience),
+          override ?? booth,
+        );
+        await db.close();
+      }
+    }
+  });
+
   test('originals cannot be changed, misplaced or mislabelled', () async {
     final schema = await verifier.schemaAt(BoothDatabase.currentSchemaVersion);
-    final raw = schema.rawDatabase..execute(seedFor(4));
+    final raw = schema.rawDatabase
+      ..execute(seedFor(BoothDatabase.currentSchemaVersion));
     final seeded = currentCode(schema.newConnection());
     addTearDown(seeded.close);
     await seeded.customSelect('SELECT 1').get();
@@ -490,14 +569,16 @@ void main() {
     await seeded.customStatement(original());
     expect(
       raw.select('SELECT count(*) FROM original_photos').single.values.single,
-      3,
+      8,
+      reason: "the seed's seven and the one accepted",
     );
   });
 
   test('session numbers are unique per event and never change; outputs '
       'name their origin', () async {
     final schema = await verifier.schemaAt(BoothDatabase.currentSchemaVersion);
-    final raw = schema.rawDatabase..execute(seedFor(6));
+    final raw = schema.rawDatabase
+      ..execute(seedFor(BoothDatabase.currentSchemaVersion));
     final seeded = currentCode(schema.newConnection());
     addTearDown(seeded.close);
     await seeded.customSelect('SELECT 1').get();
@@ -541,12 +622,13 @@ void main() {
 
   test('asset content cannot be changed, mislabelled or orphaned', () async {
     final schema = await verifier.schemaAt(BoothDatabase.currentSchemaVersion);
-    // seed_v2's rows, opened by the current code.
-    final raw = schema.rawDatabase..execute(seedFor(2));
+    // The latest seed's rows, opened by the current code.
+    final raw = schema.rawDatabase
+      ..execute(seedFor(BoothDatabase.currentSchemaVersion));
     final seeded = currentCode(schema.newConnection());
     addTearDown(seeded.close);
     await seeded.customSelect('SELECT 1').get();
-    expect(raw.select('SELECT count(*) FROM assets').single.values.single, 3);
+    expect(raw.select('SELECT count(*) FROM assets').single.values.single, 4);
 
     Future<void> rejects(String sql) => expectLater(
       seeded.customStatement(sql),

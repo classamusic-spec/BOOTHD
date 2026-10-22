@@ -84,6 +84,8 @@ CREATE TABLE templates (
   display_name TEXT NOT NULL
     CHECK (length(trim(display_name)) BETWEEN 1 AND 80),
   category TEXT CHECK (category IS NULL OR length(category) <= 40),
+  tags_json TEXT MAPPED BY `const TemplateTagsConverter()`
+    CHECK (tags_json IS NULL OR length(tags_json) BETWEEN 2 AND 4096),
   created_at DATETIME NOT NULL,
   updated_at DATETIME NOT NULL,
   archived_at DATETIME
@@ -212,9 +214,8 @@ CREATE TABLE events (
     CHECK (guest_chooses_template IN (0, 1)),
   finish_timeout_seconds INTEGER NOT NULL
     CHECK (finish_timeout_seconds BETWEEN 10 AND 120),
-  theme_override TEXT MAPPED BY `themeProfileByName`
-    CHECK (theme_override IS NULL
-      OR theme_override IN ('porcelainStudio', 'lightOak', 'darkroomWalnut')),
+  experience_json TEXT NOT NULL MAPPED BY `const ExperienceConfigurationConverter()`
+    CHECK (length(experience_json) BETWEEN 2 AND 8192),
   output_format ENUMNAME(OutputFormat) NOT NULL
     CHECK (output_format IN ('jpeg', 'png')),
   jpeg_quality INTEGER NOT NULL CHECK (jpeg_quality BETWEEN 80 AND 100),

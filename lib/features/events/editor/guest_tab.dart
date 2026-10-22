@@ -6,6 +6,9 @@ import '../../../core/design_system/porcelain_motion.dart';
 import '../../../core/design_system/porcelain_theme.dart';
 import '../../../core/design_system/porcelain_theme_data.dart';
 import '../../../core/design_system/theme_profiles.dart';
+import '../../../domain/experience/experience_configuration.dart';
+import '../../../domain/experience/experience_pack.dart';
+import '../../../domain/experience/experience_registry.dart';
 import '../../../domain/models/event_rules.dart';
 import '../../../domain/value_objects/orientation.dart';
 import '../../../shared/formatters/theme_profile_names.dart';
@@ -34,22 +37,37 @@ class GuestTab extends StatefulWidget {
   State<GuestTab> createState() => _GuestTabState();
 }
 
-/// "Same as the booth" or one profile.
-enum _ThemeChoice {
-  booth,
-  porcelainStudio,
-  lightOak,
-  darkroomWalnut;
+/// One bundled pack in one of its variants, as the guest tab offers it
+/// until the Experience tab arrives (EP07).
+final class _ExperienceChoice {
+  const _ExperienceChoice(this.pack, this.variant);
 
-  PorcelainThemeProfile? get profile => switch (this) {
-    booth => null,
-    porcelainStudio => PorcelainThemeProfile.porcelainStudio,
-    lightOak => PorcelainThemeProfile.lightOak,
-    darkroomWalnut => PorcelainThemeProfile.darkroomWalnut,
-  };
+  final ExperiencePack pack;
+  final PackVariant variant;
 
-  static _ThemeChoice of(PorcelainThemeProfile? profile) =>
-      values.firstWhere((choice) => choice.profile == profile);
+  static List<_ExperienceChoice> all() => [
+    for (final pack in ExperienceRegistry.bundled.packs)
+      for (final variant in pack.variants) _ExperienceChoice(pack, variant),
+  ];
+
+  String get title => pack.variants.length == 1
+      ? pack.displayName
+      : '${pack.displayName}, ${variant.name}';
+
+  bool isChosenIn(EventExperienceConfiguration config) =>
+      config.packId == pack.packId &&
+      (config.variantId ?? pack.defaultVariantId) == variant.id;
+
+  /// [config] switched to this pack and variant; a pack change keeps only
+  /// the event-level choices.
+  EventExperienceConfiguration applyTo(EventExperienceConfiguration config) {
+    final base = config.packId == pack.packId
+        ? config
+        : config.switchPack(pack.packId, pack.packVersion);
+    return base.copyWith(
+      variantId: variant.id == pack.defaultVariantId ? null : variant.id,
+    );
+  }
 }
 
 class _GuestTabState extends State<GuestTab> {
@@ -76,7 +94,9 @@ class _GuestTabState extends State<GuestTab> {
     final event = tab.event;
     final guest = event.guest;
     final reason = tab.readOnlyReason;
-    final shown = guest.themeOverride ?? widget.boothTheme;
+    final shown =
+        ExperienceRegistry.legacyAppearance(event.experience) ??
+        widget.boothTheme;
     final landscape =
         event.capture.orientation == GuestOrientationPreference.landscape;
     final frame = landscape ? const Size(1180, 820) : const Size(820, 1180);
@@ -130,28 +150,28 @@ class _GuestTabState extends State<GuestTab> {
           title: 'Choose guest experience',
           subtitle:
               'The look of every guest screen. The Studio keeps the booth '
-              'theme.',
+              'theme. A pack whose own guest screens are still to come '
+              'shows in the booth theme for now.',
           children: [
             Wrap(
               spacing: PorcelainSpace.md,
               runSpacing: PorcelainSpace.md,
               children: [
-                for (final choice in _ThemeChoice.values)
+                for (final choice in _ExperienceChoice.all())
                   _ExperienceCard(
-                    profile: choice.profile ?? widget.boothTheme,
-                    title: choice.profile?.title ?? 'Same as the booth',
-                    detail: choice.profile == null
-                        ? widget.boothTheme.title
-                        : null,
-                    selected: _ThemeChoice.of(guest.themeOverride) == choice,
+                    profile:
+                        ExperienceRegistry.legacyAppearance(
+                          choice.applyTo(event.experience),
+                        ) ??
+                        widget.boothTheme,
+                    title: choice.title,
+                    selected: choice.isChosenIn(event.experience),
                     disabledReason: reason,
                     onPressed: tab.readOnly
                         ? null
                         : () => tab.onChanged(
                             event.copyWith(
-                              guest: guest.copyWith(
-                                themeOverride: choice.profile,
-                              ),
+                              experience: choice.applyTo(event.experience),
                             ),
                           ),
                   ),
@@ -234,13 +254,11 @@ class _ExperienceCard extends StatelessWidget {
     required this.title,
     required this.selected,
     required this.onPressed,
-    this.detail,
     this.disabledReason,
   });
 
   final PorcelainThemeProfile profile;
   final String title;
-  final String? detail;
   final bool selected;
   final VoidCallback? onPressed;
   final String? disabledReason;
@@ -252,7 +270,7 @@ class _ExperienceCard extends StatelessWidget {
     final motion = PorcelainMotion.of(context);
     return Pressable(
       onPressed: onPressed,
-      semanticLabel: detail == null ? title : '$title, now $detail',
+      semanticLabel: title,
       selected: selected,
       inMutuallyExclusiveGroup: true,
       disabledReason: disabledReason,
@@ -290,14 +308,6 @@ class _ExperienceCard extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: theme.text.labelLarge.copyWith(color: colors.ink),
                 ),
-                if (detail != null)
-                  Text(
-                    detail!,
-                    textAlign: TextAlign.center,
-                    style: theme.text.bodySmall.copyWith(
-                      color: colors.inkMuted,
-                    ),
-                  ),
               ],
             ),
             if (selected)

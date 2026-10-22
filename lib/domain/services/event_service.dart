@@ -1,3 +1,4 @@
+import '../experience/experience_registry.dart';
 import '../models/booth_event.dart';
 import '../models/booth_profile.dart';
 import '../models/event_rules.dart';
@@ -68,6 +69,9 @@ final class EventService {
       updatedAt: now,
       capture: booth.defaults.toCaptureSettings(),
       output: booth.defaults.output,
+      // Guests see what the booth looks like until the operator picks a
+      // pack (EP01).
+      experience: ExperienceRegistry.forAppearance(booth.appearance.profile),
     );
   }
 
@@ -83,8 +87,15 @@ final class EventService {
         EventStatus.archived,
       );
     }
+    // The experience's revision moves on with every change to it (EP01).
+    final experience = stored == null || stored.experience == event.experience
+        ? event.experience.copyWith(
+            revision: stored?.experience.revision ?? event.experience.revision,
+          )
+        : event.experience.copyWith(revision: stored.experience.revision + 1);
     final candidate = event.copyWith(
       title: event.title.trim(),
+      experience: experience,
       status: status,
       createdAt: stored?.createdAt ?? event.createdAt,
       updatedAt: _clock.now(),

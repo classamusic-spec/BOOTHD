@@ -10,6 +10,7 @@ import '../../core/design_system/porcelain_theme.dart';
 import '../../core/design_system/porcelain_theme_data.dart';
 import '../../core/di/service_providers.dart';
 import '../../core/routing/route_paths.dart';
+import '../../domain/experience/experience_registry.dart';
 import '../../domain/models/booth_event.dart';
 import '../../domain/services/booth_capabilities.dart';
 import '../../shared/formatters/date_format.dart';
@@ -397,7 +398,9 @@ class _GuestPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = context.porcelain;
     final event = this.event;
-    final override = event?.guest.themeOverride;
+    final override = event == null
+        ? null
+        : ExperienceRegistry.legacyAppearance(event.experience);
     Widget frame = TabletFrame(
       logicalSize: const Size(820, 1180),
       semanticLabel: event == null

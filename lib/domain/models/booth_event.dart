@@ -6,8 +6,8 @@ import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 import '../delivery/delivery_settings.dart';
+import '../experience/experience_configuration.dart';
 import '../services/camera_service.dart' show CameraLens;
-import '../value_objects/appearance.dart';
 import '../value_objects/calendar_date.dart';
 import '../value_objects/orientation.dart';
 
@@ -132,7 +132,6 @@ final class GuestSettings {
     this.consentText,
     this.guestChoosesTemplate = false,
     this.finishTimeoutSeconds = 30,
-    this.themeOverride,
   });
 
   /// Greeting on the welcome screen; the event title when null.
@@ -148,17 +147,12 @@ final class GuestSettings {
   /// Seconds the finished screen stays before resetting for the next guest.
   final int finishTimeoutSeconds;
 
-  /// Guest screens use this profile instead of the booth's (UX-02); null
-  /// follows the booth.
-  final PorcelainThemeProfile? themeOverride;
-
   GuestSettings copyWith({
     Object? welcomeTitle = _unset,
     Object? welcomeMessage = _unset,
     Object? consentText = _unset,
     bool? guestChoosesTemplate,
     int? finishTimeoutSeconds,
-    Object? themeOverride = _unset,
   }) => GuestSettings(
     welcomeTitle: identical(welcomeTitle, _unset)
         ? this.welcomeTitle
@@ -171,9 +165,6 @@ final class GuestSettings {
         : consentText as String?,
     guestChoosesTemplate: guestChoosesTemplate ?? this.guestChoosesTemplate,
     finishTimeoutSeconds: finishTimeoutSeconds ?? this.finishTimeoutSeconds,
-    themeOverride: identical(themeOverride, _unset)
-        ? this.themeOverride
-        : themeOverride as PorcelainThemeProfile?,
   );
 
   @override
@@ -183,8 +174,7 @@ final class GuestSettings {
       other.welcomeMessage == welcomeMessage &&
       other.consentText == consentText &&
       other.guestChoosesTemplate == guestChoosesTemplate &&
-      other.finishTimeoutSeconds == finishTimeoutSeconds &&
-      other.themeOverride == themeOverride;
+      other.finishTimeoutSeconds == finishTimeoutSeconds;
 
   @override
   int get hashCode => Object.hash(
@@ -193,7 +183,6 @@ final class GuestSettings {
     consentText,
     guestChoosesTemplate,
     finishTimeoutSeconds,
-    themeOverride,
   );
 }
 
@@ -337,6 +326,7 @@ final class BoothEvent {
     this.retention = const RetentionPolicy.keepUntilDeleted(),
     this.templates = const TemplateSelection(),
     this.delivery = const EventDeliverySettings(),
+    this.experience = const EventExperienceConfiguration(),
   });
 
   /// Stable identifier (UUID v4); a duplicate gets a new one.
@@ -365,6 +355,9 @@ final class BoothEvent {
   /// Phone delivery (M09), off unless the operator turns it on.
   final EventDeliverySettings delivery;
 
+  /// The guest experience (EP01): its pack and the operator's changes.
+  final EventExperienceConfiguration experience;
+
   BoothEvent copyWith({
     String? id,
     String? title,
@@ -381,6 +374,7 @@ final class BoothEvent {
     RetentionPolicy? retention,
     TemplateSelection? templates,
     EventDeliverySettings? delivery,
+    EventExperienceConfiguration? experience,
   }) => BoothEvent(
     id: id ?? this.id,
     title: title ?? this.title,
@@ -400,6 +394,7 @@ final class BoothEvent {
     retention: retention ?? this.retention,
     templates: templates ?? this.templates,
     delivery: delivery ?? this.delivery,
+    experience: experience ?? this.experience,
   );
 
   /// Whether the operator-editable content of [other] matches this event,
@@ -416,7 +411,8 @@ final class BoothEvent {
       other.output == output &&
       other.retention == retention &&
       other.templates == templates &&
-      other.delivery == delivery;
+      other.delivery == delivery &&
+      other.experience == experience;
 
   @override
   bool operator ==(Object other) =>

@@ -1,5 +1,6 @@
 import 'package:meta/meta.dart';
 
+import '../experience/experience_registry.dart';
 import '../models/booth_event.dart';
 import '../models/event_rules.dart';
 import '../services/camera_service.dart';
@@ -52,6 +53,7 @@ final class SessionPlan {
     required this.capture,
     required this.output,
     required this.finishTimeoutSeconds,
+    this.experience,
   }) : slotIndexes = List.unmodifiable(slotIndexes) {
     if (!EventLimits.shotCount.contains(slotIndexes.length) ||
         slotIndexes.length != capture.shotCount) {
@@ -65,6 +67,7 @@ final class SessionPlan {
     required BoothEvent event,
     required String templateRevisionId,
     required TemplateDocument document,
+    ExperienceRegistry? experiences,
   }) {
     if (!EventLimits.shotCount.contains(event.capture.shotCount)) {
       throw const SessionPlanException(SessionPlanProblem.shotCountOutOfRange);
@@ -80,6 +83,9 @@ final class SessionPlan {
       capture: event.capture,
       output: event.output,
       finishTimeoutSeconds: event.guest.finishTimeoutSeconds,
+      experience: (experiences ?? ExperienceRegistry.bundled).resolve(
+        event.experience,
+      ),
     );
   }
 
@@ -91,6 +97,12 @@ final class SessionPlan {
   final CaptureSettings capture;
   final OutputProfile output;
   final int finishTimeoutSeconds;
+
+  /// What the guest sees and hears (EP01), resolved when the session
+  /// starts so editing the event never changes a running session. Null for
+  /// sessions from before experiences, or when the stored snapshot can no
+  /// longer be read; their screens use the fallback experience.
+  final ResolvedExperience? experience;
 
   int get shotCount => slotIndexes.length;
 
@@ -129,6 +141,7 @@ final class SessionPlan {
     },
     'output': {'format': output.format.name, 'jpegQuality': output.jpegQuality},
     'finishTimeoutSeconds': finishTimeoutSeconds,
+    'experience': ?experience?.toJson(),
   };
 
   /// Reads [toJson]'s output. Throws [FormatException] when it is not a
@@ -167,11 +180,22 @@ final class SessionPlan {
           jpegQuality: output['jpegQuality']! as int,
         ),
         finishTimeoutSeconds: json['finishTimeoutSeconds']! as int,
+        experience: _experience(json['experience']),
       );
     } on FormatException {
       rethrow;
     } on Object catch (error) {
       throw FormatException('Unreadable session plan: ${error.runtimeType}');
+    }
+  }
+
+  /// An unreadable snapshot costs the session its look, never its photos.
+  static ResolvedExperience? _experience(Object? json) {
+    if (json is! Map<String, Object?>) return null;
+    try {
+      return ResolvedExperience.fromJson(json);
+    } on FormatException {
+      return null;
     }
   }
 
@@ -183,7 +207,8 @@ final class SessionPlan {
       _sameInts(other.slotIndexes, slotIndexes) &&
       other.capture == capture &&
       other.output == output &&
-      other.finishTimeoutSeconds == finishTimeoutSeconds;
+      other.finishTimeoutSeconds == finishTimeoutSeconds &&
+      other.experience == experience;
 
   @override
   int get hashCode => Object.hash(
@@ -193,6 +218,7 @@ final class SessionPlan {
     capture,
     output,
     finishTimeoutSeconds,
+    experience,
   );
 
   static bool _sameInts(List<int> a, List<int> b) {

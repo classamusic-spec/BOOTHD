@@ -962,3 +962,58 @@ leftovers; the sweep's own test). Restored, 18 of 18 pass.
 - The booth's data is out of the tablets' own backups on both platforms
   (iPadOS: from this milestone; unverified on a device).
 - The app never starts or stops a kiosk lock and never claims to.
+
+## Experience Packs: acceptance IDs
+
+The Experience Pack prompt (`docs/experience_packs/EXPERIENCE_PACK_PROMPT_V2.md`,
+section 16) lists 17 criteria; they are cited here as AC-EP01 to AC-EP17
+in that order. Stages EP01 to EP09 follow
+`docs/experience_packs/EP00_INTEGRATION_PLAN.md` (owner-approved with
+decisions 4.1 to 4.8: "approve EP01 with your recommendations ... build
+ep01 - ep09").
+
+## EP01: Experience Pack model, registry, event experience and schema v8
+
+```text
+Stage: EP01 | commit adding this entry | build 0.1.0+1
+Host: same Linux cloud VM as M00 to M10 (no macOS, no attached devices)
+Flutter 3.47.7 / Dart 3.13.5; no new packages; schema version 8 (was 7)
+iPad: BLOCKED (no Mac, no iPad); nothing native changed
+Android: debug build PASS; no physical tablet
+Owner approval requested: no (the owner approved EP01 to EP09 in one run;
+  a report follows each stage, work stops after EP09)
+```
+
+### Commands and exit codes (2026-10-22 UTC)
+
+| # | Command | Exit | Result |
+| --- | --- | --- | --- |
+| 1 | `dart run build_runner build` then `dart run drift_dev make-migrations` | 0 | Schema v8 dump `drift_schemas/booth/drift_schema_v8.json`, steps and `test/drift/booth/generated/schema_v8.dart` written |
+| 2 | `flutter analyze` | 0 | No issues |
+| 3 | `flutter test` (whole suite, before the badge fix and golden updates) | 1 | 18 min 42 s: 3,009 passed, 2 skipped, 10 failed, all goldens: the event editor's guest tab now lists ten pack cards (2) and the events list's "own guest look" mark (8). The mark's rule was restored (an event whose look differs from the booth's) and the two guest-tab goldens and two Darkroom events goldens (whose event now matches the booth's look) updated after review |
+| 4 | `flutter test test/drift test/domain test/persistence/session_repository_test.dart test/app/events_flow_test.dart test/core/app_info_and_licences_test.dart` and the studio goldens for `events` and `event guest` | 0 | All passed after row 3's fixes |
+| 5 | Mutation: the v8 step without the booth fallback (`CASE events.theme_override` only) | 1 | "v7 themes become experiences that keep their look" fails ("booth lightOak, override null"); restored, passes |
+| 6 | `tool/build_android.sh debug` | 0 | 2 min 50 s; `app-debug.apk` 241,951,145 bytes, SHA-256 `af85ba723f87d2ca2fcfd45a3d8c9add2b64415859ea8d0caa7eed8c1a7b4a01`; `tool/audit_permissions.sh`: passed |
+| 7 | `tool/build_ios.sh` | not run | BLOCKED by design on Linux (exit 3, as in M10) |
+
+The full suite and `tool/check.sh` run again on the EP02 tree (whole
+suite) and at EP09 (check.sh, release build, CI).
+
+### Acceptance items
+
+| AC | Status | Evidence |
+| --- | --- | --- |
+| EP01 Pack schema, eight manifests, registry, validation, fallback | PASS (host) | `test/domain/experience/experience_registry_test.dart` (28 tests): every bundled pack valid in both orientations with every variant's text pairs at 4.5:1 or more; manifests survive JSON; bad schema, colours, presets, sounds, fonts, decorations, text, orientation and touch size refused; a broken pack is left out and the rest kept |
+| AC-EP13 Missing optional theme assets do not cause session failures (EP01 part) | PASS (host, resolution) | Unknown pack, newer pack version, unknown variant, preset or colour each fall back (to Porcelain Classic or the pack's own) and are reported, never thrown; an unreadable stored configuration reads as the default; an unreadable session snapshot opens the session without it (`guest_session_test.dart`). Screens: EP06 |
+| EP01 Event experience configuration and revision | PASS (host) | JSON round trip, unknown version refused, reset to pack defaults, pack switch keeps event-level choices; new drafts take the booth's look; each saved change bumps the revision, a stale copy cannot move it back (`event_service_test.dart`) |
+| EP01 Schema v8 migration keeps every guest's look | PASS (host) | Seeded v1 to v8 databases open with every value (`migration_test.dart`), plus a 3 x 4 matrix of booth appearance and stored override (row 5 shows it catches a broken step); the step's spelled-out JSON still reads as `forAppearance` gives (`experience_registry_test.dart`) |
+| EP01 Session snapshot unchanged by later event edits | PASS (host) | The plan JSON (immutable by trigger) carries the resolved experience; editing the event and restarting leaves it unchanged; rewriting the plan is refused (`session_repository_test.dart`) |
+| EP01 Backup round trip on v8 | PASS (host) | The backup tests run on the current schema (v8) and pass in row 3 |
+| AC-EP02 Operator appearances unchanged by guest packs | PASS (EP01 part) | Studio goldens unchanged except the event editor's guest tab and the events list mark (row 3). The owner has since asked for the operator looks to be polished (EP02); that change is owner-directed and recorded there |
+
+### Security and privacy notes (EP01)
+
+- Packs are data only: ids from a fixed catalog, colours, text; no code,
+  URLs or remote assets are read (`validatePack` refuses a sound given as
+  a URL).
+- The session snapshot holds the look and words shown, never guest data.

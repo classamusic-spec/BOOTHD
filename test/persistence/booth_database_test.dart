@@ -3,6 +3,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:porcelain_photo_booth/domain/experience/experience_configuration.dart';
 import 'package:porcelain_photo_booth/domain/models/booth_event.dart';
 import 'package:porcelain_photo_booth/domain/models/booth_profile.dart';
 import 'package:porcelain_photo_booth/domain/repositories/storage_errors.dart';
@@ -72,7 +73,14 @@ BoothEvent sampleEvent(BoothProfile booth, String id, FakeClock clock) =>
         consentText: 'Kept for the host.',
         guestChoosesTemplate: true,
         finishTimeoutSeconds: 60,
-        themeOverride: PorcelainThemeProfile.lightOak,
+      ),
+      experience: const EventExperienceConfiguration(
+        packId: 'retro-game-quest',
+        variantId: 'arcade',
+        countdownPresetId: 'arcade-start',
+        soundEnabled: true,
+        soundVolume: 40,
+        childrenMayBeGuests: true,
       ),
       output: const OutputProfile(format: OutputFormat.png, jpegQuality: 90),
       retention: const RetentionPolicy.deleteAfterDays(14),
@@ -367,7 +375,7 @@ void main() {
       for (final statement in [
         "UPDATE events SET status = 'deleted'",
         "UPDATE events SET lens = 'side'",
-        "UPDATE events SET theme_override = 'neon'",
+        "UPDATE events SET experience_json = ''",
         "UPDATE booth_profiles SET theme_profile = '1'",
         'UPDATE booth_profiles SET default_mirror_preview = 2',
       ]) {

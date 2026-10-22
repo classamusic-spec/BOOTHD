@@ -1,0 +1,3355 @@
+{
+  "_meta": {
+    "description": "This file contains a serialized version of schema entities for drift.",
+    "version": "1.3.0"
+  },
+  "options": {
+    "store_date_time_values_as_text": true
+  },
+  "entities": [
+    {
+      "id": 0,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "booth_profiles",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY CHECK (length(id) = 36)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "name",
+            "getter_name": "name",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(trim(name)) BETWEEN 1 AND 40)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "theme_profile",
+            "getter_name": "themeProfile",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (theme_profile IN ('porcelainStudio', 'lightOak', 'darkroomWalnut'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "themeProfileByName",
+              "dart_type_name": "PorcelainThemeProfile"
+            }
+          },
+          {
+            "name": "contrast_preference",
+            "getter_name": "contrastPreference",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (contrast_preference IN ('system', 'standard', 'high'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const EnumNameConverter<ContrastPreference>(ContrastPreference.values)",
+              "dart_type_name": "ContrastPreference"
+            }
+          },
+          {
+            "name": "motion_preference",
+            "getter_name": "motionPreference",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (motion_preference IN ('system', 'reduced'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const EnumNameConverter<MotionPreference>(MotionPreference.values)",
+              "dart_type_name": "MotionPreference"
+            }
+          },
+          {
+            "name": "default_lens",
+            "getter_name": "defaultLens",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (default_lens IN ('front', 'back', 'external'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const EnumNameConverter<CameraLens>(CameraLens.values)",
+              "dart_type_name": "CameraLens"
+            }
+          },
+          {
+            "name": "default_mirror_preview",
+            "getter_name": "defaultMirrorPreview",
+            "moor_type": "bool",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (default_mirror_preview IN (0, 1))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "default_mirror_output",
+            "getter_name": "defaultMirrorOutput",
+            "moor_type": "bool",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (default_mirror_output IN (0, 1))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "default_orientation",
+            "getter_name": "defaultOrientation",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (default_orientation IN ('portrait', 'landscape'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const EnumNameConverter<GuestOrientationPreference>(GuestOrientationPreference.values)",
+              "dart_type_name": "GuestOrientationPreference"
+            }
+          },
+          {
+            "name": "default_output_format",
+            "getter_name": "defaultOutputFormat",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (default_output_format IN ('jpeg', 'png'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const EnumNameConverter<OutputFormat>(OutputFormat.values)",
+              "dart_type_name": "OutputFormat"
+            }
+          },
+          {
+            "name": "default_jpeg_quality",
+            "getter_name": "defaultJpegQuality",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (default_jpeg_quality BETWEEN 80 AND 100)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "created_at",
+            "getter_name": "createdAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "updated_at",
+            "getter_name": "updatedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 1,
+      "references": [
+        0
+      ],
+      "type": "table",
+      "data": {
+        "name": "events",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY CHECK (length(id) = 36)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "booth_profile_id",
+            "getter_name": "boothProfileId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL REFERENCES booth_profiles(id)ON DELETE RESTRICT",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "booth_profiles",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "restrict"
+                }
+              }
+            ]
+          },
+          {
+            "name": "title",
+            "getter_name": "title",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(trim(title)) BETWEEN 1 AND 80)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "event_date",
+            "getter_name": "eventDate",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (event_date IS NULL OR event_date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]')",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const CalendarDateConverter()",
+              "dart_type_name": "CalendarDate"
+            }
+          },
+          {
+            "name": "venue",
+            "getter_name": "venue",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (venue IS NULL OR length(venue) <= 80)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "notes",
+            "getter_name": "notes",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (notes IS NULL OR length(notes) <= 1000)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "status",
+            "getter_name": "status",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (status IN ('draft', 'active', 'archived'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const EnumNameConverter<EventStatus>(EventStatus.values)",
+              "dart_type_name": "EventStatus"
+            }
+          },
+          {
+            "name": "lens",
+            "getter_name": "lens",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (lens IN ('front', 'back', 'external'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const EnumNameConverter<CameraLens>(CameraLens.values)",
+              "dart_type_name": "CameraLens"
+            }
+          },
+          {
+            "name": "mirror_preview",
+            "getter_name": "mirrorPreview",
+            "moor_type": "bool",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (mirror_preview IN (0, 1))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "mirror_output",
+            "getter_name": "mirrorOutput",
+            "moor_type": "bool",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (mirror_output IN (0, 1))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "guest_orientation",
+            "getter_name": "guestOrientation",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (guest_orientation IN ('portrait', 'landscape'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const EnumNameConverter<GuestOrientationPreference>(GuestOrientationPreference.values)",
+              "dart_type_name": "GuestOrientationPreference"
+            }
+          },
+          {
+            "name": "shot_count",
+            "getter_name": "shotCount",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (shot_count BETWEEN 1 AND 4)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "countdown_seconds",
+            "getter_name": "countdownSeconds",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (countdown_seconds BETWEEN 2 AND 10)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "shot_interval_seconds",
+            "getter_name": "shotIntervalSeconds",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (shot_interval_seconds BETWEEN 1 AND 10)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "retake_policy",
+            "getter_name": "retakePolicy",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (retake_policy IN ('none', 'perShot', 'wholeSession'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const EnumNameConverter<RetakePolicy>(RetakePolicy.values)",
+              "dart_type_name": "RetakePolicy"
+            }
+          },
+          {
+            "name": "retake_limit",
+            "getter_name": "retakeLimit",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "welcome_title",
+            "getter_name": "welcomeTitle",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (welcome_title IS NULL OR length(welcome_title) <= 60)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "welcome_message",
+            "getter_name": "welcomeMessage",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (welcome_message IS NULL OR length(welcome_message) <= 200)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "consent_text",
+            "getter_name": "consentText",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (consent_text IS NULL OR length(consent_text) <= 400)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "guest_chooses_template",
+            "getter_name": "guestChoosesTemplate",
+            "moor_type": "bool",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (guest_chooses_template IN (0, 1))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "finish_timeout_seconds",
+            "getter_name": "finishTimeoutSeconds",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (finish_timeout_seconds BETWEEN 10 AND 120)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "experience_json",
+            "getter_name": "experienceJson",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(experience_json) BETWEEN 2 AND 8192)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const ExperienceConfigurationConverter()",
+              "dart_type_name": "EventExperienceConfiguration"
+            }
+          },
+          {
+            "name": "output_format",
+            "getter_name": "outputFormat",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (output_format IN ('jpeg', 'png'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const EnumNameConverter<OutputFormat>(OutputFormat.values)",
+              "dart_type_name": "OutputFormat"
+            }
+          },
+          {
+            "name": "jpeg_quality",
+            "getter_name": "jpegQuality",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (jpeg_quality BETWEEN 80 AND 100)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "retention_mode",
+            "getter_name": "retentionMode",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (retention_mode IN ('keepUntilDeleted', 'deleteAfterDays'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const EnumNameConverter<RetentionMode>(RetentionMode.values)",
+              "dart_type_name": "RetentionMode"
+            }
+          },
+          {
+            "name": "retention_days",
+            "getter_name": "retentionDays",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "created_at",
+            "getter_name": "createdAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "updated_at",
+            "getter_name": "updatedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "archived_at",
+            "getter_name": "archivedAt",
+            "moor_type": "dateTime",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "CHECK((retake_policy = 'none' AND retake_limit = 0)OR(retake_policy <> 'none' AND retake_limit BETWEEN 1 AND 5))",
+          "CHECK((retention_mode = 'keepUntilDeleted' AND retention_days IS NULL)OR(retention_mode = 'deleteAfterDays' AND retention_days BETWEEN 1 AND 365))",
+          "CHECK((status = 'archived')=(archived_at IS NOT NULL))"
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "references": [
+        0,
+        1
+      ],
+      "type": "table",
+      "data": {
+        "name": "app_settings",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY CHECK (id = 1)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "booth_profile_id",
+            "getter_name": "boothProfileId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL REFERENCES booth_profiles(id)ON DELETE RESTRICT",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "booth_profiles",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "restrict"
+                }
+              }
+            ]
+          },
+          {
+            "name": "setup_completed_at",
+            "getter_name": "setupCompletedAt",
+            "moor_type": "dateTime",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "booth_event_id",
+            "getter_name": "boothEventId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "REFERENCES events(id)ON DELETE SET NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "events",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "setNull"
+                }
+              }
+            ]
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 3,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "operator_access",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY CHECK (id = 1)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "recovery_verifier",
+            "getter_name": "recoveryVerifier",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "pin_failures",
+            "getter_name": "pinFailures",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT 0 CHECK (pin_failures >= 0)",
+            "default_dart": "const CustomExpression('0')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "pin_last_failure_at",
+            "getter_name": "pinLastFailureAt",
+            "moor_type": "dateTime",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "recovery_failures",
+            "getter_name": "recoveryFailures",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT 0 CHECK (recovery_failures >= 0)",
+            "default_dart": "const CustomExpression('0')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "recovery_last_failure_at",
+            "getter_name": "recoveryLastFailureAt",
+            "moor_type": "dateTime",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 4,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "templates",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY CHECK (length(id) = 36)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "display_name",
+            "getter_name": "displayName",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(trim(display_name)) BETWEEN 1 AND 80)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "category",
+            "getter_name": "category",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (category IS NULL OR length(category) <= 40)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "tags_json",
+            "getter_name": "tagsJson",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (tags_json IS NULL OR length(tags_json) BETWEEN 2 AND 4096)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const TemplateTagsConverter()",
+              "dart_type_name": "TemplateTags"
+            }
+          },
+          {
+            "name": "created_at",
+            "getter_name": "createdAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "updated_at",
+            "getter_name": "updatedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "archived_at",
+            "getter_name": "archivedAt",
+            "moor_type": "dateTime",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 5,
+      "references": [
+        4
+      ],
+      "type": "table",
+      "data": {
+        "name": "template_revisions",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY CHECK (length(id) = 36)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "template_id",
+            "getter_name": "templateId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL REFERENCES templates(id)ON DELETE RESTRICT",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "templates",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "restrict"
+                }
+              }
+            ]
+          },
+          {
+            "name": "revision_number",
+            "getter_name": "revisionNumber",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (revision_number >= 1)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "document_schema_version",
+            "getter_name": "documentSchemaVersion",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (document_schema_version >= 1)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "manifest_path",
+            "getter_name": "manifestPath",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(manifest_path) BETWEEN 1 AND 255 AND manifest_path NOT LIKE '/%' AND manifest_path NOT LIKE '%..%' AND instr(manifest_path, char(92)) = 0)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "checksum",
+            "getter_name": "checksum",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(checksum) = 64)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "page_width_px",
+            "getter_name": "pageWidthPx",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (page_width_px BETWEEN 1 AND 20000)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "page_height_px",
+            "getter_name": "pageHeightPx",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (page_height_px BETWEEN 1 AND 20000)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "photo_slot_count",
+            "getter_name": "photoSlotCount",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (photo_slot_count BETWEEN 0 AND 8)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "created_at",
+            "getter_name": "createdAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "UNIQUE(template_id, revision_number)"
+        ],
+        "unique_keys": [
+          [
+            "template_id",
+            "revision_number"
+          ]
+        ]
+      }
+    },
+    {
+      "id": 6,
+      "references": [
+        5
+      ],
+      "type": "trigger",
+      "data": {
+        "on": 5,
+        "references_in_body": [
+          5
+        ],
+        "name": "template_revisions_are_immutable",
+        "sql": "CREATE TRIGGER template_revisions_are_immutable\n  BEFORE UPDATE ON template_revisions\nBEGIN\n  SELECT RAISE(ABORT, 'template revisions are immutable');\nEND;"
+      }
+    },
+    {
+      "id": 7,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "assets",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY CHECK (length(id) = 64 AND id NOT GLOB '*[^0-9a-f]*')",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "media_type",
+            "getter_name": "mediaType",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (media_type IN ('png', 'jpeg', 'ttf', 'otf'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const EnumNameConverter<AssetMediaType>(AssetMediaType.values)",
+              "dart_type_name": "AssetMediaType"
+            }
+          },
+          {
+            "name": "relative_path",
+            "getter_name": "relativePath",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL UNIQUE CHECK (relative_path = 'assets/' || id || '.' || CASE media_type WHEN 'png' THEN 'png' WHEN 'jpeg' THEN 'jpg' WHEN 'ttf' THEN 'ttf' WHEN 'otf' THEN 'otf' END)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "unique"
+            ]
+          },
+          {
+            "name": "byte_length",
+            "getter_name": "byteLength",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (byte_length BETWEEN 1 AND 52428800)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "width_px",
+            "getter_name": "widthPx",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "CHECK (width_px IS NULL OR width_px BETWEEN 1 AND 12000)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "height_px",
+            "getter_name": "heightPx",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "CHECK (height_px IS NULL OR height_px BETWEEN 1 AND 12000)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "display_name",
+            "getter_name": "displayName",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (display_name IS NULL OR length(display_name) BETWEEN 1 AND 120)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "origin",
+            "getter_name": "origin",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (origin IN ('imported', 'package', 'bundled'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const EnumNameConverter<AssetOrigin>(AssetOrigin.values)",
+              "dart_type_name": "AssetOrigin"
+            }
+          },
+          {
+            "name": "created_at",
+            "getter_name": "createdAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "CHECK((media_type IN ('png', 'jpeg'))=(width_px IS NOT NULL AND height_px IS NOT NULL))",
+          "CHECK(media_type IN ('png', 'jpeg') OR byte_length <= 20971520)"
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "references": [
+        7
+      ],
+      "type": "trigger",
+      "data": {
+        "on": 7,
+        "references_in_body": [
+          7
+        ],
+        "name": "asset_content_is_immutable",
+        "sql": "CREATE TRIGGER asset_content_is_immutable\n  BEFORE UPDATE OF id, media_type, relative_path, byte_length, width_px,\n    height_px, origin, created_at ON assets\nBEGIN\n  SELECT RAISE(ABORT, 'assets are immutable');\nEND;"
+      }
+    },
+    {
+      "id": 9,
+      "references": [
+        5,
+        7
+      ],
+      "type": "table",
+      "data": {
+        "name": "template_revision_assets",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "template_revision_id",
+            "getter_name": "templateRevisionId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL REFERENCES template_revisions(id)ON DELETE CASCADE",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "template_revisions",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ]
+          },
+          {
+            "name": "asset_id",
+            "getter_name": "assetId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL REFERENCES assets(id)ON DELETE RESTRICT",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "assets",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "restrict"
+                }
+              }
+            ]
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "PRIMARY KEY(template_revision_id, asset_id)"
+        ],
+        "explicit_pk": [
+          "template_revision_id",
+          "asset_id"
+        ]
+      }
+    },
+    {
+      "id": 10,
+      "references": [
+        9
+      ],
+      "type": "index",
+      "data": {
+        "on": 9,
+        "name": "template_revision_assets_by_asset",
+        "sql": "CREATE INDEX template_revision_assets_by_asset\n  ON template_revision_assets (asset_id);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 11,
+      "references": [
+        4,
+        5
+      ],
+      "type": "table",
+      "data": {
+        "name": "template_drafts",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "template_id",
+            "getter_name": "templateId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY REFERENCES templates(id)ON DELETE CASCADE",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key",
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "templates",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ]
+          },
+          {
+            "name": "base_revision_id",
+            "getter_name": "baseRevisionId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL REFERENCES template_revisions(id)ON DELETE CASCADE",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "template_revisions",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ]
+          },
+          {
+            "name": "document",
+            "getter_name": "document",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(document) BETWEEN 2 AND 1048576)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "updated_at",
+            "getter_name": "updatedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 12,
+      "references": [
+        1
+      ],
+      "type": "index",
+      "data": {
+        "on": 1,
+        "name": "events_by_status",
+        "sql": "CREATE INDEX events_by_status ON events (status, updated_at);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 13,
+      "references": [
+        1,
+        5
+      ],
+      "type": "table",
+      "data": {
+        "name": "event_templates",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "event_id",
+            "getter_name": "eventId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL REFERENCES events(id)ON DELETE CASCADE",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "events",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ]
+          },
+          {
+            "name": "template_revision_id",
+            "getter_name": "templateRevisionId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL REFERENCES template_revisions(id)ON DELETE RESTRICT",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "template_revisions",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "restrict"
+                }
+              }
+            ]
+          },
+          {
+            "name": "position",
+            "getter_name": "position",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (position BETWEEN 0 AND 11)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "is_default",
+            "getter_name": "isDefault",
+            "moor_type": "bool",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (is_default IN (0, 1))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "PRIMARY KEY(event_id, template_revision_id)",
+          "UNIQUE(event_id, position)"
+        ],
+        "explicit_pk": [
+          "event_id",
+          "template_revision_id"
+        ],
+        "unique_keys": [
+          [
+            "event_id",
+            "position"
+          ]
+        ]
+      }
+    },
+    {
+      "id": 14,
+      "references": [
+        13
+      ],
+      "type": "index",
+      "data": {
+        "on": 13,
+        "name": "event_templates_one_default",
+        "sql": "CREATE UNIQUE INDEX event_templates_one_default\n  ON event_templates (event_id) WHERE is_default = 1;",
+        "unique": true,
+        "columns": []
+      }
+    },
+    {
+      "id": 15,
+      "references": [
+        13
+      ],
+      "type": "index",
+      "data": {
+        "on": 13,
+        "name": "event_templates_by_revision",
+        "sql": "CREATE INDEX event_templates_by_revision\n  ON event_templates (template_revision_id);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 16,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "original_photos",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY CHECK (length(id) BETWEEN 1 AND 64 AND id NOT GLOB '*[^0-9A-Za-z-]*')",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "relative_path",
+            "getter_name": "relativePath",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL UNIQUE CHECK (relative_path = 'originals/' || id || '.jpg')",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "unique"
+            ]
+          },
+          {
+            "name": "width_px",
+            "getter_name": "widthPx",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (width_px BETWEEN 1 AND 20000)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "height_px",
+            "getter_name": "heightPx",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (height_px BETWEEN 1 AND 20000)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "byte_length",
+            "getter_name": "byteLength",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (byte_length BETWEEN 1 AND 104857600)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "sha256",
+            "getter_name": "sha256",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(sha256) = 64 AND sha256 NOT GLOB '*[^0-9a-f]*')",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "lens",
+            "getter_name": "lens",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (lens IN ('front', 'back', 'external'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const EnumNameConverter<CameraLens>(CameraLens.values)",
+              "dart_type_name": "CameraLens"
+            }
+          },
+          {
+            "name": "sensor_orientation",
+            "getter_name": "sensorOrientation",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (sensor_orientation IN (0, 90, 180, 270))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "device_orientation",
+            "getter_name": "deviceOrientation",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (device_orientation IN ('portraitUp', 'landscapeLeft', 'portraitDown', 'landscapeRight', 'unknown'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const EnumNameConverter<CaptureOrientation>(CaptureOrientation.values)",
+              "dart_type_name": "CaptureOrientation"
+            }
+          },
+          {
+            "name": "exif_orientation",
+            "getter_name": "exifOrientation",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "CHECK (exif_orientation IS NULL OR exif_orientation BETWEEN 1 AND 8)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "mirror_preview",
+            "getter_name": "mirrorPreview",
+            "moor_type": "bool",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (mirror_preview IN (0, 1))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "mirror_output",
+            "getter_name": "mirrorOutput",
+            "moor_type": "bool",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (mirror_output IN (0, 1))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "origin",
+            "getter_name": "origin",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (origin IN ('diagnostics', 'session', 'legacy'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const EnumNameConverter<CaptureOrigin>(CaptureOrigin.values)",
+              "dart_type_name": "CaptureOrigin"
+            }
+          },
+          {
+            "name": "captured_at",
+            "getter_name": "capturedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "committed_at",
+            "getter_name": "committedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 17,
+      "references": [
+        16
+      ],
+      "type": "index",
+      "data": {
+        "on": 16,
+        "name": "original_photos_by_time",
+        "sql": "CREATE INDEX original_photos_by_time ON original_photos (captured_at);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 18,
+      "references": [
+        16
+      ],
+      "type": "trigger",
+      "data": {
+        "on": 16,
+        "references_in_body": [
+          16
+        ],
+        "name": "original_photos_are_immutable",
+        "sql": "CREATE TRIGGER original_photos_are_immutable\n  BEFORE UPDATE ON original_photos\nBEGIN\n  SELECT RAISE(ABORT, 'originals are immutable');\nEND;"
+      }
+    },
+    {
+      "id": 19,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "pending_original_commits",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY CHECK (length(id) BETWEEN 1 AND 64 AND id NOT GLOB '*[^0-9A-Za-z-]*')",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "sha256",
+            "getter_name": "sha256",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(sha256) = 64 AND sha256 NOT GLOB '*[^0-9a-f]*')",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "byte_length",
+            "getter_name": "byteLength",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (byte_length >= 1)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "metadata",
+            "getter_name": "metadata",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(metadata) BETWEEN 2 AND 65536)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "started_at",
+            "getter_name": "startedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 20,
+      "references": [
+        1,
+        5
+      ],
+      "type": "table",
+      "data": {
+        "name": "capture_sessions",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY CHECK (length(id) = 36)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "event_id",
+            "getter_name": "eventId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL REFERENCES events(id)ON DELETE RESTRICT",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "events",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "restrict"
+                }
+              }
+            ]
+          },
+          {
+            "name": "sequence",
+            "getter_name": "sequence",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (sequence >= 1)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "template_revision_id",
+            "getter_name": "templateRevisionId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL REFERENCES template_revisions(id)ON DELETE RESTRICT",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "template_revisions",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "restrict"
+                }
+              }
+            ]
+          },
+          {
+            "name": "planned_shots",
+            "getter_name": "plannedShots",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (planned_shots BETWEEN 1 AND 4)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "plan_json",
+            "getter_name": "planJson",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(plan_json) BETWEEN 2 AND 65536)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "status",
+            "getter_name": "status",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (status IN ('capturing', 'reviewing', 'rendering', 'completed', 'abandoned', 'failed'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const EnumNameConverter<SessionStatus>(SessionStatus.values)",
+              "dart_type_name": "SessionStatus"
+            }
+          },
+          {
+            "name": "end_reason",
+            "getter_name": "endReason",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (end_reason IS NULL OR end_reason IN ('interrupted', 'timedOut', 'operatorExit', 'problem', 'renderFailed'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const EnumNameConverter<SessionEndReason>(SessionEndReason.values)",
+              "dart_type_name": "SessionEndReason"
+            }
+          },
+          {
+            "name": "render_attempts",
+            "getter_name": "renderAttempts",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT 0 CHECK (render_attempts >= 0)",
+            "default_dart": "const CustomExpression('0')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "output_id",
+            "getter_name": "outputId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (output_id IS NULL OR length(output_id) = 36)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "started_at",
+            "getter_name": "startedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "updated_at",
+            "getter_name": "updatedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "ended_at",
+            "getter_name": "endedAt",
+            "moor_type": "dateTime",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "CHECK((status IN ('completed', 'abandoned', 'failed'))=(ended_at IS NOT NULL))",
+          "CHECK((status = 'completed')=(output_id IS NOT NULL))",
+          "CHECK((status IN ('abandoned', 'failed'))=(end_reason IS NOT NULL))",
+          "UNIQUE(event_id, sequence)"
+        ],
+        "unique_keys": [
+          [
+            "event_id",
+            "sequence"
+          ]
+        ]
+      }
+    },
+    {
+      "id": 21,
+      "references": [
+        20
+      ],
+      "type": "index",
+      "data": {
+        "on": 20,
+        "name": "capture_sessions_by_event",
+        "sql": "CREATE INDEX capture_sessions_by_event\n  ON capture_sessions (event_id, started_at);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 22,
+      "references": [
+        20
+      ],
+      "type": "trigger",
+      "data": {
+        "on": 20,
+        "references_in_body": [
+          20
+        ],
+        "name": "capture_session_plans_are_immutable",
+        "sql": "CREATE TRIGGER capture_session_plans_are_immutable\n  BEFORE UPDATE OF id, event_id, sequence, template_revision_id,\n    planned_shots, plan_json, started_at ON capture_sessions\nBEGIN\n  SELECT RAISE(ABORT, 'a session is frozen to its plan');\nEND;"
+      }
+    },
+    {
+      "id": 23,
+      "references": [
+        20
+      ],
+      "type": "trigger",
+      "data": {
+        "on": 20,
+        "references_in_body": [
+          20
+        ],
+        "name": "finished_sessions_are_immutable",
+        "sql": "CREATE TRIGGER finished_sessions_are_immutable\n  BEFORE UPDATE ON capture_sessions\n  WHEN OLD.status IN ('completed', 'abandoned', 'failed')\nBEGIN\n  SELECT RAISE(ABORT, 'a finished session never changes');\nEND;"
+      }
+    },
+    {
+      "id": 24,
+      "references": [
+        20,
+        16
+      ],
+      "type": "table",
+      "data": {
+        "name": "session_photos",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "session_id",
+            "getter_name": "sessionId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL REFERENCES capture_sessions(id)ON DELETE RESTRICT",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "capture_sessions",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "restrict"
+                }
+              }
+            ]
+          },
+          {
+            "name": "shot_index",
+            "getter_name": "shotIndex",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (shot_index BETWEEN 0 AND 3)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "attempt",
+            "getter_name": "attempt",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (attempt >= 1)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "round",
+            "getter_name": "round",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (round >= 0 AND round < attempt)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "slot_index",
+            "getter_name": "slotIndex",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (slot_index BETWEEN 0 AND 7)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "original_id",
+            "getter_name": "originalId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL UNIQUE REFERENCES original_photos(id)ON DELETE RESTRICT",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "unique",
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "original_photos",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "restrict"
+                }
+              }
+            ]
+          },
+          {
+            "name": "captured_at",
+            "getter_name": "capturedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "PRIMARY KEY(session_id, shot_index, attempt)"
+        ],
+        "explicit_pk": [
+          "session_id",
+          "shot_index",
+          "attempt"
+        ]
+      }
+    },
+    {
+      "id": 25,
+      "references": [
+        24
+      ],
+      "type": "trigger",
+      "data": {
+        "on": 24,
+        "references_in_body": [
+          24
+        ],
+        "name": "session_photos_are_immutable",
+        "sql": "CREATE TRIGGER session_photos_are_immutable\n  BEFORE UPDATE ON session_photos\nBEGIN\n  SELECT RAISE(ABORT, 'session photos are immutable');\nEND;"
+      }
+    },
+    {
+      "id": 26,
+      "references": [
+        20
+      ],
+      "type": "table",
+      "data": {
+        "name": "session_outputs",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY CHECK (length(id) = 36)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "session_id",
+            "getter_name": "sessionId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL REFERENCES capture_sessions(id)ON DELETE RESTRICT",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "capture_sessions",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "restrict"
+                }
+              }
+            ]
+          },
+          {
+            "name": "relative_path",
+            "getter_name": "relativePath",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL UNIQUE CHECK (relative_path = 'outputs/' || id || CASE format WHEN 'jpeg' THEN '.jpg' ELSE '.png' END)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "unique"
+            ]
+          },
+          {
+            "name": "sha256",
+            "getter_name": "sha256",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(sha256) = 64 AND sha256 NOT GLOB '*[^0-9a-f]*')",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "byte_length",
+            "getter_name": "byteLength",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (byte_length >= 1)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "width_px",
+            "getter_name": "widthPx",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (width_px BETWEEN 1 AND 20000)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "height_px",
+            "getter_name": "heightPx",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (height_px BETWEEN 1 AND 20000)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "format",
+            "getter_name": "format",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (format IN ('jpeg', 'png'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const EnumNameConverter<OutputFormat>(OutputFormat.values)",
+              "dart_type_name": "OutputFormat"
+            }
+          },
+          {
+            "name": "render_version",
+            "getter_name": "renderVersion",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (render_version >= 1)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "created_at",
+            "getter_name": "createdAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "origin",
+            "getter_name": "origin",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT 'session' CHECK (origin IN ('session', 'rerender'))",
+            "default_dart": "const CustomExpression('\\'session\\'')",
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const EnumNameConverter<SessionOutputOrigin>(SessionOutputOrigin.values)",
+              "dart_type_name": "SessionOutputOrigin"
+            }
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 27,
+      "references": [
+        26
+      ],
+      "type": "index",
+      "data": {
+        "on": 26,
+        "name": "session_outputs_by_session",
+        "sql": "CREATE INDEX session_outputs_by_session\n  ON session_outputs (session_id, created_at);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 28,
+      "references": [
+        26
+      ],
+      "type": "trigger",
+      "data": {
+        "on": 26,
+        "references_in_body": [
+          26
+        ],
+        "name": "session_outputs_are_immutable",
+        "sql": "CREATE TRIGGER session_outputs_are_immutable\n  BEFORE UPDATE ON session_outputs\nBEGIN\n  SELECT RAISE(ABORT, 'finished photos are immutable');\nEND;"
+      }
+    },
+    {
+      "id": 29,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "export_batches",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY CHECK (length(id) = 36)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "outcome",
+            "getter_name": "outcome",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (outcome IN ('shared', 'unknown'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const EnumNameConverter<ShareOutcome>(ShareOutcome.values)",
+              "dart_type_name": "ShareOutcome"
+            }
+          },
+          {
+            "name": "destination",
+            "getter_name": "destination",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (destination IS NULL OR length(destination) BETWEEN 1 AND 200)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "file_count",
+            "getter_name": "fileCount",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (file_count >= 1)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "failure_count",
+            "getter_name": "failureCount",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (failure_count >= 0)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "created_at",
+            "getter_name": "createdAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 30,
+      "references": [
+        29,
+        20
+      ],
+      "type": "table",
+      "data": {
+        "name": "export_batch_items",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "batch_id",
+            "getter_name": "batchId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL REFERENCES export_batches(id)ON DELETE CASCADE",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "export_batches",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ]
+          },
+          {
+            "name": "session_id",
+            "getter_name": "sessionId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL REFERENCES capture_sessions(id)ON DELETE CASCADE",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "capture_sessions",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ]
+          },
+          {
+            "name": "kind",
+            "getter_name": "kind",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (kind IN ('finished', 'original'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const EnumNameConverter<ExportFileKind>(ExportFileKind.values)",
+              "dart_type_name": "ExportFileKind"
+            }
+          },
+          {
+            "name": "source_id",
+            "getter_name": "sourceId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(source_id) BETWEEN 1 AND 64)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "file_name",
+            "getter_name": "fileName",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(file_name) BETWEEN 5 AND 120)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "PRIMARY KEY(batch_id, kind, source_id)"
+        ],
+        "explicit_pk": [
+          "batch_id",
+          "kind",
+          "source_id"
+        ]
+      }
+    },
+    {
+      "id": 31,
+      "references": [
+        30
+      ],
+      "type": "index",
+      "data": {
+        "on": 30,
+        "name": "export_batch_items_by_session",
+        "sql": "CREATE INDEX export_batch_items_by_session\n  ON export_batch_items (session_id);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 32,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "pending_file_deletions",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "relative_path",
+            "getter_name": "relativePath",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY CHECK (length(relative_path) BETWEEN 3 AND 255 AND relative_path NOT LIKE '/%' AND relative_path NOT LIKE '%..%' AND instr(relative_path, char(92)) = 0)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "queued_at",
+            "getter_name": "queuedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 33,
+      "references": [
+        1
+      ],
+      "type": "table",
+      "data": {
+        "name": "event_delivery_options",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "event_id",
+            "getter_name": "eventId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY REFERENCES events(id)ON DELETE CASCADE",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key",
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "events",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ]
+          },
+          {
+            "name": "enabled",
+            "getter_name": "enabled",
+            "moor_type": "bool",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (enabled IN (0, 1))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "offline_queue",
+            "getter_name": "offlineQueue",
+            "moor_type": "bool",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (offline_queue IN (0, 1))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "link_days",
+            "getter_name": "linkDays",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (link_days BETWEEN 1 AND 30)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "send_limit",
+            "getter_name": "sendLimit",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (send_limit BETWEEN 1 AND 10000)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 34,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "delivery_pairings",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY CHECK (id = 1)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "base_url",
+            "getter_name": "baseUrl",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(base_url) BETWEEN 9 AND 200 AND(base_url LIKE 'https://%' OR base_url LIKE 'http://127.0.0.1:%' OR base_url LIKE 'http://localhost:%'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "booth_id",
+            "getter_name": "boothId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(booth_id) = 36)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "booth_name",
+            "getter_name": "boothName",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(booth_name) BETWEEN 1 AND 40)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "brand_name",
+            "getter_name": "brandName",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(brand_name) BETWEEN 1 AND 40)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "paired_at",
+            "getter_name": "pairedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "paused",
+            "getter_name": "paused",
+            "moor_type": "bool",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT 0 CHECK (paused IN (0, 1))",
+            "default_dart": "const CustomExpression('0')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "capabilities_json",
+            "getter_name": "capabilitiesJson",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (capabilities_json IS NULL OR length(capabilities_json) <= 8192)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "checked_at",
+            "getter_name": "checkedAt",
+            "moor_type": "dateTime",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 35,
+      "references": [
+        20
+      ],
+      "type": "table",
+      "data": {
+        "name": "delivery_intents",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY CHECK (length(id) = 36)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "session_id",
+            "getter_name": "sessionId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL REFERENCES capture_sessions(id)ON DELETE CASCADE",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "capture_sessions",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ]
+          },
+          {
+            "name": "event_id",
+            "getter_name": "eventId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(event_id) = 36)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "output_id",
+            "getter_name": "outputId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(output_id) = 36)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "phone_last4",
+            "getter_name": "phoneLast4",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(phone_last4) = 4 AND phone_last4 NOT GLOB '*[^0-9]*')",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "phone_stored",
+            "getter_name": "phoneStored",
+            "moor_type": "bool",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (phone_stored IN (0, 1))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "consent_text_version",
+            "getter_name": "consentTextVersion",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(consent_text_version) BETWEEN 1 AND 32)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "consent_text_digest",
+            "getter_name": "consentTextDigest",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(consent_text_digest) = 64 AND consent_text_digest NOT GLOB '*[^0-9a-f]*')",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "consent_accepted_at",
+            "getter_name": "consentAcceptedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "locale",
+            "getter_name": "locale",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(locale) BETWEEN 2 AND 5)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "link_days",
+            "getter_name": "linkDays",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (link_days BETWEEN 1 AND 30)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "send_limit",
+            "getter_name": "sendLimit",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (send_limit BETWEEN 1 AND 10000)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "queue_allowed",
+            "getter_name": "queueAllowed",
+            "moor_type": "bool",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (queue_allowed IN (0, 1))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "idempotency_key",
+            "getter_name": "idempotencyKey",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL UNIQUE CHECK (length(idempotency_key) BETWEEN 16 AND 64)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "unique"
+            ]
+          },
+          {
+            "name": "state",
+            "getter_name": "state",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (state IN ('queued', 'handingOver', 'handedOver', 'finished'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "deliveryIntentStateByName",
+              "dart_type_name": "DeliveryIntentState"
+            }
+          },
+          {
+            "name": "local_outcome",
+            "getter_name": "localOutcome",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (local_outcome IS NULL OR local_outcome IN ('failed', 'expired', 'canceled'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const EnumNameConverter<DeliveryPhase>(DeliveryPhase.values)",
+              "dart_type_name": "DeliveryPhase"
+            }
+          },
+          {
+            "name": "remote_job_id",
+            "getter_name": "remoteJobId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (remote_job_id IS NULL OR length(remote_job_id) = 36)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "remote_status",
+            "getter_name": "remoteStatus",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (remote_status IS NULL OR remote_status IN ('queued', 'uploading', 'submitting', 'submitted', 'sent', 'delivered', 'failed', 'unknown', 'expired', 'canceled'))",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "remote_updated_at",
+            "getter_name": "remoteUpdatedAt",
+            "moor_type": "dateTime",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "last_error_code",
+            "getter_name": "lastErrorCode",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "CHECK (last_error_code IS NULL OR length(last_error_code) BETWEEN 2 AND 64)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "attempt_count",
+            "getter_name": "attemptCount",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT 0 CHECK (attempt_count >= 0)",
+            "default_dart": "const CustomExpression('0')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "retry_at",
+            "getter_name": "retryAt",
+            "moor_type": "dateTime",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "expires_at",
+            "getter_name": "expiresAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "history_json",
+            "getter_name": "historyJson",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT '[]' CHECK (length(history_json) BETWEEN 2 AND 8192)",
+            "default_dart": "const CustomExpression('\\'[]\\'')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "created_at",
+            "getter_name": "createdAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "updated_at",
+            "getter_name": "updatedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "CHECK((state = 'finished')=(local_outcome IS NOT NULL OR remote_status IN ('delivered', 'failed', 'expired', 'canceled') OR last_error_code = 'NO_LONGER_AT_SERVICE'))"
+        ]
+      }
+    },
+    {
+      "id": 36,
+      "references": [
+        35
+      ],
+      "type": "index",
+      "data": {
+        "on": 35,
+        "name": "delivery_intents_by_session",
+        "sql": "CREATE INDEX delivery_intents_by_session ON delivery_intents (session_id);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 37,
+      "references": [
+        35
+      ],
+      "type": "index",
+      "data": {
+        "on": 35,
+        "name": "delivery_intents_by_state",
+        "sql": "CREATE INDEX delivery_intents_by_state ON delivery_intents (state, retry_at);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 38,
+      "references": [
+        35
+      ],
+      "type": "index",
+      "data": {
+        "on": 35,
+        "name": "delivery_intents_by_event",
+        "sql": "CREATE INDEX delivery_intents_by_event ON delivery_intents (event_id, created_at);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 39,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "delivery_remote_revocations",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "remote_job_id",
+            "getter_name": "remoteJobId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY CHECK (length(remote_job_id) = 36)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "requested_at",
+            "getter_name": "requestedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    }
+  ],
+  "fixed_sql": [
+    {
+      "name": "booth_profiles",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"booth_profiles\" (\"id\" TEXT NOT NULL PRIMARY KEY CHECK (length(id) = 36), \"name\" TEXT NOT NULL CHECK (length(trim(name)) BETWEEN 1 AND 40), \"theme_profile\" TEXT NOT NULL CHECK (theme_profile IN ('porcelainStudio', 'lightOak', 'darkroomWalnut')), \"contrast_preference\" TEXT NOT NULL CHECK (contrast_preference IN ('system', 'standard', 'high')), \"motion_preference\" TEXT NOT NULL CHECK (motion_preference IN ('system', 'reduced')), \"default_lens\" TEXT NOT NULL CHECK (default_lens IN ('front', 'back', 'external')), \"default_mirror_preview\" INTEGER NOT NULL CHECK (default_mirror_preview IN (0, 1)), \"default_mirror_output\" INTEGER NOT NULL CHECK (default_mirror_output IN (0, 1)), \"default_orientation\" TEXT NOT NULL CHECK (default_orientation IN ('portrait', 'landscape')), \"default_output_format\" TEXT NOT NULL CHECK (default_output_format IN ('jpeg', 'png')), \"default_jpeg_quality\" INTEGER NOT NULL CHECK (default_jpeg_quality BETWEEN 80 AND 100), \"created_at\" TEXT NOT NULL, \"updated_at\" TEXT NOT NULL);"
+        }
+      ]
+    },
+    {
+      "name": "events",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"events\" (\"id\" TEXT NOT NULL PRIMARY KEY CHECK (length(id) = 36), \"booth_profile_id\" TEXT NOT NULL REFERENCES booth_profiles(id)ON DELETE RESTRICT, \"title\" TEXT NOT NULL CHECK (length(trim(title)) BETWEEN 1 AND 80), \"event_date\" TEXT CHECK (event_date IS NULL OR event_date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'), \"venue\" TEXT CHECK (venue IS NULL OR length(venue) <= 80), \"notes\" TEXT CHECK (notes IS NULL OR length(notes) <= 1000), \"status\" TEXT NOT NULL CHECK (status IN ('draft', 'active', 'archived')), \"lens\" TEXT NOT NULL CHECK (lens IN ('front', 'back', 'external')), \"mirror_preview\" INTEGER NOT NULL CHECK (mirror_preview IN (0, 1)), \"mirror_output\" INTEGER NOT NULL CHECK (mirror_output IN (0, 1)), \"guest_orientation\" TEXT NOT NULL CHECK (guest_orientation IN ('portrait', 'landscape')), \"shot_count\" INTEGER NOT NULL CHECK (shot_count BETWEEN 1 AND 4), \"countdown_seconds\" INTEGER NOT NULL CHECK (countdown_seconds BETWEEN 2 AND 10), \"shot_interval_seconds\" INTEGER NOT NULL CHECK (shot_interval_seconds BETWEEN 1 AND 10), \"retake_policy\" TEXT NOT NULL CHECK (retake_policy IN ('none', 'perShot', 'wholeSession')), \"retake_limit\" INTEGER NOT NULL, \"welcome_title\" TEXT CHECK (welcome_title IS NULL OR length(welcome_title) <= 60), \"welcome_message\" TEXT CHECK (welcome_message IS NULL OR length(welcome_message) <= 200), \"consent_text\" TEXT CHECK (consent_text IS NULL OR length(consent_text) <= 400), \"guest_chooses_template\" INTEGER NOT NULL CHECK (guest_chooses_template IN (0, 1)), \"finish_timeout_seconds\" INTEGER NOT NULL CHECK (finish_timeout_seconds BETWEEN 10 AND 120), \"experience_json\" TEXT NOT NULL CHECK (length(experience_json) BETWEEN 2 AND 8192), \"output_format\" TEXT NOT NULL CHECK (output_format IN ('jpeg', 'png')), \"jpeg_quality\" INTEGER NOT NULL CHECK (jpeg_quality BETWEEN 80 AND 100), \"retention_mode\" TEXT NOT NULL CHECK (retention_mode IN ('keepUntilDeleted', 'deleteAfterDays')), \"retention_days\" INTEGER, \"created_at\" TEXT NOT NULL, \"updated_at\" TEXT NOT NULL, \"archived_at\" TEXT, CHECK((retake_policy = 'none' AND retake_limit = 0)OR(retake_policy <> 'none' AND retake_limit BETWEEN 1 AND 5)), CHECK((retention_mode = 'keepUntilDeleted' AND retention_days IS NULL)OR(retention_mode = 'deleteAfterDays' AND retention_days BETWEEN 1 AND 365)), CHECK((status = 'archived')=(archived_at IS NOT NULL)));"
+        }
+      ]
+    },
+    {
+      "name": "app_settings",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"app_settings\" (\"id\" INTEGER NOT NULL PRIMARY KEY CHECK (id = 1), \"booth_profile_id\" TEXT NOT NULL REFERENCES booth_profiles(id)ON DELETE RESTRICT, \"setup_completed_at\" TEXT, \"booth_event_id\" TEXT REFERENCES events(id)ON DELETE SET NULL);"
+        }
+      ]
+    },
+    {
+      "name": "operator_access",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"operator_access\" (\"id\" INTEGER NOT NULL PRIMARY KEY CHECK (id = 1), \"recovery_verifier\" TEXT, \"pin_failures\" INTEGER NOT NULL DEFAULT 0 CHECK (pin_failures >= 0), \"pin_last_failure_at\" TEXT, \"recovery_failures\" INTEGER NOT NULL DEFAULT 0 CHECK (recovery_failures >= 0), \"recovery_last_failure_at\" TEXT);"
+        }
+      ]
+    },
+    {
+      "name": "templates",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"templates\" (\"id\" TEXT NOT NULL PRIMARY KEY CHECK (length(id) = 36), \"display_name\" TEXT NOT NULL CHECK (length(trim(display_name)) BETWEEN 1 AND 80), \"category\" TEXT CHECK (category IS NULL OR length(category) <= 40), \"tags_json\" TEXT CHECK (tags_json IS NULL OR length(tags_json) BETWEEN 2 AND 4096), \"created_at\" TEXT NOT NULL, \"updated_at\" TEXT NOT NULL, \"archived_at\" TEXT);"
+        }
+      ]
+    },
+    {
+      "name": "template_revisions",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"template_revisions\" (\"id\" TEXT NOT NULL PRIMARY KEY CHECK (length(id) = 36), \"template_id\" TEXT NOT NULL REFERENCES templates(id)ON DELETE RESTRICT, \"revision_number\" INTEGER NOT NULL CHECK (revision_number >= 1), \"document_schema_version\" INTEGER NOT NULL CHECK (document_schema_version >= 1), \"manifest_path\" TEXT NOT NULL CHECK (length(manifest_path) BETWEEN 1 AND 255 AND manifest_path NOT LIKE '/%' AND manifest_path NOT LIKE '%..%' AND instr(manifest_path, char(92)) = 0), \"checksum\" TEXT NOT NULL CHECK (length(checksum) = 64), \"page_width_px\" INTEGER NOT NULL CHECK (page_width_px BETWEEN 1 AND 20000), \"page_height_px\" INTEGER NOT NULL CHECK (page_height_px BETWEEN 1 AND 20000), \"photo_slot_count\" INTEGER NOT NULL CHECK (photo_slot_count BETWEEN 0 AND 8), \"created_at\" TEXT NOT NULL, UNIQUE(template_id, revision_number));"
+        }
+      ]
+    },
+    {
+      "name": "template_revisions_are_immutable",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TRIGGER template_revisions_are_immutable BEFORE UPDATE ON template_revisions BEGIN SELECT RAISE (ABORT, 'template revisions are immutable');END"
+        }
+      ]
+    },
+    {
+      "name": "assets",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"assets\" (\"id\" TEXT NOT NULL PRIMARY KEY CHECK (length(id) = 64 AND id NOT GLOB '*[^0-9a-f]*'), \"media_type\" TEXT NOT NULL CHECK (media_type IN ('png', 'jpeg', 'ttf', 'otf')), \"relative_path\" TEXT NOT NULL UNIQUE CHECK (relative_path = 'assets/' || id || '.' || CASE media_type WHEN 'png' THEN 'png' WHEN 'jpeg' THEN 'jpg' WHEN 'ttf' THEN 'ttf' WHEN 'otf' THEN 'otf' END), \"byte_length\" INTEGER NOT NULL CHECK (byte_length BETWEEN 1 AND 52428800), \"width_px\" INTEGER CHECK (width_px IS NULL OR width_px BETWEEN 1 AND 12000), \"height_px\" INTEGER CHECK (height_px IS NULL OR height_px BETWEEN 1 AND 12000), \"display_name\" TEXT CHECK (display_name IS NULL OR length(display_name) BETWEEN 1 AND 120), \"origin\" TEXT NOT NULL CHECK (origin IN ('imported', 'package', 'bundled')), \"created_at\" TEXT NOT NULL, CHECK((media_type IN ('png', 'jpeg'))=(width_px IS NOT NULL AND height_px IS NOT NULL)), CHECK(media_type IN ('png', 'jpeg') OR byte_length <= 20971520));"
+        }
+      ]
+    },
+    {
+      "name": "asset_content_is_immutable",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TRIGGER asset_content_is_immutable BEFORE UPDATE OF id, media_type, relative_path, byte_length, width_px, height_px, origin, created_at ON assets BEGIN SELECT RAISE (ABORT, 'assets are immutable');END"
+        }
+      ]
+    },
+    {
+      "name": "template_revision_assets",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"template_revision_assets\" (\"template_revision_id\" TEXT NOT NULL REFERENCES template_revisions(id)ON DELETE CASCADE, \"asset_id\" TEXT NOT NULL REFERENCES assets(id)ON DELETE RESTRICT, PRIMARY KEY(template_revision_id, asset_id));"
+        }
+      ]
+    },
+    {
+      "name": "template_revision_assets_by_asset",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX template_revision_assets_by_asset ON template_revision_assets (asset_id)"
+        }
+      ]
+    },
+    {
+      "name": "template_drafts",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"template_drafts\" (\"template_id\" TEXT NOT NULL PRIMARY KEY REFERENCES templates(id)ON DELETE CASCADE, \"base_revision_id\" TEXT NOT NULL REFERENCES template_revisions(id)ON DELETE CASCADE, \"document\" TEXT NOT NULL CHECK (length(document) BETWEEN 2 AND 1048576), \"updated_at\" TEXT NOT NULL);"
+        }
+      ]
+    },
+    {
+      "name": "events_by_status",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX events_by_status ON events (status, updated_at)"
+        }
+      ]
+    },
+    {
+      "name": "event_templates",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"event_templates\" (\"event_id\" TEXT NOT NULL REFERENCES events(id)ON DELETE CASCADE, \"template_revision_id\" TEXT NOT NULL REFERENCES template_revisions(id)ON DELETE RESTRICT, \"position\" INTEGER NOT NULL CHECK (position BETWEEN 0 AND 11), \"is_default\" INTEGER NOT NULL CHECK (is_default IN (0, 1)), PRIMARY KEY(event_id, template_revision_id), UNIQUE(event_id, position));"
+        }
+      ]
+    },
+    {
+      "name": "event_templates_one_default",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE UNIQUE INDEX event_templates_one_default ON event_templates (event_id) WHERE is_default = 1"
+        }
+      ]
+    },
+    {
+      "name": "event_templates_by_revision",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX event_templates_by_revision ON event_templates (template_revision_id)"
+        }
+      ]
+    },
+    {
+      "name": "original_photos",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"original_photos\" (\"id\" TEXT NOT NULL PRIMARY KEY CHECK (length(id) BETWEEN 1 AND 64 AND id NOT GLOB '*[^0-9A-Za-z-]*'), \"relative_path\" TEXT NOT NULL UNIQUE CHECK (relative_path = 'originals/' || id || '.jpg'), \"width_px\" INTEGER NOT NULL CHECK (width_px BETWEEN 1 AND 20000), \"height_px\" INTEGER NOT NULL CHECK (height_px BETWEEN 1 AND 20000), \"byte_length\" INTEGER NOT NULL CHECK (byte_length BETWEEN 1 AND 104857600), \"sha256\" TEXT NOT NULL CHECK (length(sha256) = 64 AND sha256 NOT GLOB '*[^0-9a-f]*'), \"lens\" TEXT NOT NULL CHECK (lens IN ('front', 'back', 'external')), \"sensor_orientation\" INTEGER NOT NULL CHECK (sensor_orientation IN (0, 90, 180, 270)), \"device_orientation\" TEXT NOT NULL CHECK (device_orientation IN ('portraitUp', 'landscapeLeft', 'portraitDown', 'landscapeRight', 'unknown')), \"exif_orientation\" INTEGER CHECK (exif_orientation IS NULL OR exif_orientation BETWEEN 1 AND 8), \"mirror_preview\" INTEGER NOT NULL CHECK (mirror_preview IN (0, 1)), \"mirror_output\" INTEGER NOT NULL CHECK (mirror_output IN (0, 1)), \"origin\" TEXT NOT NULL CHECK (origin IN ('diagnostics', 'session', 'legacy')), \"captured_at\" TEXT NOT NULL, \"committed_at\" TEXT NOT NULL);"
+        }
+      ]
+    },
+    {
+      "name": "original_photos_by_time",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX original_photos_by_time ON original_photos (captured_at)"
+        }
+      ]
+    },
+    {
+      "name": "original_photos_are_immutable",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TRIGGER original_photos_are_immutable BEFORE UPDATE ON original_photos BEGIN SELECT RAISE (ABORT, 'originals are immutable');END"
+        }
+      ]
+    },
+    {
+      "name": "pending_original_commits",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"pending_original_commits\" (\"id\" TEXT NOT NULL PRIMARY KEY CHECK (length(id) BETWEEN 1 AND 64 AND id NOT GLOB '*[^0-9A-Za-z-]*'), \"sha256\" TEXT NOT NULL CHECK (length(sha256) = 64 AND sha256 NOT GLOB '*[^0-9a-f]*'), \"byte_length\" INTEGER NOT NULL CHECK (byte_length >= 1), \"metadata\" TEXT NOT NULL CHECK (length(metadata) BETWEEN 2 AND 65536), \"started_at\" TEXT NOT NULL);"
+        }
+      ]
+    },
+    {
+      "name": "capture_sessions",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"capture_sessions\" (\"id\" TEXT NOT NULL PRIMARY KEY CHECK (length(id) = 36), \"event_id\" TEXT NOT NULL REFERENCES events(id)ON DELETE RESTRICT, \"sequence\" INTEGER NOT NULL CHECK (sequence >= 1), \"template_revision_id\" TEXT NOT NULL REFERENCES template_revisions(id)ON DELETE RESTRICT, \"planned_shots\" INTEGER NOT NULL CHECK (planned_shots BETWEEN 1 AND 4), \"plan_json\" TEXT NOT NULL CHECK (length(plan_json) BETWEEN 2 AND 65536), \"status\" TEXT NOT NULL CHECK (status IN ('capturing', 'reviewing', 'rendering', 'completed', 'abandoned', 'failed')), \"end_reason\" TEXT CHECK (end_reason IS NULL OR end_reason IN ('interrupted', 'timedOut', 'operatorExit', 'problem', 'renderFailed')), \"render_attempts\" INTEGER NOT NULL DEFAULT 0 CHECK (render_attempts >= 0), \"output_id\" TEXT CHECK (output_id IS NULL OR length(output_id) = 36), \"started_at\" TEXT NOT NULL, \"updated_at\" TEXT NOT NULL, \"ended_at\" TEXT, CHECK((status IN ('completed', 'abandoned', 'failed'))=(ended_at IS NOT NULL)), CHECK((status = 'completed')=(output_id IS NOT NULL)), CHECK((status IN ('abandoned', 'failed'))=(end_reason IS NOT NULL)), UNIQUE(event_id, sequence));"
+        }
+      ]
+    },
+    {
+      "name": "capture_sessions_by_event",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX capture_sessions_by_event ON capture_sessions (event_id, started_at)"
+        }
+      ]
+    },
+    {
+      "name": "capture_session_plans_are_immutable",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TRIGGER capture_session_plans_are_immutable BEFORE UPDATE OF id, event_id, sequence, template_revision_id, planned_shots, plan_json, started_at ON capture_sessions BEGIN SELECT RAISE (ABORT, 'a session is frozen to its plan');END"
+        }
+      ]
+    },
+    {
+      "name": "finished_sessions_are_immutable",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TRIGGER finished_sessions_are_immutable BEFORE UPDATE ON capture_sessions WHEN OLD.status IN ('completed', 'abandoned', 'failed') BEGIN SELECT RAISE (ABORT, 'a finished session never changes');END"
+        }
+      ]
+    },
+    {
+      "name": "session_photos",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"session_photos\" (\"session_id\" TEXT NOT NULL REFERENCES capture_sessions(id)ON DELETE RESTRICT, \"shot_index\" INTEGER NOT NULL CHECK (shot_index BETWEEN 0 AND 3), \"attempt\" INTEGER NOT NULL CHECK (attempt >= 1), \"round\" INTEGER NOT NULL CHECK (round >= 0 AND round < attempt), \"slot_index\" INTEGER NOT NULL CHECK (slot_index BETWEEN 0 AND 7), \"original_id\" TEXT NOT NULL UNIQUE REFERENCES original_photos(id)ON DELETE RESTRICT, \"captured_at\" TEXT NOT NULL, PRIMARY KEY(session_id, shot_index, attempt));"
+        }
+      ]
+    },
+    {
+      "name": "session_photos_are_immutable",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TRIGGER session_photos_are_immutable BEFORE UPDATE ON session_photos BEGIN SELECT RAISE (ABORT, 'session photos are immutable');END"
+        }
+      ]
+    },
+    {
+      "name": "session_outputs",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"session_outputs\" (\"id\" TEXT NOT NULL PRIMARY KEY CHECK (length(id) = 36), \"session_id\" TEXT NOT NULL REFERENCES capture_sessions(id)ON DELETE RESTRICT, \"relative_path\" TEXT NOT NULL UNIQUE CHECK (relative_path = 'outputs/' || id || CASE format WHEN 'jpeg' THEN '.jpg' ELSE '.png' END), \"sha256\" TEXT NOT NULL CHECK (length(sha256) = 64 AND sha256 NOT GLOB '*[^0-9a-f]*'), \"byte_length\" INTEGER NOT NULL CHECK (byte_length >= 1), \"width_px\" INTEGER NOT NULL CHECK (width_px BETWEEN 1 AND 20000), \"height_px\" INTEGER NOT NULL CHECK (height_px BETWEEN 1 AND 20000), \"format\" TEXT NOT NULL CHECK (format IN ('jpeg', 'png')), \"render_version\" INTEGER NOT NULL CHECK (render_version >= 1), \"created_at\" TEXT NOT NULL, \"origin\" TEXT NOT NULL DEFAULT 'session' CHECK (origin IN ('session', 'rerender')));"
+        }
+      ]
+    },
+    {
+      "name": "session_outputs_by_session",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX session_outputs_by_session ON session_outputs (session_id, created_at)"
+        }
+      ]
+    },
+    {
+      "name": "session_outputs_are_immutable",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TRIGGER session_outputs_are_immutable BEFORE UPDATE ON session_outputs BEGIN SELECT RAISE (ABORT, 'finished photos are immutable');END"
+        }
+      ]
+    },
+    {
+      "name": "export_batches",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"export_batches\" (\"id\" TEXT NOT NULL PRIMARY KEY CHECK (length(id) = 36), \"outcome\" TEXT NOT NULL CHECK (outcome IN ('shared', 'unknown')), \"destination\" TEXT CHECK (destination IS NULL OR length(destination) BETWEEN 1 AND 200), \"file_count\" INTEGER NOT NULL CHECK (file_count >= 1), \"failure_count\" INTEGER NOT NULL CHECK (failure_count >= 0), \"created_at\" TEXT NOT NULL);"
+        }
+      ]
+    },
+    {
+      "name": "export_batch_items",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"export_batch_items\" (\"batch_id\" TEXT NOT NULL REFERENCES export_batches(id)ON DELETE CASCADE, \"session_id\" TEXT NOT NULL REFERENCES capture_sessions(id)ON DELETE CASCADE, \"kind\" TEXT NOT NULL CHECK (kind IN ('finished', 'original')), \"source_id\" TEXT NOT NULL CHECK (length(source_id) BETWEEN 1 AND 64), \"file_name\" TEXT NOT NULL CHECK (length(file_name) BETWEEN 5 AND 120), PRIMARY KEY(batch_id, kind, source_id));"
+        }
+      ]
+    },
+    {
+      "name": "export_batch_items_by_session",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX export_batch_items_by_session ON export_batch_items (session_id)"
+        }
+      ]
+    },
+    {
+      "name": "pending_file_deletions",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"pending_file_deletions\" (\"relative_path\" TEXT NOT NULL PRIMARY KEY CHECK (length(relative_path) BETWEEN 3 AND 255 AND relative_path NOT LIKE '/%' AND relative_path NOT LIKE '%..%' AND instr(relative_path, char(92)) = 0), \"queued_at\" TEXT NOT NULL);"
+        }
+      ]
+    },
+    {
+      "name": "event_delivery_options",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"event_delivery_options\" (\"event_id\" TEXT NOT NULL PRIMARY KEY REFERENCES events(id)ON DELETE CASCADE, \"enabled\" INTEGER NOT NULL CHECK (enabled IN (0, 1)), \"offline_queue\" INTEGER NOT NULL CHECK (offline_queue IN (0, 1)), \"link_days\" INTEGER NOT NULL CHECK (link_days BETWEEN 1 AND 30), \"send_limit\" INTEGER NOT NULL CHECK (send_limit BETWEEN 1 AND 10000));"
+        }
+      ]
+    },
+    {
+      "name": "delivery_pairings",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"delivery_pairings\" (\"id\" INTEGER NOT NULL PRIMARY KEY CHECK (id = 1), \"base_url\" TEXT NOT NULL CHECK (length(base_url) BETWEEN 9 AND 200 AND(base_url LIKE 'https://%' OR base_url LIKE 'http://127.0.0.1:%' OR base_url LIKE 'http://localhost:%')), \"booth_id\" TEXT NOT NULL CHECK (length(booth_id) = 36), \"booth_name\" TEXT NOT NULL CHECK (length(booth_name) BETWEEN 1 AND 40), \"brand_name\" TEXT NOT NULL CHECK (length(brand_name) BETWEEN 1 AND 40), \"paired_at\" TEXT NOT NULL, \"paused\" INTEGER NOT NULL DEFAULT 0 CHECK (paused IN (0, 1)), \"capabilities_json\" TEXT CHECK (capabilities_json IS NULL OR length(capabilities_json) <= 8192), \"checked_at\" TEXT);"
+        }
+      ]
+    },
+    {
+      "name": "delivery_intents",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"delivery_intents\" (\"id\" TEXT NOT NULL PRIMARY KEY CHECK (length(id) = 36), \"session_id\" TEXT NOT NULL REFERENCES capture_sessions(id)ON DELETE CASCADE, \"event_id\" TEXT NOT NULL CHECK (length(event_id) = 36), \"output_id\" TEXT NOT NULL CHECK (length(output_id) = 36), \"phone_last4\" TEXT NOT NULL CHECK (length(phone_last4) = 4 AND phone_last4 NOT GLOB '*[^0-9]*'), \"phone_stored\" INTEGER NOT NULL CHECK (phone_stored IN (0, 1)), \"consent_text_version\" TEXT NOT NULL CHECK (length(consent_text_version) BETWEEN 1 AND 32), \"consent_text_digest\" TEXT NOT NULL CHECK (length(consent_text_digest) = 64 AND consent_text_digest NOT GLOB '*[^0-9a-f]*'), \"consent_accepted_at\" TEXT NOT NULL, \"locale\" TEXT NOT NULL CHECK (length(locale) BETWEEN 2 AND 5), \"link_days\" INTEGER NOT NULL CHECK (link_days BETWEEN 1 AND 30), \"send_limit\" INTEGER NOT NULL CHECK (send_limit BETWEEN 1 AND 10000), \"queue_allowed\" INTEGER NOT NULL CHECK (queue_allowed IN (0, 1)), \"idempotency_key\" TEXT NOT NULL UNIQUE CHECK (length(idempotency_key) BETWEEN 16 AND 64), \"state\" TEXT NOT NULL CHECK (state IN ('queued', 'handingOver', 'handedOver', 'finished')), \"local_outcome\" TEXT CHECK (local_outcome IS NULL OR local_outcome IN ('failed', 'expired', 'canceled')), \"remote_job_id\" TEXT CHECK (remote_job_id IS NULL OR length(remote_job_id) = 36), \"remote_status\" TEXT CHECK (remote_status IS NULL OR remote_status IN ('queued', 'uploading', 'submitting', 'submitted', 'sent', 'delivered', 'failed', 'unknown', 'expired', 'canceled')), \"remote_updated_at\" TEXT, \"last_error_code\" TEXT CHECK (last_error_code IS NULL OR length(last_error_code) BETWEEN 2 AND 64), \"attempt_count\" INTEGER NOT NULL DEFAULT 0 CHECK (attempt_count >= 0), \"retry_at\" TEXT, \"expires_at\" TEXT NOT NULL, \"history_json\" TEXT NOT NULL DEFAULT '[]' CHECK (length(history_json) BETWEEN 2 AND 8192), \"created_at\" TEXT NOT NULL, \"updated_at\" TEXT NOT NULL, CHECK((state = 'finished')=(local_outcome IS NOT NULL OR remote_status IN ('delivered', 'failed', 'expired', 'canceled') OR last_error_code = 'NO_LONGER_AT_SERVICE')));"
+        }
+      ]
+    },
+    {
+      "name": "delivery_intents_by_session",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX delivery_intents_by_session ON delivery_intents (session_id)"
+        }
+      ]
+    },
+    {
+      "name": "delivery_intents_by_state",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX delivery_intents_by_state ON delivery_intents (state, retry_at)"
+        }
+      ]
+    },
+    {
+      "name": "delivery_intents_by_event",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX delivery_intents_by_event ON delivery_intents (event_id, created_at)"
+        }
+      ]
+    },
+    {
+      "name": "delivery_remote_revocations",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"delivery_remote_revocations\" (\"remote_job_id\" TEXT NOT NULL PRIMARY KEY CHECK (length(remote_job_id) = 36), \"requested_at\" TEXT NOT NULL);"
+        }
+      ]
+    }
+  ]
+}
