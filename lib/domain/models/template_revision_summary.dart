@@ -1,5 +1,6 @@
 import 'package:meta/meta.dart';
 
+import '../template/template_tags.dart';
 import '../value_objects/orientation.dart';
 
 /// What events need to know about an immutable template revision (A-05,
@@ -16,6 +17,7 @@ final class TemplateRevisionSummary {
     required this.pageHeightPx,
     required this.photoSlotCount,
     this.templateArchived = false,
+    this.tags = const TemplateTags(),
   });
 
   final String revisionId;
@@ -32,6 +34,9 @@ final class TemplateRevisionSummary {
   /// The template was archived in the library; the revision still exists.
   final bool templateArchived;
 
+  /// What the design suits (EP08); recommendations only, never a limit.
+  final TemplateTags tags;
+
   PageOrientation get pageOrientation =>
       PageOrientation.fromPixelSize(width: pageWidthPx, height: pageHeightPx);
 
@@ -45,7 +50,8 @@ final class TemplateRevisionSummary {
       other.pageWidthPx == pageWidthPx &&
       other.pageHeightPx == pageHeightPx &&
       other.photoSlotCount == photoSlotCount &&
-      other.templateArchived == templateArchived;
+      other.templateArchived == templateArchived &&
+      other.tags == tags;
 
   @override
   int get hashCode => Object.hash(revisionId, templateArchived);

@@ -152,4 +152,11 @@ abstract final class PorcelainIcons {
   static const IconData backup = Symbols.folder_zip_rounded;
   static const IconData restoreBackup = Symbols.settings_backup_restore_rounded;
   static const IconData kiosk = Symbols.phonelink_lock_rounded;
+
+  // Guest experiences: builder, customisation and preview (EP07, EP08).
+  static const IconData suggested = Symbols.auto_awesome_rounded;
+  static const IconData sound = Symbols.volume_up_rounded;
+  static const IconData countdown = Symbols.timer_rounded;
+  static const IconData words = Symbols.chat_bubble_rounded;
+  static const IconData restartPreview = Symbols.restart_alt_rounded;
 }

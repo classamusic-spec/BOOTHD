@@ -1161,3 +1161,40 @@ iPad: BLOCKED (no Mac, no iPad); Android: debug build PASS, no tablet
 - No new data, storage or network paths. The live template reads the
   session's own originals for display only and keeps them in memory
   while the camera shows; nothing is written.
+
+## EP07 and EP08: Event Builder, Experience panel, Full Experience Preview, recommendations
+
+```text
+Stage: EP07 and EP08 | commit adding this entry | build 0.1.0+1
+Host: same Linux cloud VM; Flutter 3.47.7 / Dart 3.13.5; schema v8 (tags_json column, already present); no new packages
+iPad: BLOCKED (no Mac, no iPad); Android: debug build PASS, no tablet
+```
+
+### Commands and exit codes (2026-10-22 UTC)
+
+| # | Command | Exit | Result |
+| --- | --- | --- | --- |
+| 1 | `flutter test test/widgets/event_builder_test.dart test/widgets/experience_preview_test.dart test/domain/experience/template_recommendations_test.dart` | 0 | 10 passed (the preview test first failed until the sample photos, drawn by the engine, were given real time in the test) |
+| 2 | `flutter test test/app/events_flow_test.dart test/architecture` | 1, then 0 | The architecture test refused `package:crypto` in `core` (preview checksums now use the domain's SHA-256 helper); the events flow test drove the old tabbed new-event screen and now walks the builder's steps, setting privacy in the editor after the first save |
+| 3 | `flutter test test/widgets/screens_test.dart` for the new catalog screens | 1, then 0 | Builder step header measured as low contrast (full-width text rows over the textured canvas; the header now hugs its words); the preview's ribbon overflowed at 200% text (now wraps). The preview's scaled guest screens are exempt from the pixel-contrast check only (reason in `screens_test.dart` and ADR-0017 section 9); tap targets, labels and layout still checked |
+| 4 | `flutter test --update-goldens test/goldens` | 0 | 413 passed; 8 changed and 8 new goldens (builder steps, Experience panel, templates recommendations text, preview), reviewed |
+| 5 | `dart format --output=none --set-exit-if-changed lib test tool`; `flutter analyze` | 0 | Clean |
+| 6 | `flutter test` (whole suite) | 1 | 23 min 31 s: 3,338 passed, 4 skipped, 1 failed: `starter_designs_test.dart` picked the reference-board designs as the untagged ones; they are now tagged, so it selects them by category (the expected list is unchanged). Re-run of that file and `starter_packs_test.dart`: 31 passed |
+| 7 | `tool/build_android.sh debug`; `tool/audit_permissions.sh` | 0 | `app-debug.apk` 242,384,010 bytes, SHA-256 `47daf7d2429a44d601697b0ca111935e61b5a746cec9f25866391500231deee1`; audit passed |
+
+### Acceptance items
+
+| AC | Status | Evidence |
+| --- | --- | --- |
+| AC-EP01 All eight experiences are selectable during event creation | PASS (host) | Builder step 2 shows the eight packs and the variant control; `event_builder_test.dart` builds a Kid Party Arcade event end to end into the launch checks |
+| AC-EP07 The operator can customise allowed settings and reset to defaults | PASS (host) | Words, accent (only readable colours offered), countdown, animation, celebration, sound and volume, camera screen, children; switching pack keeps templates, camera and welcome settings; Reset clears only the experience's choices (`event_builder_test.dart`) |
+| AC-EP08 Full Experience Preview can simulate the entire journey | PASS (host); devices BLOCKED | `experience_preview_test.dart`: welcome to finished with texting, portrait and landscape, another pack, Restart, Close; no session, photo, output or text row, no camera use, no delivery call; the event keeps its own pack |
+| Section 13 Template recommendations | PASS (host) | Suited templates first with a badge, unrelated ones still addable (`event_builder_test.dart`, `template_recommendations_test.dart`); tags stored from starter designs and duplicates |
+| AC-EP12 MMS delivery uses the shared consent and delivery infrastructure | PASS (host) | Texting is unchanged outside the preview; the preview's Send submits nothing and says so |
+| Optional event logo (section 11) | NOT BUILT | Recorded in ADR-0017 section 9 for the owner |
+
+### Security and privacy notes (EP07, EP08)
+
+- The preview holds sample photos in memory only and never opens the
+  camera; its texting screens accept a number for the walkthrough and
+  discard it; nothing is logged.

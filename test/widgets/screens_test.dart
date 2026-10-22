@@ -12,6 +12,13 @@ import 'package:porcelain_photo_booth/shared/widgets/pressable.dart';
 import '../support/screen_catalog.dart';
 import '../support/tablet_viewports.dart';
 
+/// Screens that show guest screens scaled down inside a device frame (the
+/// Full Experience Preview, EP08). The pixel-based contrast check measures
+/// their text after downscaling has blurred it, so it cannot judge them;
+/// the same guest screens pass it at full size (the booth screens here).
+/// Every other check, tap targets and labels included, still applies.
+const _miniatures = {'experience preview'};
+
 void main() {
   for (final name in [
     ...screens.keys,
@@ -54,7 +61,9 @@ void main() {
           await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
           await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
           await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
-          await expectLater(tester, meetsGuideline(textContrastGuideline));
+          if (!_miniatures.contains(name)) {
+            await expectLater(tester, meetsGuideline(textContrastGuideline));
+          }
           semantics.dispose();
         });
       }
@@ -72,7 +81,7 @@ void main() {
           );
           await expectLater(tester, meetsGuideline(textContrastGuideline));
           semantics.dispose();
-        });
+        }, skip: _miniatures.contains(name));
       }
 
       for (final viewport in [

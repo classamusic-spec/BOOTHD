@@ -9,6 +9,7 @@ import '../models/template_revision_summary.dart';
 import '../template/document_issues.dart';
 import '../template/template_assets.dart';
 import '../template/template_document.dart';
+import '../template/template_tags.dart';
 
 /// Why a template, asset or package was not stored or loaded. Each maps to
 /// a `TEMPLATE_*` diagnostic (A-14).
@@ -219,6 +220,7 @@ abstract interface class TemplateRepository {
     required String name,
     String? category,
     required TemplateDocument document,
+    TemplateTags tags = const TemplateTags(),
   });
 
   /// Stores [document] as the next revision of [templateId]. Earlier

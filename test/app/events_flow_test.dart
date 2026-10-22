@@ -89,7 +89,8 @@ void main() {
     await tester.enterText(find.byType(TextField).first, 'Garden party');
     await tester.pumpAndSettle();
 
-    await tapText(tester, 'Camera');
+    // A new event is built step by step (EP07).
+    await tapText(tester, '5. Camera');
     await tapText(tester, 'Rear camera');
     await tapText(tester, 'Mirror saved photos');
     await tapText(tester, 'Landscape');
@@ -99,19 +100,21 @@ void main() {
     await tapText(tester, 'Whole session');
     await tapLabel(tester, 'More retakes');
 
-    await tapText(tester, 'Templates');
+    await tapText(tester, '4. Templates');
     await tester.ensureVisible(buttonNear('Two-up classic', 'Add'));
     await tester.tap(buttonNear('Two-up classic', 'Add'));
     await tester.pumpAndSettle();
     expect(find.text('Default'), findsOneWidget);
 
-    await tapText(tester, 'Experience');
+    await tapText(tester, '2. Experience');
     await tapText(tester, 'Vintage Light Wood');
-    await tapText(tester, 'Privacy');
-    await tapText(tester, 'For a set time');
-
     await tapText(tester, 'Save');
     expect(find.text('Saved.'), findsOneWidget);
+
+    // Once saved, the editor's sections: privacy is set there.
+    await tapText(tester, 'Privacy');
+    await tapText(tester, 'For a set time');
+    await tapText(tester, 'Save');
     await tapText(tester, 'Event');
     await tapText(tester, 'Activate event');
     expect(find.text('“Garden party” is active.'), findsOneWidget);

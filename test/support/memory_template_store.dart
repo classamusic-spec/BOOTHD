@@ -10,6 +10,7 @@ import 'package:porcelain_photo_booth/domain/template/asset_formats.dart';
 import 'package:porcelain_photo_booth/domain/template/template_assets.dart';
 import 'package:porcelain_photo_booth/domain/template/template_document.dart';
 import 'package:porcelain_photo_booth/domain/template/template_json.dart';
+import 'package:porcelain_photo_booth/domain/template/template_tags.dart';
 import 'package:porcelain_photo_booth/domain/value_objects/clock.dart';
 
 /// The template store in memory, for widget tests: every future completes
@@ -179,11 +180,18 @@ final class MemoryAssets implements AssetRepository {
 }
 
 final class _Template {
-  _Template(this.id, this.name, this.category, this.updatedAt);
+  _Template(
+    this.id,
+    this.name,
+    this.category,
+    this.updatedAt, {
+    this.tags = const TemplateTags(),
+  });
 
   final String id;
   String name;
   final String? category;
+  final TemplateTags tags;
   DateTime updatedAt;
   bool archived = false;
 }
@@ -230,6 +238,7 @@ final class MemoryTemplates implements TemplateRepository {
     pageHeightPx: s.pageHeightPx,
     photoSlotCount: s.photoSlotCount,
     templateArchived: template.archived,
+    tags: template.tags,
   );
 
   @override
@@ -279,6 +288,7 @@ final class MemoryTemplates implements TemplateRepository {
         pageHeightPx: document.page.heightPx,
         photoSlotCount: document.photoSlotCount,
         templateArchived: template.archived,
+        tags: template.tags,
       ),
       category: template.category,
       document: document,
@@ -324,6 +334,7 @@ final class MemoryTemplates implements TemplateRepository {
     required String name,
     String? category,
     required TemplateDocument document,
+    TemplateTags tags = const TemplateTags(),
   }) async {
     _check(document);
     final template = _Template(
@@ -331,6 +342,7 @@ final class MemoryTemplates implements TemplateRepository {
       name.trim(),
       category,
       _store.clock.now(),
+      tags: tags,
     );
     _templates[template.id] = template;
     return _add(template, document, 1).summary;

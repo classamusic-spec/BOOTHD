@@ -106,11 +106,16 @@ class EditorSetting extends StatelessWidget {
     required this.title,
     required this.control,
     this.description,
+    this.stacked = false,
   });
 
   final String title;
   final String? description;
   final Widget control;
+
+  /// The control under its label at every width: for controls that wrap,
+  /// such as a row of swatches.
+  final bool stacked;
 
   @override
   Widget build(BuildContext context) {
@@ -131,6 +136,16 @@ class EditorSetting extends StatelessWidget {
     );
     return LayoutBuilder(
       builder: (context, constraints) {
+        if (stacked) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              label,
+              const SizedBox(height: PorcelainSpace.sm),
+              control,
+            ],
+          );
+        }
         if (constraints.maxWidth >= 620) {
           return Row(
             children: [

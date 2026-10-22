@@ -60,6 +60,7 @@ class GuestDeliveryFlow extends StatefulWidget {
     required this.watch,
     required this.onActivity,
     required this.onFinish,
+    this.preview = false,
   });
 
   final Uint8List photo;
@@ -83,6 +84,10 @@ class GuestDeliveryFlow extends StatefulWidget {
   /// Done, No thanks: back to the welcome for the next guest.
   final VoidCallback onFinish;
 
+  /// The Full Experience Preview (EP08): Send never submits anything and
+  /// the result says so.
+  final bool preview;
+
   @override
   State<GuestDeliveryFlow> createState() => _GuestDeliveryFlowState();
 }
@@ -97,6 +102,7 @@ class _GuestDeliveryFlowState extends State<GuestDeliveryFlow> {
   String? _intentId;
   PhoneNumber? _sentTo;
   var _failed = false;
+  var _previewed = false;
 
   late final _consentText = ConsentText(
     brand: widget.terms.brand,
@@ -124,6 +130,17 @@ class _GuestDeliveryFlowState extends State<GuestDeliveryFlow> {
   Future<void> _send() async {
     final number = _parsed?.number;
     if (number == null || !_consent || _sending) return;
+    if (widget.preview) {
+      _touch(() {
+        _previewed = true;
+        _sentTo = number;
+        _step = _Step.result;
+        _confirming = false;
+        _digits = '';
+        _consent = false;
+      });
+      return;
+    }
     _touch(() => _sending = true);
     try {
       final id = await widget.onSubmit(number, _consentText);
@@ -264,6 +281,7 @@ class _GuestDeliveryFlowState extends State<GuestDeliveryFlow> {
         ),
       ),
       _Step.result => _Result(
+        previewed: _previewed,
         failed: _failed,
         offline: widget.offline,
         masked: _sentTo?.masked ?? '',
@@ -1005,6 +1023,7 @@ class _GuestOverlay extends StatelessWidget {
 /// wait for the text.
 class _Result extends StatelessWidget {
   const _Result({
+    required this.previewed,
     required this.failed,
     required this.offline,
     required this.masked,
@@ -1012,6 +1031,7 @@ class _Result extends StatelessWidget {
     required this.onDone,
   });
 
+  final bool previewed;
   final bool failed;
   final bool offline;
   final String masked;
@@ -1020,6 +1040,14 @@ class _Result extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (previewed) {
+      return _notice(
+        context,
+        title: DeliveryCopy.previewTitle,
+        body: DeliveryCopy.previewBody,
+        icon: PorcelainIcons.preview,
+      );
+    }
     if (failed || intent == null) {
       return _notice(
         context,

@@ -9,6 +9,7 @@ import '../../domain/repositories/template_store.dart';
 import '../../domain/template/document_issues.dart';
 import '../../domain/template/template_document.dart';
 import '../../domain/template/template_json.dart';
+import '../../domain/template/template_tags.dart';
 import '../../domain/value_objects/clock.dart';
 import '../../domain/value_objects/entity_id.dart';
 import '../database/booth_database.dart';
@@ -140,6 +141,7 @@ final class DriftTemplateRepository implements TemplateRepository {
     required String name,
     String? category,
     required TemplateDocument document,
+    TemplateTags tags = const TemplateTags(),
   }) async {
     final displayName = name.trim();
     final trimmedCategory = category?.trim();
@@ -172,6 +174,7 @@ final class DriftTemplateRepository implements TemplateRepository {
                       ? null
                       : trimmedCategory,
                 ),
+                tagsJson: Value(tags.isEmpty ? null : tags),
                 createdAt: now,
                 updatedAt: now,
               ),

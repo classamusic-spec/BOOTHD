@@ -42,6 +42,37 @@ enum ExperienceSetting {
 
 /// The ids each preset kind may take.
 abstract final class ExperienceCatalog {
+  /// The countdowns by the names operators see (EP07).
+  static const countdownNames = {
+    'porcelain-press': 'Porcelain Press',
+    'vintage-flip': 'Vintage Flip',
+    'film-leader': 'Film Leader',
+    'disco-pulse': 'Disco Pulse',
+    'storybook-magic': 'Storybook Magic',
+    'party-pop': 'Party Pop',
+    'arcade-start': 'Arcade Start',
+    'handheld-boot': 'Handheld Boot',
+    'gala-elegant': 'Gala Elegant',
+  };
+
+  /// Accent colours an operator may offer (EP07), as opaque ARGB. A pack
+  /// shows only those its own text stays readable on; the registry checks
+  /// again when the experience is resolved.
+  static const accentChoices = <(String, int)>[
+    ('Champagne', 0xFFD9B66F),
+    ('Rose', 0xFFF2A7B8),
+    ('Coral', 0xFFFF7F6B),
+    ('Sunflower', 0xFFFFCD3C),
+    ('Mint', 0xFF8FD9B6),
+    ('Sky', 0xFF8CC8F2),
+    ('Lilac', 0xFFC4A8F0),
+    ('Magenta', 0xFFE23D9A),
+    ('Teal', 0xFF13827A),
+    ('Plum', 0xFF7B2D63),
+    ('Navy', 0xFF283C78),
+    ('Forest', 0xFF2F6B3A),
+  ];
+
   static const countdowns = {
     'porcelain-press',
     'vintage-flip',

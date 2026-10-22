@@ -191,8 +191,28 @@ final screens = <String, ScreenSpec>{
     seeded: true,
   ),
   'new event': const ScreenSpec(RoutePaths.newEvent),
-  'new event templates empty': const ScreenSpec(
-    '${RoutePaths.newEvent}?tab=templates',
+  // The Event Builder's steps (EP07) and the Full Experience Preview
+  // (EP08), opened from the Experience tab.
+  'new event templates empty': ScreenSpec(
+    RoutePaths.newEvent,
+    then: (tester) => _tap(tester, '4. Templates'),
+  ),
+  'new event experience': ScreenSpec(
+    RoutePaths.newEvent,
+    then: (tester) => _tap(tester, '2. Experience'),
+  ),
+  'new event customise': ScreenSpec(
+    RoutePaths.newEvent,
+    then: (tester) => _tap(tester, '3. Customise'),
+  ),
+  'new event launch': ScreenSpec(
+    RoutePaths.newEvent,
+    then: (tester) => _tap(tester, '8. Check and launch'),
+  ),
+  'experience preview': ScreenSpec(
+    RoutePaths.event(SeedIds.active, tab: 'guest'),
+    seeded: true,
+    then: (tester) => _tap(tester, 'Preview the whole guest journey'),
   ),
   'preflight': ScreenSpec(RoutePaths.preflight(SeedIds.active), seeded: true),
   'preflight draft': ScreenSpec(

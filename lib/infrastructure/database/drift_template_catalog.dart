@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../../domain/models/template_revision_summary.dart';
 import '../../domain/repositories/template_catalog.dart';
+import '../../domain/template/template_tags.dart';
 import 'booth_database.dart';
 
 /// Template revision summaries from the booth database. Revisions are
@@ -77,4 +78,5 @@ TemplateRevisionSummary templateRevisionSummaryOf(
   pageHeightPx: revision.pageHeightPx,
   photoSlotCount: revision.photoSlotCount,
   templateArchived: template.archivedAt != null,
+  tags: template.tagsJson ?? const TemplateTags(),
 );

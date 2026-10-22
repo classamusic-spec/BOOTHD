@@ -10,6 +10,9 @@ import 'package:crypto/crypto.dart';
 /// The id of an asset with these [bytes]: their lowercase hex SHA-256.
 String assetIdOf(List<int> bytes) => sha256.convert(bytes).toString();
 
+/// The lowercase hex SHA-256 of [bytes], as files are checked by.
+String sha256HexOf(List<int> bytes) => sha256.convert(bytes).toString();
+
 /// A colour as 0xAARRGGBB, written in documents as `#AARRGGBB`.
 extension type const ArgbColor(int value) {
   int get alpha => (value >> 24) & 0xFF;

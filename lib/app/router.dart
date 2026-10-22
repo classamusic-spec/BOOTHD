@@ -5,9 +5,11 @@ import 'package:go_router/go_router.dart';
 import '../core/access/access_controller.dart';
 import '../core/routing/access_redirect.dart';
 import '../core/routing/route_paths.dart';
+import '../domain/models/booth_event.dart';
 import '../domain/template/template_document.dart';
 import '../features/booth/booth_operator_screen.dart';
 import '../features/booth/booth_screen.dart';
+import '../features/booth/experience_preview_screen.dart';
 import '../features/booth/guest_preview_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
 import '../features/diagnostics/camera_test_screen.dart';
@@ -97,6 +99,16 @@ GoRouter buildRouter({
                     path: 'new',
                     parentNavigatorKey: root,
                     builder: (_, _) => const EventEditorScreen.create(),
+                  ),
+                  GoRoute(
+                    path: 'experience-preview',
+                    parentNavigatorKey: root,
+                    builder: (_, state) => ExperiencePreviewScreen(
+                      event: switch (state.extra) {
+                        final BoothEvent event => event,
+                        _ => null,
+                      },
+                    ),
                   ),
                   GoRoute(
                     path: ':eventId',

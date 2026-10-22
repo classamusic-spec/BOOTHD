@@ -56,6 +56,12 @@ abstract final class DeliveryCopy {
   static const photoSaved = 'Your photo is saved at the booth.';
   static String sentTo(String masked) => 'To $masked';
 
+  // The Full Experience Preview (EP08): nothing is ever sent.
+  static const previewTitle = 'Preview: no text was sent';
+  static const previewBody =
+      'In a real session the photo would be texted now. The preview '
+      'sends nothing and keeps nothing.';
+
   /// The headline and explanation for a request's state, as the guest
   /// sees it right after asking.
   static (String, String) result(

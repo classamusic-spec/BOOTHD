@@ -93,9 +93,14 @@ class BoothSessionView extends ConsumerStatefulWidget {
     super.key,
     required this.event,
     required this.onOperator,
+    this.preview = false,
   });
 
   final BoothEvent event;
+
+  /// The Full Experience Preview (EP08): the same screens on stand-in
+  /// services; no orientation request and no texting service.
+  final bool preview;
 
   /// Opens the operator's PIN screen (S28), after the session has ended.
   final VoidCallback onOperator;
@@ -156,20 +161,23 @@ class _BoothSessionViewState extends ConsumerState<BoothSessionView> {
     // Finished photos an earlier run could not finish (AC-0707).
     unawaited(_session.finishPending());
     // A request only: the OS may keep another orientation (ADR-0004).
-    unawaited(
-      SystemChrome.setPreferredOrientations(
-        switch (widget.event.capture.orientation) {
-          GuestOrientationPreference.portrait => const [
-            DeviceOrientation.portraitUp,
-            DeviceOrientation.portraitDown,
-          ],
-          GuestOrientationPreference.landscape => const [
-            DeviceOrientation.landscapeLeft,
-            DeviceOrientation.landscapeRight,
-          ],
-        },
-      ),
-    );
+    // The preview never turns the operator's screen.
+    if (!widget.preview) {
+      unawaited(
+        SystemChrome.setPreferredOrientations(
+          switch (widget.event.capture.orientation) {
+            GuestOrientationPreference.portrait => const [
+              DeviceOrientation.portraitUp,
+              DeviceOrientation.portraitDown,
+            ],
+            GuestOrientationPreference.landscape => const [
+              DeviceOrientation.landscapeLeft,
+              DeviceOrientation.landscapeRight,
+            ],
+          },
+        ),
+      );
+    }
   }
 
   @override
@@ -180,7 +188,9 @@ class _BoothSessionViewState extends ConsumerState<BoothSessionView> {
       ..removeListener(_updateLive)
       ..dispose();
     _live?.dispose();
-    unawaited(SystemChrome.setPreferredOrientations(const []));
+    if (!widget.preview) {
+      unawaited(SystemChrome.setPreferredOrientations(const []));
+    }
     super.dispose();
   }
 
@@ -350,7 +360,11 @@ class _BoothSessionViewState extends ConsumerState<BoothSessionView> {
         onKeep: _session.keep,
       ),
       _Screen.rendering => const GuestRendering(),
-      _Screen.finished => _FinishedStep(event: event, session: _session),
+      _Screen.finished => _FinishedStep(
+        event: event,
+        session: _session,
+        preview: widget.preview,
+      ),
       _Screen.paused => GuestPaused(
         photosSoFar: photosSoFar,
         onContinue: _session.resume,
@@ -507,10 +521,15 @@ class _GuestNotice extends StatelessWidget {
 /// event, the pairing and what the service last said. Until then, and
 /// whenever texting is off or unavailable, the plain finished screen.
 class _FinishedStep extends ConsumerStatefulWidget {
-  const _FinishedStep({required this.event, required this.session});
+  const _FinishedStep({
+    required this.event,
+    required this.session,
+    required this.preview,
+  });
 
   final BoothEvent event;
   final BoothSessionController session;
+  final bool preview;
 
   @override
   ConsumerState<_FinishedStep> createState() => _FinishedStepState();
@@ -529,9 +548,13 @@ class _FinishedStepState extends ConsumerState<_FinishedStep> {
   Future<void> _decide() async {
     if (!widget.event.delivery.enabled) return;
     try {
-      final offer = await ref
-          .read(deliveryServiceProvider)
-          .offerFor(widget.event.delivery);
+      // The preview shows the texting screens as if online and asks no
+      // service; its Send submits nothing.
+      final offer = widget.preview
+          ? DeliveryOffer.online
+          : await ref
+                .read(deliveryServiceProvider)
+                .offerFor(widget.event.delivery);
       final capabilities =
           (await ref.read(deliveryRepositoryProvider).pairing())?.capabilities;
       if (!mounted || capabilities == null) return;
@@ -589,6 +612,7 @@ class _FinishedStepState extends ConsumerState<_FinishedStep> {
           .map((intents) => intents.firstWhereOrNull((i) => i.id == id)),
       onActivity: session.touch,
       onFinish: () => unawaited(session.nextGuest()),
+      preview: widget.preview,
     );
   }
 }

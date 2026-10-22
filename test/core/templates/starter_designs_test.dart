@@ -43,8 +43,11 @@ void main() {
   test('the reference board designs are offered (CR-002)', () {
     expect(
       [
+        // The packs' own designs (EP04, EP05) aside.
         for (final design in starterDesigns)
-          if (!design.blank && design.tags.isEmpty) design.name,
+          if (!design.blank &&
+              !const {'Kid Party', 'Retro Game'}.contains(design.category))
+            design.name,
       ],
       [
         'Classic Strip',

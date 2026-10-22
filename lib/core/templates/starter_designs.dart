@@ -216,6 +216,11 @@ final starterDesigns = <StarterDesign>[
     description: 'Three photos on ivory with a serif title.',
     page: PageSpec.twoBySix,
     decorations: const [],
+    tags: const TemplateTags(
+      categoryTags: ['classic', 'wedding'],
+      recommendedExperienceIds: ['porcelain-classic', 'vintage-oak'],
+      visualStyleTags: ['ivory', 'serif'],
+    ),
     build: (d) {
       const page = PageSpec.twoBySix;
       return _document(page, [
@@ -267,6 +272,11 @@ final starterDesigns = <StarterDesign>[
     description: 'Rounded photos framed by cream blossoms.',
     page: PageSpec.twoBySix,
     decorations: const ['blossom_corner', 'blossom_garland', 'blossom_sprig'],
+    tags: const TemplateTags(
+      categoryTags: ['floral', 'wedding', 'classic'],
+      recommendedExperienceIds: ['porcelain-classic', 'storybook-garden'],
+      visualStyleTags: ['flowers'],
+    ),
     build: (d) {
       const page = PageSpec.twoBySix;
       const ivory = ArgbColor(0xFFFFFCF6);
@@ -340,6 +350,11 @@ final starterDesigns = <StarterDesign>[
     description: 'Two wide photos, a fine line and spaced capitals.',
     page: PageSpec.fourBySixPortrait,
     decorations: const [],
+    tags: const TemplateTags(
+      categoryTags: ['formal', 'classic'],
+      recommendedExperienceIds: ['midnight-gala'],
+      visualStyleTags: ['minimal'],
+    ),
     build: (d) {
       const page = PageSpec.fourBySixPortrait;
       return _document(page, [
@@ -378,6 +393,11 @@ final starterDesigns = <StarterDesign>[
     description: 'Four frames on a dark film strip.',
     page: PageSpec.twoBySix,
     decorations: const ['film_edges'],
+    tags: const TemplateTags(
+      categoryTags: ['retro', 'film', 'vintage'],
+      recommendedExperienceIds: ['retro-film'],
+      visualStyleTags: ['film-strip'],
+    ),
     build: (d) {
       const page = PageSpec.twoBySix;
       return _document(page, [
@@ -419,6 +439,12 @@ final starterDesigns = <StarterDesign>[
     description: 'Champagne paper, a gold frame and confetti.',
     page: PageSpec.fourBySixPortrait,
     decorations: const ['gold_frame', 'gold_confetti'],
+    tags: const TemplateTags(
+      categoryTags: ['party', 'gala'],
+      recommendedExperienceIds: ['midnight-gala', 'disco-nights'],
+      occasionTags: ['anniversary'],
+      visualStyleTags: ['gold'],
+    ),
     build: (d) {
       const page = PageSpec.fourBySixPortrait;
       const border = Stroke(widthPt: 2, color: _gold);

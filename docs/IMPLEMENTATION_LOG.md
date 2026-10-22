@@ -3,6 +3,48 @@
 Newest milestone first. Each entry: scope, plan, changes, commands and exit
 codes, platform results, spec issues raised, risks, next step.
 
+## EP07 and EP08: Event Builder, Experience panel, Full Experience Preview, recommendations
+
+- Date: 2026-10-22 (UTC)
+- Authorised by: the owner's EP00 reply (item 6, "Do what you
+  recommend": the 8-step builder with the Experience tab as the
+  customisation panel; "build ep01 - ep09").
+
+### Changes
+
+- Event Builder (`event_editor_screen.dart`, `EventBuilderStep`): new
+  events walk eight steps; steps can be visited in any order; Save and
+  check stores the event and opens its launch checks. Saved events open
+  in the editor at the matching section.
+- Experience panel (`editor/guest_tab.dart`): eight pack cards (each in
+  its own colours and decorations) and a variant control; a live welcome
+  and countdown preview; welcome, get-ready and finished words (the
+  pack's words as hints); accent colour swatches readable for the pack;
+  the nine countdowns by name; animation off, gentle or full; celebration;
+  sound and volume; camera-focused or full template; guests may be
+  children; Reset to pack defaults (keeps pack and variant); the finished
+  screen's time. Switching pack keeps the event's words, templates,
+  camera and other settings.
+- Template recommendations (`template_recommendations.dart`): templates
+  made for the pack and variant, then the pack, then sharing a tag, come
+  first with a "Suits <pack>" badge; every template stays addable. Tags
+  are stored with templates created from starter designs or duplicated;
+  the five original designs are tagged too.
+- Full Experience Preview (`experience_preview_screen.dart`,
+  `preview_services.dart`, route `/studio/events/experience-preview`): the
+  whole journey on the real guest screens with a sample camera, portrait
+  or landscape, any pack, Restart and Close, and a ribbon on every screen;
+  nothing is stored, sent or captured. Opened from the Experience tab and
+  the builder's Preview step.
+- Fixes on the way: the builder's step header measured as low contrast
+  because full-width text rows sit over the textured canvas; the header
+  now hugs its words. The preview's ribbon wraps at 200% text.
+
+### Not built
+
+- Optional event logo (prompt section 11): needs an asset import and a
+  place in the packs' layouts; recorded in ADR-0017 for the owner.
+
 ## EP06: every pack on the shared guest screens, and the Live Template camera
 
 - Date: 2026-10-22 (UTC)

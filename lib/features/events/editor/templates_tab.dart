@@ -8,6 +8,8 @@ import '../../../core/design_system/porcelain_icons.dart';
 import '../../../core/design_system/porcelain_metrics.dart';
 import '../../../core/design_system/porcelain_theme.dart';
 import '../../../core/templates/template_thumbnails.dart';
+import '../../../domain/experience/experience_registry.dart';
+import '../../../domain/experience/template_recommendations.dart';
 import '../../../domain/models/event_rules.dart';
 import '../../../domain/models/template_revision_summary.dart';
 import '../../../shared/widgets/empty_state.dart';
@@ -36,6 +38,9 @@ class TemplatesTab extends ConsumerWidget {
     final selectable = ref.watch(selectableTemplatesProvider);
     final count = selection.revisionIds.length;
     final full = count >= EventLimits.maxTemplates;
+    final pack =
+        ExperienceRegistry.bundled.pack(event.experience.packId) ??
+        ExperienceRegistry.bundled.fallback;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -100,7 +105,9 @@ class TemplatesTab extends ConsumerWidget {
         const SizedBox(height: PorcelainSpace.xl),
         EditorCard(
           title: 'Add from the library',
-          subtitle: 'The latest version of each template in the library.',
+          subtitle:
+              'The latest version of each template. Designs that suit '
+              '${pack.displayName} come first; any template can be used.',
           children: [
             switch (selectable) {
               AsyncData(:final value) when value.isEmpty => const EmptyState(
@@ -112,10 +119,23 @@ class TemplatesTab extends ConsumerWidget {
               ),
               AsyncData(:final value) => Column(
                 children: [
-                  for (final template in value)
+                  for (final template in TemplateRecommendations.order(
+                    value,
+                    pack,
+                    event.experience,
+                  ))
                     if (!selection.revisionIds.contains(template.revisionId))
                       _LibraryTemplate(
                         template: template,
+                        suits:
+                            TemplateRecommendations.score(
+                                  template,
+                                  pack,
+                                  event.experience,
+                                ) >
+                                0
+                            ? pack.displayName
+                            : null,
                         shotCount: event.capture.shotCount,
                         onAdd: full || tab.readOnly
                             ? null
@@ -275,12 +295,16 @@ class _ChosenTemplate extends StatelessWidget {
 class _LibraryTemplate extends StatelessWidget {
   const _LibraryTemplate({
     required this.template,
+    required this.suits,
     required this.shotCount,
     required this.onAdd,
     required this.disabledReason,
   });
 
   final TemplateRevisionSummary template;
+
+  /// The experience this design suits, when it is recommended.
+  final String? suits;
   final int shotCount;
   final VoidCallback? onAdd;
   final String disabledReason;
@@ -305,6 +329,14 @@ class _LibraryTemplate extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(template.templateName, style: theme.text.titleSmall),
+                  if (suits case final pack?) ...[
+                    const SizedBox(height: PorcelainSpace.xxs),
+                    StatusBadge(
+                      label: 'Suits $pack',
+                      icon: PorcelainIcons.suggested,
+                      tone: PorcelainTone.info,
+                    ),
+                  ],
                   const SizedBox(height: 2),
                   Text(
                     '${pageSizeLabel(template)} · '

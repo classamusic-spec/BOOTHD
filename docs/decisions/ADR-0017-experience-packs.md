@@ -122,6 +122,38 @@ haptics only (the owner asked for sound).
 - Camera-focused is the default stage for every event: Full Template is
   an operator choice until its cost is measured on the certified tablets.
 
+### 9. Event Builder, Experience panel and an isolated preview (EP07, EP08)
+
+- A new event is built in eight steps (details, experience, customise,
+  templates, camera, texting, preview, check and launch) inside the event
+  editor: the same draft, the same validation, the header's Save at any
+  step; Save and check stores it and opens the launch checklist. Saved
+  events keep the tabbed editor, whose Experience tab is the full panel
+  (pack and variant with a live welcome and countdown, words, accent
+  colour, countdown, motion, celebration, sound and volume, camera
+  screen, children, Reset to pack defaults). No JSON anywhere.
+- Accent colours come from a fixed, named list (`ExperienceCatalog`); a
+  pack offers only those its text stays readable on, and the registry
+  checks again when resolving.
+- Template recommendations rank and mark; they never hide a template.
+  Tags travel from a starter design (or a duplicated template) into the
+  catalog's existing `tags_json` column.
+- The Full Experience Preview runs `BoothSessionView` in a nested
+  provider scope over in-memory stand-ins (`core/experience/
+  preview_services.dart`): a sample camera drawing sample photos, a
+  memory still store and session repository, and an export that renders
+  with the real renderer at screen size into memory. The view's preview
+  mode requests no orientation and asks no texting service; Send submits
+  nothing and says so. Tests prove no row, file, camera use or delivery
+  call results.
+- The preview shows guest screens scaled into a device frame. The
+  automated pixel-contrast check cannot judge downscaled text, so that one
+  screen is exempt from it (and only from it); the same guest screens pass
+  it at full size.
+- Not built: an optional event logo (needs an asset import and a guest
+  placement that the packs' layouts do not have yet); recorded for the
+  owner.
+
 ## Consequences
 
 - One new runtime dependency family (`audioplayers` and its platform

@@ -68,6 +68,7 @@ final class TemplateLibrary {
       name: _checkedName(name),
       category: design.category,
       document: design.build(decorations),
+      tags: design.tags,
     );
   }
 
@@ -81,6 +82,7 @@ final class TemplateLibrary {
       name: _checkedName(name),
       category: source.category,
       document: source.document,
+      tags: source.summary.tags,
     );
   }
 

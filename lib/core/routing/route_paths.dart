@@ -34,6 +34,10 @@ abstract final class RoutePaths {
   /// The event editor for a new event (S04).
   static const newEvent = '/studio/events/new';
 
+  /// The Full Experience Preview (EP08) of the event being edited, which
+  /// the editor passes along; operators only.
+  static const experiencePreview = '/studio/events/experience-preview';
+
   /// The event editor (S04), optionally open at [tab] (an EventEditorTab
   /// name).
   static String event(String eventId, {String? tab}) =>
