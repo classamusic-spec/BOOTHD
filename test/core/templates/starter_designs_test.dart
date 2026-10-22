@@ -44,7 +44,7 @@ void main() {
     expect(
       [
         for (final design in starterDesigns)
-          if (!design.blank) design.name,
+          if (!design.blank && design.tags.isEmpty) design.name,
       ],
       [
         'Classic Strip',

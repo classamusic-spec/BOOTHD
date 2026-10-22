@@ -284,6 +284,10 @@ final class ExperienceRegistry {
 
   static const fallbackPackId = 'porcelain-classic';
 
+  /// Packs made for children: choosing one turns on "Guests may be
+  /// children" (EP00 decision 4.7). The operator can turn it off.
+  static const childrenPackIds = {'kid-party-arcade'};
+
   final _packs = <String, ExperiencePack>{};
   final _rejected = <String, List<ExperienceProblem>>{};
 

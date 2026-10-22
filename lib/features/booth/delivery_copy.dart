@@ -29,6 +29,10 @@ abstract final class DeliveryCopy {
   static const noThanks = 'No thanks';
   static const needNumber = 'Enter your 10-digit number first';
   static const needConsent = 'Check the box to agree first';
+
+  /// For events whose guests may be children (EP00 decision 4.7).
+  static const guardianNote =
+      'A parent or guardian enters the number and gives consent.';
   static const clear = 'Clear';
   static const deleteDigit = 'Delete last digit';
   static const nothingToClear = 'No digits entered yet';

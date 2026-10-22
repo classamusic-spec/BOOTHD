@@ -3,6 +3,46 @@
 Newest milestone first. Each entry: scope, plan, changes, commands and exit
 codes, platform results, spec issues raised, risks, next step.
 
+## EP04 and EP05: Kid Party Arcade, Retro Game Quest and 14 starter designs
+
+- Date: 2026-10-22 (UTC)
+- Authorised by: the owner's EP00 reply ("build ep01 - ep09"; item 7 for
+  the children setting). Both stages are delivered together because they
+  share the art library, the template fonts and the starter-design
+  changes.
+
+### Changes
+
+- Art (`lib/core/design_system/party_art.dart`, original, code-drawn,
+  fixed seeds): balloons, confetti, stars and bunting; pixel hearts,
+  coins and sparkles, a stepped pixel border and a lit marquee. Rendered
+  to ten new template decorations by `tool/art/decorations.dart`, offered
+  in the editor (`bundled_decorations.dart`), provenance and hashes
+  recorded.
+- Template fonts: Courier Prime, Fredoka, Pixelify Sans, Poiret One and
+  Monoton join Inter and Cormorant Garamond as template families (the
+  variable faces at their default weight, so the renderer needs no
+  change); the editor offers them in two rows.
+- Starter designs: six Kid Party Arcade (Balloon Bash, Confetti Strip,
+  Superstar, Bunting Party, Sticker Grid, Birthday Square) and eight
+  Retro Game Quest (Player One Strip, Bonus Round, Scoreboard, Level Up,
+  Marquee, High Score Strip, Co-op Mode, Game On), covering every print
+  format, each an ordinary editable document with recommendation tags
+  (`StarterDesign.tags`, used in EP08). Confetti deliberately crosses
+  photo edges (decorations are never clipped by slots).
+- Children (decision 4.7): an event switch "Guests may be children" in the
+  guest tab, turned on when Kid Party Arcade is chosen
+  (`ExperienceRegistry.childrenPackIds`); the texting screen then shows "A
+  parent or guardian enters the number and gives consent." The consent
+  checkbox, its text and the delivery flow are unchanged.
+- `docs/experience_packs/ORIGINALITY_REVIEW.md`.
+
+### Not yet
+
+The packs' own guest screens (decorations, buttons, countdown, copy on
+the live booth) arrive with EP06, which applies every pack to the shared
+screens; the guest-journey tests per pack and orientation are part of it.
+
 ## EP03: countdown presets, guest sounds and the ElevenLabs sound sheet
 
 - Date: 2026-10-22 (UTC)

@@ -11,6 +11,7 @@ import '../../domain/template/page_spec.dart';
 import '../../domain/template/template_assets.dart';
 import '../../domain/template/template_document.dart';
 import '../../domain/template/template_layers.dart';
+import '../../domain/template/template_tags.dart';
 
 const _ivory = ArgbColor(0xFFFBF8F3);
 const _ink = ArgbColor(0xFF33291F);
@@ -32,6 +33,7 @@ final class StarterDesign {
     required this.build,
     this.category,
     this.blank = false,
+    this.tags = const TemplateTags(),
   });
 
   final String id;
@@ -42,6 +44,9 @@ final class StarterDesign {
 
   /// The library category new templates from this design get (S06 filter).
   final String? category;
+
+  /// What the design suits (EP08 recommendations); never a restriction.
+  final TemplateTags tags;
 
   /// Bundled decorations the design uses (ids from bundledDecorations).
   final List<String> decorations;
@@ -63,6 +68,16 @@ final _placeholderAssets = {
     'gold_frame_strip',
     'film_edges',
     'gold_confetti',
+    'party_balloons',
+    'party_confetti',
+    'party_stars',
+    'party_bunting',
+    'pixel_hearts',
+    'pixel_coins',
+    'pixel_stars',
+    'pixel_frame',
+    'pixel_frame_strip',
+    'arcade_marquee',
   ])
     id: StoredAsset(
       id: id.codeUnits
@@ -463,6 +478,993 @@ final starterDesigns = <StarterDesign>[
           1440,
           900,
           230,
+        ),
+      ], d);
+    },
+  ),
+  ...kidPartyDesigns,
+  ...retroGameDesigns,
+];
+
+const _party = BundledFont(BundledFontFamily.fredoka);
+const _pixel = BundledFont(BundledFontFamily.pixelifySans);
+
+const _partyCoral = ArgbColor(0xFFE8474B);
+const _partyGrape = ArgbColor(0xFF6A3FD1);
+const _partyInk = ArgbColor(0xFF2B2440);
+const _white = ArgbColor(0xFFFFFFFF);
+const _nightSky = ArgbColor(0xFF1D1B3A);
+const _pixelGold = ArgbColor(0xFFFFD23F);
+const _pixelBlue = ArgbColor(0xFF4D7CFE);
+const _pixelRed = ArgbColor(0xFFFF4D6D);
+
+/// White photo borders, like stickers.
+const _sticker = Stroke(widthPt: 6, color: _white);
+
+/// The same border 24 page pixels wide, so its edges fall on whole pixels
+/// at half and quarter size and the editor canvas matches its preview
+/// (AC-0510) on designs whose slots are aligned the same way.
+const _stickerAligned = Stroke(widthPt: 5.76, color: _white);
+
+/// Kid Party Arcade starter designs (EP04): bright, rounded and playful;
+/// every word is a placeholder.
+final kidPartyDesigns = <StarterDesign>[
+  StarterDesign(
+    id: 'kid-balloon-bash',
+    category: 'Kid Party',
+    name: 'Balloon Bash',
+    description: 'Two rounded photos with a balloon bunch in each corner.',
+    page: PageSpec.fourBySixPortrait,
+    decorations: const ['party_balloons', 'party_confetti'],
+    tags: const TemplateTags(
+      categoryTags: ['kids', 'party'],
+      recommendedExperienceIds: ['kid-party-arcade'],
+      occasionTags: ['birthday'],
+      visualStyleTags: ['balloons', 'bright'],
+      ageSuitabilityNotes: 'Made for young children',
+      defaultCaptureCount: 2,
+    ),
+    build: (d) {
+      const page = PageSpec.fourBySixPortrait;
+      return _document(page, [
+        _solid(const ArgbColor(0xFFFFF6DC)),
+        _slot(
+          page,
+          0,
+          120,
+          260,
+          960,
+          640,
+          clip: const RoundedRectClip(0.06),
+          border: _sticker,
+        ),
+        _slot(
+          page,
+          1,
+          120,
+          960,
+          960,
+          640,
+          clip: const RoundedRectClip(0.06),
+          border: _sticker,
+        ),
+        _image(
+          page,
+          'confetti',
+          'Confetti',
+          d['party_confetti']!,
+          0,
+          0,
+          1200,
+          1800,
+        ),
+        _image(
+          page,
+          'balloons-top',
+          'Balloons, top',
+          d['party_balloons']!,
+          -80,
+          -60,
+          520,
+          520,
+        ),
+        _image(
+          page,
+          'balloons-bottom',
+          'Balloons, bottom',
+          d['party_balloons']!,
+          760,
+          1260,
+          480,
+          480,
+          rotation: 12,
+        ),
+        _text(
+          page,
+          'title',
+          'Title',
+          'Party Time!',
+          _party,
+          30,
+          _partyCoral,
+          440,
+          70,
+          700,
+          170,
+        ),
+        _text(
+          page,
+          'subtitle',
+          'Subtitle',
+          'SATURDAY FUN',
+          _party,
+          12,
+          _partyInk,
+          120,
+          1650,
+          960,
+          80,
+          letterSpacingPt: 2,
+        ),
+      ], d);
+    },
+  ),
+  StarterDesign(
+    id: 'kid-confetti-strip',
+    category: 'Kid Party',
+    name: 'Confetti Strip',
+    description: 'Three photos on white with confetti spilling over them.',
+    page: PageSpec.twoBySix,
+    decorations: const ['party_confetti'],
+    tags: const TemplateTags(
+      categoryTags: ['kids', 'party'],
+      recommendedExperienceIds: ['kid-party-arcade'],
+      occasionTags: ['birthday', 'school'],
+      visualStyleTags: ['confetti', 'bright'],
+      defaultCaptureCount: 3,
+    ),
+    build: (d) {
+      const page = PageSpec.twoBySix;
+      return _document(page, [
+        _solid(_white),
+        for (final (i, y) in [40.0, 448.0, 856.0].indexed)
+          _slot(page, i, 40, y, 520, 400, clip: const RoundedRectClip(0.08)),
+        // Over the photos on purpose: confetti crosses every photo's edge.
+        _image(
+          page,
+          'confetti',
+          'Confetti',
+          d['party_confetti']!,
+          // At its own proportions, centred: the dense art is never
+          // squeezed, so previews keep its detail (ADR-0011).
+          -300,
+          0,
+          1200,
+          1800,
+        ),
+        _text(
+          page,
+          'title',
+          'Title',
+          'Yay!',
+          _party,
+          40,
+          _partyGrape,
+          40,
+          1290,
+          520,
+          220,
+        ),
+        _text(
+          page,
+          'subtitle',
+          'Subtitle',
+          'BEST DAY EVER',
+          _party,
+          11,
+          _partyInk,
+          40,
+          1520,
+          520,
+          70,
+          letterSpacingPt: 2,
+        ),
+      ], d);
+    },
+  ),
+  StarterDesign(
+    id: 'kid-superstar',
+    category: 'Kid Party',
+    name: 'Superstar',
+    description: 'One round photo in a burst of stars.',
+    page: PageSpec.fourByFour,
+    decorations: const ['party_stars'],
+    tags: const TemplateTags(
+      categoryTags: ['kids'],
+      recommendedExperienceIds: ['kid-party-arcade'],
+      occasionTags: ['birthday', 'award'],
+      visualStyleTags: ['stars', 'bright'],
+      defaultCaptureCount: 1,
+    ),
+    build: (d) {
+      const page = PageSpec.fourByFour;
+      return _document(page, [
+        _solid(const ArgbColor(0xFFDDF0FF)),
+        // Above the title only, so no star crosses the words.
+        _image(page, 'stars', 'Stars', d['party_stars']!, 0, 0, 1200, 900),
+        _slot(
+          page,
+          0,
+          252,
+          180,
+          704,
+          704,
+          clip: const EllipseClip(),
+          border: const Stroke(widthPt: 7.68, color: _white),
+        ),
+        _text(
+          page,
+          'title',
+          'Title',
+          'Superstar',
+          _party,
+          30,
+          _partyGrape,
+          100,
+          930,
+          1000,
+          170,
+        ),
+      ], d);
+    },
+  ),
+  StarterDesign(
+    id: 'kid-bunting-landscape',
+    category: 'Kid Party',
+    name: 'Bunting Party',
+    description: 'Three photos under a string of bright flags.',
+    page: PageSpec.fourBySixLandscape,
+    decorations: const ['party_bunting', 'party_confetti'],
+    tags: const TemplateTags(
+      categoryTags: ['kids', 'party'],
+      recommendedExperienceIds: ['kid-party-arcade'],
+      occasionTags: ['birthday', 'fair'],
+      visualStyleTags: ['bunting', 'bright'],
+      defaultCaptureCount: 3,
+    ),
+    build: (d) {
+      const page = PageSpec.fourBySixLandscape;
+      return _document(page, [
+        _solid(const ArgbColor(0xFFE4F8F1)),
+        _image(
+          page,
+          'bunting',
+          'Bunting',
+          d['party_bunting']!,
+          0,
+          0,
+          1800,
+          540,
+        ),
+        for (final (i, x) in [96.0, 656.0, 1216.0].indexed)
+          _slot(
+            page,
+            i,
+            x,
+            384,
+            504,
+            624,
+            clip: const RoundedRectClip(0.06),
+            border: _stickerAligned,
+          ),
+        _text(
+          page,
+          'title',
+          'Title',
+          "Let's Celebrate",
+          _party,
+          26,
+          _partyCoral,
+          90,
+          1030,
+          1620,
+          140,
+        ),
+      ], d);
+    },
+  ),
+  StarterDesign(
+    id: 'kid-sticker-grid',
+    category: 'Kid Party',
+    name: 'Sticker Grid',
+    description: 'Four photos like stickers, scattered with stars.',
+    page: PageSpec.fourBySixPortrait,
+    decorations: const ['party_stars'],
+    tags: const TemplateTags(
+      categoryTags: ['kids'],
+      recommendedExperienceIds: ['kid-party-arcade'],
+      occasionTags: ['birthday', 'sleepover'],
+      visualStyleTags: ['stickers', 'stars'],
+      defaultCaptureCount: 4,
+    ),
+    build: (d) {
+      const page = PageSpec.fourBySixPortrait;
+      return _document(page, [
+        _solid(const ArgbColor(0xFFEDE4FF)),
+        _image(page, 'stars', 'Stars', d['party_stars']!, 0, 300, 1200, 1200),
+        for (final (i, (x, y)) in [
+          (90.0, 240.0),
+          (630.0, 240.0),
+          (90.0, 900.0),
+          (630.0, 900.0),
+        ].indexed)
+          _slot(
+            page,
+            i,
+            x,
+            y,
+            480,
+            600,
+            clip: const RoundedRectClip(0.08),
+            border: _sticker,
+          ),
+        _text(
+          page,
+          'title',
+          'Title',
+          'Best Day Ever',
+          _party,
+          30,
+          _partyGrape,
+          90,
+          60,
+          1020,
+          160,
+        ),
+        _text(
+          page,
+          'subtitle',
+          'Subtitle',
+          'PARTY PALS',
+          _party,
+          12,
+          _partyInk,
+          90,
+          1570,
+          1020,
+          80,
+          letterSpacingPt: 2,
+        ),
+      ], d);
+    },
+  ),
+  StarterDesign(
+    id: 'kid-birthday-square',
+    category: 'Kid Party',
+    name: 'Birthday Square',
+    description: 'Two photos side by side under a balloon bunch.',
+    page: PageSpec.fourByFour,
+    decorations: const ['party_balloons', 'party_confetti'],
+    tags: const TemplateTags(
+      categoryTags: ['kids', 'party'],
+      recommendedExperienceIds: ['kid-party-arcade'],
+      occasionTags: ['birthday'],
+      visualStyleTags: ['balloons', 'bright'],
+      defaultCaptureCount: 2,
+    ),
+    build: (d) {
+      const page = PageSpec.fourByFour;
+      return _document(page, [
+        _solid(const ArgbColor(0xFFFFE3E3)),
+        _image(
+          page,
+          'confetti',
+          'Confetti',
+          d['party_confetti']!,
+          0,
+          0,
+          1200,
+          1200,
+        ),
+        _slot(
+          page,
+          0,
+          70,
+          380,
+          510,
+          640,
+          clip: const RoundedRectClip(0.06),
+          border: _sticker,
+        ),
+        _slot(
+          page,
+          1,
+          620,
+          380,
+          510,
+          640,
+          clip: const RoundedRectClip(0.06),
+          border: _sticker,
+        ),
+        _image(
+          page,
+          'balloons',
+          'Balloons',
+          d['party_balloons']!,
+          -40,
+          -40,
+          380,
+          380,
+        ),
+        _text(
+          page,
+          'title',
+          'Title',
+          'Happy Birthday!',
+          _party,
+          26,
+          _partyCoral,
+          300,
+          110,
+          860,
+          160,
+        ),
+        _text(
+          page,
+          'subtitle',
+          'Subtitle',
+          'MAKE A WISH',
+          _party,
+          10,
+          _partyInk,
+          70,
+          1070,
+          1060,
+          70,
+          letterSpacingPt: 2,
+        ),
+      ], d);
+    },
+  ),
+];
+
+/// Retro Game Quest starter designs (EP05): pixel borders, hearts, coins
+/// and a lit marquee, all original; no game, character or console is
+/// imitated. Every word is a placeholder.
+final retroGameDesigns = <StarterDesign>[
+  StarterDesign(
+    id: 'retro-player-one-strip',
+    category: 'Retro Game',
+    name: 'Player One Strip',
+    description: 'Three photos in a pixel border with three hearts.',
+    page: PageSpec.twoBySix,
+    decorations: const ['pixel_frame_strip', 'pixel_hearts'],
+    tags: const TemplateTags(
+      categoryTags: ['gaming', 'retro'],
+      recommendedExperienceIds: ['retro-game-quest'],
+      occasionTags: ['birthday', 'party'],
+      visualStyleTags: ['pixel', 'dark'],
+      defaultCaptureCount: 3,
+      optionalPackVariant: 'arcade',
+    ),
+    build: (d) {
+      const page = PageSpec.twoBySix;
+      return _document(page, [
+        _solid(_nightSky),
+        for (final (i, y) in [110.0, 500.0, 890.0].indexed)
+          _slot(page, i, 70, y, 460, 350),
+        _image(
+          page,
+          'frame',
+          'Pixel frame',
+          d['pixel_frame_strip']!,
+          0,
+          0,
+          600,
+          1800,
+        ),
+        _image(
+          page,
+          'hearts',
+          'Hearts',
+          d['pixel_hearts']!,
+          150,
+          1300,
+          300,
+          100,
+        ),
+        _text(
+          page,
+          'title',
+          'Title',
+          'PLAYER 1',
+          _pixel,
+          26,
+          _pixelGold,
+          50,
+          1420,
+          500,
+          140,
+        ),
+        _text(
+          page,
+          'subtitle',
+          'Subtitle',
+          'READY',
+          _pixel,
+          12,
+          _white,
+          50,
+          1570,
+          500,
+          80,
+          letterSpacingPt: 3,
+        ),
+      ], d);
+    },
+  ),
+  StarterDesign(
+    id: 'retro-bonus-round',
+    category: 'Retro Game',
+    name: 'Bonus Round',
+    description: 'Two photos on blue with pixel coins round the edge.',
+    page: PageSpec.fourBySixPortrait,
+    decorations: const ['pixel_coins'],
+    tags: const TemplateTags(
+      categoryTags: ['gaming', 'retro'],
+      recommendedExperienceIds: ['retro-game-quest'],
+      occasionTags: ['party'],
+      visualStyleTags: ['pixel', 'bright'],
+      defaultCaptureCount: 2,
+      optionalPackVariant: 'handheld',
+    ),
+    build: (d) {
+      const page = PageSpec.fourBySixPortrait;
+      return _document(page, [
+        _solid(_pixelBlue),
+        _image(page, 'coins', 'Coins', d['pixel_coins']!, 0, 0, 1200, 1800),
+        _slot(
+          page,
+          0,
+          140,
+          300,
+          920,
+          620,
+          border: const Stroke(widthPt: 6, color: _nightSky),
+        ),
+        _slot(
+          page,
+          1,
+          140,
+          960,
+          920,
+          620,
+          border: const Stroke(widthPt: 6, color: _nightSky),
+        ),
+        _text(
+          page,
+          'title',
+          'Title',
+          'BONUS ROUND',
+          _pixel,
+          30,
+          _pixelGold,
+          100,
+          90,
+          1000,
+          170,
+        ),
+        _text(
+          page,
+          'subtitle',
+          'Subtitle',
+          'COLLECT THEM ALL',
+          _pixel,
+          11,
+          _white,
+          100,
+          1630,
+          1000,
+          80,
+          letterSpacingPt: 2,
+        ),
+      ], d);
+    },
+  ),
+  StarterDesign(
+    id: 'retro-hud-landscape',
+    category: 'Retro Game',
+    name: 'Scoreboard',
+    description: 'Two wide photos under a scoreboard with hearts and a score.',
+    page: PageSpec.fourBySixLandscape,
+    decorations: const ['pixel_hearts', 'pixel_stars'],
+    tags: const TemplateTags(
+      categoryTags: ['gaming', 'retro'],
+      recommendedExperienceIds: ['retro-game-quest'],
+      occasionTags: ['tournament', 'party'],
+      visualStyleTags: ['pixel', 'dark'],
+      defaultCaptureCount: 2,
+    ),
+    build: (d) {
+      const page = PageSpec.fourBySixLandscape;
+      return _document(page, [
+        _solid(_nightSky),
+        _image(
+          page,
+          'sparkles',
+          'Sparkles',
+          d['pixel_stars']!,
+          0,
+          0,
+          1800,
+          1200,
+        ),
+        _image(page, 'hearts', 'Hearts', d['pixel_hearts']!, 80, 60, 360, 120),
+        _text(
+          page,
+          'score',
+          'Score',
+          'SCORE 00100',
+          _pixel,
+          18,
+          _white,
+          1060,
+          70,
+          660,
+          110,
+        ),
+        for (final (i, x) in [80.0, 930.0].indexed)
+          _slot(
+            page,
+            i,
+            x,
+            230,
+            790,
+            790,
+            border: const Stroke(widthPt: 6, color: _pixelGold),
+          ),
+        _text(
+          page,
+          'title',
+          'Title',
+          'LEVEL 1',
+          _pixel,
+          22,
+          _pixelGold,
+          80,
+          1050,
+          1640,
+          120,
+        ),
+      ], d);
+    },
+  ),
+  StarterDesign(
+    id: 'retro-level-up',
+    category: 'Retro Game',
+    name: 'Level Up',
+    description: 'One photo on gold with pixel sparkles.',
+    page: PageSpec.fourByFour,
+    decorations: const ['pixel_stars'],
+    tags: const TemplateTags(
+      categoryTags: ['gaming', 'retro'],
+      recommendedExperienceIds: ['retro-game-quest'],
+      occasionTags: ['birthday', 'graduation'],
+      visualStyleTags: ['pixel', 'bright'],
+      defaultCaptureCount: 1,
+    ),
+    build: (d) {
+      const page = PageSpec.fourByFour;
+      return _document(page, [
+        _solid(_pixelGold),
+        _image(
+          page,
+          'sparkles',
+          'Sparkles',
+          d['pixel_stars']!,
+          0,
+          0,
+          1200,
+          1200,
+        ),
+        _slot(
+          page,
+          0,
+          200,
+          140,
+          800,
+          800,
+          border: const Stroke(widthPt: 8, color: _nightSky),
+        ),
+        _text(
+          page,
+          'title',
+          'Title',
+          'LEVEL UP!',
+          _pixel,
+          30,
+          _nightSky,
+          100,
+          980,
+          1000,
+          170,
+        ),
+      ], d);
+    },
+  ),
+  StarterDesign(
+    id: 'retro-marquee',
+    category: 'Retro Game',
+    name: 'Marquee',
+    description: 'Two photos under a marquee ringed with lights.',
+    page: PageSpec.fourBySixPortrait,
+    decorations: const ['arcade_marquee', 'pixel_stars'],
+    tags: const TemplateTags(
+      categoryTags: ['gaming', 'retro'],
+      recommendedExperienceIds: ['retro-game-quest'],
+      occasionTags: ['party', 'corporate'],
+      visualStyleTags: ['marquee', 'dark'],
+      defaultCaptureCount: 2,
+      optionalPackVariant: 'arcade',
+    ),
+    build: (d) {
+      const page = PageSpec.fourBySixPortrait;
+      return _document(page, [
+        _solid(_nightSky),
+        _image(
+          page,
+          'sparkles',
+          'Sparkles',
+          d['pixel_stars']!,
+          0,
+          600,
+          1200,
+          1200,
+        ),
+        _image(
+          page,
+          'marquee',
+          'Marquee',
+          d['arcade_marquee']!,
+          40,
+          30,
+          1120,
+          336,
+        ),
+        _text(
+          page,
+          'title',
+          'Title',
+          'HIGH SCORE',
+          _pixel,
+          28,
+          _pixelGold,
+          140,
+          120,
+          920,
+          150,
+        ),
+        _slot(
+          page,
+          0,
+          120,
+          420,
+          960,
+          640,
+          border: const Stroke(widthPt: 6, color: _pixelRed),
+        ),
+        _slot(
+          page,
+          1,
+          120,
+          1100,
+          960,
+          640,
+          border: const Stroke(widthPt: 6, color: _pixelRed),
+        ),
+      ], d);
+    },
+  ),
+  StarterDesign(
+    id: 'retro-high-score-strip',
+    category: 'Retro Game',
+    name: 'High Score Strip',
+    description: 'Three photos with scores beside a marquee title.',
+    page: PageSpec.twoBySix,
+    decorations: const ['arcade_marquee', 'pixel_coins'],
+    tags: const TemplateTags(
+      categoryTags: ['gaming', 'retro'],
+      recommendedExperienceIds: ['retro-game-quest'],
+      occasionTags: ['party'],
+      visualStyleTags: ['marquee', 'dark'],
+      defaultCaptureCount: 3,
+      optionalPackVariant: 'arcade',
+    ),
+    build: (d) {
+      const page = PageSpec.twoBySix;
+      return _document(page, [
+        _solid(_nightSky),
+        _image(page, 'coins', 'Coins', d['pixel_coins']!, 0, 0, 600, 1800),
+        _image(
+          page,
+          'marquee',
+          'Marquee',
+          d['arcade_marquee']!,
+          20,
+          20,
+          560,
+          168,
+        ),
+        _text(
+          page,
+          'title',
+          'Title',
+          'TOP 3',
+          _pixel,
+          18,
+          _pixelGold,
+          60,
+          60,
+          480,
+          90,
+        ),
+        for (final (i, y) in [230.0, 640.0, 1050.0].indexed)
+          _slot(
+            page,
+            i,
+            60,
+            y,
+            480,
+            360,
+            border: const Stroke(widthPt: 5, color: _pixelGold),
+          ),
+        _text(
+          page,
+          'subtitle',
+          'Subtitle',
+          'INSERT SMILE',
+          _pixel,
+          14,
+          _white,
+          40,
+          1480,
+          520,
+          120,
+          letterSpacingPt: 2,
+        ),
+      ], d);
+    },
+  ),
+  StarterDesign(
+    id: 'retro-co-op',
+    category: 'Retro Game',
+    name: 'Co-op Mode',
+    description: 'Four photos inside a chunky pixel border.',
+    page: PageSpec.fourBySixPortrait,
+    decorations: const ['pixel_frame', 'pixel_hearts'],
+    tags: const TemplateTags(
+      categoryTags: ['gaming', 'retro'],
+      recommendedExperienceIds: ['retro-game-quest'],
+      occasionTags: ['party', 'family'],
+      visualStyleTags: ['pixel', 'light'],
+      defaultCaptureCount: 4,
+      optionalPackVariant: 'handheld',
+    ),
+    build: (d) {
+      const page = PageSpec.fourBySixPortrait;
+      return _document(page, [
+        _solid(const ArgbColor(0xFFE8EDD5)),
+        for (final (i, (x, y)) in [
+          (160.0, 300.0),
+          (620.0, 300.0),
+          (160.0, 900.0),
+          (620.0, 900.0),
+        ].indexed)
+          _slot(
+            page,
+            i,
+            x,
+            y,
+            420,
+            560,
+            border: const Stroke(widthPt: 5, color: _nightSky),
+          ),
+        _image(
+          page,
+          'frame',
+          'Pixel frame',
+          d['pixel_frame']!,
+          0,
+          0,
+          1200,
+          1800,
+        ),
+        _image(
+          page,
+          'hearts',
+          'Hearts',
+          d['pixel_hearts']!,
+          420,
+          1520,
+          360,
+          120,
+        ),
+        _text(
+          page,
+          'title',
+          'Title',
+          'CO-OP MODE',
+          _pixel,
+          28,
+          _nightSky,
+          140,
+          120,
+          920,
+          150,
+        ),
+      ], d);
+    },
+  ),
+  StarterDesign(
+    id: 'retro-game-on',
+    category: 'Retro Game',
+    name: 'Game On',
+    description: 'Three photos in a row on a starry night.',
+    page: PageSpec.fourBySixLandscape,
+    decorations: const ['pixel_stars', 'pixel_hearts'],
+    tags: const TemplateTags(
+      categoryTags: ['gaming', 'retro'],
+      recommendedExperienceIds: ['retro-game-quest'],
+      occasionTags: ['tournament', 'party'],
+      visualStyleTags: ['pixel', 'dark'],
+      defaultCaptureCount: 3,
+    ),
+    build: (d) {
+      const page = PageSpec.fourBySixLandscape;
+      return _document(page, [
+        _solid(_nightSky),
+        _image(
+          page,
+          'sparkles',
+          'Sparkles',
+          d['pixel_stars']!,
+          0,
+          0,
+          1800,
+          1200,
+        ),
+        _text(
+          page,
+          'title',
+          'Title',
+          'GAME ON!',
+          _pixel,
+          30,
+          _pixelRed,
+          90,
+          70,
+          1620,
+          170,
+        ),
+        for (final (i, x) in [90.0, 650.0, 1210.0].indexed)
+          _slot(
+            page,
+            i,
+            x,
+            290,
+            500,
+            660,
+            border: const Stroke(widthPt: 6, color: _white),
+          ),
+        _image(
+          page,
+          'hearts',
+          'Hearts',
+          d['pixel_hearts']!,
+          720,
+          1010,
+          360,
+          120,
         ),
       ], d);
     },

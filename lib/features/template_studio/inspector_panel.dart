@@ -1065,30 +1065,55 @@ class _TextSection extends StatelessWidget {
             style: theme.text.bodyMedium.copyWith(color: theme.colors.warning),
           ),
         if (bundled != null) ...[
-          PorcelainSegmentedControl<BundledFontFamily>(
-            selected: bundled.family,
-            disabledReason: reason,
-            onChanged: locked
-                ? null
-                : (family) => i.update(
-                    layer.id,
-                    (l) => (l as TextLayer).copyWith(
-                      font: BundledFont(
-                        family,
-                        weight: family.weights.contains(bundled.weight)
-                            ? bundled.weight
-                            : family.weights.last,
-                      ),
-                    ),
-                  ),
-            segments: const [
+          for (final row in const [
+            [
               PorcelainSegment(
                 value: BundledFontFamily.cormorantGaramond,
                 label: 'Cormorant',
               ),
               PorcelainSegment(value: BundledFontFamily.inter, label: 'Inter'),
+              PorcelainSegment(
+                value: BundledFontFamily.courierPrime,
+                label: 'Courier',
+              ),
             ],
-          ),
+            [
+              PorcelainSegment(
+                value: BundledFontFamily.fredoka,
+                label: 'Fredoka',
+              ),
+              PorcelainSegment(
+                value: BundledFontFamily.pixelifySans,
+                label: 'Pixel',
+              ),
+              PorcelainSegment(
+                value: BundledFontFamily.poiretOne,
+                label: 'Poiret',
+              ),
+              PorcelainSegment(
+                value: BundledFontFamily.monoton,
+                label: 'Monoton',
+              ),
+            ],
+          ])
+            PorcelainSegmentedControl<BundledFontFamily>(
+              selected: bundled.family,
+              disabledReason: reason,
+              onChanged: locked
+                  ? null
+                  : (family) => i.update(
+                      layer.id,
+                      (l) => (l as TextLayer).copyWith(
+                        font: BundledFont(
+                          family,
+                          weight: family.weights.contains(bundled.weight)
+                              ? bundled.weight
+                              : family.weights.last,
+                        ),
+                      ),
+                    ),
+              segments: row,
+            ),
           PorcelainSegmentedControl<int>(
             selected: bundled.weight,
             disabledReason: reason,

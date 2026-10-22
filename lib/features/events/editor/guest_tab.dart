@@ -17,6 +17,7 @@ import '../../../shared/guest/guest_welcome.dart';
 import '../../../shared/guest/guest_welcome_sample.dart';
 import '../../../shared/widgets/floral_spray.dart';
 import '../../../shared/widgets/porcelain_stepper.dart';
+import '../../../shared/widgets/porcelain_switch.dart';
 import '../../../shared/widgets/porcelain_text_field.dart';
 import '../../../shared/widgets/pressable.dart';
 import '../../../shared/widgets/tablet_frame.dart';
@@ -63,7 +64,14 @@ final class _ExperienceChoice {
   EventExperienceConfiguration applyTo(EventExperienceConfiguration config) {
     final base = config.packId == pack.packId
         ? config
-        : config.switchPack(pack.packId, pack.packVersion);
+        : config
+              .switchPack(pack.packId, pack.packVersion)
+              // A pack made for children asks for a guardian (EP00 4.7).
+              .copyWith(
+                childrenMayBeGuests:
+                    ExperienceRegistry.childrenPackIds.contains(pack.packId) ||
+                    config.childrenMayBeGuests,
+              );
     return base.copyWith(
       variantId: variant.id == pack.defaultVariantId ? null : variant.id,
     );
@@ -176,6 +184,24 @@ class _GuestTabState extends State<GuestTab> {
                           ),
                   ),
               ],
+            ),
+            PorcelainSwitchRow(
+              title: 'Guests may be children',
+              subtitle:
+                  'Texting screens add: "A parent or guardian enters the '
+                  'number and gives consent." On for Kid Party Arcade.',
+              icon: PorcelainIcons.privacy,
+              value: event.experience.childrenMayBeGuests,
+              onChanged: tab.readOnly
+                  ? null
+                  : (on) => tab.onChanged(
+                      event.copyWith(
+                        experience: event.experience.copyWith(
+                          childrenMayBeGuests: on,
+                        ),
+                      ),
+                    ),
+              disabledReason: reason,
             ),
             Center(
               child: SizedBox(

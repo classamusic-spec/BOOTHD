@@ -10,6 +10,7 @@ build.
 
 | Path | SHA-256 | Source | Licence |
 | --- | --- | --- | --- |
+| `assets/decorations/arcade_marquee.png` | `8c81ba925e2259fa8cc54d98565577998c89d3b139e32776b93405b53029378d` | Original; drawn by `tool/art/decorations.dart` with `lib/core/design_system/party_art.dart` (EP05) | Project-owned |
 | `assets/decorations/blossom_corner.png` | `5ad9d9ea9358b7d5a5a860f6bf22216fd697e137136d1812e373d9f256c5e968` | Original; drawn by `tool/art/decorations.dart` (M05) | Project-owned |
 | `assets/decorations/blossom_corner_champagne.png` | `65718cedc19e0efc3a2864ee90465dcd077de9b5cb8c2a4113a61edb7fb4476c` | Original; drawn by `tool/art/decorations.dart` (M05) | Project-owned |
 | `assets/decorations/blossom_garland.png` | `b939b075d3e91ee70df9432d201cfa1c0eab984dafad7be0ead3f0a988126248` | Original; drawn by `tool/art/decorations.dart` (M05) | Project-owned |
@@ -18,6 +19,15 @@ build.
 | `assets/decorations/gold_confetti.png` | `128c37f9fff17b7fe70ed46b7022fe8a4eb57c8eb1d758422d1737bcc1ad44a7` | Original; drawn by `tool/art/decorations.dart` (M05) | Project-owned |
 | `assets/decorations/gold_frame.png` | `288d46b89ea97ce273a582fce419a2520aff6d5cb7bcf2c5b875cf929a13394e` | Original; drawn by `tool/art/decorations.dart` (M05) | Project-owned |
 | `assets/decorations/gold_frame_strip.png` | `213d6a63c6267ab4e2cb0c981c31d305cbc9696c2649e5246cbaa5cc61b2d977` | Original; drawn by `tool/art/decorations.dart` (M05) | Project-owned |
+| `assets/decorations/party_balloons.png` | `2097d07faae429d64dfaf0a2aa5576bbd0143b1916a5222cd280f98631b0d513` | Original; drawn by `tool/art/decorations.dart` with `lib/core/design_system/party_art.dart` (EP04) | Project-owned |
+| `assets/decorations/party_bunting.png` | `57407a7e75aad7e7124a520c0fc9ccdbc961a5c18735d6debc9744af62d2a862` | Original; drawn by `tool/art/decorations.dart` with `lib/core/design_system/party_art.dart` (EP04) | Project-owned |
+| `assets/decorations/party_confetti.png` | `508b66ecc3fb27d29cba1b53a58f8873628f21280a745aa8cc8676083f9ee394` | Original; drawn by `tool/art/decorations.dart` with `lib/core/design_system/party_art.dart` (EP04) | Project-owned |
+| `assets/decorations/party_stars.png` | `2301665e5853df8c2e12cb9d8de12894ab4d87d402ae50c3a6d396ff9dde4f9f` | Original; drawn by `tool/art/decorations.dart` with `lib/core/design_system/party_art.dart` (EP04) | Project-owned |
+| `assets/decorations/pixel_coins.png` | `26982fbd6d8d9a99343c45c8bcb8ca35449945688ad8548505b19e38548fdd8b` | Original; drawn by `tool/art/decorations.dart` with `lib/core/design_system/party_art.dart` (EP05) | Project-owned |
+| `assets/decorations/pixel_frame.png` | `b6e778310d52723ee276d3e5c3c909a7d525822879064f1cd547373a84ac40d8` | Original; drawn by `tool/art/decorations.dart` with `lib/core/design_system/party_art.dart` (EP05) | Project-owned |
+| `assets/decorations/pixel_frame_strip.png` | `218aee7be5391e7a7cd9152edbe8d56321b7586bc646a09cb5b172ab7e151944` | Original; drawn by `tool/art/decorations.dart` with `lib/core/design_system/party_art.dart` (EP05) | Project-owned |
+| `assets/decorations/pixel_hearts.png` | `352261d6c7476dfea5e7482c7aa64bb76ee4156ad31aa34e1abeb05cba3c84a2` | Original; drawn by `tool/art/decorations.dart` with `lib/core/design_system/party_art.dart` (EP05) | Project-owned |
+| `assets/decorations/pixel_stars.png` | `f6a08e88bb1d2601e282cc9ff127dfaf7e09b78f84c1a8573dfde0da6a216dce` | Original; drawn by `tool/art/decorations.dart` with `lib/core/design_system/party_art.dart` (EP05) | Project-owned |
 | `assets/fonts/cormorant_garamond/CormorantGaramond-Medium.ttf` | `8eaa2a57728fe1f65647cd0e0bc2733907ac07e8d6921fe2f80b97cdca9fd0db` | CatharsisFonts/Cormorant `fonts/ttf/`, commit `6d210fd` (Version 4.001) | SIL OFL 1.1 |
 | `assets/fonts/cormorant_garamond/CormorantGaramond-SemiBold.ttf` | `d0934e611e2e930614ffc3675f824bdf1960c88bc44ebcd73ff162beb31ac8e3` | CatharsisFonts/Cormorant `fonts/ttf/`, commit `6d210fd` (Version 4.001) | SIL OFL 1.1 |
 | `assets/fonts/cormorant_garamond/OFL.txt` | `60700d351cac4650c51f3f9db318d2a420f8b45052dba2715eb5fec41f0f6956` | `OFL.txt` from CatharsisFonts/Cormorant, commit `6d210fd` | Licence text |

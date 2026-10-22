@@ -12,6 +12,7 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:porcelain_photo_booth/core/design_system/floral_art.dart';
+import 'package:porcelain_photo_booth/core/design_system/party_art.dart';
 
 final class DecorationArt {
   const DecorationArt(this.file, this.width, this.height, this.paint);
@@ -72,6 +73,18 @@ final decorationArt = <DecorationArt>[
   DecorationArt('gold_frame_strip.png', 600, 1800, _goldFrame),
   DecorationArt('film_edges.png', 600, 1800, _filmEdges),
   DecorationArt('gold_confetti.png', 1200, 1800, _confetti),
+  // EP04: Kid Party Arcade.
+  DecorationArt('party_balloons.png', 1200, 1200, paintPartyBalloons),
+  DecorationArt('party_confetti.png', 1200, 1800, paintPartyConfetti),
+  DecorationArt('party_stars.png', 1200, 1200, paintPartyStars),
+  DecorationArt('party_bunting.png', 1800, 540, paintPartyBunting),
+  // EP05: Retro Game Quest.
+  DecorationArt('pixel_hearts.png', 900, 300, paintPixelHearts),
+  DecorationArt('pixel_coins.png', 1200, 1800, paintPixelCoins),
+  DecorationArt('pixel_stars.png', 1200, 1200, paintPixelStars),
+  DecorationArt('pixel_frame.png', 1200, 1800, paintPixelFrame),
+  DecorationArt('pixel_frame_strip.png', 600, 1800, paintPixelFrame),
+  DecorationArt('arcade_marquee.png', 1200, 360, paintArcadeMarquee),
 ];
 
 /// Champagne-gold metal, as a gradient across [rect].

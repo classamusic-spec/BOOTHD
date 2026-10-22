@@ -1090,3 +1090,34 @@ Android: release build PASS, permission audit PASS; no tablet, so no
 | EP03 Sound files and the owner's sheet | PASS (host) | Sixteen 44.1 kHz 16-bit mono WAV files, none longer than 2.5 s, exactly the catalog's; the sheet's pack table matches the packs and has a prompt for every sound (`sound_assets_test.dart`) |
 | AC-EP11 Exports never contain countdown graphics (EP03 part) | PASS (by construction) | Presenters are guest widgets; nothing in the countdown reaches the renderer or a template document. Byte-identical export test: EP06 |
 | Device sound (latency, loudness, iPad silent switch) | BLOCKED | No tablets; recorded for the device procedure (EP09) |
+
+## EP04 and EP05: Kid Party Arcade, Retro Game Quest and 14 starter designs
+
+```text
+Stage: EP04 and EP05 | commit adding this entry | build 0.1.0+1
+Host: same Linux cloud VM; Flutter 3.47.7 / Dart 3.13.5; schema v8; no new packages
+iPad: BLOCKED (no Mac, no iPad); Android: debug build PASS, no tablet
+```
+
+### Commands and exit codes (2026-10-22 UTC)
+
+| # | Command | Exit | Result |
+| --- | --- | --- | --- |
+| 1 | `flutter test tool/art/generate_decorations_test.dart` | 0 | Ten new decorations written; the eight existing files unchanged |
+| 2 | `flutter test` (whole suite) | 1 | 20 min 50 s: 3,152 passed, 2 skipped, 15 failed: 12 goldens that show the new designs or the new children switch (templates library, new template, event guest tab) and 3 editor-parity checks (AC-0510) on new designs |
+| 3 | Parity follow-up | 0 | The parity checks hold the editor canvas to its preview within 1 level and the canvas to the reduced print within the preview tolerance. Three designs missed by one level at curved slot edges (rounded corners, an ellipse, a stroke edge on fractional pixels) and one by squeezing dense confetti into a strip. A search over small offsets found slot positions and stroke widths that land on whole preview pixels; the strip's confetti now keeps its proportions. The tolerances are unchanged. `editor_parity_test.dart`, the template tests, the experience tests, the asset and provenance tests: 168 passed |
+| 4 | `flutter test --update-goldens` for the 12 goldens of row 2, after review | 0 | Updated |
+| 5 | `flutter analyze`; `dart format --output=none --set-exit-if-changed lib test tool` | 0 | Clean |
+| 6 | `tool/build_android.sh debug`; `tool/audit_permissions.sh` | 0 | `app-debug.apk` 242,213,484 bytes, SHA-256 `58105cb62fe1ee9cbc0c165e6b02920fe2ba2ae754e5323a5ac8c1f391699453`; audit passed |
+
+The whole suite runs again on the EP06 tree.
+
+### Acceptance items
+
+| AC | Status | Evidence |
+| --- | --- | --- |
+| AC-EP03 Kid Party Arcade: distinct tactile controls, countdowns and original editable starter templates | PASS (host) for controls (EP02), countdown (EP03) and templates; guest screens in EP06 | Six designs in every print format, stored, reopened and rendered at print size without warnings (`starter_designs_test.dart`), editor parity held (`editor_parity_test.dart`), tagged for the pack (`starter_packs_test.dart`) |
+| AC-EP04 Retro Game Quest with Handheld Retro and Arcade Cabinet | PASS (host) for both variants (EP01), their buttons and countdowns (EP02, EP03) and eight designs, some tagged for a variant | Same tests as above |
+| EP04 Children consent line | PASS (host) | The guardian line shows only when the event says guests may be children; the consent box and its text are unchanged (`guest_delivery_flow_test.dart`); Kid Party Arcade turns the setting on when chosen |
+| AC-EP17 No copyrighted game UI or unlicensed assets | PASS (self-review); owner review open | `docs/experience_packs/ORIGINALITY_REVIEW.md`; every new file's source and hash in `docs/ASSET_PROVENANCE.md` (checked by `app_info_and_licences_test.dart`) |
+| Template parity (AC-0510) for the new designs | PASS (host) | Row 3 |

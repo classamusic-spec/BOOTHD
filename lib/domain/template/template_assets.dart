@@ -143,7 +143,14 @@ final class TemplateAsset {
 /// in these families renders the same on every device.
 enum BundledFontFamily {
   inter('Inter', [400, 500, 600]),
-  cormorantGaramond('Cormorant Garamond', [500, 600]);
+  cormorantGaramond('Cormorant Garamond', [500, 600]),
+  // Guest experience faces (EP04, EP05). Fredoka and Pixelify Sans are
+  // variable fonts used at their default weight, so no axis is needed.
+  courierPrime('Courier Prime', [400, 700]),
+  fredoka('Fredoka', [400]),
+  pixelifySans('Pixelify Sans', [400]),
+  poiretOne('Poiret One', [400]),
+  monoton('Monoton', [400]);
 
   const BundledFontFamily(this.family, this.weights);
 

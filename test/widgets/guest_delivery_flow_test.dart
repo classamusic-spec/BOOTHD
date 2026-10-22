@@ -36,6 +36,7 @@ Future<TestBooth> _booth(
   bool paired = true,
   bool ready = true,
   bool offline = false,
+  bool children = false,
 }) async {
   useViewport(tester, viewport);
   final clock = FakeClock();
@@ -52,7 +53,10 @@ Future<TestBooth> _booth(
     seed: (db) async {
       await seedEvents(
         db,
-        active: (event) => event.copyWith(delivery: delivery),
+        active: (event) => event.copyWith(
+          delivery: delivery,
+          experience: event.experience.copyWith(childrenMayBeGuests: children),
+        ),
       );
       if (paired) await seedPairing(db, secrets, at: clock.now(), api: api);
       api.offline = offline;
@@ -235,6 +239,22 @@ void main() {
     expect(find.textContaining('0147'), findsNothing);
     semantics.dispose();
   });
+
+  // EP04 (EP00 decision 4.7): events whose guests may be children ask for
+  // a parent or guardian; the consent itself is unchanged.
+  for (final children in [false, true]) {
+    testWidgets('the guardian line shows only when guests may be children '
+        '($children)', (tester) async {
+      await _booth(tester, children: children);
+      await _toFinished(tester);
+      await _tap(tester, DeliveryCopy.textMyPhotos);
+      expect(
+        find.text(DeliveryCopy.guardianNote),
+        children ? findsOneWidget : findsNothing,
+      );
+      expect(find.text(_consentText()), findsWidgets);
+    });
+  }
 
   testWidgets('No thanks, finish goes to the next guest with nothing '
       'stored (AC-0902)', (tester) async {

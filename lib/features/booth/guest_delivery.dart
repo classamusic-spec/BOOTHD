@@ -9,6 +9,7 @@ import '../../core/design_system/porcelain_icons.dart';
 import '../../core/design_system/porcelain_metrics.dart';
 import '../../core/design_system/porcelain_motion.dart';
 import '../../core/design_system/porcelain_theme.dart';
+import '../../core/experience/guest_experience.dart';
 import '../../domain/delivery/consent.dart';
 import '../../domain/delivery/delivery_intent.dart';
 import '../../domain/delivery/phone_number.dart';
@@ -342,6 +343,15 @@ class _PhoneEntry extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
               children: [
+                if (GuestExperience.experienceOf(context).childrenMayBeGuests)
+                  Padding(
+                    padding: EdgeInsets.only(bottom: scale(PorcelainSpace.xs)),
+                    child: Text(
+                      DeliveryCopy.guardianNote,
+                      textAlign: TextAlign.center,
+                      style: scale.text(theme.text.guestLabel),
+                    ),
+                  ),
                 _ConsentCheck(
                   checked: consent,
                   text: consentText,
