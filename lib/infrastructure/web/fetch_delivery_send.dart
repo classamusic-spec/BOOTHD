@@ -19,7 +19,7 @@ Future<DeliveryHttpResponse> fetchDeliverySend(
   Duration timeout,
 ) async {
   final abort = web.AbortController();
-  final timer = Timer(timeout, abort.abort);
+  final timer = Timer(timeout, () => abort.abort());
   final requestHeaders = web.Headers();
   headers.forEach((name, value) {
     if (name.toLowerCase() != 'user-agent') requestHeaders.set(name, value);
