@@ -282,13 +282,15 @@ class GuestBackdrop extends StatelessWidget {
     final experience = GuestExperience.maybeOf(context)?.experience;
     if (experience != null &&
         GuestTheme.originalAppearance(experience) == null) {
-      // A pack's own look (EP06): its backdrop and decorations.
+      // A pack's own look (EP06): its backdrop and decorations. The glow
+      // stays between the two grounds every text colour is checked on, so
+      // words near the edges keep their contrast (EP09).
       return DecoratedBox(
         decoration: BoxDecoration(
           gradient: RadialGradient(
             center: const Alignment(0, -0.2),
             radius: 1.1,
-            colors: [colors.canvas, colors.rail],
+            colors: [colors.surface, colors.canvas],
           ),
         ),
         child: Stack(

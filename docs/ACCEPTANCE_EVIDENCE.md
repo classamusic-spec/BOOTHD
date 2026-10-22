@@ -1198,3 +1198,52 @@ iPad: BLOCKED (no Mac, no iPad); Android: debug build PASS, no tablet
 - The preview holds sample photos in memory only and never opens the
   camera; its texting screens accept a number for the walkthrough and
   discard it; nothing is logged.
+
+## EP09: accessibility sweep, pack goldens, device procedure; Experience Pack summary
+
+```text
+Stage: EP09 | commit adding this entry | build 0.1.0+1
+Host: same Linux cloud VM; Flutter 3.47.7 / Dart 3.13.5; schema v8; no new packages
+iPad: BLOCKED (no Mac, no iPad; tool/build_ios.sh exits 3 on Linux); Android: release build PASS, no tablet
+```
+
+### Commands and exit codes (2026-10-22 UTC)
+
+| # | Command | Exit | Result |
+| --- | --- | --- | --- |
+| 1 | `flutter test test/widgets/guest_packs_accessibility_test.dart` | 1, then 0 | Retro Film failed text contrast on three screens (muted text 3.2:1 and 4.26:1 over a backdrop that darkened to the pack's rail colour). Fixed in the design: pack backdrops glow between surface and canvas. Then 63 passed (9 looks x 3 screens x 2 orientations against tap targets, labels and contrast, and 9 reduced-motion sessions) |
+| 2 | `flutter test --update-goldens test/goldens/guest_packs_golden_test.dart` | 0 | 74 passed; 57 pack goldens changed by the backdrop, reviewed |
+| 3 | `flutter test test/widgets/guest_packs_accessibility_test.dart test/widgets/guest_packs_test.dart test/experience` | 0 | 153 passed |
+| 4 | `tool/check.sh` (lockfile, generated code, format, analyze, whole suite, licence report) | 0 | Whole suite 22 min 57 s: 3,402 passed, 4 skipped, 0 failed; "All checks passed." |
+| 5 | `tool/build_android.sh release`; `tool/audit_permissions.sh`; `tool/scan_binary_secrets.sh` | 0 | `app-release.apk` 78,423,096 bytes, SHA-256 `cae595b1f262e77fe162d86c7983d15195bd4f253168c238aa74059b8a17e473`; permission audit passed; secrets scan clean (148 files, 314,839 strings) |
+| 6 | `tool/build_ios.sh` | 3 | BLOCKED: needs macOS and Xcode |
+
+### Experience Pack acceptance (section 16 of the prompt)
+
+| AC | Status | Evidence |
+| --- | --- | --- |
+| AC-EP01 All eight experiences selectable during event creation | PASS (host) | EP07 |
+| AC-EP02 Both operator UI appearances unchanged | PASS (host) | Studio goldens of all three operator looks changed only where EP02 polished them on purpose; guest packs never touch the Studio (EP02, EP06) |
+| AC-EP03 Kid Party Arcade controls, countdowns, editable starter templates | PASS (host) | EP02 to EP06 |
+| AC-EP04 Retro Game Quest with Handheld Retro and Arcade Cabinet | PASS (host) | EP01 to EP06 |
+| AC-EP05 Guest screens follow the selected pack | PASS (host); devices BLOCKED | EP06 journeys, 74 pack goldens, EP09 accessibility sweep |
+| AC-EP06 Portrait and landscape fully functional | PASS (host); devices BLOCKED | EP06, EP09 |
+| AC-EP07 Customise allowed settings and reset | PASS (host) | EP07 |
+| AC-EP08 Full Experience Preview simulates the journey | PASS (host); devices BLOCKED | EP08 isolation tests |
+| AC-EP09 Live camera uses the template scene graph | PASS (host); devices BLOCKED | EP06 |
+| AC-EP10 Photos render into the selected template | PASS (host) | EP06 (identical export requests across packs and stages) |
+| AC-EP11 Exports never contain countdown graphics | PASS (host) | EP06 |
+| AC-EP12 MMS uses the shared consent and delivery infrastructure | PASS (host) | EP04 (guardian line only), EP08 (preview never submits) |
+| AC-EP13 Missing optional assets do not fail sessions | PASS (host) | EP01 fallbacks, EP06 decorations and live-template fallback |
+| AC-EP14 Reduced-motion and muted versions usable | PASS (host); devices BLOCKED | EP03 still countdowns and silent default; EP09 reduced-motion sessions in every pack |
+| AC-EP15 Automated tests pass | PASS | Row 4 |
+| AC-EP16 Physical iPad and Android testing documented | BLOCKED | Procedure: `docs/device_tests/EP_DEVICE_PROCEDURE.md`; no devices in this environment |
+| AC-EP17 No copyrighted game UI or unlicensed assets | PASS (self-review); owner sign-off open | `docs/experience_packs/ORIGINALITY_REVIEW.md`, `docs/ASSET_PROVENANCE.md` |
+
+### Open items for the owner
+
+- Device runs on an iPad and an Android tablet (AC-EP16 and the device
+  halves above).
+- The ElevenLabs sound files; the 16 original placeholders ship until
+  then (`docs/experience_packs/SOUND_SCRIPT_ELEVENLABS.md`).
+- Originality sign-off; the optional event logo (not built).

@@ -3,6 +3,37 @@
 Newest milestone first. Each entry: scope, plan, changes, commands and exit
 codes, platform results, spec issues raised, risks, next step.
 
+## EP09: accessibility sweep, pack goldens, device procedure, series close
+
+- Date: 2026-10-22 (UTC)
+- Authorised by: the owner's EP00 reply ("build ep01 - ep09"). This stage
+  closes the Experience Pack series; work stops here for the owner's
+  review before M11.
+
+### Changes
+
+- `test/widgets/guest_packs_accessibility_test.dart`: every pack and the
+  second Retro Game Quest variant, at iPad portrait and Android
+  landscape, on the welcome, review and finished screens, against the
+  tap-target, label and text-contrast guidelines; and a whole session in
+  every pack with reduced motion on (still countdown, nothing animating).
+- Fixed on the way: Retro Film's muted text fell to 3.2:1 near the screen
+  edges because pack backdrops faded into the pack's dark rail colour.
+  Pack backdrops now glow between surface and canvas, the two grounds
+  every text colour is checked on (`guest_theme_test.dart`); the 74 pack
+  goldens were regenerated and reviewed.
+- `docs/device_tests/EP_DEVICE_PROCEDURE.md`: the tablet procedure for
+  every pack, Full Template, sound, reduced motion, the builder, the
+  preview, children and missing assets.
+- ADR-0017 sections 8 and 9, the acceptance summary for AC-EP01..AC-EP17
+  in `docs/ACCEPTANCE_EVIDENCE.md`.
+
+### Open for the owner
+
+- Device runs (AC-EP16) on an iPad and an Android tablet.
+- The ElevenLabs sound files (placeholders ship until then).
+- Originality review sign-off (AC-EP17) and the optional event logo.
+
 ## EP07 and EP08: Event Builder, Experience panel, Full Experience Preview, recommendations
 
 - Date: 2026-10-22 (UTC)

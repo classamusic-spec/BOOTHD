@@ -121,6 +121,9 @@ haptics only (the owner asked for sound).
   (`guest_packs_test.dart`).
 - Camera-focused is the default stage for every event: Full Template is
   an operator choice until its cost is measured on the certified tablets.
+- Pack backdrops glow between the palette's surface and canvas only, the
+  grounds every text colour is checked on (EP09: a darker edge colour
+  left muted text at 3.2:1 on Retro Film).
 
 ### 9. Event Builder, Experience panel and an isolated preview (EP07, EP08)
 
