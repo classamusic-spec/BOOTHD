@@ -1,5 +1,5 @@
 import 'package:drift/isolate.dart';
-import 'package:sqlite3/sqlite3.dart';
+import 'package:sqlite3/common.dart';
 
 import '../../domain/repositories/storage_errors.dart';
 

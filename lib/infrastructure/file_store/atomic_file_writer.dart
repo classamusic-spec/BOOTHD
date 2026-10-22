@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'file_system.dart';
+
 /// The file operations an atomic write is made of. Tests subclass it to
 /// inject failures: a full disk, a short write, a failed rename.
 class FileOperations {
@@ -86,8 +88,9 @@ final class AtomicFileWriter {
     if (destination.existsSync()) {
       throw const AtomicWriteException(AtomicWriteFailure.destinationExists);
     }
-    final staged = File(
-      '${staging.path}/$stagedPrefix'
+    final staged = fileIn(
+      staging,
+      '$stagedPrefix'
       '${DateTime.now().microsecondsSinceEpoch}-${_counter++}$stagedSuffix',
     );
     try {
@@ -178,13 +181,8 @@ final class AtomicFileWriter {
     return true;
   }
 
-  /// ENOSPC (28 on Linux, Android, iOS and macOS) and EDQUOT (122 on Linux
-  /// and Android, 69 on iOS and macOS).
-  /// Whether [error] means the volume is full (or over quota).
-  static bool isNoSpace(FileSystemException error) {
-    final code = error.osError?.errorCode;
-    return code == 28 ||
-        ((Platform.isLinux || Platform.isAndroid) && code == 122) ||
-        ((Platform.isIOS || Platform.isMacOS) && code == 69);
-  }
+  /// Whether [error] means the volume is full (or over quota): ENOSPC (28
+  /// on Linux, Android, iOS and macOS) and EDQUOT (122 on Linux and
+  /// Android, 69 on iOS and macOS), or a browser quota error.
+  static bool isNoSpace(FileSystemException error) => fileSystemFull(error);
 }

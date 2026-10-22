@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart' as crypto;
 
 import '../../domain/services/finished_photos.dart';
+import 'file_system.dart';
 
 /// [FinishedPhotos] under managed storage's `outputs/`: only relative
 /// paths inside it are read, and the bytes must match their checksum.
@@ -24,7 +25,7 @@ final class ManagedFinishedPhotos implements FinishedPhotos {
     }
     final Uint8List bytes;
     try {
-      bytes = await File('${(await _root()).path}/$relativePath').readAsBytes();
+      bytes = await fileIn(await _root(), relativePath).readAsBytes();
     } on FileSystemException {
       throw const FinishedPhotoUnreadable('missing');
     }

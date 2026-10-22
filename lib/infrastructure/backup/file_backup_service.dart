@@ -13,6 +13,7 @@ import '../../domain/services/booth_capabilities.dart';
 import '../../domain/services/operator_files.dart';
 import '../../domain/value_objects/clock.dart';
 import '../database/booth_database.dart';
+import '../file_store/file_system.dart';
 import '../file_store/managed_storage.dart';
 import 'backup_staging.dart';
 import 'pending_restore.dart';
@@ -96,8 +97,8 @@ final class FileBackupService implements BackupService {
     if (!estimate.fits) throw const BackupException(BackupProblem.noSpace);
     final staging = await _storage.directory(ManagedArea.staging);
     final id = _id();
-    final snapshot = File('${staging.path}/${BackupStaging.snapshot(id)}');
-    final archive = File('${staging.path}/${BackupStaging.archive(id)}');
+    final snapshot = fileIn(staging, BackupStaging.snapshot(id));
+    final archive = fileIn(staging, BackupStaging.archive(id));
     try {
       await _db.customStatement('VACUUM INTO ?', [snapshot.path]);
       _scrub(snapshot, contents);
@@ -210,9 +211,9 @@ final class FileBackupService implements BackupService {
       throw const BackupException(BackupProblem.noSpace);
     }
     final id = _id();
-    final copy = File(
-      '${(await _storage.directory(ManagedArea.staging)).path}/'
-      '${BackupStaging.restoreCopy(id)}',
+    final copy = fileIn(
+      await _storage.directory(ManagedArea.staging),
+      BackupStaging.restoreCopy(id),
     );
     try {
       var copied = 0;
@@ -250,7 +251,7 @@ final class FileBackupService implements BackupService {
     if (!await _empty()) throw const BackupException(BackupProblem.notEmpty);
     final copy = await _candidateFile(candidate);
     final pending = PendingRestore(await _storage.rootDirectory());
-    final unpack = Directory('${pending.area.path}/unpack-${candidate.id}');
+    final unpack = directoryIn(pending.area, 'unpack-${candidate.id}');
     try {
       if (pending.incoming.existsSync()) {
         await pending.incoming.delete(recursive: true);
@@ -259,11 +260,11 @@ final class FileBackupService implements BackupService {
       final entries = await readTar(copy, limits: limits, extractTo: unpack);
       _match(entries, candidate.manifest);
       onProgress?.call(0.7);
-      final inner = Directory('${unpack.path}/$_top');
+      final inner = directoryIn(unpack, _top);
       _checkDatabase(
-        File('${inner.path}/${BackupManifest.databasePath}'),
+        fileIn(inner, BackupManifest.databasePath),
         candidate.manifest,
-        Directory('${inner.path}/files'),
+        directoryIn(inner, 'files'),
       );
       await inner.rename(pending.incoming.path);
       await pending.readyMarker.writeAsString(
@@ -347,7 +348,7 @@ final class FileBackupService implements BackupService {
       throw const BackupException(BackupProblem.invalidArchive);
     }
     final staging = await _storage.directory(ManagedArea.staging);
-    return File('${staging.path}/${BackupStaging.restoreCopy(candidate.id)}');
+    return fileIn(staging, BackupStaging.restoreCopy(candidate.id));
   }
 
   /// Reads [archive] end to end: structure, names, limits, checksums,
@@ -459,7 +460,7 @@ final class FileBackupService implements BackupService {
           final sha = listed[path];
           if (sha == null ||
               (hasSha && sha != row['sha256'] as String) ||
-              !File('${files.path}/$path').existsSync()) {
+              !fileIn(files, path).existsSync()) {
             if (manifest.contents == BackupContents.setupOnly &&
                 table != 'assets') {
               throw BackupException(BackupProblem.databaseDamaged, table);

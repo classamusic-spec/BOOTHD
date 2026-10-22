@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart' as crypto;
@@ -9,6 +8,7 @@ import '../../domain/services/composition_renderer.dart';
 import '../../domain/services/export_service.dart';
 import '../../domain/value_objects/entity_id.dart';
 import 'atomic_file_writer.dart';
+import 'file_system.dart';
 import 'managed_storage.dart';
 
 /// Saves renders under managed storage's `outputs/` (A-07 step 7, A-11).
@@ -49,8 +49,9 @@ final class FileExportService implements ExportService {
       OutputFormat.png => 'png',
     };
     final area = ManagedArea.outputs.directoryName;
-    final destination = File(
-      '${(await storage.directory(ManagedArea.outputs)).path}/$id.$extension',
+    final destination = fileIn(
+      await storage.directory(ManagedArea.outputs),
+      '$id.$extension',
     );
     final writer = AtomicFileWriter(
       staging: await storage.directory(ManagedArea.staging),
@@ -108,8 +109,9 @@ final class FileExportService implements ExportService {
       throw const ExportFailure(ExportFailureCode.verifyFailed);
     }
     final outputs = await storage.directory(ManagedArea.outputs);
-    final bytes = await File(
-      '${outputs.path}/${file.relativePath.substring('outputs/'.length)}',
+    final bytes = await fileIn(
+      outputs,
+      file.relativePath.substring('outputs/'.length),
     ).readAsBytes();
     if (crypto.sha256.convert(bytes).toString() != file.sha256) {
       throw const ExportFailure(ExportFailureCode.verifyFailed);

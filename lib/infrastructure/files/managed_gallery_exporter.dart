@@ -8,6 +8,7 @@ import '../../domain/services/gallery_services.dart';
 import '../../domain/services/operator_files.dart';
 import '../../domain/value_objects/entity_id.dart';
 import '../file_store/atomic_file_writer.dart';
+import '../file_store/file_system.dart';
 import '../file_store/managed_storage.dart';
 
 /// Offers [files] (absolute paths in managed storage, with their MIME
@@ -86,9 +87,9 @@ final class ManagedGalleryExporter implements GalleryExporter {
 
     await discardPrepared();
     final root = (await _storage.directory(ManagedArea.outgoing)).parent;
-    final batch = Directory(
-      '${(await _storage.directory(ManagedArea.outgoing)).path}/'
-      '${_ids.newId()}',
+    final batch = directoryIn(
+      await _storage.directory(ManagedArea.outgoing),
+      _ids.newId(),
     );
     final prepared = <ExportItem>[];
     final copies = <({String path, String mimeType})>[];
@@ -126,7 +127,7 @@ final class ManagedGalleryExporter implements GalleryExporter {
       }
       final List<int> bytes;
       try {
-        bytes = await File('${root.path}/${item.relativePath}').readAsBytes();
+        bytes = await fileIn(root, item.relativePath).readAsBytes();
       } on FileSystemException {
         failures.add(_failure(item, ExportProblem.missing));
         continue;
@@ -136,7 +137,7 @@ final class ManagedGalleryExporter implements GalleryExporter {
         failures.add(_failure(item, ExportProblem.damaged));
         continue;
       }
-      final copy = File('${batch.path}/${item.fileName}');
+      final copy = fileIn(batch, item.fileName);
       try {
         await _writeCopy(copy, bytes);
         if (await copy.length() != bytes.length) {

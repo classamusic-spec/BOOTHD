@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
@@ -200,8 +201,11 @@ final class PluginCameraDriver implements CameraDriver {
     try {
       return DriverStill(await file.readAsBytes(), orientation);
     } finally {
-      final temporary = File(file.path);
-      if (temporary.existsSync()) await temporary.delete();
+      // In the browser the picture is a blob URL, not a file to remove.
+      if (!kIsWeb) {
+        final temporary = File(file.path);
+        if (temporary.existsSync()) await temporary.delete();
+      }
     }
   }
 

@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 
 import '../../domain/services/gallery_services.dart';
 import '../database/booth_database.dart';
+import 'file_system.dart';
 import 'original_store.dart';
 
 /// [StorageCleanup] for managed storage (A-11, AC-0805): removes the files
@@ -51,7 +52,7 @@ final class ManagedStorageCleanup implements StorageCleanup {
       for (final entry in pending) {
         final path = entry.relativePath;
         if (_removable.hasMatch(path)) {
-          final file = File('${root.path}/$path');
+          final file = fileIn(root, path);
           try {
             if (file.existsSync()) await _delete(file);
           } on FileSystemException {
@@ -97,7 +98,7 @@ final class ManagedStorageCleanup implements StorageCleanup {
 
     var removed = 0;
     for (final area in _sweptAreas) {
-      final directory = Directory('${root.path}/$area');
+      final directory = directoryIn(root, area);
       if (!directory.existsSync()) continue;
       final files = directory
           .listSync(recursive: true, followLinks: false)
@@ -113,7 +114,7 @@ final class ManagedStorageCleanup implements StorageCleanup {
       }
     }
     // Template folders the sweep emptied.
-    final templates = Directory('${root.path}/templates');
+    final templates = directoryIn(root, 'templates');
     if (templates.existsSync()) {
       for (final folder
           in templates.listSync(followLinks: false).whereType<Directory>()) {
@@ -128,11 +129,9 @@ final class ManagedStorageCleanup implements StorageCleanup {
     // Camera photos are never deleted by a sweep: one nothing refers to is
     // moved aside, like a file that is not what its journal expected.
     var quarantined = 0;
-    final originals = Directory('${root.path}/originals');
+    final originals = directoryIn(root, 'originals');
     if (originals.existsSync()) {
-      final aside = Directory(
-        '${originals.path}/${OriginalStore.quarantineName}',
-      );
+      final aside = directoryIn(originals, OriginalStore.quarantineName);
       final files = originals.listSync(followLinks: false).whereType<File>();
       for (final file in files) {
         if (referenced.contains(relative(file))) continue;

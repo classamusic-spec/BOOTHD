@@ -16,6 +16,7 @@ import '../database/booth_database.dart';
 import '../database/drift_template_catalog.dart';
 import '../database/persistence_guard.dart';
 import '../file_store/atomic_file_writer.dart';
+import '../file_store/file_system.dart';
 import '../file_store/managed_storage.dart';
 
 /// Immutable template revisions (A-05, A-11, A-15, ADR-0010).
@@ -416,6 +417,6 @@ final class DriftTemplateRepository implements TemplateRepository {
       );
     }
     final directory = await storage.directory(ManagedArea.templates);
-    return File('${directory.path}/${segments[1]}/${segments[2]}');
+    return fileIn(directory, '${segments[1]}/${segments[2]}');
   }
 }

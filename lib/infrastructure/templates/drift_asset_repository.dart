@@ -13,6 +13,7 @@ import '../../domain/value_objects/clock.dart';
 import '../database/booth_database.dart';
 import '../database/persistence_guard.dart';
 import '../file_store/atomic_file_writer.dart';
+import '../file_store/file_system.dart';
 import '../file_store/managed_storage.dart';
 
 /// Template assets in managed storage, content-addressed (A-11, ADR-0010).
@@ -228,8 +229,8 @@ final class DriftAssetRepository implements AssetRepository {
   static String relativePathOf(String id, AssetMediaType mediaType) =>
       '${ManagedArea.assets.directoryName}/$id.${mediaType.extension}';
 
-  Future<File> _file(String id, AssetMediaType mediaType) async => File(
-    '${(await storage.directory(ManagedArea.assets)).path}/'
+  Future<File> _file(String id, AssetMediaType mediaType) async => fileIn(
+    await storage.directory(ManagedArea.assets),
     '$id.${mediaType.extension}',
   );
 

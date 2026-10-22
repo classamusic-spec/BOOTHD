@@ -10,6 +10,7 @@ import '../../domain/services/camera_service.dart';
 import '../../domain/value_objects/clock.dart';
 import '../database/booth_database.dart';
 import 'atomic_file_writer.dart';
+import 'file_system.dart';
 import 'jpeg_exif.dart';
 
 /// What the camera adapter knows about a still when committing it.
@@ -78,10 +79,9 @@ final class OriginalStore implements CapturedStillStore {
   OriginalsRecovery? lastRecovery;
 
   Future<Directory> _directory() async =>
-      Directory('${(await _root()).path}/$directoryName');
+      directoryIn(await _root(), directoryName);
 
-  File _file(Directory root, String relativePath) =>
-      File('${root.path}/$relativePath');
+  File _file(Directory root, String relativePath) => fileIn(root, relativePath);
 
   /// Validates and stores [bytes] as original [id]. Never overwrites.
   /// Throws [OriginalCommitException]; nothing is stored then.
@@ -271,7 +271,7 @@ final class OriginalStore implements CapturedStillStore {
     // The M01 spike: originals/<id>.jpg with <id>.json beside it, and its
     // own staging folder.
     if (directory.existsSync()) {
-      final staging = Directory('${directory.path}/.staging');
+      final staging = directoryIn(directory, '.staging');
       if (staging.existsSync()) await staging.delete(recursive: true);
       for (final entry in directory.listSync(followLinks: false)) {
         if (entry is! File || !entry.path.endsWith('.json')) continue;
@@ -306,7 +306,7 @@ final class OriginalStore implements CapturedStillStore {
 
   Future<bool> _quarantine(Directory directory, File file) async {
     try {
-      final aside = Directory('${directory.path}/$quarantineName');
+      final aside = directoryIn(directory, quarantineName);
       await aside.create(recursive: true);
       final name = file.uri.pathSegments.last;
       await file.rename(

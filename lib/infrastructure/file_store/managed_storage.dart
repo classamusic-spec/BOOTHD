@@ -9,6 +9,7 @@ import '../../domain/services/managed_storage.dart';
 import '../backup/backup_staging.dart';
 import '../backup/pending_restore.dart';
 import 'atomic_file_writer.dart';
+import 'file_system.dart';
 
 /// Top-level directories of managed storage, under the app's private
 /// support directory (never the user-visible Documents folder).
@@ -58,14 +59,14 @@ final class FileManagedStorage implements ManagedStorage {
   final Future<void> Function(Directory root)? _keepOutOfDeviceBackups;
 
   Future<Directory> directory(ManagedArea area) async =>
-      Directory('${(await _root()).path}/${area.directoryName}');
+      directoryIn(await _root(), area.directoryName);
 
   /// The directory every area lives in.
   Future<Directory> rootDirectory() => _root();
 
   /// The booth database file.
   Future<File> databaseFile() async =>
-      File('${(await directory(ManagedArea.database)).path}/$databaseFileName');
+      fileIn(await directory(ManagedArea.database), databaseFileName);
 
   @override
   Future<void> prepare() async {
@@ -120,7 +121,7 @@ final class FileManagedStorage implements ManagedStorage {
   Future<CapabilityStatus> probeWrite() async {
     final staging = await directory(ManagedArea.staging);
     final name = List.generate(8, (_) => _random.nextInt(16).toRadixString(16));
-    final probe = File('${staging.path}/probe-${name.join()}.tmp');
+    final probe = fileIn(staging, 'probe-${name.join()}.tmp');
     final bytes = Uint8List.fromList(
       List.generate(4096, (_) => _random.nextInt(256)),
     );

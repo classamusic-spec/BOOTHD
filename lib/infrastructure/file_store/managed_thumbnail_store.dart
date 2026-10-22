@@ -9,6 +9,7 @@ import '../../core/composition/scene_images.dart';
 import '../../domain/services/gallery_services.dart';
 import '../codecs/jpeg_encoder.dart';
 import 'atomic_file_writer.dart';
+import 'file_system.dart';
 import 'managed_storage.dart';
 
 /// [ThumbnailStore] under managed storage's `thumbnails/` (S13).
@@ -58,9 +59,7 @@ final class ManagedThumbnailStore implements ThumbnailStore {
       throw const ThumbnailUnavailable('invalid');
     }
     final root = (await _storage.directory(ManagedArea.thumbnails)).parent;
-    final file = File(
-      '${root.path}/${relativePathFor(source.kind, source.id)}',
-    );
+    final file = fileIn(root, relativePathFor(source.kind, source.id));
     try {
       final stored = await file.readAsBytes();
       if (stored.length > 4 && stored[0] == 0xFF && stored[1] == 0xD8) {
@@ -75,8 +74,7 @@ final class ManagedThumbnailStore implements ThumbnailStore {
     try {
       final Uint8List original;
       try {
-        original = await File('${root.path}/${source.relativePath}')
-            .readAsBytes();
+        original = await fileIn(root, source.relativePath).readAsBytes();
       } on FileSystemException {
         throw const ThumbnailUnavailable('missing');
       }

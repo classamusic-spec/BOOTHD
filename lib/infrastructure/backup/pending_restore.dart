@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import '../file_store/file_system.dart';
+
 /// A restore waiting to be swapped in at the next start of the booth's
 /// storage (M10, AC-1006, ADR-0016).
 ///
@@ -19,10 +21,10 @@ final class PendingRestore {
   /// The managed storage root.
   final Directory root;
 
-  Directory get area => Directory('${root.path}/restore');
-  Directory get incoming => Directory('${area.path}/incoming');
-  File get readyMarker => File('${area.path}/ready.json');
-  File get appliedMarker => File('${area.path}/applied.json');
+  Directory get area => directoryIn(root, 'restore');
+  Directory get incoming => directoryIn(area, 'incoming');
+  File get readyMarker => fileIn(area, 'ready.json');
+  File get appliedMarker => fileIn(area, 'applied.json');
 
   /// Swaps a ready restore in, or discards an unfinished one. Returns the
   /// summary written when the restore was staged, if one was applied now
@@ -41,7 +43,7 @@ final class PendingRestore {
       return _applied();
     }
     final summary = _decode(await readyMarker.readAsString());
-    final files = Directory('${incoming.path}/files');
+    final files = directoryIn(incoming, 'files');
     if (files.existsSync()) {
       final entries = await files
           .list(recursive: true, followLinks: false)
@@ -50,18 +52,18 @@ final class PendingRestore {
           .toList();
       for (final file in entries) {
         final relative = file.path.substring(files.path.length + 1);
-        final target = File('${root.path}/$relative');
+        final target = fileIn(root, relative);
         await target.parent.create(recursive: true);
         if (target.existsSync()) await target.delete();
         await file.rename(target.path);
       }
     }
-    final database = File('${incoming.path}/database.sqlite');
+    final database = fileIn(incoming, 'database.sqlite');
     if (database.existsSync()) {
-      final target = File('${root.path}/$databaseRelativePath');
+      final target = fileIn(root, databaseRelativePath);
       await target.parent.create(recursive: true);
       for (final suffix in ['', '-wal', '-shm', '-journal']) {
-        final old = File('${target.path}$suffix');
+        final old = fileNear(target, '${target.path}$suffix');
         if (old.existsSync()) await old.delete();
       }
       await database.rename(target.path);
