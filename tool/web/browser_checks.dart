@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print -- the output is read by tool/web/smoke.mjs.
+
 // Checks of the web test build's browser adapters that need a real browser
 // (ADR-0018). Compiled to JavaScript and run in Chromium by
 // tool/web/smoke.mjs, which reads the printed lines:

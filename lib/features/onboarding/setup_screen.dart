@@ -290,18 +290,35 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
             Semantics(
               header: true,
               child: Text(
-                'Everything stays on this tablet',
+                kIsWeb
+                    ? 'Everything stays on this device'
+                    : 'Everything stays on this tablet',
                 style: theme.text.headlineLarge,
               ),
             ),
             const SizedBox(height: PorcelainSpace.xl),
-            const _Point(
-              icon: PorcelainIcons.storage,
-              title: 'Private storage',
-              body:
-                  "Events, templates and guests' photos are kept in the "
-                  "app's private storage on this tablet. Nothing is uploaded.",
-            ),
+            if (kIsWeb)
+              // The web test build (ADR-0018) keeps everything in the
+              // browser, which can clear it.
+              const _Point(
+                icon: PorcelainIcons.storage,
+                title: 'Stored in this browser',
+                body:
+                    "Events, templates and guests' photos are kept in this "
+                    "browser's storage on this device. Nothing is uploaded. "
+                    "Clearing this site's data, or using a private window, "
+                    'deletes them: download photos from the Gallery before '
+                    'you do.',
+              )
+            else
+              const _Point(
+                icon: PorcelainIcons.storage,
+                title: 'Private storage',
+                body:
+                    "Events, templates and guests' photos are kept in the "
+                    "app's private storage on this tablet. Nothing is "
+                    'uploaded.',
+              ),
             const _Point(
               icon: PorcelainIcons.security,
               title: 'An operator PIN',

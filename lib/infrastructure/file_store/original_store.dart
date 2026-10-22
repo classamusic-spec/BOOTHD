@@ -4,8 +4,10 @@ import 'dart:ui' as ui;
 
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:meta/meta.dart';
 
+import '../../core/composition/scene_images.dart';
 import '../../domain/services/camera_service.dart';
 import '../../domain/value_objects/clock.dart';
 import '../database/booth_database.dart';
@@ -346,6 +348,15 @@ final class OriginalStore implements CapturedStillStore {
   /// Fully decodes [bytes] (at a small size, to bound memory) and returns
   /// the oriented dimensions. Corrupt files fail here.
   static Future<(int, int)> decodedSize(Uint8List bytes) async {
+    if (kIsWeb) {
+      // Browsers size an image only by decoding it (ADR-0018).
+      try {
+        final size = await probeImageSize(bytes);
+        return (size.width, size.height);
+      } on Object {
+        throw const OriginalCommitException('undecodable');
+      }
+    }
     final buffer = await ui.ImmutableBuffer.fromUint8List(bytes);
     ui.ImageDescriptor? descriptor;
     ui.Codec? codec;

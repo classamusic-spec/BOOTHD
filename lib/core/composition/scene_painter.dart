@@ -11,6 +11,8 @@ library;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 import '../../domain/services/composition_renderer.dart';
 import '../../domain/template/document_scene.dart';
 import '../../domain/template/geometry.dart';
@@ -255,7 +257,9 @@ ui.ImageShader _imageShader(
     ..[13] = dest.top - source.top * scaleY
     ..[15] = 1;
   return ui.ImageShader(
-    image,
+    // A browser's shader disposes its image with itself (ADR-0018), and one
+    // image may fill several slots: there it gets a handle of its own.
+    kIsWeb ? image.clone() : image,
     ui.TileMode.clamp,
     ui.TileMode.clamp,
     matrix,

@@ -6,6 +6,8 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 import '../../domain/template/geometry.dart';
 
 /// An encoded image could not be read.
@@ -47,6 +49,14 @@ final class DecodedImage {
 /// The size of the encoded image in [bytes] as it will decode: with its
 /// EXIF orientation applied (ADR-0007). Reads the header only.
 Future<PixelSize> probeImageSize(Uint8List bytes) async {
+  if (kIsWeb) {
+    // Browsers cannot read the header alone (ADR-0018): the image is
+    // decoded by the same decoder that draws it, so the sizes agree.
+    final image = await decodeImage(bytes);
+    final size = PixelSize(image.width, image.height);
+    image.dispose();
+    return size;
+  }
   final buffer = await ui.ImmutableBuffer.fromUint8List(bytes);
   try {
     final descriptor = await ui.ImageDescriptor.encoded(buffer);
@@ -63,6 +73,19 @@ Future<PixelSize> probeImageSize(Uint8List bytes) async {
 /// Decodes [bytes] at [scale] of its full size (at most 1), so a 12 MP
 /// original drawn at a quarter of its width is never held at full size.
 Future<ui.Image> decodeImage(Uint8List bytes, {double scale = 1}) async {
+  if (kIsWeb) {
+    // A browser's descriptor has no size before decoding, so the web test
+    // build decodes at full size; the drawing scales it as on tablets.
+    ui.Codec? codec;
+    try {
+      codec = await ui.instantiateImageCodec(bytes);
+      return (await codec.getNextFrame()).image;
+    } on Object {
+      throw const ImageDecodeException('the image data is damaged');
+    } finally {
+      codec?.dispose();
+    }
+  }
   final buffer = await ui.ImmutableBuffer.fromUint8List(bytes);
   ui.ImageDescriptor? descriptor;
   ui.Codec? codec;

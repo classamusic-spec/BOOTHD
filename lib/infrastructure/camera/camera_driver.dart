@@ -106,7 +106,11 @@ final class PluginCameraDriver implements CameraDriver {
             lens: switch (camera.lensDirection) {
               CameraLensDirection.front => CameraLens.front,
               CameraLensDirection.back => CameraLens.back,
-              CameraLensDirection.external => CameraLens.external,
+              // A browser reports a computer's webcam, which faces the
+              // user, without a facing mode (ADR-0018); tablets' browsers
+              // report front and back.
+              CameraLensDirection.external =>
+                kIsWeb ? CameraLens.front : CameraLens.external,
             },
             sensorOrientationDegrees: camera.sensorOrientation,
           ),
