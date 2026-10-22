@@ -11,7 +11,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('a fresh install starts first-run setup', (tester) async {
-    app.main();
+    await app.main();
     await tester.pumpAndSettle();
 
     // A device that already ran setup shows the PIN screen instead.

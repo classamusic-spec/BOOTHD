@@ -1,0 +1,194 @@
+import 'dart:async';
+import 'dart:io' as io;
+import 'dart:js_interop';
+import 'dart:typed_data';
+
+import 'package:web/web.dart' as web;
+
+import '../file_store/blob_file_system.dart';
+
+/// [BlobStore] in the browser's IndexedDB (ADR-0018): an `entries` store
+/// (path to folder or file size and time) and a `contents` store (path to
+/// bytes). Each change is one read-write transaction over both stores, so
+/// a write or rename either happens completely or not at all; the browser
+/// commits the transaction before [write] returns.
+final class IndexedDbBlobStore implements BlobStore {
+  IndexedDbBlobStore._(this._db);
+
+  static const _name = 'porcelain_booth_files';
+  static const _entries = 'entries';
+  static const _contents = 'contents';
+
+  final web.IDBDatabase _db;
+
+  /// Opens (or creates) the store.
+  static Future<IndexedDbBlobStore> open() async {
+    final request = web.window.indexedDB.open(_name, 1);
+    request.onupgradeneeded = ((web.Event _) {
+      final db = request.result! as web.IDBDatabase;
+      if (!db.objectStoreNames.contains(_entries)) {
+        db.createObjectStore(_entries);
+      }
+      if (!db.objectStoreNames.contains(_contents)) {
+        db.createObjectStore(_contents);
+      }
+    }).toJS;
+    final db = await _result(request);
+    return IndexedDbBlobStore._(db! as web.IDBDatabase);
+  }
+
+  static Future<JSAny?> _result(web.IDBRequest request) {
+    final done = Completer<JSAny?>();
+    request
+      ..onsuccess = ((web.Event _) => done.complete(request.result)).toJS
+      ..onerror = ((web.Event _) {
+        done.completeError(_failure(request.error, ''));
+      }).toJS;
+    return done.future;
+  }
+
+  static io.FileSystemException _failure(
+    web.DOMException? error,
+    String path,
+  ) => io.FileSystemException(
+    error?.name == 'QuotaExceededError'
+        ? 'QuotaExceeded: the browser storage is full'
+        : 'Browser storage failed: ${error?.name ?? 'unknown'}',
+    path,
+  );
+
+  /// Runs [issue] in one read-write transaction and waits for the browser
+  /// to commit it. Every request is issued before the first await, so the
+  /// transaction never closes early.
+  Future<void> _change(String path, void Function(web.IDBTransaction) issue) {
+    final transaction = _db.transaction(
+      [_entries.toJS, _contents.toJS].toJS,
+      'readwrite',
+    );
+    final done = Completer<void>();
+    transaction
+      ..oncomplete = ((web.Event _) => done.complete()).toJS
+      ..onabort = ((web.Event _) {
+        if (!done.isCompleted) {
+          done.completeError(_failure(transaction.error, path));
+        }
+      }).toJS
+      ..onerror = ((web.Event _) {
+        if (!done.isCompleted) {
+          done.completeError(_failure(transaction.error, path));
+        }
+      }).toJS;
+    try {
+      issue(transaction);
+    } on Object {
+      transaction.abort();
+      rethrow;
+    }
+    return done.future;
+  }
+
+  static JSAny _fileEntry(int size, DateTime modified) =>
+      {'d': false, 's': size, 'm': modified.millisecondsSinceEpoch}.jsify()!;
+
+  static final JSAny _folderEntry = {'d': true, 's': 0, 'm': 0}.jsify()!;
+
+  @override
+  Future<Map<String, BlobEntry>> load() async {
+    final transaction = _db.transaction(_entries.toJS, 'readonly');
+    final store = transaction.objectStore(_entries);
+    final keys = _result(store.getAllKeys());
+    final values = _result(store.getAll());
+    final keyList = ((await keys)! as JSArray<JSAny?>).toDart;
+    final valueList = ((await values)! as JSArray<JSAny?>).toDart;
+    return {
+      for (var i = 0; i < keyList.length; i++)
+        (keyList[i]! as JSString).toDart: _entryOf(valueList[i]),
+    };
+  }
+
+  static BlobEntry _entryOf(JSAny? value) {
+    final map = (value.dartify() as Map?) ?? const {};
+    if (map['d'] == true) return const BlobEntry.directory();
+    return BlobEntry.file(
+      (map['s'] as num? ?? 0).toInt(),
+      DateTime.fromMillisecondsSinceEpoch((map['m'] as num? ?? 0).toInt()),
+    );
+  }
+
+  @override
+  Future<Uint8List> read(String path) async {
+    final transaction = _db.transaction(_contents.toJS, 'readonly');
+    final value = await _result(
+      transaction.objectStore(_contents).get(path.toJS),
+    );
+    if (value == null) {
+      throw io.FileSystemException('Cannot open file', path);
+    }
+    return (value as JSUint8Array).toDart;
+  }
+
+  @override
+  Future<void> write(String path, Uint8List bytes, DateTime modified) =>
+      _change(path, (transaction) {
+        transaction.objectStore(_contents).put(bytes.toJS, path.toJS);
+        transaction
+            .objectStore(_entries)
+            .put(_fileEntry(bytes.length, modified), path.toJS);
+      });
+
+  @override
+  Future<void> makeDirectories(Iterable<String> paths) {
+    final all = paths.toList();
+    return _change(all.isEmpty ? '' : all.first, (transaction) {
+      final entries = transaction.objectStore(_entries);
+      for (final path in all) {
+        entries.put(_folderEntry, path.toJS);
+      }
+    });
+  }
+
+  @override
+  Future<void> move(Map<String, String> moves) async {
+    // Read first (each read is its own transaction), then write everything
+    // in one transaction.
+    final entries = <String, JSAny?>{};
+    final contents = <String, JSAny?>{};
+    for (final from in moves.keys) {
+      final transaction = _db.transaction(
+        [_entries.toJS, _contents.toJS].toJS,
+        'readonly',
+      );
+      final entry = _result(transaction.objectStore(_entries).get(from.toJS));
+      final content = _result(
+        transaction.objectStore(_contents).get(from.toJS),
+      );
+      entries[from] = await entry;
+      contents[from] = await content;
+    }
+    await _change(moves.keys.isEmpty ? '' : moves.keys.first, (transaction) {
+      final entryStore = transaction.objectStore(_entries);
+      final contentStore = transaction.objectStore(_contents);
+      for (final from in moves.keys) {
+        entryStore.delete(from.toJS);
+        contentStore.delete(from.toJS);
+      }
+      for (final MapEntry(key: from, value: to) in moves.entries) {
+        if (entries[from] case final entry?) entryStore.put(entry, to.toJS);
+        if (contents[from] case final bytes?) contentStore.put(bytes, to.toJS);
+      }
+    });
+  }
+
+  @override
+  Future<void> remove(Iterable<String> paths) {
+    final all = paths.toList();
+    return _change(all.isEmpty ? '' : all.first, (transaction) {
+      final entries = transaction.objectStore(_entries);
+      final contents = transaction.objectStore(_contents);
+      for (final path in all) {
+        entries.delete(path.toJS);
+        contents.delete(path.toJS);
+      }
+    });
+  }
+}

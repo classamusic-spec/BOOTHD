@@ -146,14 +146,17 @@ final class PluginCameraDriver implements CameraDriver {
     } on CameraException {
       // No flash unit.
     }
-    final double minZoom;
-    final double maxZoom;
+    var minZoom = 1.0;
+    var maxZoom = 1.0;
     try {
       minZoom = await controller.getMinZoomLevel();
       maxZoom = await controller.getMaxZoomLevel();
     } on CameraException catch (error) {
-      await controller.dispose();
-      throw CameraDriverException(error.code);
+      // Browser cameras often have no zoom: the booth does not use it.
+      if (!kIsWeb) {
+        await controller.dispose();
+        throw CameraDriverException(error.code);
+      }
     }
     _lastError = null;
     controller.addListener(() => _watch(controller));

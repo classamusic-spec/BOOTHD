@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -113,6 +114,28 @@ class _BackupSettingsState extends ConsumerState<BackupSettings> {
   @override
   Widget build(BuildContext context) {
     final theme = context.porcelain;
+    // The browser test build (ADR-0018) has no backup file format: its
+    // database is not a file. Photos leave through the Gallery instead.
+    if (kIsWeb) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SectionHeader(
+            title: 'Back up this booth',
+            subtitle: 'Backups are made in the tablet app.',
+          ),
+          PorcelainCard(
+            child: Text(
+              'In the browser, events, templates and photos are kept in this '
+              'browser on this device only, and clearing the site data '
+              'deletes them. Download photos from the Gallery after each '
+              'event (select the sessions, then Export).',
+              style: theme.text.bodyLarge,
+            ),
+          ),
+        ],
+      );
+    }
     final muted = theme.text.bodySmall.copyWith(color: theme.colors.inkMuted);
     final estimate = ref.watch(backupEstimateProvider(_contents)).value;
     final busy = _progress != null;

@@ -17,12 +17,17 @@ import '../../domain/services/delivery_api.dart';
 final class HttpDeliveryApi implements DeliveryApi {
   HttpDeliveryApi({
     HttpClient? client,
+    DeliveryHttpSend? send,
     this.timeout = const Duration(seconds: 20),
-  }) : _client =
-           client ??
-           (HttpClient()..connectionTimeout = const Duration(seconds: 10));
+  }) : _transport =
+           send ??
+           ioDeliverySend(
+             client ??
+                 (HttpClient()
+                   ..connectionTimeout = const Duration(seconds: 10)),
+           );
 
-  final HttpClient _client;
+  final DeliveryHttpSend _transport;
   final Duration timeout;
 
   static const _userAgent = 'PorcelainBooth/1 (delivery)';
@@ -59,64 +64,30 @@ final class HttpDeliveryApi implements DeliveryApi {
     String? contentType,
     Duration? timeout,
   }) async {
-    final HttpClientResponse response;
-    final List<int> body;
-    try {
-      final request = await _client
-          .openUrl(method, url)
-          .timeout(timeout ?? this.timeout);
-      request.followRedirects = false;
-      request.headers
-        ..set(HttpHeaders.userAgentHeader, _userAgent)
-        ..set(HttpHeaders.acceptHeader, 'application/json');
-      if (bearer != null) {
-        request.headers.set(HttpHeaders.authorizationHeader, 'Bearer $bearer');
-      }
-      if (json != null) {
-        final encoded = utf8.encode(jsonEncode(json));
-        request.headers.contentType = ContentType.json;
-        request.contentLength = encoded.length;
-        request.add(encoded);
-      } else if (bytes != null) {
-        request.headers.set(
-          HttpHeaders.contentTypeHeader,
-          contentType ?? 'application/octet-stream',
-        );
-        request.contentLength = bytes.length;
-        request.add(bytes);
-      } else {
-        request.contentLength = 0;
-      }
-      response = await request.close().timeout(timeout ?? this.timeout);
-      body = await response
-          .fold<BytesBuilder>(
-            BytesBuilder(copy: false),
-            (b, chunk) => b..add(chunk),
-          )
-          .then((b) => b.takeBytes())
-          .timeout(timeout ?? this.timeout);
-    } on TimeoutException {
-      throw const DeliveryApiException(
-        DeliveryFailureKind.transient,
-        'TIMEOUT',
-      );
-    } on HandshakeException {
-      throw const DeliveryApiException(DeliveryFailureKind.transient, 'TLS');
-    } on TlsException {
-      throw const DeliveryApiException(DeliveryFailureKind.transient, 'TLS');
-    } on SocketException {
-      throw const DeliveryApiException(
-        DeliveryFailureKind.transient,
-        'OFFLINE',
-      );
-    } on HttpException {
-      throw const DeliveryApiException(
-        DeliveryFailureKind.transient,
-        'NETWORK',
-      );
+    final headers = <String, String>{
+      HttpHeaders.userAgentHeader: _userAgent,
+      HttpHeaders.acceptHeader: 'application/json',
+      if (bearer != null) HttpHeaders.authorizationHeader: 'Bearer $bearer',
+    };
+    Uint8List? payload;
+    if (json != null) {
+      payload = utf8.encode(jsonEncode(json));
+      headers[HttpHeaders.contentTypeHeader] = ContentType.json.toString();
+    } else if (bytes != null) {
+      payload = bytes;
+      headers[HttpHeaders.contentTypeHeader] =
+          contentType ?? 'application/octet-stream';
     }
+    final response = await _transport(
+      method,
+      url,
+      headers,
+      payload,
+      timeout ?? this.timeout,
+    );
+    final body = response.body;
 
-    final status = response.statusCode;
+    final status = response.status;
     Map<String, Object?> decoded = const {};
     if (body.isNotEmpty) {
       try {
@@ -140,7 +111,7 @@ final class HttpDeliveryApi implements DeliveryApi {
         ? error['code']! as String
         : 'HTTP_$status';
     final retryAfter = int.tryParse(
-      response.headers.value(HttpHeaders.retryAfterHeader) ?? '',
+      response.headers[HttpHeaders.retryAfterHeader] ?? '',
     );
     final reasons = error is Map && error['reasons'] is List
         ? [for (final reason in error['reasons']! as List) '$reason']
@@ -501,3 +472,59 @@ final class HttpDeliveryApi implements DeliveryApi {
     );
   }
 }
+
+/// One HTTP response as the delivery client reads it: lower-case header
+/// names.
+typedef DeliveryHttpResponse = ({
+  int status,
+  Map<String, String> headers,
+  List<int> body,
+});
+
+/// Sends one request. Network failures throw [DeliveryApiException] with
+/// a transient code (`TIMEOUT`, `TLS`, `OFFLINE`, `NETWORK`); redirects
+/// are never followed.
+typedef DeliveryHttpSend = Future<DeliveryHttpResponse> Function(
+  String method,
+  Uri url,
+  Map<String, String> headers,
+  Uint8List? body,
+  Duration timeout,
+);
+
+/// [DeliveryHttpSend] over `dart:io` (tablets).
+DeliveryHttpSend ioDeliverySend(
+  HttpClient client,
+) => (method, url, headers, body, timeout) async {
+  try {
+    final request = await client.openUrl(method, url).timeout(timeout);
+    request.followRedirects = false;
+    headers.forEach(request.headers.set);
+    request.contentLength = body?.length ?? 0;
+    if (body != null) request.add(body);
+    final response = await request.close().timeout(timeout);
+    final bytes = await response
+        .fold<BytesBuilder>(
+          BytesBuilder(copy: false),
+          (b, chunk) => b..add(chunk),
+        )
+        .then((b) => b.takeBytes())
+        .timeout(timeout);
+    final retryAfter = response.headers.value(HttpHeaders.retryAfterHeader);
+    return (
+      status: response.statusCode,
+      headers: {HttpHeaders.retryAfterHeader: ?retryAfter},
+      body: bytes,
+    );
+  } on TimeoutException {
+    throw const DeliveryApiException(DeliveryFailureKind.transient, 'TIMEOUT');
+  } on HandshakeException {
+    throw const DeliveryApiException(DeliveryFailureKind.transient, 'TLS');
+  } on TlsException {
+    throw const DeliveryApiException(DeliveryFailureKind.transient, 'TLS');
+  } on SocketException {
+    throw const DeliveryApiException(DeliveryFailureKind.transient, 'OFFLINE');
+  } on HttpException {
+    throw const DeliveryApiException(DeliveryFailureKind.transient, 'NETWORK');
+  }
+};

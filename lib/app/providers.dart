@@ -2,20 +2,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../core/access/access_controller.dart';
 import '../core/di/service_providers.dart';
 import '../core/platform/app_environment.dart';
 import '../core/routing/route_paths.dart';
 import '../infrastructure/audio/audioplayers_guest_sound_service.dart';
-import '../infrastructure/backup/file_backup_service.dart';
 import '../infrastructure/camera/camera_driver.dart';
 import '../infrastructure/camera/managed_camera_service.dart';
-import '../infrastructure/camera/permission_handler_camera_permissions.dart';
 import '../infrastructure/composition/dart_ui_composition_renderer.dart';
 import '../infrastructure/database/booth_database.dart';
-import '../infrastructure/database/database_connection.dart';
 import '../infrastructure/database/drift_booth_settings_repository.dart';
 import '../infrastructure/database/drift_delivery_repository.dart';
 import '../infrastructure/database/drift_event_repository.dart';
@@ -23,11 +19,9 @@ import '../infrastructure/database/drift_gallery_repository.dart';
 import '../infrastructure/database/drift_operator_access_repository.dart';
 import '../infrastructure/database/drift_session_repository.dart';
 import '../infrastructure/database/drift_template_catalog.dart';
-import '../infrastructure/delivery/http_delivery_api.dart';
 import '../infrastructure/delivery/jpeg_preview_maker.dart';
 import '../infrastructure/delivery/secure_delivery_secrets.dart';
 import '../infrastructure/device/device_capability_probe.dart';
-import '../infrastructure/device/platform_device_storage.dart';
 import '../infrastructure/device/platform_kiosk_lock.dart';
 import '../infrastructure/file_store/file_export_service.dart';
 import '../infrastructure/file_store/managed_finished_photos.dart';
@@ -36,13 +30,13 @@ import '../infrastructure/file_store/managed_storage_cleanup.dart';
 import '../infrastructure/file_store/managed_thumbnail_store.dart';
 import '../infrastructure/file_store/original_store.dart';
 import '../infrastructure/files/managed_gallery_exporter.dart';
-import '../infrastructure/files/platform_operator_files.dart';
 import '../infrastructure/security/pbkdf2_pin_hasher.dart';
 import '../infrastructure/security/secure_pin_verifier_store.dart';
 import '../infrastructure/templates/drift_asset_repository.dart';
 import '../infrastructure/templates/drift_template_draft_repository.dart';
 import '../infrastructure/templates/drift_template_repository.dart';
 import '../infrastructure/templates/zip_template_packages.dart';
+import 'platform_bindings.dart';
 import 'restartable_app.dart';
 import 'router.dart';
 
@@ -78,7 +72,7 @@ final _originalStoreProvider = Provider<OriginalStore>((ref) {
   final storage = ref.watch(_managedStorageProvider);
   return OriginalStore(
     database: ref.watch(_boothDatabaseProvider),
-    root: getApplicationSupportDirectory,
+    root: appSupportDirectory,
     writer: storage.writer,
     clock: ref.watch(clockProvider),
   );
@@ -87,15 +81,15 @@ final _originalStoreProvider = Provider<OriginalStore>((ref) {
 /// Managed storage under the app's private support directory (A-11).
 final _managedStorageProvider = Provider<FileManagedStorage>(
   (ref) => FileManagedStorage(
-    root: getApplicationSupportDirectory,
-    keepOutOfDeviceBackups: const PlatformDeviceStorage().excludeFromBackup,
+    root: appSupportDirectory,
+    keepOutOfDeviceBackups: platformBackupExclusion(),
   ),
 );
 
 /// The booth database, opened on first use on a background isolate.
 final _boothDatabaseProvider = Provider<BoothDatabase>((ref) {
   final database = BoothDatabase(
-    openBoothDatabaseFile(ref.watch(_managedStorageProvider).databaseFile),
+    openBoothDatabase(ref.watch(_managedStorageProvider)),
     ids: ref.watch(idGeneratorProvider),
     clock: ref.watch(clockProvider),
   );
@@ -114,7 +108,7 @@ List<Override> productionOverrides() => [
   cameraServiceProvider.overrideWith((ref) {
     final service = ManagedCameraService(
       driver: ref.watch(_cameraDriverProvider),
-      permissions: const PermissionHandlerCameraPermissions(),
+      permissions: platformCameraPermissions(),
       store: ref.watch(_originalStoreProvider),
     );
     ref.onDispose(service.dispose);
@@ -173,7 +167,7 @@ List<Override> productionOverrides() => [
   templateDraftRepositoryProvider.overrideWith(
     (ref) => DriftTemplateDraftRepository(ref.watch(_boothDatabaseProvider)),
   ),
-  operatorFilesProvider.overrideWithValue(PlatformOperatorFiles()),
+  operatorFilesProvider.overrideWithValue(platformOperatorFiles()),
   exportServiceProvider.overrideWith(
     (ref) => FileExportService(
       renderer: ref.watch(compositionRendererProvider),
@@ -181,7 +175,7 @@ List<Override> productionOverrides() => [
       ids: ref.watch(idGeneratorProvider),
     ),
   ),
-  deviceStorageInfoProvider.overrideWithValue(const PlatformDeviceStorage()),
+  deviceStorageInfoProvider.overrideWithValue(platformDeviceStorage()),
   kioskLockInfoProvider.overrideWithValue(const PlatformKioskLock()),
   sessionRepositoryProvider.overrideWith(
     (ref) => DriftSessionRepository(
@@ -190,7 +184,7 @@ List<Override> productionOverrides() => [
     ),
   ),
   finishedPhotosProvider.overrideWithValue(
-    ManagedFinishedPhotos(root: getApplicationSupportDirectory),
+    ManagedFinishedPhotos(root: appSupportDirectory),
   ),
   galleryRepositoryProvider.overrideWith(
     (ref) => DriftGalleryRepository(
@@ -204,14 +198,14 @@ List<Override> productionOverrides() => [
       storage: ref.watch(_managedStorageProvider),
       space: ref.watch(deviceStorageInfoProvider),
       ids: ref.watch(idGeneratorProvider),
-      share: shareFilesWithPlatformSheet,
+      share: platformShareSheet(),
     ),
   ),
   thumbnailStoreProvider.overrideWith(
     (ref) => ManagedThumbnailStore(storage: ref.watch(_managedStorageProvider)),
   ),
   backupServiceProvider.overrideWith(
-    (ref) => FileBackupService(
+    (ref) => platformBackupService(
       database: ref.watch(_boothDatabaseProvider),
       storage: ref.watch(_managedStorageProvider),
       space: ref.watch(deviceStorageInfoProvider),
@@ -221,13 +215,13 @@ List<Override> productionOverrides() => [
   storageCleanupProvider.overrideWith(
     (ref) => ManagedStorageCleanup(
       database: ref.watch(_boothDatabaseProvider),
-      root: getApplicationSupportDirectory,
+      root: appSupportDirectory,
     ),
   ),
   deliveryRepositoryProvider.overrideWith(
     (ref) => DriftDeliveryRepository(ref.watch(_boothDatabaseProvider)),
   ),
-  deliveryApiProvider.overrideWith((ref) => HttpDeliveryApi()),
+  deliveryApiProvider.overrideWith((ref) => platformDeliveryApi()),
   deliverySecretsProvider.overrideWithValue(SecureDeliverySecrets()),
   previewMakerProvider.overrideWithValue(const JpegPreviewMaker()),
   boothCapabilityProbeProvider.overrideWith(

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -270,7 +271,8 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
               autofocus: true,
               onPressed: () => _go(SetupStep.privacy),
             ),
-            if (restored == null) ...[
+            // Restoring needs the tablet app's backup format (ADR-0018).
+            if (restored == null && !kIsWeb) ...[
               const SizedBox(height: PorcelainSpace.md),
               PorcelainButton(
                 label: 'Restore from a backup',
