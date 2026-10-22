@@ -16,6 +16,7 @@ import 'package:porcelain_photo_booth/core/routing/route_paths.dart';
 import 'package:porcelain_photo_booth/domain/models/booth_event.dart';
 import 'package:porcelain_photo_booth/domain/services/booth_capabilities.dart';
 import 'package:porcelain_photo_booth/domain/services/composition_renderer.dart';
+import 'package:porcelain_photo_booth/domain/services/guest_sound_service.dart';
 import 'package:porcelain_photo_booth/domain/services/kiosk_lock.dart';
 import 'package:porcelain_photo_booth/domain/services/managed_storage.dart';
 import 'package:porcelain_photo_booth/domain/services/operator_auth_service.dart';
@@ -37,6 +38,7 @@ import 'fake_gallery.dart';
 import 'fakes.dart';
 import 'memory_template_store.dart';
 import 'simulated_camera.dart';
+import 'sounds.dart';
 import 'test_database.dart';
 
 const debugAndroid = AppEnvironment(
@@ -103,6 +105,7 @@ final class TestBooth {
     required this.previews,
     required this.backups,
     required this.kiosk,
+    required this.sounds,
   });
 
   final BoothDatabase db;
@@ -137,6 +140,9 @@ final class TestBooth {
 
   /// Phone delivery (M09): the service, secure storage and previews.
   final FakeDeliveryApi delivery;
+
+  /// Guest sounds (EP03): what would have been heard.
+  final GuestSoundService sounds;
 
   /// Backups and restores (M10), and how many times the app was asked to
   /// start again (after a restore is staged).
@@ -230,6 +236,7 @@ Future<TestBooth> pumpApp(
   MemoryDeliverySecrets? secrets,
   FakeBackupService? backups,
   KioskLock kiosk = KioskLock.none,
+  GuestSoundService? sounds,
 }) async {
   final testClock = clock ?? FakeClock();
   final db = database ?? memoryDatabase(clock: testClock);
@@ -273,6 +280,7 @@ Future<TestBooth> pumpApp(
     previews: FakePreviewMaker(),
     backups: backups ?? FakeBackupService(),
     kiosk: FakeKioskLock(kiosk),
+    sounds: sounds ?? RecordingSoundService(),
   );
   booth.thumbnails.exports ??= booth.exports;
   // Sessions refer to originals, which the real store records in the
@@ -307,6 +315,7 @@ Future<TestBooth> pumpApp(
         templateDraftRepositoryProvider.overrideWithValue(library.drafts),
         operatorFilesProvider.overrideWithValue(booth.files),
         cameraServiceProvider.overrideWithValue(booth.camera),
+        guestSoundServiceProvider.overrideWithValue(booth.sounds),
         capturedStillStoreProvider.overrideWithValue(booth.stills),
         cameraPreviewBuilderProvider.overrideWithValue(simulatedPreview),
         deviceStorageInfoProvider.overrideWithValue(booth.space),

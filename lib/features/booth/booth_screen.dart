@@ -15,8 +15,11 @@ import '../../core/design_system/porcelain_metrics.dart';
 import '../../core/design_system/porcelain_motion.dart';
 import '../../core/design_system/porcelain_theme.dart';
 import '../../core/di/service_providers.dart';
+import '../../core/experience/guest_cues.dart';
+import '../../core/experience/guest_experience.dart';
 import '../../core/routing/route_paths.dart';
 import '../../core/templates/template_thumbnails.dart';
+import '../../domain/experience/experience_registry.dart';
 import '../../domain/models/booth_event.dart';
 import '../../domain/services/camera_service.dart';
 import '../../domain/session/guest_flow.dart';
@@ -112,6 +115,9 @@ enum _Screen {
 
 class _BoothSessionViewState extends ConsumerState<BoothSessionView> {
   late final BoothSessionController _session;
+  late final GuestCuePlayer _cues;
+  late GuestFlow _heard;
+  late ResolvedExperience _eventExperience;
 
   @override
   void initState() {
@@ -129,7 +135,16 @@ class _BoothSessionViewState extends ConsumerState<BoothSessionView> {
       clock: ref.read(clockProvider),
       ids: ref.read(idGeneratorProvider),
     );
-    _session.addListener(_reportProblem);
+    _session
+      ..addListener(_reportProblem)
+      ..addListener(_cue);
+    // Sounds follow the event until a session freezes its own (EP03).
+    _cues = GuestCuePlayer(ref.read(guestSoundServiceProvider));
+    _heard = _session.flow;
+    _eventExperience = ExperienceRegistry.bundled.resolve(
+      widget.event.experience,
+    );
+    unawaited(_cues.use(_eventExperience));
     // Finished photos an earlier run could not finish (AC-0707).
     unawaited(_session.finishPending());
     // A request only: the OS may keep another orientation (ADR-0004).
@@ -153,12 +168,26 @@ class _BoothSessionViewState extends ConsumerState<BoothSessionView> {
   void dispose() {
     _session
       ..removeListener(_reportProblem)
+      ..removeListener(_cue)
       ..dispose();
     unawaited(SystemChrome.setPreferredOrientations(const []));
     super.dispose();
   }
 
   GuestProblem? _reported;
+
+  /// The experience on show: the session's frozen one, else the event's.
+  ResolvedExperience get _experience =>
+      _session.flow.shots?.plan.experience ?? _eventExperience;
+
+  /// Sounds the guest moment that just happened. Never waits.
+  void _cue() {
+    final next = _session.flow;
+    if (identical(next, _heard)) return;
+    unawaited(_cues.use(_experience));
+    _cues.onFlow(_heard, next);
+    _heard = next;
+  }
 
   /// Passes a new problem on to the operator's screen, with its time.
   void _reportProblem() {
@@ -179,9 +208,15 @@ class _BoothSessionViewState extends ConsumerState<BoothSessionView> {
   Widget build(BuildContext context) {
     return ListenableBuilder(
       listenable: _session,
-      builder: (context, _) => _WithExit(
-        onOperator: () => unawaited(_leave()),
-        child: _guestScreen(context),
+      builder: (context, _) => GuestExperience(
+        experience: _experience,
+        child: GuestCueScope(
+          onCue: _cues.cue,
+          child: _WithExit(
+            onOperator: () => unawaited(_leave()),
+            child: _guestScreen(context),
+          ),
+        ),
       ),
     );
   }

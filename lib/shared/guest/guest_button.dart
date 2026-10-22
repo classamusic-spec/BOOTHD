@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../core/design_system/porcelain_icons.dart';
 import '../../core/design_system/porcelain_motion.dart';
+import '../../core/experience/guest_cues.dart';
 import '../../core/experience/guest_experience.dart';
 import '../../domain/experience/experience_catalog.dart';
 import '../widgets/porcelain_spinner.dart';
@@ -82,8 +83,14 @@ class GuestButton extends StatelessWidget {
     final face = GuestButtonFace.of(style ?? tokens.buttonStyle);
     final motion = PorcelainMotion.of(context);
     final height = math.max(size.height, tokens.minTouchTarget);
+    final press = onPressed;
     return Pressable(
-      onPressed: busy ? null : onPressed,
+      onPressed: busy || press == null
+          ? null
+          : () {
+              GuestCueScope.play(context, SoundCue.press);
+              press();
+            },
       busy: busy,
       disabledReason: busy ? null : disabledReason,
       selected: selected,

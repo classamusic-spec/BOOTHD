@@ -7,7 +7,7 @@ Licence names come from a text heuristic over each package's LICENSE file and
 are a starting point for the release audit (AC-1204), not a legal opinion.
 SDK packages report version 0.0.0 and are pinned by the Flutter SDK version.
 
-## Runtime dependency graph: treat as shipped (110)
+## Runtime dependency graph: treat as shipped (118)
 
 Everything reachable from the app's non-dev dependencies. Deliberately
 conservative: release compilation drops unused code, but the licence audit
@@ -17,6 +17,13 @@ covers this whole set.
 | --- | --- | --- | --- | --- |
 | args | 2.7.0 | hosted |  | BSD-3-Clause |
 | async | 2.13.1 | hosted |  | BSD-3-Clause |
+| audioplayers | 6.8.1 | hosted | yes | MIT |
+| audioplayers_android | 5.3.0 | hosted |  | MIT |
+| audioplayers_darwin | 6.5.0 | hosted |  | MIT |
+| audioplayers_linux | 4.3.0 | hosted |  | MIT |
+| audioplayers_platform_interface | 7.2.0 | hosted |  | MIT |
+| audioplayers_web | 5.3.0 | hosted |  | MIT |
+| audioplayers_windows | 4.4.1 | hosted |  | MIT |
 | boolean_selector | 2.1.2 | hosted |  | BSD-3-Clause |
 | camera | 0.12.1 | hosted | yes | BSD-3-Clause |
 | camera_android_camerax | 0.7.5+1 | hosted |  | BSD-3-Clause |
@@ -111,6 +118,7 @@ covers this whole set.
 | stream_channel | 2.1.4 | hosted |  | BSD-3-Clause |
 | stream_transform | 2.1.2 | hosted |  | BSD-3-Clause |
 | string_scanner | 1.4.1 | hosted |  | BSD-3-Clause |
+| synchronized | 3.5.0 | hosted |  | MIT |
 | term_glyph | 1.2.2 | hosted |  | BSD-3-Clause |
 | test_api | 0.7.12 | hosted |  | BSD-3-Clause |
 | typed_data | 1.4.0 | hosted |  | BSD-3-Clause |

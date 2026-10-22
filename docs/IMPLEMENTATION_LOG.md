@@ -3,6 +3,49 @@
 Newest milestone first. Each entry: scope, plan, changes, commands and exit
 codes, platform results, spec issues raised, risks, next step.
 
+## EP03: countdown presets, guest sounds and the ElevenLabs sound sheet
+
+- Date: 2026-10-22 (UTC)
+- Authorised by: the owner's EP00 reply, items 3 and 4 (audio dependency
+  approved; "Give me the script (I can give you a Eleven Labs SFX once you
+  are ready").
+
+### Changes
+
+- `CountdownState` (domain): read from the guest flow, which the session
+  controller already moves on monotonic timers; no timing changed.
+- Nine countdown presets (`lib/shared/guest/guest_countdown.dart`):
+  Porcelain Press, Vintage Flip, Film Leader, Disco Pulse, Storybook
+  Magic, Party Pop, Arcade Start, Handheld Boot and Gala Elegant. Each
+  draws the state only, has a still form (reduced motion or the pack's
+  animation off) and at most one gentle swell a second.
+- Sound: `GuestSoundService` port, `SilentGuestSoundService` (default and
+  tests) and `AudioplayersGuestSoundService` (`audioplayers` 6.8.1, MIT,
+  pinned): small low-latency pools from bundled assets, an audio context
+  that mixes with venue music without taking focus, every failure silent.
+- `GuestCuePlayer` and `GuestCueScope`: Booth Mode sounds the session
+  start, each countdown second (the last one "go"), the shutter and the
+  finish (celebration or plain success), plus guest button presses, from
+  the session's frozen experience at the event's volume. Booth Mode also
+  provides the `GuestExperience` from here on (the screens use it in
+  EP06).
+- Packs: sound is opt-in for every pack (three packs had it on by
+  default; changed so no event makes noise unasked), and each pack's
+  sound map now follows the sound sheet (short taps for presses and
+  ticks, chimes for start and success).
+- Sixteen original placeholder sounds (`tool/audio/generate_sounds.py`,
+  committed in EP02) and `tool/audio/import_sounds.sh` for the owner's
+  ElevenLabs files; the brief is
+  `docs/experience_packs/SOUND_SCRIPT_ELEVENLABS.md`.
+- ADR-0017 (Experience Packs, including the audio decision).
+
+### Not changed
+
+The session controller, its timers, captures and haptics are untouched;
+countdown graphics are guest widgets only and never reach the renderer.
+The guest camera screen still shows the M07 numeral; it switches to the
+pack's preset in EP06.
+
 ## EP02: guest buttons, guest tokens, guest fonts and operator polish
 
 - Date: 2026-10-22 (UTC)

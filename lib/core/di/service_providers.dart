@@ -19,6 +19,7 @@ import '../../domain/services/event_service.dart';
 import '../../domain/services/export_service.dart';
 import '../../domain/services/finished_photos.dart';
 import '../../domain/services/gallery_services.dart';
+import '../../domain/services/guest_sound_service.dart';
 import '../../domain/services/kiosk_lock.dart';
 import '../../domain/services/managed_storage.dart';
 import '../../domain/services/operator_auth_service.dart';
@@ -45,6 +46,11 @@ final compositionRendererProvider = Provider<CompositionRenderer>(
 
 final cameraServiceProvider = Provider<CameraService>(
   (ref) => _unbound('cameraServiceProvider'),
+);
+
+/// Guest sounds (EP03). Silent unless the app binds the audio adapter.
+final guestSoundServiceProvider = Provider<GuestSoundService>(
+  (ref) => const SilentGuestSoundService(),
 );
 
 final capturedStillStoreProvider = Provider<CapturedStillStore>(

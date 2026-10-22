@@ -8,6 +8,7 @@ import '../core/access/access_controller.dart';
 import '../core/di/service_providers.dart';
 import '../core/platform/app_environment.dart';
 import '../core/routing/route_paths.dart';
+import '../infrastructure/audio/audioplayers_guest_sound_service.dart';
 import '../infrastructure/backup/file_backup_service.dart';
 import '../infrastructure/camera/camera_driver.dart';
 import '../infrastructure/camera/managed_camera_service.dart';
@@ -118,6 +119,11 @@ List<Override> productionOverrides() => [
     );
     ref.onDispose(service.dispose);
     return service;
+  }),
+  guestSoundServiceProvider.overrideWith((ref) {
+    final sounds = AudioplayersGuestSoundService();
+    ref.onDispose(sounds.dispose);
+    return sounds;
   }),
   cameraPreviewBuilderProvider.overrideWith(
     (ref) => ref.watch(_cameraDriverProvider).buildPreview,

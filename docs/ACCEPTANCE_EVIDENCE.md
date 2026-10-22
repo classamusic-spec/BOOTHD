@@ -1052,3 +1052,41 @@ iPad: BLOCKED (no Mac, no iPad); Android: debug build PASS, no tablet
 | AC-EP02 Operator appearances | Owner-directed change | The owner asked for the operator looks to be polished; structure, controls and words are unchanged, materials added (row 3). Recorded in the implementation log |
 | Owner item 2: Darkroom polish | PASS (host) | Warm brass rim light, firmer card edges, safelight glow, vignette, paper grain and walnut sidebar; contrast tests unchanged and passing |
 | Dashboard honesty | PASS (host) | Camera and storage tiles report the tablet's real answers (`operator_polish_test.dart`); no "arrives in M06" text remains in the Studio |
+
+## EP03: countdown presets, guest sounds and the ElevenLabs sound sheet
+
+```text
+Stage: EP03 | commit adding this entry | build 0.1.0+1
+Host: same Linux cloud VM; Flutter 3.47.7 / Dart 3.13.5; schema v8
+New packages: audioplayers 6.8.1 and its platform packages, synchronized
+  3.5.0 (all MIT; docs/DEPENDENCY_LICENSES.md regenerated)
+iPad: BLOCKED (no Mac: audioplayers_darwin is not compiled here; no iPad)
+Android: release build PASS, permission audit PASS; no tablet, so no
+  sound has been heard on a device (latency and loudness BLOCKED)
+```
+
+### Commands and exit codes (2026-10-22 UTC)
+
+| # | Command | Exit | Result |
+| --- | --- | --- | --- |
+| 1 | `flutter pub add audioplayers:6.8.1`, `dart run tool/dependency_licenses.dart` | 0 | Eight new entries, all MIT |
+| 2 | `flutter analyze`; `dart format --output=none --set-exit-if-changed lib test` | 0 | No issues; nothing to format |
+| 3 | `flutter test` (whole suite) | 0 | 19 min 32 s: 3,117 passed, 2 skipped (device comparison; live delivery contract), 0 failed |
+| 4 | Mutation: the cue player's guard around `play` removed | 1 | "a failing sound system changes nothing for the guest" fails; restored, passes |
+| 5 | `tool/build_android.sh release` | 0 | `app-release.apk` 76,976,010 bytes, SHA-256 `fbb4fd81c459bd6306f42bce585204db219176dadf76f407b2dbcad49c757054` |
+| 6 | `tool/audit_permissions.sh` on row 5 | 0 | CAMERA, INTERNET and the androidx receiver permission only: the audio packages add none |
+| 7 | `tool/scan_binary_secrets.sh` on row 5 | 0 | 138 files, 312,460 strings; nothing found |
+| 8 | `tool/build_ios.sh` | not run | BLOCKED by design on Linux |
+
+### Acceptance items
+
+| AC | Status | Evidence |
+| --- | --- | --- |
+| EP03 `CountdownState` and nine presets | PASS (host) | `test/experience/countdown_test.dart`: every catalog countdown has a presenter; each shows the number moving and still; a pack with animation off is still; sheet `test/goldens/experience/guest_countdowns.png` |
+| EP03 No flashing (WCAG 2.3.1) | PASS (host) | Each preset sampled every 100 ms over three seconds in its pack's colours: no more than three opposing luminance changes of 10 % or more a second |
+| EP03 Capture times unchanged by presenters or sound | PASS (host) | The controller's timers are untouched; with a sound system that throws on every call, photos are saved at exactly the same seconds as with sound off (`booth_sounds_test.dart`, row 4) |
+| AC-EP14 Reduced-motion and muted versions usable | PASS (host) | Still forms (above); sound off by default, nothing loaded or heard; muted, failed and throwing sound runs complete normally (`guest_cues_test.dart`, `booth_sounds_test.dart`) |
+| EP03 Sound cues | PASS (host) | Start, a tick per second with "go" on the last, a shutter per photo and the celebration (or plain success) at the event volume, from the session's frozen experience (`guest_cues_test.dart`, `booth_sounds_test.dart`) |
+| EP03 Sound files and the owner's sheet | PASS (host) | Sixteen 44.1 kHz 16-bit mono WAV files, none longer than 2.5 s, exactly the catalog's; the sheet's pack table matches the packs and has a prompt for every sound (`sound_assets_test.dart`) |
+| AC-EP11 Exports never contain countdown graphics (EP03 part) | PASS (by construction) | Presenters are guest widgets; nothing in the countdown reaches the renderer or a template document. Byte-identical export test: EP06 |
+| Device sound (latency, loudness, iPad silent switch) | BLOCKED | No tablets; recorded for the device procedure (EP09) |
