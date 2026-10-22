@@ -57,11 +57,40 @@ flutter:
           weight: 500
         - asset: assets/fonts/cormorant_garamond/CormorantGaramond-SemiBold.ttf
           weight: 600
+    # Guest experience faces (EP02; licences: docs/ASSET_PROVENANCE.md).
+    # Fredoka and Pixelify Sans are variable fonts: weight comes from the
+    # wght axis (GuestFonts.style).
+    - family: Courier Prime
+      fonts:
+        - asset: assets/fonts/courier_prime/CourierPrime-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/courier_prime/CourierPrime-Bold.ttf
+          weight: 700
+    - family: Monoton
+      fonts:
+        - asset: assets/fonts/monoton/Monoton-Regular.ttf
+    - family: Fredoka
+      fonts:
+        - asset: assets/fonts/fredoka/Fredoka-Variable.ttf
+    - family: Poiret One
+      fonts:
+        - asset: assets/fonts/poiret_one/PoiretOne-Regular.ttf
+    - family: Pixelify Sans
+      fonts:
+        - asset: assets/fonts/pixelify_sans/PixelifySans-Variable.ttf
 
   assets:
     # Font licence texts, registered with the app's licence page.
     - assets/fonts/inter/OFL.txt
     - assets/fonts/cormorant_garamond/OFL.txt
+    - assets/fonts/courier_prime/OFL.txt
+    - assets/fonts/monoton/OFL.txt
+    - assets/fonts/fredoka/OFL.txt
+    - assets/fonts/poiret_one/OFL.txt
+    - assets/fonts/pixelify_sans/OFL.txt
+    # Guest sounds (EP03): generated placeholders until the owner's
+    # recordings replace them (docs/experience_packs/SOUND_SCRIPT_ELEVENLABS.md).
+    - assets/sounds/
     # The app's own template decorations, drawn by tool/art/decorations.dart
     # (docs/ASSET_PROVENANCE.md).
     - assets/decorations/

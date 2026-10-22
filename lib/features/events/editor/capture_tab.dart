@@ -75,8 +75,8 @@ class CaptureTab extends StatelessWidget {
             const EditorNote(
               icon: PorcelainIcons.info,
               text:
-                  'Whether this tablet has the chosen camera is checked at '
-                  'launch once the production camera service arrives (M06).',
+                  'Whether this tablet has the chosen camera is checked by '
+                  'the launch checks before Booth Mode starts.',
             ),
           ],
         ),

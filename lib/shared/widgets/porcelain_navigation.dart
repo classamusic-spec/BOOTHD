@@ -6,6 +6,7 @@ import '../../core/design_system/porcelain_metrics.dart';
 import '../../core/design_system/porcelain_motion.dart';
 import '../../core/design_system/porcelain_theme.dart';
 import 'pressable.dart';
+import 'studio_material.dart';
 import 'tactile_surface.dart';
 
 /// One section in [PorcelainNavigation].
@@ -77,38 +78,41 @@ class PorcelainNavigation extends StatelessWidget {
       ),
       child: SizedBox(
         width: width,
-        child: SafeArea(
-          right: false,
-          child: LayoutBuilder(
-            builder: (context, constraints) => SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: IntrinsicHeight(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: extended
-                          ? PorcelainSpace.lg
-                          : PorcelainSpace.xs,
-                      vertical: PorcelainSpace.xl,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        if (header != null) ...[
-                          header!,
-                          SizedBox(
-                            height: extended
-                                ? PorcelainSpace.xxl
-                                : PorcelainSpace.xl,
-                          ),
+        child: StudioMaterial(
+          area: StudioMaterialArea.rail,
+          child: SafeArea(
+            right: false,
+            child: LayoutBuilder(
+              builder: (context, constraints) => SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: IntrinsicHeight(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: extended
+                            ? PorcelainSpace.lg
+                            : PorcelainSpace.xs,
+                        vertical: PorcelainSpace.xl,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (header != null) ...[
+                            header!,
+                            SizedBox(
+                              height: extended
+                                  ? PorcelainSpace.xxl
+                                  : PorcelainSpace.xl,
+                            ),
+                          ],
+                          ...items,
+                          const Spacer(),
+                          if (footer != null) ...[
+                            const SizedBox(height: PorcelainSpace.xl),
+                            footer!,
+                          ],
                         ],
-                        ...items,
-                        const Spacer(),
-                        if (footer != null) ...[
-                          const SizedBox(height: PorcelainSpace.xl),
-                          footer!,
-                        ],
-                      ],
+                      ),
                     ),
                   ),
                 ),

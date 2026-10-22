@@ -7,6 +7,11 @@ import 'package:flutter/services.dart';
 const bundledFontLicences = {
   'Inter (font)': 'assets/fonts/inter/OFL.txt',
   'Cormorant Garamond (font)': 'assets/fonts/cormorant_garamond/OFL.txt',
+  'Courier Prime (font)': 'assets/fonts/courier_prime/OFL.txt',
+  'Fredoka (font)': 'assets/fonts/fredoka/OFL.txt',
+  'Monoton (font)': 'assets/fonts/monoton/OFL.txt',
+  'Pixelify Sans (font)': 'assets/fonts/pixelify_sans/OFL.txt',
+  'Poiret One (font)': 'assets/fonts/poiret_one/OFL.txt',
 };
 
 /// Adds the bundled fonts' licences to the app's licence page (AC-0211).

@@ -13,6 +13,7 @@ import '../../domain/models/booth_event.dart';
 import '../../shared/widgets/porcelain_button.dart';
 import '../../shared/widgets/porcelain_navigation.dart';
 import '../../shared/widgets/status_badge.dart';
+import '../../shared/widgets/studio_material.dart';
 import '../../shared/widgets/tone.dart';
 import '../../shared/widgets/wordmark.dart';
 
@@ -83,7 +84,12 @@ class StudioShell extends ConsumerWidget {
                     ),
                   ),
           ),
-          Expanded(child: navigationShell),
+          Expanded(
+            child: StudioMaterial(
+              area: StudioMaterialArea.canvas,
+              child: navigationShell,
+            ),
+          ),
         ],
       ),
     );

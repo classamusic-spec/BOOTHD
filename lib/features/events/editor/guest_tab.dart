@@ -234,10 +234,6 @@ class _GuestTabState extends State<GuestTab> {
                     'At most ${EventLimits.finishTimeoutSeconds.max} seconds.',
               ),
             ),
-            const EditorNote(
-              icon: PorcelainIcons.info,
-              text: 'Guest sessions, and this screen, arrive in M07.',
-            ),
           ],
         ),
       ],

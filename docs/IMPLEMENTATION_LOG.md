@@ -3,6 +3,60 @@
 Newest milestone first. Each entry: scope, plan, changes, commands and exit
 codes, platform results, spec issues raised, risks, next step.
 
+## EP02: guest buttons, guest tokens, guest fonts and operator polish
+
+- Date: 2026-10-22 (UTC)
+- Authorised by: the owner's EP00 reply, items 1, 2 and 5 ("HYPER POLISH
+  UP the OPERATOR LOOKS", "Polish up darkroom UI/UX", "add open license
+  fonts"). The prompt's AC-EP02 ("both operator UI appearances remain
+  unchanged") is overridden by this explicit instruction; the polish keeps
+  every layout, control and word structure and changes materials only.
+
+### Changes
+
+- Guest presentation (`lib/core/experience/guest_experience.dart`):
+  `GuestTokens` (colours, fonts, button family and touch minimum from a
+  frozen `ResolvedExperience`), `GuestFonts` (font ids to families; the
+  variable Fredoka and Pixelify Sans get their weight axis; display-only
+  faces never set running text) and the `GuestExperience` inherited
+  widget, which falls back to Porcelain Classic and turns animation off
+  whenever reduced motion is asked for.
+- `GuestButton` (`lib/shared/guest/guest_button.dart`) with six faces
+  (`guest_button_faces.dart`): porcelain (glazed pill, gilded edge, rim
+  light), wood (honey plank, grain, bevel, brass pins), toy arcade (candy
+  top on a thick base that sinks when pressed), retro game (stepped pixel
+  corners, heavy outline, hard shadow the face covers when pressed), gala
+  (crisp rectangle, double gilt rule, spaced capitals) and neon party
+  (glass pill in a glowing tube that brightens on press). One API: label,
+  icon, emphasis, size (72, 88 or 112 points, never below the pack's
+  minimum), busy, disabled with a reason, selected (with a check mark),
+  keyboard focus ring. Primary uses the pack's accent and on-accent,
+  secondary its panel and ink, so contrast never depends on the family.
+- Fonts: Courier Prime, Monoton, Fredoka, Poiret One and Pixelify Sans
+  (SIL OFL 1.1, google/fonts commit `45e3d52`), registered in
+  `pubspec.yaml`, licences on the app's licence page, provenance and
+  hashes in `docs/ASSET_PROVENANCE.md`.
+- Operator polish, all three appearances (`StudioMaterial`): Porcelain
+  Studio gets a soft light pool and a glaze band on the canvas; Light Oak
+  a linen weave on the canvas and oak grain with knots on the sidebar;
+  Darkroom Walnut a warm safelight glow, a vignette and fine paper grain
+  on the canvas and walnut grain on the sidebar. Painted once per size
+  behind the Studio shell, the sidebar, the event editor, the launch
+  checks and session detail; never hit-tested or read out; deterministic.
+- Darkroom polish: a warm brass rim light on raised surfaces (was 8 %
+  white, nearly invisible) and slightly firmer card edges; both are
+  decorative tokens (no text pair changes; the contrast test passes).
+- Dashboard honesty: the Camera tile reports the tablet's real camera
+  permission and lens (it said "Camera tests arrive with the camera
+  service (M06)"), and the Storage tile the real free space and about how
+  many sessions fit. Stale milestone text removed from the event editor.
+
+### Not changed
+
+Guest screens still use the M07 components; they switch to `GuestButton`
+and the pack tokens in EP06. No camera, rendering, delivery or storage
+behaviour changed.
+
 ## EP01: Experience Pack model, registry, event experience and schema v8
 
 - Date: 2026-10-22 (UTC)

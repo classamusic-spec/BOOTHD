@@ -205,7 +205,7 @@ abstract final class PorcelainPalettes {
     primaryEdge: Color(0xFFEBD3A4),
     disabledFill: Color(0xFF2A221C),
     outline: Color(0xFF8E7B67),
-    hairline: Color(0xFF3A3028),
+    hairline: Color(0xFF45392D),
     divider: Color(0xFF30271F),
     focusRing: Color(0xFFEBCF96),
     success: Color(0xFF8CC7A0),
@@ -216,7 +216,7 @@ abstract final class PorcelainPalettes {
     dangerSurface: Color(0xFF3D211D),
     shadowKey: Color(0x8C000000),
     shadowAmbient: Color(0x59000000),
-    highlight: Color(0x14FFFFFF),
+    highlight: Color(0x38EBD3A4),
     insetShadow: Color(0x99000000),
   );
 
@@ -254,7 +254,7 @@ abstract final class PorcelainPalettes {
     dangerSurface: Color(0xFF3D211D),
     shadowKey: Color(0x99000000),
     shadowAmbient: Color(0x66000000),
-    highlight: Color(0x1FFFFFFF),
+    highlight: Color(0x4DFFE6BA),
     insetShadow: Color(0xB3000000),
   );
 }

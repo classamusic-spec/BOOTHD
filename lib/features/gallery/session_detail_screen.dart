@@ -27,6 +27,7 @@ import '../../shared/widgets/porcelain_button.dart';
 import '../../shared/widgets/porcelain_card.dart';
 import '../../shared/widgets/skeleton.dart';
 import '../../shared/widgets/status_badge.dart';
+import '../../shared/widgets/studio_material.dart';
 import '../../shared/widgets/studio_page.dart';
 import '../../shared/widgets/tone.dart';
 import 'export_sheet.dart';
@@ -78,75 +79,79 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
     final colors = theme.colors;
     final detail = ref.watch(sessionDetailProvider(widget.sessionId));
     return Scaffold(
-      body: Column(
-        children: [
-          DecoratedBox(
-            decoration: BoxDecoration(
-              color: colors.rail,
-              border: Border(bottom: BorderSide(color: colors.divider)),
-            ),
-            child: SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: PorcelainSpace.lg,
-                  vertical: PorcelainSpace.sm,
+      body: StudioMaterial(
+        area: StudioMaterialArea.canvas,
+        child: Column(
+          children: [
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: colors.rail,
+                border: Border(bottom: BorderSide(color: colors.divider)),
+              ),
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: PorcelainSpace.lg,
+                    vertical: PorcelainSpace.sm,
+                  ),
+                  child: Row(
+                    children: [
+                      PorcelainButton(
+                        label: 'Gallery',
+                        icon: PorcelainIcons.back,
+                        variant: PorcelainButtonVariant.quiet,
+                        size: PorcelainButtonSize.compact,
+                        onPressed: _back,
+                      ),
+                    ],
+                  ),
                 ),
-                child: Row(
-                  children: [
+              ),
+            ),
+            Expanded(
+              child: switch (detail) {
+                AsyncData(value: final detail?) => _Detail(
+                  detail: detail,
+                  rendering: _rendering,
+                  onRender: _render,
+                  onDelete: () => _delete(detail),
+                ),
+                AsyncData() => EmptyState(
+                  icon: PorcelainIcons.gallery,
+                  title: 'This session no longer exists',
+                  message: 'It may have been deleted. Return to the gallery.',
+                  actions: [
                     PorcelainButton(
-                      label: 'Gallery',
+                      label: 'Back to the gallery',
                       icon: PorcelainIcons.back,
-                      variant: PorcelainButtonVariant.quiet,
-                      size: PorcelainButtonSize.compact,
-                      onPressed: _back,
+                      onPressed: () => context.go(RoutePaths.gallery),
                     ),
                   ],
                 ),
-              ),
+                AsyncError() => EmptyState(
+                  icon: PorcelainIcons.error,
+                  title: "This session couldn't be read",
+                  message: GalleryCopy.loadFailedMessage,
+                  tone: PorcelainTone.danger,
+                  actions: [
+                    PorcelainButton(
+                      label: 'Try again',
+                      icon: PorcelainIcons.retry,
+                      onPressed: () => ref.invalidate(
+                        sessionDetailProvider(widget.sessionId),
+                      ),
+                    ),
+                  ],
+                ),
+                _ => const Padding(
+                  padding: EdgeInsets.all(PorcelainSpace.xxxl),
+                  child: SkeletonList(semanticLabel: 'Loading the session'),
+                ),
+              },
             ),
-          ),
-          Expanded(
-            child: switch (detail) {
-              AsyncData(value: final detail?) => _Detail(
-                detail: detail,
-                rendering: _rendering,
-                onRender: _render,
-                onDelete: () => _delete(detail),
-              ),
-              AsyncData() => EmptyState(
-                icon: PorcelainIcons.gallery,
-                title: 'This session no longer exists',
-                message: 'It may have been deleted. Return to the gallery.',
-                actions: [
-                  PorcelainButton(
-                    label: 'Back to the gallery',
-                    icon: PorcelainIcons.back,
-                    onPressed: () => context.go(RoutePaths.gallery),
-                  ),
-                ],
-              ),
-              AsyncError() => EmptyState(
-                icon: PorcelainIcons.error,
-                title: "This session couldn't be read",
-                message: GalleryCopy.loadFailedMessage,
-                tone: PorcelainTone.danger,
-                actions: [
-                  PorcelainButton(
-                    label: 'Try again',
-                    icon: PorcelainIcons.retry,
-                    onPressed: () =>
-                        ref.invalidate(sessionDetailProvider(widget.sessionId)),
-                  ),
-                ],
-              ),
-              _ => const Padding(
-                padding: EdgeInsets.all(PorcelainSpace.xxxl),
-                child: SkeletonList(semanticLabel: 'Loading the session'),
-              ),
-            },
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

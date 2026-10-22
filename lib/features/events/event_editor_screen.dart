@@ -25,6 +25,7 @@ import '../../shared/widgets/porcelain_sheet.dart';
 import '../../shared/widgets/porcelain_toast.dart';
 import '../../shared/widgets/skeleton.dart';
 import '../../shared/widgets/status_badge.dart';
+import '../../shared/widgets/studio_material.dart';
 import '../../shared/widgets/tone.dart';
 import 'editor/capture_tab.dart';
 import 'editor/delivery_tab.dart';
@@ -282,61 +283,64 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
         }
       },
       child: Scaffold(
-        body: Column(
-          children: [
-            _Header(
-              title: draft == null
-                  ? 'Event'
-                  : draft.title.trim().isEmpty
-                  ? 'New event'
-                  : draft.title.trim(),
-              status: _saved?.status,
-              dirty: dirty,
-              saving: _saving,
-              canSave: draft != null && !hasInvalid(_structural),
-              readOnlyReason: draft == null ? null : _readOnlyReason,
-              onBack: () => Navigator.of(context).maybePop(),
-              onSave: _save,
-            ),
-            Expanded(
-              child: _notFound
-                  ? EmptyState(
-                      icon: PorcelainIcons.events,
-                      title: 'This event no longer exists',
-                      message: 'It may have been removed. Return to Events.',
-                      actions: [
-                        PorcelainButton(
-                          label: 'Back to Events',
-                          icon: PorcelainIcons.back,
-                          onPressed: () => context.go(RoutePaths.events),
-                        ),
-                      ],
-                    )
-                  : _loadFailed
-                  ? EmptyState(
-                      icon: PorcelainIcons.error,
-                      title: "The event couldn't be opened",
-                      message: 'Its storage could not be read. Try again.',
-                      tone: PorcelainTone.danger,
-                      actions: [
-                        PorcelainButton(
-                          label: 'Try again',
-                          icon: PorcelainIcons.retry,
-                          onPressed: () {
-                            setState(() => _loadFailed = false);
-                            unawaited(_load());
-                          },
-                        ),
-                      ],
-                    )
-                  : draft == null
-                  ? const Padding(
-                      padding: EdgeInsets.all(PorcelainSpace.xxl),
-                      child: SkeletonList(semanticLabel: 'Loading the event'),
-                    )
-                  : _body(theme, draft),
-            ),
-          ],
+        body: StudioMaterial(
+          area: StudioMaterialArea.canvas,
+          child: Column(
+            children: [
+              _Header(
+                title: draft == null
+                    ? 'Event'
+                    : draft.title.trim().isEmpty
+                    ? 'New event'
+                    : draft.title.trim(),
+                status: _saved?.status,
+                dirty: dirty,
+                saving: _saving,
+                canSave: draft != null && !hasInvalid(_structural),
+                readOnlyReason: draft == null ? null : _readOnlyReason,
+                onBack: () => Navigator.of(context).maybePop(),
+                onSave: _save,
+              ),
+              Expanded(
+                child: _notFound
+                    ? EmptyState(
+                        icon: PorcelainIcons.events,
+                        title: 'This event no longer exists',
+                        message: 'It may have been removed. Return to Events.',
+                        actions: [
+                          PorcelainButton(
+                            label: 'Back to Events',
+                            icon: PorcelainIcons.back,
+                            onPressed: () => context.go(RoutePaths.events),
+                          ),
+                        ],
+                      )
+                    : _loadFailed
+                    ? EmptyState(
+                        icon: PorcelainIcons.error,
+                        title: "The event couldn't be opened",
+                        message: 'Its storage could not be read. Try again.',
+                        tone: PorcelainTone.danger,
+                        actions: [
+                          PorcelainButton(
+                            label: 'Try again',
+                            icon: PorcelainIcons.retry,
+                            onPressed: () {
+                              setState(() => _loadFailed = false);
+                              unawaited(_load());
+                            },
+                          ),
+                        ],
+                      )
+                    : draft == null
+                    ? const Padding(
+                        padding: EdgeInsets.all(PorcelainSpace.xxl),
+                        child: SkeletonList(semanticLabel: 'Loading the event'),
+                      )
+                    : _body(theme, draft),
+              ),
+            ],
+          ),
         ),
       ),
     );

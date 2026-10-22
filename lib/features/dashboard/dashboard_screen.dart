@@ -9,10 +9,12 @@ import '../../core/design_system/porcelain_metrics.dart';
 import '../../core/design_system/porcelain_theme.dart';
 import '../../core/design_system/porcelain_theme_data.dart';
 import '../../core/di/service_providers.dart';
+import '../../core/gallery/gallery_providers.dart';
 import '../../core/routing/route_paths.dart';
 import '../../domain/experience/experience_registry.dart';
 import '../../domain/models/booth_event.dart';
 import '../../domain/services/booth_capabilities.dart';
+import '../../shared/formatters/byte_format.dart';
 import '../../shared/formatters/date_format.dart';
 import '../../shared/guest/event_welcome_copy.dart';
 import '../../shared/guest/guest_welcome.dart';
@@ -25,6 +27,17 @@ import '../../shared/widgets/status_badge.dart';
 import '../../shared/widgets/studio_page.dart';
 import '../../shared/widgets/tablet_frame.dart';
 import '../../shared/widgets/tone.dart';
+
+/// Camera permission and the booth's default lens, checked once per
+/// dashboard visit without opening the camera or asking for permission.
+final _cameraCheckProvider = FutureProvider.autoDispose<CapabilityStatus>((
+  ref,
+) async {
+  final booth = await ref.watch(boothProfileProvider.future);
+  return ref
+      .watch(boothCapabilityProbeProvider)
+      .camera(booth.defaults.toCaptureSettings());
+});
 
 /// Writes, reads back and removes a test file once per dashboard visit.
 final _storageCheckProvider = FutureProvider.autoDispose<CapabilityStatus>(
@@ -56,6 +69,8 @@ class DashboardScreen extends ConsumerWidget {
     ];
     final templates = ref.watch(selectableTemplatesProvider).value;
     final storage = ref.watch(_storageCheckProvider);
+    final camera = ref.watch(_cameraCheckProvider);
+    final free = ref.watch(freeSpaceProvider).value;
 
     final eventStatus = active.isNotEmpty
         ? '${active.length} active'
@@ -71,9 +86,15 @@ class DashboardScreen extends ConsumerWidget {
     final (storageStatus, storageDetail, storageTone) = switch (storage) {
       AsyncData(value: CapabilityReady()) => (
         'Writable',
-        'A test file was written and read back. Free space is measured '
-            'from M06.',
-        PorcelainTone.success,
+        free == null
+            ? 'A test file was written and read back. The tablet did not '
+                  'say how much space is free.'
+            : 'A test file was written and read back. ${formatBytes(free)} '
+                  'free, room for about '
+                  '${StorageBudget.sessionsFor(free)} guest sessions.',
+        free != null && free < StorageBudget.minimumFreeBytes
+            ? PorcelainTone.warning
+            : PorcelainTone.success,
       ),
       AsyncData(value: CapabilityProblem(:final code)) => (
         'Not writable',
@@ -87,6 +108,60 @@ class DashboardScreen extends ConsumerWidget {
         PorcelainTone.warning,
       ),
       _ => ('Checking…', 'Writing a test file.', PorcelainTone.neutral),
+    };
+
+    final (cameraStatus, cameraDetail, cameraTone) = switch (camera) {
+      AsyncData(value: CapabilityReady()) => (
+        'Ready',
+        "Camera allowed, and the booth's default lens is on this tablet.",
+        PorcelainTone.success,
+      ),
+      AsyncData(value: CapabilityProblem(:final code)) => switch (code) {
+        'CAMERA_PERMISSION_NOT_ASKED' => (
+          'Not asked yet',
+          'The tablet asks for the camera the first time the launch checks '
+              'or the camera test run.',
+          PorcelainTone.neutral,
+        ),
+        'CAMERA_PERMISSION_DENIED' ||
+        'CAMERA_PERMISSION_PERMANENTLY_DENIED' => (
+          'Not allowed',
+          "Allow the camera for this app in the tablet's Settings ($code).",
+          PorcelainTone.danger,
+        ),
+        'CAMERA_PERMISSION_RESTRICTED' => (
+          'Blocked',
+          "The tablet's device management blocks the camera ($code).",
+          PorcelainTone.danger,
+        ),
+        'CAMERA_NONE' => (
+          'No camera',
+          'The tablet reports no built-in camera.',
+          PorcelainTone.danger,
+        ),
+        'CAMERA_LENS_UNAVAILABLE' => (
+          'Other lens only',
+          "The booth's default lens is not on this tablet; events would use "
+              'the other one.',
+          PorcelainTone.warning,
+        ),
+        _ => (
+          'Problem',
+          "The cameras couldn't be listed ($code). Open Diagnostics to test "
+              'them.',
+          PorcelainTone.warning,
+        ),
+      },
+      AsyncError() => (
+        'Not checked',
+        'The camera check could not run.',
+        PorcelainTone.warning,
+      ),
+      _ => (
+        'Checking…',
+        'Asking the tablet about its cameras.',
+        PorcelainTone.neutral,
+      ),
     };
 
     return StudioPage(
@@ -112,11 +187,12 @@ class DashboardScreen extends ConsumerWidget {
                       ? PorcelainTone.success
                       : PorcelainTone.neutral,
                 ),
-                const StatusTile(
+                StatusTile(
                   icon: PorcelainIcons.camera,
                   title: 'Camera',
-                  status: 'Not checked',
-                  detail: 'Camera tests arrive with the camera service (M06).',
+                  status: cameraStatus,
+                  detail: cameraDetail,
+                  tone: cameraTone,
                 ),
                 StatusTile(
                   icon: PorcelainIcons.storage,

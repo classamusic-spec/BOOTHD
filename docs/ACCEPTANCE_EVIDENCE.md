@@ -1017,3 +1017,38 @@ suite) and at EP09 (check.sh, release build, CI).
   URLs or remote assets are read (`validatePack` refuses a sound given as
   a URL).
 - The session snapshot holds the look and words shown, never guest data.
+
+## EP02: guest buttons, guest tokens, guest fonts and operator polish
+
+```text
+Stage: EP02 | commit adding this entry | build 0.1.0+1
+Host: same Linux cloud VM; Flutter 3.47.7 / Dart 3.13.5; schema v8
+New assets: five SIL OFL font families (google/fonts 45e3d52); sixteen
+  generated guest sounds (registered now, played from EP03); no new packages
+iPad: BLOCKED (no Mac, no iPad); Android: debug build PASS, no tablet
+```
+
+### Commands and exit codes (2026-10-22 UTC)
+
+| # | Command | Exit | Result |
+| --- | --- | --- | --- |
+| 1 | `flutter analyze` | 0 | No issues |
+| 2 | `flutter test test/experience test/goldens/guest_buttons_golden_test.dart test/widgets/operator_polish_test.dart` | 0 | 43 button and token tests, the button sheet golden and 8 polish tests pass |
+| 3 | `flutter test --update-goldens test/goldens` after the operator polish | 0 | 211 Studio goldens regenerated and reviewed (the polish changes every Studio screen's background; layouts, controls and words are unchanged) |
+| 4 | `flutter test` (whole suite) | 1 | 17 min 15 s: 2,997 passed, 2 skipped, 12 failed: the launch checks' text-contrast and guideline checks (4 sizes, 2 themes, 2 states). The guideline samples the two commonest colours across a wide heading row; with the material behind it both were background shades (ratio 1.01). The launch checks were returned to a plain canvas rather than weakening the check |
+| 5 | `flutter test test/widgets/screens_test.dart --plain-name preflight` and the preflight goldens (updated) | 0 | 32 and 10 passed |
+| 6 | `tool/build_android.sh debug` | 0 | `app-debug.apk` 241,953,359 bytes, SHA-256 `061acd82d5dad63b3cee43114c3e7a08a24bcc22a279f738af306f71ebd20982`; `tool/audit_permissions.sh`: passed |
+| 7 | `tool/build_ios.sh` | not run | BLOCKED by design on Linux |
+
+### Acceptance items
+
+| AC | Status | Evidence |
+| --- | --- | --- |
+| EP02 `GuestButton`, six presenters, every state | PASS (host) | `test/experience/guest_button_test.dart`: per family, tap, press with travel and release, the 72-point minimum at every size, disabled with its reason as the hint, busy (label kept, spinner, taps ignored), selected (check mark and selected semantics), keyboard focus ring and Enter; reduced motion presses without in-between frames; the family follows the pack; Porcelain without an experience. Sheet: `test/goldens/experience/guest_buttons.png` (ten pack variants by seven states) |
+| EP02 Guest tokens and contrast per pack (computed) | PASS (host) | Every pack, variant, family, emphasis and enabled state: button text on its face 4.5:1 or more; every font id maps to a bundled family; no running text in a display-only face; variable fonts get their weight axis |
+| AC-EP03 Kid Party Arcade distinct tactile controls (EP02 part) | PASS (component) | The toy-arcade face (candy top on a base that sinks when pressed). Screens: EP04 and EP06 |
+| AC-EP14 Reduced motion (EP02 part) | PASS (host) | `GuestExperience.motionOf` is off whenever reduced motion is asked for; buttons press instantly |
+| AC-EP17 No copyrighted game UI or unlicensed assets (EP02 part) | PASS (review) | Faces are drawn from generic shapes (pills, planks, stepped rectangles, tubes); fonts are SIL OFL with licences shown in the app and hashes recorded |
+| AC-EP02 Operator appearances | Owner-directed change | The owner asked for the operator looks to be polished; structure, controls and words are unchanged, materials added (row 3). Recorded in the implementation log |
+| Owner item 2: Darkroom polish | PASS (host) | Warm brass rim light, firmer card edges, safelight glow, vignette, paper grain and walnut sidebar; contrast tests unchanged and passing |
+| Dashboard honesty | PASS (host) | Camera and storage tiles report the tablet's real answers (`operator_polish_test.dart`); no "arrives in M06" text remains in the Studio |

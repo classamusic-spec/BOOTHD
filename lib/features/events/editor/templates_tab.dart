@@ -107,9 +107,8 @@ class TemplatesTab extends ConsumerWidget {
                 icon: PorcelainIcons.templates,
                 title: 'The template library is empty',
                 message:
-                    'Templates are designed in the Template Studio, which '
-                    'arrives in M05. Until then this event can be saved as a '
-                    'draft.',
+                    'Design one in Templates, or import a template package '
+                    'there. Until then this event can be saved as a draft.',
               ),
               AsyncData(:final value) => Column(
                 children: [
