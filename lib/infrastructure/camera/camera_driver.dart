@@ -143,26 +143,33 @@ final class PluginCameraDriver implements CameraDriver {
       await controller.dispose();
       rethrow;
     }
-    try {
-      // The booth flashes the screen instead; many front cameras have no
-      // flash, which the plugin reports as an error worth ignoring.
-      await controller.setFlashMode(FlashMode.off);
-    } on CameraException {
-      // No flash unit.
+    // The booth flashes the screen instead; many front cameras have no
+    // flash, which the plugin reports as an error worth ignoring. Browsers
+    // never use a flash for stills, so there it is left alone.
+    if (!kIsWeb) {
+      try {
+        await controller.setFlashMode(FlashMode.off);
+      } on CameraException {
+        // No flash unit.
+      }
     }
     var minZoom = 1.0;
     var maxZoom = 1.0;
     try {
       minZoom = await controller.getMinZoomLevel();
       maxZoom = await controller.getMaxZoomLevel();
-    } on CameraException catch (error) {
-      // Browser cameras often have no zoom: the booth does not use it.
+    } on Object catch (error) {
+      // Browser cameras often have no zoom, which their plugin reports as a
+      // platform error: the booth does not use it.
       if (!kIsWeb) {
         await controller.dispose();
-        throw CameraDriverException(error.code);
+        if (error is CameraException) throw CameraDriverException(error.code);
+        rethrow;
       }
     }
-    _lastError = null;
+    // An error reported while opening was handled above: only later ones
+    // are passed on.
+    _lastError = controller.value.errorDescription;
     controller.addListener(() => _watch(controller));
     _lens = camera.lens;
     _controller.value = controller;
@@ -203,6 +210,9 @@ final class PluginCameraDriver implements CameraDriver {
     try {
       file = await controller.takePicture();
     } on CameraException catch (error) {
+      throw CameraDriverException(error.code);
+    } on PlatformException catch (error) {
+      // How a browser's camera plugin reports a failed picture.
       throw CameraDriverException(error.code);
     }
     try {
