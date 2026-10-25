@@ -1,0 +1,226 @@
+[
+  {
+    "path": "assets/decorations/sticker_arcade_joystick.png",
+    "sha256": "e326a006bfc7bd04a5b68e67c945a3f293785439e232be7cf54c84ebf6ef2ac1",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1254650
+  },
+  {
+    "path": "assets/decorations/sticker_blue_hydrangea.png",
+    "sha256": "59518932e22ccf0aae495c593cfa715573e0abead066ca02854f586c94324783",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2654803
+  },
+  {
+    "path": "assets/decorations/sticker_bow_blue.png",
+    "sha256": "68a2ee3a898941ac189b224c2a45f0ea935751b16fc33358bf984c8b245f3821",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2210719
+  },
+  {
+    "path": "assets/decorations/sticker_bow_blush.png",
+    "sha256": "c489c075048fdfbe98e9f457a430bb1ebf2c22bdfd0a4f05358283966c5b686b",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1675799
+  },
+  {
+    "path": "assets/decorations/sticker_bow_sage.png",
+    "sha256": "16161bf20d1bdb910325b4fee67b2d8e381890f723203e3fae9d176364d9f0ed",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2240845
+  },
+  {
+    "path": "assets/decorations/sticker_champagne_coupes.png",
+    "sha256": "4118a468eba46cbe89a4d011d194aaff079488dfe9183250b53d0ce9f5ed4988",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1934957
+  },
+  {
+    "path": "assets/decorations/sticker_deco_corner.png",
+    "sha256": "610faecdb52b6aa31fea9d9387cd039af65a547061aefb3356849d72c2adf76f",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 571311
+  },
+  {
+    "path": "assets/decorations/sticker_deco_fan.png",
+    "sha256": "a0d26be4a3304094a722807e37d88c48345f17ea1d956e3a86f0c0e3f8f447af",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1948391
+  },
+  {
+    "path": "assets/decorations/sticker_deco_feathers.png",
+    "sha256": "2671c03614e9968221a908643c537dfe90c11486db7b96da28fdc9895d09ee7a",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2345443
+  },
+  {
+    "path": "assets/decorations/sticker_deco_sunburst.png",
+    "sha256": "15415622ceac132695ec30d39ae626a136fd38fbbaf07eb9cedad137923aa868",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1884661
+  },
+  {
+    "path": "assets/decorations/sticker_disco_ball.png",
+    "sha256": "40043b505cdb844448cd245aa7e08c3b8c93f4dc1b226148974a58f20ab8c4e5",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1547406
+  },
+  {
+    "path": "assets/decorations/sticker_disco_daisies.png",
+    "sha256": "832a22f9fdb63839f1bd0dbd748607a8074b8bf36f139ed223a70a8c54e6c417",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2210012
+  },
+  {
+    "path": "assets/decorations/sticker_eucalyptus_crescent.png",
+    "sha256": "285711c6c1faafb5a133923a41f715aae4878a96673b567a6ad7793ec4e9d9f0",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1819521
+  },
+  {
+    "path": "assets/decorations/sticker_game_cloud.png",
+    "sha256": "6e48615a6de3f613f5f430fa73868355a5fa0cb274611da353ae979227209325",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1125384
+  },
+  {
+    "path": "assets/decorations/sticker_game_coins.png",
+    "sha256": "cc4c80ffb6af5540c2cfaf0100436dc2f8b85cb8df5261f02eba46748dd4614e",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 579158
+  },
+  {
+    "path": "assets/decorations/sticker_game_controller.png",
+    "sha256": "efb7c5adda6bb0acc0ab6a7b71f1b9ae60c6e6edcbe864e2e944b5254ee22c32",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 868289
+  },
+  {
+    "path": "assets/decorations/sticker_game_mushroom.png",
+    "sha256": "c885d4e87bb674a2762dfbb8f7a1c22c52f4948454e7d2f114fe9845e35fc5bc",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1668145
+  },
+  {
+    "path": "assets/decorations/sticker_game_pipe.png",
+    "sha256": "6e9df6f64b78dddbcc947a1ae41453d786b54453c1aa97d74d7d49955b915e79",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 968989
+  },
+  {
+    "path": "assets/decorations/sticker_game_star.png",
+    "sha256": "8da9caefcf1ade0a1b9911679615b6ce500116a8ff16012c8551a72e712b1ceb",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1139925
+  },
+  {
+    "path": "assets/decorations/sticker_goose_blue.png",
+    "sha256": "d73180ba550477f19456a5b107be74cbb208cb5798432998df7e4863a74b1544",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1055733
+  },
+  {
+    "path": "assets/decorations/sticker_goose_family.png",
+    "sha256": "7fc6e2407e243427231b3007ac432eabc25a77ffa73b6a938bb2df7aa2155501",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1224235
+  },
+  {
+    "path": "assets/decorations/sticker_goose_flying.png",
+    "sha256": "53a04469e65c0837af85c01ec4942cb412432f5a0286dd85f939dff20f4a415e",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1308152
+  },
+  {
+    "path": "assets/decorations/sticker_goose_sage.png",
+    "sha256": "b960124537124f74399d7bd9a64b4e24b71e7e26eaa54de81433da5ea05c8653",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1099775
+  },
+  {
+    "path": "assets/decorations/sticker_lavender_sprigs.png",
+    "sha256": "6cd2673e3c14870574ba4f8ef7028beda82dfc039917dffa2b76d565566d9a32",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1605401
+  },
+  {
+    "path": "assets/decorations/sticker_moon_cloud.png",
+    "sha256": "b07bb3d850d6c8da4891cbc5854619b40dbe5190148782ca622187acd687f6d2",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1364410
+  },
+  {
+    "path": "assets/decorations/sticker_pixel_hearts.png",
+    "sha256": "bbd500348e0fbbc385e6df7c3a5122f5b1886d1bb375067fb56ca5617d864e25",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 559580
+  },
+  {
+    "path": "assets/decorations/sticker_roller_skate.png",
+    "sha256": "be1131c788d4c001a5502897a6ff995fefb103e0f185f7cd5c96f8eda5d5d99c",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1613767
+  },
+  {
+    "path": "assets/decorations/sticker_rose_bouquet.png",
+    "sha256": "80aa4d9ece9024a76f3b5bd4c259f91ca5cfa2db9f692cdd3926cdd0224e6b37",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2153156
+  },
+  {
+    "path": "assets/decorations/sticker_sunflower_spray.png",
+    "sha256": "62cd00af3d47c07465277510e64a421f4ba0206bb377aa06be680e1ef268ced2",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2264927
+  },
+  {
+    "path": "assets/decorations/sticker_teddy.png",
+    "sha256": "06d7f83cb84afb06e7f773fc9e056f93c98a7e7183248f85e4839ab44650e6c2",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2063782
+  },
+  {
+    "path": "assets/decorations/sticker_vinyl.png",
+    "sha256": "2b04597c9797a0b6ec9385c78595bc480f310719e1a249fe67956e9587c6ac67",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2246669
+  },
+  {
+    "path": "assets/decorations/sticker_wildflower_corner.png",
+    "sha256": "51a23a59f2fc9142bbd1c939752514e3a0e8c52a5834371ab3303b8dcd1eb71f",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1951404
+  }
+]

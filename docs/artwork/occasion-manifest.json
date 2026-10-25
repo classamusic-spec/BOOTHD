@@ -1,0 +1,170 @@
+[
+  {
+    "path": "assets/decorations/sticker_wedding_rings.png",
+    "sha256": "4a4a43befeaef8e665dc170dbaf6774a3c97b99eb593c4764ba73bf1fc56266f",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1987353
+  },
+  {
+    "path": "assets/decorations/sticker_birthday_cake.png",
+    "sha256": "5d0e578c48b2b444f8efd1d2e262d763af81b5f04ee7d84ed30fffb495d5421e",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1636294
+  },
+  {
+    "path": "assets/decorations/sticker_anniversary_hearts.png",
+    "sha256": "678737aa937ecacf586d657d4fcb131a907d2ba077961c5deeb6c95572fc5646",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2093454
+  },
+  {
+    "path": "assets/decorations/sticker_easter_bunny.png",
+    "sha256": "e67e9935e85e9dcc5e61ae38835d789665be5f6130c9dd0a1a16f31eb5dba144",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2212708
+  },
+  {
+    "path": "assets/decorations/sticker_christmas_bauble.png",
+    "sha256": "1ba400d3052162b76adc3debf0025a73a9b4c9a22690510e0e2ca6822c1eaf0c",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2593033
+  },
+  {
+    "path": "assets/decorations/sticker_engagement_ring.png",
+    "sha256": "152eebbd1337deb64c74e8cca94eb21a853c05fc383f77410e508ab028fb5449",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1978518
+  },
+  {
+    "path": "assets/decorations/sticker_bridal_pearls.png",
+    "sha256": "9f1958453ebc06d890ed4ad6e7ad3ff89290c8d4a699fd83aaf0da37713c5f0a",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1946054
+  },
+  {
+    "path": "assets/decorations/sticker_party_cocktails.png",
+    "sha256": "78b555c6c29872b2e1f5d8da9eb5534e2b14df9bf7816683a42537650718554c",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1684345
+  },
+  {
+    "path": "assets/decorations/sticker_graduation_cap.png",
+    "sha256": "0f322c9800677b2e1d156bd9fa058f9b0dd7a8994a154be381f070eeebfbb678",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1787826
+  },
+  {
+    "path": "assets/decorations/sticker_halloween_pumpkin.png",
+    "sha256": "fc961852129af06ab392fcc96a1bdc673784178bbd5bf0250a0a04e9cbd24ed6",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1759151
+  },
+  {
+    "path": "assets/decorations/sticker_newyear_clock.png",
+    "sha256": "02cdae0a751c3e2e18e1f23c1f7d106e9e875bdb4c3a01db503e1eedcebf177d",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1950838
+  },
+  {
+    "path": "assets/decorations/sticker_valentine_heart.png",
+    "sha256": "261ba91fedd02bcab075b090d1a5c80368a08d6b3ebe12f39f7662c2ab4bf3f7",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1985086
+  },
+  {
+    "path": "assets/decorations/sticker_thanksgiving_harvest.png",
+    "sha256": "ff40c5b38303d4ef11e2f593a2435300ea0b086bb7ca35cb5ffa758b17707833",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2292984
+  },
+  {
+    "path": "assets/decorations/sticker_retirement_suitcase.png",
+    "sha256": "2118ba62b0f303dd88d2deeb180292ad1906b39e7f3637bc14d682dcd6ee9812",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2122197
+  },
+  {
+    "path": "assets/decorations/sticker_housewarming_keys.png",
+    "sha256": "04102caff2c3f1514dfac7a976f5f23649517cb4352a40c16939c62eace3847a",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2258994
+  },
+  {
+    "path": "assets/decorations/sticker_christening_dove.png",
+    "sha256": "99012fc4745ed274f48953afc3c73b5327b97ec165c69395ba780c1ece690cb0",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1757044
+  },
+  {
+    "path": "assets/decorations/sticker_diwali_diya.png",
+    "sha256": "46d9e7fdbef3b742f47f8c95dd7c88ed36e042ebf6a9193342d698e06745f2c9",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1619304
+  },
+  {
+    "path": "assets/decorations/sticker_eid_lantern.png",
+    "sha256": "3a9324997f8f363ba6d84eb8d81b02dc747ddbda1991b40f546075990a4ce856",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2139038
+  },
+  {
+    "path": "assets/decorations/sticker_hanukkah_lights.png",
+    "sha256": "bb03f8a8afc17437287690ff2e67785518f780b5d66860b3c72be47d46dda0f2",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1383682
+  },
+  {
+    "path": "assets/decorations/sticker_summer_citrus.png",
+    "sha256": "7e2510ede51e9ba1e28bab6919178967f49cc733aa3de77ab760c9798c89b692",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2201663
+  },
+  {
+    "path": "assets/decorations/sticker_birthday_dinosaur.png",
+    "sha256": "618a6df3a7689cdf7fab0bd03a6c16148630acd004e102641bbfba804552bcad",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1516090
+  },
+  {
+    "path": "assets/decorations/sticker_birthday_unicorn.png",
+    "sha256": "461218fd2bec3bc4d98223b920ace2bb4dd8e7dc3d742fcd5f9ea85c8ab503e6",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1866406
+  },
+  {
+    "path": "assets/decorations/sticker_birthday_pirate.png",
+    "sha256": "c4353e2b8b00aaff454313c378af763175dabd5ed44708513ef260fb1c7a21cc",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1899109
+  },
+  {
+    "path": "assets/decorations/sticker_birthday_space.png",
+    "sha256": "eb14e645387ccbef29aa67c9f64488b18747b1041eab010b9aa1b089b9edb4e1",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1424879
+  }
+]

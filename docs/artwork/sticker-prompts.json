@@ -1,0 +1,200 @@
+{
+  "generator": "Built-in image_gen",
+  "created": "2026-10-23",
+  "transparent_background": true,
+  "sharedPrompt": "Use case: stylized-concept. Asset type: one premium transparent PNG sticker overlay for a professional photo-template editor. Square 1024x1024 image. The entire background MUST be true alpha transparency, including spaces between leaves, ribbons and small details. One cohesive isolated decorative object or cluster, fully visible, centered, with generous transparent padding on all sides, exquisite clean edges, no clipped tips. No white sticker border, no backing card, no rectangular paper patch, no checkerboard painted into the art, no drop shadow on a background, no text, letters, logos or watermarks. ",
+  "designs": [
+    {
+      "id": "sticker_rose_bouquet",
+      "name": "Rose & peony bouquet",
+      "collection": "Florals",
+      "subject": "Blush watercolor garden roses, apricot peonies and ivory ranunculus with delicate sage eucalyptus leaves, an exquisite asymmetrical botanical bouquet, translucent fine watercolor brushwork."
+    },
+    {
+      "id": "sticker_blue_hydrangea",
+      "name": "Blue hydrangea cluster",
+      "collection": "Florals",
+      "subject": "An elegant cluster of powder-blue hydrangeas and small white roses with dusty silver-green leaves, botanical watercolor, delicate detailed petals."
+    },
+    {
+      "id": "sticker_wildflower_corner",
+      "name": "Wildflower corner",
+      "collection": "Florals",
+      "subject": "An L-shaped open corner spray of tiny cornflowers, chamomile daisies, coral cosmos and wispy meadow grasses, watercolor botanical illustration, most of upper-right square stays transparent."
+    },
+    {
+      "id": "sticker_lavender_sprigs",
+      "name": "Lavender sprigs",
+      "collection": "Florals",
+      "subject": "A graceful trio of fresh lavender stems tied with fine ivory thread, lilac and sage watercolor, fine detailed botanical painting, airy silhouette."
+    },
+    {
+      "id": "sticker_eucalyptus_crescent",
+      "name": "Eucalyptus crescent",
+      "collection": "Florals",
+      "subject": "A graceful C-shaped crescent wreath of silver-dollar eucalyptus and tiny white wax flowers, botanical watercolor, open center completely transparent, sage and cream, refined asymmetric silhouette."
+    },
+    {
+      "id": "sticker_sunflower_spray",
+      "name": "Sunshine flowers",
+      "collection": "Florals",
+      "subject": "Two warm butter-yellow sunflowers with tiny chamomile daisies and elegant soft green leaves in an organic watercolor spray, sophisticated painterly botanical detail."
+    },
+    {
+      "id": "sticker_goose_blue",
+      "name": "Goose with blue bow",
+      "collection": "Geese & baby",
+      "subject": "One adorable graceful white goose standing in profile, orange beak and webbed feet, soft powder-blue gingham bow around neck, delicate vintage storybook watercolor, full body, anatomically charming."
+    },
+    {
+      "id": "sticker_goose_sage",
+      "name": "Goose with sage bow",
+      "collection": "Geese & baby",
+      "subject": "One sweet fluffy white goose standing, small sage green linen ribbon around neck, butter yellow-orange beak and feet, subtle fine grey feather definition, heirloom storybook watercolor."
+    },
+    {
+      "id": "sticker_goose_family",
+      "name": "Mother goose & goslings",
+      "collection": "Geese & baby",
+      "subject": "One white mother goose wearing a sage gingham ribbon followed by two small fluffy cream-yellow goslings, a charming walking family, full figures, exquisite tender vintage nursery watercolor."
+    },
+    {
+      "id": "sticker_goose_flying",
+      "name": "Goose in flight",
+      "collection": "Geese & baby",
+      "subject": "One white goose flying gently with both wings gracefully spread, a loose pale-blue silk ribbon tied around its neck flowing behind, storybook watercolor, full silhouette, small golden tiny stars close by."
+    },
+    {
+      "id": "sticker_teddy",
+      "name": "Heirloom teddy",
+      "collection": "Geese & baby",
+      "subject": "An adorable honey-colored plush teddy bear sitting upright with sage ribbon bow, soft textured fur, delicate hand-painted watercolor nursery art, full-body isolated without props."
+    },
+    {
+      "id": "sticker_moon_cloud",
+      "name": "Moon & little stars",
+      "collection": "Geese & baby",
+      "subject": "A warm antique-gold crescent moon resting on two soft powder-blue watercolor clouds, five tiny gold stars arranged closely around it, refined dreamy nursery illustration, delicate soft transparent edges."
+    },
+    {
+      "id": "sticker_bow_blue",
+      "name": "Blue gingham bow",
+      "collection": "Ribbons",
+      "subject": "A beautifully tied powder-blue and ivory gingham fabric bow with two long flowing tails, elegant realistic watercolor fabric folds and tiny check pattern, romantic heirloom stationery ornament."
+    },
+    {
+      "id": "sticker_bow_blush",
+      "name": "Blush satin bow",
+      "collection": "Ribbons",
+      "subject": "An exquisite blush-pink satin ribbon bow with graceful long flowing tails and subtle lustrous folds, hand-painted watercolor with dimensional highlights, refined feminine celebration ornament."
+    },
+    {
+      "id": "sticker_bow_sage",
+      "name": "Sage linen bow",
+      "collection": "Ribbons",
+      "subject": "A soft sage and ivory micro-gingham linen bow with long gently curling tails, fine fabric weave and painterly folds, heirloom watercolor style."
+    },
+    {
+      "id": "sticker_deco_fan",
+      "name": "Gilded Deco fan",
+      "collection": "Art Deco",
+      "subject": "One elegant 1920s Art Deco fan ornament, symmetrical fine antique-gold metallic rays with ebony geometric accents, jewel-like precision, full silhouette, luxurious foil texture, geometric graphic design."
+    },
+    {
+      "id": "sticker_deco_feathers",
+      "name": "Champagne feathers",
+      "collection": "Art Deco",
+      "subject": "A graceful luxury arrangement of three ivory ostrich feathers with delicate champagne gold tips and small pearl accents, 1920s Gatsby feel, refined fine-art rendering, isolated wispy feather edges."
+    },
+    {
+      "id": "sticker_deco_corner",
+      "name": "Art Deco corner",
+      "collection": "Art Deco",
+      "subject": "An elegant L-shaped geometric 1920s Art Deco corner ornament built from three fine metallic antique-gold stepped lines and one miniature fan, transparent open area, precise linework, no background fill."
+    },
+    {
+      "id": "sticker_champagne_coupes",
+      "name": "Champagne coupes",
+      "collection": "Art Deco",
+      "subject": "Two elegant vintage champagne coupe glasses gently touching in a celebratory toast, pale golden champagne, etched glass highlights, tiny gold stars, luxurious hand-painted illustration with true transparent space around glass stems."
+    },
+    {
+      "id": "sticker_deco_sunburst",
+      "name": "Gold sunburst",
+      "collection": "Art Deco",
+      "subject": "One finely detailed Art Deco sunburst medallion made of slender antique-gold foil geometric rays around a small circular center, Gatsby-era opulence, precise symmetry, transparent gaps between rays."
+    },
+    {
+      "id": "sticker_disco_ball",
+      "name": "Silver mirrorball",
+      "collection": "Disco",
+      "subject": "One gorgeous hanging silver disco mirrorball with individually defined small mirrored mosaic tiles, soft pink and lilac reflected glints and two small four-point sparkles, premium 1970s illustration, single isolated sphere."
+    },
+    {
+      "id": "sticker_disco_daisies",
+      "name": "Flower power daisies",
+      "collection": "Disco",
+      "subject": "A tight cluster of three fabulous 1970s groovy daisies with rounded petals, tangerine orange, bubblegum pink and butter yellow, vintage screen-printed texture, bold clean curvy shapes, isolated."
+    },
+    {
+      "id": "sticker_roller_skate",
+      "name": "Disco roller skate",
+      "collection": "Disco",
+      "subject": "One beautiful vintage 1970s quad roller skate with a peach-pink boot, cream laces, orange wheels and tiny golden sparkle accents, playful high-end illustrated sticker, dimensional polished gouache shading."
+    },
+    {
+      "id": "sticker_vinyl",
+      "name": "Vinyl & stardust",
+      "collection": "Disco",
+      "subject": "One glossy black vinyl record with a plain peach center label, elegant concentric grooves, two curved pink/orange 1970s decorative swooshes and small golden sparkles, retro gouache illustration, no writing."
+    },
+    {
+      "id": "sticker_game_controller",
+      "name": "Retro game controller",
+      "collection": "Retro gaming",
+      "subject": "One original retro game controller in deep violet with cyan and hot-pink buttons, a plus-shaped directional pad, polished precise 16-bit pixel-art aesthetic with square stepped contours and small neon highlights, no brand marks."
+    },
+    {
+      "id": "sticker_arcade_joystick",
+      "name": "Arcade joystick",
+      "collection": "Retro gaming",
+      "subject": "One original 1980s arcade joystick with a bright pink spherical handle, violet square base, cyan and yellow arcade buttons, crisp polished pixel-inspired dimensional illustration, small star sparkles."
+    },
+    {
+      "id": "sticker_game_mushroom",
+      "name": "Adventure mushroom",
+      "collection": "Retro gaming",
+      "subject": "One cheerful original red-spotted fantasy mushroom collectible with a cream stem, rounded toy-like forms, glossy illustrated shading, retro platformer game vibe, no face or character likeness, crisp polished game asset."
+    },
+    {
+      "id": "sticker_game_star",
+      "name": "Golden power star",
+      "collection": "Retro gaming",
+      "subject": "One cheerful golden five-point collectible star with warm orange bevels and bright highlights, original retro platformer toy-like game asset, no face, small sparkles close to its edges."
+    },
+    {
+      "id": "sticker_game_coins",
+      "name": "Golden coin trail",
+      "collection": "Retro gaming",
+      "subject": "Five shiny golden collectible coins arranged in a playful ascending arc, embossed simple four-point star in each coin center, original retro platformer game asset style, polished rounded dimensional illustration, no numbers."
+    },
+    {
+      "id": "sticker_game_cloud",
+      "name": "Cloud island",
+      "collection": "Retro gaming",
+      "subject": "One original tiny grassy floating platform island with brick underside and two little fluffy clouds nearby, bright green grass, warm terracotta pixel-inspired bricks, cheerful retro platformer game illustration, no characters."
+    },
+    {
+      "id": "sticker_game_pipe",
+      "name": "Green adventure pipe",
+      "collection": "Retro gaming",
+      "subject": "One original short emerald green cylindrical platformer pipe viewed slightly from above, rounded rim and dimensional highlights, playful polished retro game illustration, fully visible isolated object, no text or characters."
+    },
+    {
+      "id": "sticker_pixel_hearts",
+      "name": "Pixel heart trio",
+      "collection": "Retro gaming",
+      "subject": "Three crisp 16-bit pixel-art hearts together, coral red, bubblegum pink and lilac, little white square highlights, dark purple stepped pixel outlines, aligned playful diagonal composition, exact square pixel geometry."
+    }
+  ]
+}

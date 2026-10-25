@@ -1247,3 +1247,16 @@ iPad: BLOCKED (no Mac, no iPad; tool/build_ios.sh exits 3 on Linux); Android: re
 - The ElevenLabs sound files; the 16 original placeholders ship until
   then (`docs/experience_packs/SOUND_SCRIPT_ELEVENLABS.md`).
 - Originality sign-off; the optional event logo (not built).
+
+## 2026-10-24 — Occasion library expansion (AC-0501, AC-0508)
+
+Scope: 24 original transparent PNG stickers across 20 occasion collections, with 48 editable 4×6 portrait / 2×6 strip companions. Existing essential and Atelier collections remain available. Provenance and SHA-256 manifests are in `docs/artwork/` and `docs/ASSET_PROVENANCE.md`.
+
+- PASS — `flutter analyze --no-pub` and formatting verification for the 13 changed/new Dart files (exit 0).
+- PASS — `flutter test --no-pub test/core/templates test/assets/decorations_current_test.dart test/widgets/template_library_flows_test.dart test/widgets/template_studio_test.dart test/infrastructure/templates test/domain/experience/template_recommendations_test.dart tool/art/render_occasions_test.dart tool/art/render_stickers_test.dart` (228 tests, exit 0). Tests decode all 56 sticker alpha channels, verify the bundled artwork manifests, save/reopen/render every starter design at its print dimensions without warnings, and exercise occasion search/filter/create, editor and package behavior. Two existing baby-title overflow failures were corrected through title sizing; assertions were retained.
+- PASS — `flutter test --no-pub --update-goldens test/goldens/studio_goldens_test.dart --name '(templates|new template)'` (22 snapshots, exit 0). These are regenerated macOS artifacts at the repository's existing iPad and Android viewport sizes, not Linux pixel-comparison or physical-device results.
+- PASS — visual inspection of full-resolution sample portraits, all 48 new presets on the occasion contact sheet, and all 56 stickers on light and dark surfaces. Hanukkah artwork was checked for nine candles, including its raised central helper candle.
+- Evidence: `build/local-verification/occasion-tests.log`, `occasion-goldens.log`, `occasion-analyze.log`, `occasion-catalog/occasion-overview.png`, and `atelier-catalog/sticker-overview.png`.
+- Platform scope: shared Flutter/Dart catalog, renderer and asset bundle used by both tablet platforms. No camera, physical print or device certification result is claimed by this content update.
+
+- PASS — `flutter build web --no-pub` (exit 0); all 24 new bundled PNGs match their recorded SHA-256 hashes in `build/web/assets/`. Build log: `build/local-verification/occasion-web-build.log`.

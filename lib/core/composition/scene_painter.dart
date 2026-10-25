@@ -71,7 +71,7 @@ List<RenderWarning> paintScene(
   }
   for (final (index, node) in scene.nodes.indexed) {
     if (include != null && !include(index, node)) continue;
-    _paintNode(canvas, node, resources, warnings);
+    _paintNode(canvas, node, resources, warnings, scale);
   }
   canvas.restore();
   return warnings;
@@ -83,12 +83,17 @@ ui.Rect _rect(PixelRect rect) =>
 ui.Color _color(ArgbColor color) => ui.Color(color.value);
 
 final _imagePaint = ui.Paint()..filterQuality = ui.FilterQuality.high;
+// Mipmapped sampling keeps fine painted texture and pixel-art edges stable
+// when a print is reduced for the editor. Cubic sampling alone aliases that
+// detail and drifts from the full-size export reduced to the same dimensions.
+final _previewImagePaint = ui.Paint()..filterQuality = ui.FilterQuality.medium;
 
 void _paintNode(
   ui.Canvas canvas,
   SceneNode node,
   SceneResources resources,
   List<RenderWarning> warnings,
+  double scale,
 ) {
   final placement = node.placement;
   canvas.save();
@@ -109,7 +114,7 @@ void _paintNode(
   }
   switch (node) {
     case FillNode(:final fill):
-      _paintFill(canvas, _rect(placement.rect), fill, resources);
+      _paintFill(canvas, _rect(placement.rect), fill, resources, scale);
     case PhotoNode():
       _paintPhoto(canvas, node, resources);
     case ImageNode(:final source, :final sourceCrop, :final destRect):
@@ -118,7 +123,7 @@ void _paintNode(
         image.image,
         image.decodedRect(sourceCrop),
         _rect(destRect),
-        _imagePaint,
+        scale < 1 ? _previewImagePaint : _imagePaint,
       );
     case TextNode():
       _paintText(canvas, node, resources, warnings);
@@ -134,6 +139,7 @@ void _paintFill(
   ui.Rect page,
   SceneFill fill,
   SceneResources resources,
+  double scale,
 ) {
   switch (fill) {
     case SceneSolidFill(:final color):
@@ -160,7 +166,7 @@ void _paintFill(
         image.image,
         image.decodedRect(sourceCrop),
         _rect(destRect),
-        _imagePaint,
+        scale < 1 ? _previewImagePaint : _imagePaint,
       );
   }
 }

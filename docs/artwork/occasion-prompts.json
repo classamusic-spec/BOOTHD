@@ -1,0 +1,501 @@
+{
+  "created": "2026-10-24",
+  "tool": "Built-in OpenAI image_gen",
+  "transparent_background": true,
+  "items": [
+    {
+      "id": "sticker_wedding_rings",
+      "key": "wedding_rings",
+      "name": "Silk & Vows",
+      "collection": "Wedding",
+      "title": "Just Married",
+      "subtitle": "THE BEGINNING OF FOREVER",
+      "paper": "FFFCF5",
+      "ink": "5F4934",
+      "accent": "C3A166",
+      "tags": [
+        "wedding",
+        "reception",
+        "marriage"
+      ],
+      "subject": "Two intertwined heirloom gold wedding rings on an ivory silk bow, small white blossoms and sage eucalyptus",
+      "hero": true,
+      "prompt": "Use case: illustration-story. Asset type: transparent photo-booth sticker. Subject: two intertwined heirloom gold wedding rings resting on a small ivory silk bow with delicate white blossom and sage eucalyptus sprig. Refined hand-painted watercolor and gouache, tactile soft edges, premium wedding stationery illustration, warm metallic highlights. Single cohesive isolated composition centered on square canvas, fully visible, generous clear margin all around. No words, letters, numbers, logos, watermark, sticker border or background. True transparent alpha background."
+    },
+    {
+      "id": "sticker_birthday_cake",
+      "key": "birthday_cake",
+      "name": "Make a Wish",
+      "collection": "Birthday",
+      "title": "Happy Birthday",
+      "subtitle": "MAKE A WISH • MAKE A MEMORY",
+      "paper": "FFF4F0",
+      "ink": "793F55",
+      "accent": "D7879D",
+      "tags": [
+        "birthday",
+        "adult birthday",
+        "milestone birthday",
+        "cake"
+      ],
+      "subject": "An elegant blush pink frosted birthday cake with five tiny gold lit candles and a satin ribbon, no age numerals",
+      "hero": false,
+      "prompt": "Use case: illustration-story. Asset type: transparent photo-booth sticker. Subject: An elegant blush pink frosted birthday cake with five tiny gold lit candles and a satin ribbon, no age numerals. Refined hand-painted watercolor and gouache, tactile soft edges, premium celebration stationery illustration, delicate painted highlights. Single cohesive isolated composition centered on square canvas, fully visible, generous clear margin all around. No words, letters, numbers, logos, watermark, sticker border or background. True transparent alpha background."
+    },
+    {
+      "id": "sticker_anniversary_hearts",
+      "key": "anniversary_hearts",
+      "name": "Golden Together",
+      "collection": "Anniversary",
+      "title": "Still in Love",
+      "subtitle": "ANOTHER YEAR OF BEAUTIFUL MEMORIES",
+      "paper": "FBF5E8",
+      "ink": "624831",
+      "accent": "B49351",
+      "tags": [
+        "anniversary",
+        "wedding anniversary",
+        "golden",
+        "silver",
+        "ruby"
+      ],
+      "subject": "Two intertwined sculptural gold hearts with ivory roses and a delicate champagne silk ribbon",
+      "hero": true,
+      "prompt": "Use case: illustration-story. Asset type: transparent photo-booth sticker. Subject: Two intertwined sculptural gold hearts with ivory roses and a delicate champagne silk ribbon. Refined hand-painted watercolor and gouache, tactile soft edges, premium celebration stationery illustration, delicate painted highlights. Single cohesive isolated composition centered on square canvas, fully visible, generous clear margin all around. No words, letters, numbers, logos, watermark, sticker border or background. True transparent alpha background."
+    },
+    {
+      "id": "sticker_easter_bunny",
+      "key": "easter_bunny",
+      "name": "Easter Garden",
+      "collection": "Easter",
+      "title": "Happy Easter",
+      "subtitle": "A LITTLE SPRINGTIME MAGIC",
+      "paper": "F3F7ED",
+      "ink": "405A49",
+      "accent": "9BAF7E",
+      "tags": [
+        "easter",
+        "spring",
+        "bunny",
+        "egg hunt"
+      ],
+      "subject": "A soft cream rabbit beside three hand-painted pastel Easter eggs, tiny daisies and spring greenery",
+      "hero": false,
+      "prompt": "Use case: illustration-story. Asset type: transparent photo-booth sticker. Subject: A soft cream rabbit beside three hand-painted pastel Easter eggs, tiny daisies and spring greenery. Refined hand-painted watercolor and gouache, tactile soft edges, premium celebration stationery illustration, delicate painted highlights. Single cohesive isolated composition centered on square canvas, fully visible, generous clear margin all around. No words, letters, numbers, logos, watermark, sticker border or background. True transparent alpha background."
+    },
+    {
+      "id": "sticker_christmas_bauble",
+      "key": "christmas_bauble",
+      "name": "Christmas Keepsake",
+      "collection": "Christmas",
+      "title": "Merry Christmas",
+      "subtitle": "MERRY MOMENTS • WARM MEMORIES",
+      "paper": "F7F4EA",
+      "ink": "334F40",
+      "accent": "AA5D54",
+      "tags": [
+        "christmas",
+        "xmas",
+        "holiday",
+        "winter",
+        "festive"
+      ],
+      "subject": "Three heirloom Christmas glass baubles in cranberry red, forest green and brushed gold, pine sprigs and an ivory velvet bow",
+      "hero": false,
+      "prompt": "Use case: illustration-story. Asset type: transparent photo-booth sticker. Subject: Three heirloom Christmas glass baubles in cranberry red, forest green and brushed gold, pine sprigs and an ivory velvet bow. Refined hand-painted watercolor and gouache, tactile soft edges, premium celebration stationery illustration, delicate painted highlights. Single cohesive isolated composition centered on square canvas, fully visible, generous clear margin all around. No words, letters, numbers, logos, watermark, sticker border or background. True transparent alpha background."
+    },
+    {
+      "id": "sticker_engagement_ring",
+      "key": "engagement_ring",
+      "name": "The Sweetest Yes",
+      "collection": "Engagement",
+      "title": "We Said Yes",
+      "subtitle": "HERE IS TO OUR NEXT CHAPTER",
+      "paper": "FFF4EF",
+      "ink": "704E51",
+      "accent": "C49584",
+      "tags": [
+        "engagement",
+        "proposal",
+        "engagement party"
+      ],
+      "subject": "An open blush velvet ring box with a single diamond engagement ring, a small ivory rose and silk ribbon",
+      "hero": true,
+      "prompt": "Use case: illustration-story. Asset type: transparent photo-booth sticker. Subject: An open blush velvet ring box with a single diamond engagement ring, a small ivory rose and silk ribbon. Refined hand-painted watercolor and gouache, tactile soft edges, premium celebration stationery illustration, delicate painted highlights. Single cohesive isolated composition centered on square canvas, fully visible, generous clear margin all around. No words, letters, numbers, logos, watermark, sticker border or background. True transparent alpha background."
+    },
+    {
+      "id": "sticker_bridal_pearls",
+      "key": "bridal_pearls",
+      "name": "Pearls & Petals",
+      "collection": "Bridal shower",
+      "title": "Bride to Be",
+      "subtitle": "SHOWERED WITH LOVE",
+      "paper": "FBF2F1",
+      "ink": "76505B",
+      "accent": "C49AA4",
+      "tags": [
+        "bridal shower",
+        "bride",
+        "hen party",
+        "wedding shower"
+      ],
+      "subject": "A loose strand of luminous ivory pearls draped over a blush satin bow with a pale pink rose",
+      "hero": true,
+      "prompt": "Use case: illustration-story. Asset type: transparent photo-booth sticker. Subject: A loose strand of luminous ivory pearls draped over a blush satin bow with a pale pink rose. Refined hand-painted watercolor and gouache, tactile soft edges, premium celebration stationery illustration, delicate painted highlights. Single cohesive isolated composition centered on square canvas, fully visible, generous clear margin all around. No words, letters, numbers, logos, watermark, sticker border or background. True transparent alpha background."
+    },
+    {
+      "id": "sticker_party_cocktails",
+      "key": "party_cocktails",
+      "name": "Last Fling",
+      "collection": "Hen & stag",
+      "title": "Cheers to Love",
+      "subtitle": "ONE UNFORGETTABLE NIGHT",
+      "paper": "F7EFF9",
+      "ink": "623F72",
+      "accent": "B98FC9",
+      "tags": [
+        "bachelorette",
+        "bachelor",
+        "hen",
+        "stag",
+        "hen party",
+        "stag party"
+      ],
+      "subject": "Two celebratory coupe cocktails in pale pink and lilac with a small silver disco sphere and a curling lavender ribbon",
+      "hero": false,
+      "prompt": "Use case: illustration-story. Asset type: transparent photo-booth sticker. Subject: Two celebratory coupe cocktails in pale pink and lilac with a small silver disco sphere and a curling lavender ribbon. Refined hand-painted watercolor and gouache, tactile soft edges, premium celebration stationery illustration, delicate painted highlights. Single cohesive isolated composition centered on square canvas, fully visible, generous clear margin all around. No words, letters, numbers, logos, watermark, sticker border or background. True transparent alpha background."
+    },
+    {
+      "id": "sticker_graduation_cap",
+      "key": "graduation_cap",
+      "name": "The Next Chapter",
+      "collection": "Graduation",
+      "title": "Class of Today",
+      "subtitle": "THE ADVENTURE STARTS HERE",
+      "paper": "F2F4F8",
+      "ink": "303F62",
+      "accent": "B89A55",
+      "tags": [
+        "graduation",
+        "graduate",
+        "school",
+        "college",
+        "prom"
+      ],
+      "subject": "A navy academic graduation mortarboard with a rich gold tassel beside a rolled ivory diploma tied with navy ribbon, no lettering",
+      "hero": false,
+      "prompt": "Use case: illustration-story. Asset type: transparent photo-booth sticker. Subject: A navy academic graduation mortarboard with a rich gold tassel beside a rolled ivory diploma tied with navy ribbon, no lettering. Refined hand-painted watercolor and gouache, tactile soft edges, premium celebration stationery illustration, delicate painted highlights. Single cohesive isolated composition centered on square canvas, fully visible, generous clear margin all around. No words, letters, numbers, logos, watermark, sticker border or background. True transparent alpha background."
+    },
+    {
+      "id": "sticker_halloween_pumpkin",
+      "key": "halloween_pumpkin",
+      "name": "Moonlit Mischief",
+      "collection": "Halloween",
+      "title": "Boo Crew",
+      "subtitle": "TREATS • LAUGHS • MEMORIES",
+      "paper": "FCF1E7",
+      "ink": "613C54",
+      "accent": "CB8955",
+      "tags": [
+        "halloween",
+        "spooky",
+        "pumpkin",
+        "october"
+      ],
+      "subject": "A friendly terracotta jack-o-lantern pumpkin wearing a small plum witch hat, two tiny lilac stars and a warm crescent moon",
+      "hero": false,
+      "prompt": "Use case: illustration-story. Asset type: transparent photo-booth sticker. Subject: A friendly terracotta jack-o-lantern pumpkin wearing a small plum witch hat, two tiny lilac stars and a warm crescent moon. Refined hand-painted watercolor and gouache, tactile soft edges, premium celebration stationery illustration, delicate painted highlights. Single cohesive isolated composition centered on square canvas, fully visible, generous clear margin all around. No words, letters, numbers, logos, watermark, sticker border or background. True transparent alpha background."
+    },
+    {
+      "id": "sticker_newyear_clock",
+      "key": "newyear_clock",
+      "name": "Midnight Wishes",
+      "collection": "New Year",
+      "title": "Hello, New Year",
+      "subtitle": "A NEW YEAR OF POSSIBILITIES",
+      "paper": "F4F1E9",
+      "ink": "394251",
+      "accent": "B79851",
+      "tags": [
+        "new year",
+        "new years eve",
+        "nye",
+        "countdown"
+      ],
+      "subject": "An elegant vintage midnight clock without numerals, hands at midnight, champagne gold starbursts and two black and gold party streamers",
+      "hero": false,
+      "prompt": "Use case: illustration-story. Asset type: transparent photo-booth sticker. Subject: An elegant vintage midnight clock without numerals, hands at midnight, champagne gold starbursts and two black and gold party streamers. Refined hand-painted watercolor and gouache, tactile soft edges, premium celebration stationery illustration, delicate painted highlights. Single cohesive isolated composition centered on square canvas, fully visible, generous clear margin all around. No words, letters, numbers, logos, watermark, sticker border or background. True transparent alpha background."
+    },
+    {
+      "id": "sticker_valentine_heart",
+      "key": "valentine_heart",
+      "name": "Love Letters",
+      "collection": "Valentine",
+      "title": "All You Need Is Love",
+      "subtitle": "SWEET MOMENTS TOGETHER",
+      "paper": "FFF0F1",
+      "ink": "813F50",
+      "accent": "D98A9A",
+      "tags": [
+        "valentine",
+        "valentines day",
+        "galentine",
+        "love"
+      ],
+      "subject": "A blush pink envelope with an unmarked red heart shaped wax seal, two small red and pink hearts and a satin ribbon",
+      "hero": true,
+      "prompt": "Use case: illustration-story. Asset type: transparent photo-booth sticker. Subject: A blush pink envelope with an unmarked red heart shaped wax seal, two small red and pink hearts and a satin ribbon. Refined hand-painted watercolor and gouache, tactile soft edges, premium celebration stationery illustration, delicate painted highlights. Single cohesive isolated composition centered on square canvas, fully visible, generous clear margin all around. No words, letters, numbers, logos, watermark, sticker border or background. True transparent alpha background."
+    },
+    {
+      "id": "sticker_thanksgiving_harvest",
+      "key": "thanksgiving_harvest",
+      "name": "Harvest Table",
+      "collection": "Thanksgiving",
+      "title": "Gather with Thanks",
+      "subtitle": "GRATEFUL FOR THESE MOMENTS",
+      "paper": "FBF1E3",
+      "ink": "694832",
+      "accent": "B97D4C",
+      "tags": [
+        "thanksgiving",
+        "harvest",
+        "autumn",
+        "fall",
+        "family reunion"
+      ],
+      "subject": "A warm harvest cluster of cream and amber miniature pumpkins, copper maple leaves, wheat stalks and a small pear",
+      "hero": false,
+      "prompt": "Use case: illustration-story. Asset type: transparent photo-booth sticker. Subject: A warm harvest cluster of cream and amber miniature pumpkins, copper maple leaves, wheat stalks and a small pear. Refined hand-painted watercolor and gouache, tactile soft edges, premium celebration stationery illustration, delicate painted highlights. Single cohesive isolated composition centered on square canvas, fully visible, generous clear margin all around. No words, letters, numbers, logos, watermark, sticker border or background. True transparent alpha background."
+    },
+    {
+      "id": "sticker_retirement_suitcase",
+      "key": "retirement_suitcase",
+      "name": "The Good Life",
+      "collection": "Retirement",
+      "title": "A New Adventure",
+      "subtitle": "THE BEST IS YET TO COME",
+      "paper": "F1F5EF",
+      "ink": "405B4D",
+      "accent": "A7A06C",
+      "tags": [
+        "retirement",
+        "retiring",
+        "leaving party",
+        "farewell"
+      ],
+      "subject": "A sage green vintage travel suitcase with a straw sunhat, a tiny compass and a cream luggage tag with no writing",
+      "hero": true,
+      "prompt": "Use case: illustration-story. Asset type: transparent photo-booth sticker. Subject: A sage green vintage travel suitcase with a straw sunhat, a tiny compass and a cream luggage tag with no writing. Refined hand-painted watercolor and gouache, tactile soft edges, premium celebration stationery illustration, delicate painted highlights. Single cohesive isolated composition centered on square canvas, fully visible, generous clear margin all around. No words, letters, numbers, logos, watermark, sticker border or background. True transparent alpha background."
+    },
+    {
+      "id": "sticker_housewarming_keys",
+      "key": "housewarming_keys",
+      "name": "Home Sweet Home",
+      "collection": "Housewarming",
+      "title": "Home Sweet Home",
+      "subtitle": "NEW KEYS • NEW MEMORIES",
+      "paper": "F7F2E8",
+      "ink": "665644",
+      "accent": "BD9D76",
+      "tags": [
+        "housewarming",
+        "new home",
+        "moving",
+        "house warming"
+      ],
+      "subject": "An heirloom brass house key tied to a sage gingham bow, a tiny cream cottage with terracotta roof and a leafy olive sprig",
+      "hero": true,
+      "prompt": "Use case: illustration-story. Asset type: transparent photo-booth sticker. Subject: An heirloom brass house key tied to a sage gingham bow, a tiny cream cottage with terracotta roof and a leafy olive sprig. Refined hand-painted watercolor and gouache, tactile soft edges, premium celebration stationery illustration, delicate painted highlights. Single cohesive isolated composition centered on square canvas, fully visible, generous clear margin all around. No words, letters, numbers, logos, watermark, sticker border or background. True transparent alpha background."
+    },
+    {
+      "id": "sticker_christening_dove",
+      "key": "christening_dove",
+      "name": "Blessed Beginnings",
+      "collection": "Christening",
+      "title": "A Blessed Day",
+      "subtitle": "SURROUNDED BY LOVE",
+      "paper": "F6F5F0",
+      "ink": "586573",
+      "accent": "B8AB85",
+      "tags": [
+        "christening",
+        "baptism",
+        "communion",
+        "confirmation",
+        "naming day"
+      ],
+      "subject": "A graceful white dove with spread wings carrying a slender olive sprig, with an ivory silk ribbon and subtle gold halo-like glints",
+      "hero": true,
+      "prompt": "Use case: illustration-story. Asset type: transparent photo-booth sticker. Subject: A graceful white dove with spread wings carrying a slender olive sprig, with an ivory silk ribbon and subtle gold halo-like glints. Refined hand-painted watercolor and gouache, tactile soft edges, premium celebration stationery illustration, delicate painted highlights. Single cohesive isolated composition centered on square canvas, fully visible, generous clear margin all around. No words, letters, numbers, logos, watermark, sticker border or background. True transparent alpha background."
+    },
+    {
+      "id": "sticker_diwali_diya",
+      "key": "diwali_diya",
+      "name": "Festival of Light",
+      "collection": "Diwali",
+      "title": "Happy Diwali",
+      "subtitle": "LIGHT • LOVE • TOGETHERNESS",
+      "paper": "FFF3E3",
+      "ink": "793D35",
+      "accent": "D39946",
+      "tags": [
+        "diwali",
+        "deepavali",
+        "festival of lights"
+      ],
+      "subject": "A single decorative terracotta diya oil lamp with one luminous golden flame, surrounded by a small marigold garland and warm gold petals",
+      "hero": false,
+      "prompt": "Use case: illustration-story. Asset type: transparent photo-booth sticker. Subject: A single decorative terracotta diya oil lamp with one luminous golden flame, surrounded by a small marigold garland and warm gold petals. Refined hand-painted watercolor and gouache, tactile soft edges, premium celebration stationery illustration, delicate painted highlights. Single cohesive isolated composition centered on square canvas, fully visible, generous clear margin all around. No words, letters, numbers, logos, watermark, sticker border or background. True transparent alpha background."
+    },
+    {
+      "id": "sticker_eid_lantern",
+      "key": "eid_lantern",
+      "name": "Moonlit Celebration",
+      "collection": "Eid",
+      "title": "Eid Mubarak",
+      "subtitle": "JOYFUL MOMENTS TOGETHER",
+      "paper": "F0F6F3",
+      "ink": "305F59",
+      "accent": "BC9E57",
+      "tags": [
+        "eid",
+        "eid al fitr",
+        "eid al adha",
+        "ramadan"
+      ],
+      "subject": "An ornate brass lantern with soft warm light, an elegant gold crescent moon and three small gold stars, emerald ribbon",
+      "hero": false,
+      "prompt": "Use case: illustration-story. Asset type: transparent photo-booth sticker. Subject: An ornate brass lantern with soft warm light, an elegant gold crescent moon and three small gold stars, emerald ribbon. Refined hand-painted watercolor and gouache, tactile soft edges, premium celebration stationery illustration, delicate painted highlights. Single cohesive isolated composition centered on square canvas, fully visible, generous clear margin all around. No words, letters, numbers, logos, watermark, sticker border or background. True transparent alpha background."
+    },
+    {
+      "id": "sticker_hanukkah_lights",
+      "key": "hanukkah_lights",
+      "name": "Eight Bright Nights",
+      "collection": "Hanukkah",
+      "title": "Happy Hanukkah",
+      "subtitle": "WARMTH • LIGHT • LOVE",
+      "paper": "EFF4FA",
+      "ink": "38567D",
+      "accent": "A7B8CE",
+      "tags": [
+        "hanukkah",
+        "chanukah",
+        "chanukkah",
+        "festival of lights"
+      ],
+      "subject": "A clearly nine branched silver Hanukkah menorah with eight blue candles in a row and one raised central helper candle, all nine lit, small blue silk bow",
+      "hero": false,
+      "prompt": "Use case: illustration-story. Asset type: transparent photo-booth sticker. Subject: A clearly nine branched silver Hanukkah menorah with eight blue candles in a row and one raised central helper candle, all nine lit, small blue silk bow. Refined hand-painted watercolor and gouache, tactile soft edges, premium celebration stationery illustration, delicate painted highlights. Single cohesive isolated composition centered on square canvas, fully visible, generous clear margin all around. No words, letters, numbers, logos, watermark, sticker border or background. True transparent alpha background."
+    },
+    {
+      "id": "sticker_summer_citrus",
+      "key": "summer_citrus",
+      "name": "Sunshine Social",
+      "collection": "Summer party",
+      "title": "Hello, Sunshine",
+      "subtitle": "SUNSHINE & GOOD TIMES",
+      "paper": "FFF8E8",
+      "ink": "5C6438",
+      "accent": "D3AD54",
+      "tags": [
+        "summer",
+        "garden party",
+        "tropical",
+        "beach",
+        "bbq",
+        "picnic"
+      ],
+      "subject": "A cheerful cluster of sliced lemons, one whole lemon, a coral hibiscus flower and fresh green leaves with a small striped parasol",
+      "hero": false,
+      "prompt": "Use case: illustration-story. Asset type: transparent photo-booth sticker. Subject: A cheerful cluster of sliced lemons, one whole lemon, a coral hibiscus flower and fresh green leaves with a small striped parasol. Refined hand-painted watercolor and gouache, tactile soft edges, premium celebration stationery illustration, delicate painted highlights. Single cohesive isolated composition centered on square canvas, fully visible, generous clear margin all around. No words, letters, numbers, logos, watermark, sticker border or background. True transparent alpha background."
+    },
+    {
+      "id": "sticker_birthday_dinosaur",
+      "key": "birthday_dinosaur",
+      "name": "Dino Birthday",
+      "collection": "Birthday",
+      "title": "Roar, It Is My Day!",
+      "subtitle": "A ROARSOME CELEBRATION",
+      "paper": "F0F5E9",
+      "ink": "476044",
+      "accent": "A6AF70",
+      "tags": [
+        "birthday",
+        "kids",
+        "children",
+        "dinosaur",
+        "dino",
+        "jurassic"
+      ],
+      "subject": "A friendly sage green baby brontosaurus wearing a small golden party hat, carrying a coral balloon with tiny leaf sprigs",
+      "hero": false,
+      "prompt": "Use case: illustration-story. Asset type: transparent photo-booth sticker. Subject: A friendly sage green baby brontosaurus wearing a small golden party hat, carrying a coral balloon with tiny leaf sprigs. Refined hand-painted watercolor and gouache, tactile soft edges, premium celebration stationery illustration, delicate painted highlights. Single cohesive isolated composition centered on square canvas, fully visible, generous clear margin all around. No words, letters, numbers, logos, watermark, sticker border or background. True transparent alpha background."
+    },
+    {
+      "id": "sticker_birthday_unicorn",
+      "key": "birthday_unicorn",
+      "name": "Unicorn Wishes",
+      "collection": "Birthday",
+      "title": "A Magical Birthday",
+      "subtitle": "DREAM BIG • SPARKLE BRIGHT",
+      "paper": "FAF0FA",
+      "ink": "765280",
+      "accent": "C4A0D4",
+      "tags": [
+        "birthday",
+        "kids",
+        "children",
+        "unicorn",
+        "princess",
+        "rainbow"
+      ],
+      "subject": "A sweet ivory unicorn with a lilac and blush flowing mane, tiny gold horn and a pastel rainbow behind it, three soft gold stars",
+      "hero": false,
+      "prompt": "Use case: illustration-story. Asset type: transparent photo-booth sticker. Subject: A sweet ivory unicorn with a lilac and blush flowing mane, tiny gold horn and a pastel rainbow behind it, three soft gold stars. Refined hand-painted watercolor and gouache, tactile soft edges, premium celebration stationery illustration, delicate painted highlights. Single cohesive isolated composition centered on square canvas, fully visible, generous clear margin all around. No words, letters, numbers, logos, watermark, sticker border or background. True transparent alpha background."
+    },
+    {
+      "id": "sticker_birthday_pirate",
+      "key": "birthday_pirate",
+      "name": "Treasure Island",
+      "collection": "Birthday",
+      "title": "Ahoy, Birthday!",
+      "subtitle": "AN ADVENTURE TO TREASURE",
+      "paper": "F3F1E8",
+      "ink": "3C5766",
+      "accent": "B58A57",
+      "tags": [
+        "birthday",
+        "kids",
+        "children",
+        "pirate",
+        "nautical",
+        "treasure"
+      ],
+      "subject": "A small vintage wooden pirate treasure chest spilling a few gold coins, a friendly cream sailboat and a rolled unmarked parchment",
+      "hero": false,
+      "prompt": "Use case: illustration-story. Asset type: transparent photo-booth sticker. Subject: A small vintage wooden pirate treasure chest spilling a few gold coins, a friendly cream sailboat and a rolled unmarked parchment. Refined hand-painted watercolor and gouache, tactile soft edges, premium celebration stationery illustration, delicate painted highlights. Single cohesive isolated composition centered on square canvas, fully visible, generous clear margin all around. No words, letters, numbers, logos, watermark, sticker border or background. True transparent alpha background."
+    },
+    {
+      "id": "sticker_birthday_space",
+      "key": "birthday_space",
+      "name": "Cosmic Birthday",
+      "collection": "Birthday",
+      "title": "Out of This World",
+      "subtitle": "A STELLAR CELEBRATION",
+      "paper": "F0EFF9",
+      "ink": "4B487A",
+      "accent": "A09DD4",
+      "tags": [
+        "birthday",
+        "kids",
+        "children",
+        "space",
+        "rocket",
+        "astronaut"
+      ],
+      "subject": "A charming cream and dusty blue toy rocket with a warm coral flame beside a small lavender ringed planet and gold stars",
+      "hero": false,
+      "prompt": "Use case: illustration-story. Asset type: transparent photo-booth sticker. Subject: A charming cream and dusty blue toy rocket with a warm coral flame beside a small lavender ringed planet and gold stars. Refined hand-painted watercolor and gouache, tactile soft edges, premium celebration stationery illustration, delicate painted highlights. Single cohesive isolated composition centered on square canvas, fully visible, generous clear margin all around. No words, letters, numbers, logos, watermark, sticker border or background. True transparent alpha background."
+    }
+  ]
+}

@@ -112,7 +112,7 @@ that use it). Nothing from the 15-screen concept board or the owner's
 reference boards (`reference/`, CR-002) is used: no artwork, photographs,
 sample people, names or dates (UX-09, CR-001 fix 12).
 
-The template decorations in `assets/decorations/` (M05) are the only raster
+The original procedural template decorations in `assets/decorations/` (M05) are raster
 artwork that ships. They are original too: painted in code by
 `tool/art/decorations.dart` with the floral painter in
 `lib/core/design_system/floral_art.dart` (seeded, so the same every run)
@@ -121,3 +121,93 @@ and written out by `flutter test tool/art/generate_decorations_test.dart`.
 longer matches its generator. The slot placeholder that stands in for a
 guest photo in the editor and previews is drawn at run time
 (`lib/core/templates/slot_placeholder.dart`) and never stored.
+
+## Atelier and celebration artwork — 2026-10-23
+
+20 background illustrations and 32 transparent stickers were generated with the built-in OpenAI image_gen tool for this project. The prompt sets and hash/dimension manifests are committed in `docs/artwork/`. These are generated assets, not downloaded stock artwork. Template captions, photo windows, mats and transforms remain editable native layers. The original 18 procedural decorations remain available.
+
+| Asset | SHA-256 | Source | Rights record |
+| --- | --- | --- | --- |
+| `assets/decorations/atelier_arcade.png` | `07b7ff7cf24a5d6cb08c9653e95b52fc25737477f03ca4610fd75871d6ebf11b` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/atelier_autumn.png` | `d58f0b6566db486ed996c376e0a10d170ddb04a3e8b191296f5b10e51abe015d` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/atelier_baby_blue.png` | `25fa5b86815d19ae58a121938b6abf98134632ed45d3f39948391ab328827510` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/atelier_baby_blush.png` | `f88e8a986f13dc087262a0aedd4f189a3365bb3f4dd69b8b5dee0777149dd1e0` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/atelier_baby_sage.png` | `b2ea7400e72204d75e4f7ff2ccb549a67849db71b917207be1322ec24e4a4dd3` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/atelier_coast.png` | `e2817b7030c64e16f36864eb79eddd9175110b82f436f0e150317a3a97a65fd1` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/atelier_deco_emerald.png` | `4ad487575b83ba8a3cff22613d105d723881d580c52f4eca0fe56e0337bec0c8` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/atelier_deco_gold.png` | `fd14fdd7109007881fd18c69d53c8e10a734c1979b0795bfed9ce8caf74aaad1` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/atelier_disco_midnight.png` | `6cd4e69986219ef5afb6e62c4d0d65430dee6246c46c856fd02dfb3e353c0b63` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/atelier_disco_sunset.png` | `c07ac311c6cc0835285ab9bf35bed8e6f580b3ae09281f964a255c1f7ccad046` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/atelier_gala.png` | `cb5b9d52eb6b21cc5c807c715dc92a2105fc04e7b88ef0a95ef6ac5ad694d9ac` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/atelier_goose_blue.png` | `32dd7f27fb54187ff10ebd3844e49ddae2f766daf5af57272dd0be5fff564bd0` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/atelier_goose_sage.png` | `241891ab5482e03cb919aec9516206e9554a76d28053795065ae951785097961` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/atelier_holiday.png` | `1fb4d3541f05738c3765c79adb43672b6ed6c271b2edb80f65eabfac01264ef0` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/atelier_hydrangea.png` | `be35fac73a4a2a7808a7ef5742724453b5ddedf8ab154df9f82c88c7da71ef0b` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/atelier_lavender.png` | `cd332bd0cf6ae12e3783a896d20b1aaf2c702d6e373fe14a5bb8100fa1f43efc` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/atelier_meadow.png` | `df94058e59581c2e902e5259b429154e4aff2b3cb338554361fdee333720ccc3` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/atelier_platformer.png` | `a313230d3aacfa3b463920f6d8593f33b3567fef64ba197189868a3b3f3529c2` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/atelier_rose.png` | `96f8381b56af56acd36d62205a262b785e7f04eb304f0fec052b64bf1a7c16a3` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/atelier_tropical.png` | `9f3ff5cfbb73feed85ad54276e930a64080996804eefd19f26820c1117e41f28` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_arcade_joystick.png` | `e326a006bfc7bd04a5b68e67c945a3f293785439e232be7cf54c84ebf6ef2ac1` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_blue_hydrangea.png` | `59518932e22ccf0aae495c593cfa715573e0abead066ca02854f586c94324783` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_bow_blue.png` | `68a2ee3a898941ac189b224c2a45f0ea935751b16fc33358bf984c8b245f3821` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_bow_blush.png` | `c489c075048fdfbe98e9f457a430bb1ebf2c22bdfd0a4f05358283966c5b686b` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_bow_sage.png` | `16161bf20d1bdb910325b4fee67b2d8e381890f723203e3fae9d176364d9f0ed` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_champagne_coupes.png` | `4118a468eba46cbe89a4d011d194aaff079488dfe9183250b53d0ce9f5ed4988` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_deco_corner.png` | `610faecdb52b6aa31fea9d9387cd039af65a547061aefb3356849d72c2adf76f` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_deco_fan.png` | `a0d26be4a3304094a722807e37d88c48345f17ea1d956e3a86f0c0e3f8f447af` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_deco_feathers.png` | `2671c03614e9968221a908643c537dfe90c11486db7b96da28fdc9895d09ee7a` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_deco_sunburst.png` | `15415622ceac132695ec30d39ae626a136fd38fbbaf07eb9cedad137923aa868` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_disco_ball.png` | `40043b505cdb844448cd245aa7e08c3b8c93f4dc1b226148974a58f20ab8c4e5` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_disco_daisies.png` | `832a22f9fdb63839f1bd0dbd748607a8074b8bf36f139ed223a70a8c54e6c417` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_eucalyptus_crescent.png` | `285711c6c1faafb5a133923a41f715aae4878a96673b567a6ad7793ec4e9d9f0` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_game_cloud.png` | `6e48615a6de3f613f5f430fa73868355a5fa0cb274611da353ae979227209325` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_game_coins.png` | `cc4c80ffb6af5540c2cfaf0100436dc2f8b85cb8df5261f02eba46748dd4614e` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_game_controller.png` | `efb7c5adda6bb0acc0ab6a7b71f1b9ae60c6e6edcbe864e2e944b5254ee22c32` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_game_mushroom.png` | `c885d4e87bb674a2762dfbb8f7a1c22c52f4948454e7d2f114fe9845e35fc5bc` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_game_pipe.png` | `6e9df6f64b78dddbcc947a1ae41453d786b54453c1aa97d74d7d49955b915e79` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_game_star.png` | `8da9caefcf1ade0a1b9911679615b6ce500116a8ff16012c8551a72e712b1ceb` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_goose_blue.png` | `d73180ba550477f19456a5b107be74cbb208cb5798432998df7e4863a74b1544` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_goose_family.png` | `7fc6e2407e243427231b3007ac432eabc25a77ffa73b6a938bb2df7aa2155501` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_goose_flying.png` | `53a04469e65c0837af85c01ec4942cb412432f5a0286dd85f939dff20f4a415e` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_goose_sage.png` | `b960124537124f74399d7bd9a64b4e24b71e7e26eaa54de81433da5ea05c8653` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_lavender_sprigs.png` | `6cd2673e3c14870574ba4f8ef7028beda82dfc039917dffa2b76d565566d9a32` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_moon_cloud.png` | `b07bb3d850d6c8da4891cbc5854619b40dbe5190148782ca622187acd687f6d2` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_pixel_hearts.png` | `bbd500348e0fbbc385e6df7c3a5122f5b1886d1bb375067fb56ca5617d864e25` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_roller_skate.png` | `be1131c788d4c001a5502897a6ff995fefb103e0f185f7cd5c96f8eda5d5d99c` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_rose_bouquet.png` | `80aa4d9ece9024a76f3b5bd4c259f91ca5cfa2db9f692cdd3926cdd0224e6b37` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_sunflower_spray.png` | `62cd00af3d47c07465277510e64a421f4ba0206bb377aa06be680e1ef268ced2` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_teddy.png` | `06d7f83cb84afb06e7f773fc9e056f93c98a7e7183248f85e4839ab44650e6c2` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_vinyl.png` | `2b04597c9797a0b6ec9385c78595bc480f310719e1a249fe67956e9587c6ac67` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+| `assets/decorations/sticker_wildflower_corner.png` | `51a23a59f2fc9142bbd1c939752514e3a0e8c52a5834371ab3303b8dcd1eb71f` | Generated with OpenAI image_gen, 2026-10-23; prompts in `docs/artwork/` | Generated for this project |
+
+## Occasion collection — October 24, 2026
+
+24 original transparent watercolor stickers generated with the built-in OpenAI `image_gen` tool with `transparent_background: true`. Originals were copied unchanged into the app bundle. Exact prompts: `docs/artwork/occasion-prompts.json`; dimensions, byte lengths and hashes: `docs/artwork/occasion-manifest.json`. No remote asset dependency or runtime generation service. Matching portrait and strip templates use native editable text, shapes and photo slots.
+
+| Asset | SHA-256 | Source | Rights / licence |
+| --- | --- | --- | --- |
+| `assets/decorations/sticker_wedding_rings.png` | `4a4a43befeaef8e665dc170dbaf6774a3c97b99eb593c4764ba73bf1fc56266f` | Original; built-in OpenAI image_gen, October 24, 2026 | Project-generated artwork |
+| `assets/decorations/sticker_birthday_cake.png` | `5d0e578c48b2b444f8efd1d2e262d763af81b5f04ee7d84ed30fffb495d5421e` | Original; built-in OpenAI image_gen, October 24, 2026 | Project-generated artwork |
+| `assets/decorations/sticker_anniversary_hearts.png` | `678737aa937ecacf586d657d4fcb131a907d2ba077961c5deeb6c95572fc5646` | Original; built-in OpenAI image_gen, October 24, 2026 | Project-generated artwork |
+| `assets/decorations/sticker_easter_bunny.png` | `e67e9935e85e9dcc5e61ae38835d789665be5f6130c9dd0a1a16f31eb5dba144` | Original; built-in OpenAI image_gen, October 24, 2026 | Project-generated artwork |
+| `assets/decorations/sticker_christmas_bauble.png` | `1ba400d3052162b76adc3debf0025a73a9b4c9a22690510e0e2ca6822c1eaf0c` | Original; built-in OpenAI image_gen, October 24, 2026 | Project-generated artwork |
+| `assets/decorations/sticker_engagement_ring.png` | `152eebbd1337deb64c74e8cca94eb21a853c05fc383f77410e508ab028fb5449` | Original; built-in OpenAI image_gen, October 24, 2026 | Project-generated artwork |
+| `assets/decorations/sticker_bridal_pearls.png` | `9f1958453ebc06d890ed4ad6e7ad3ff89290c8d4a699fd83aaf0da37713c5f0a` | Original; built-in OpenAI image_gen, October 24, 2026 | Project-generated artwork |
+| `assets/decorations/sticker_party_cocktails.png` | `78b555c6c29872b2e1f5d8da9eb5534e2b14df9bf7816683a42537650718554c` | Original; built-in OpenAI image_gen, October 24, 2026 | Project-generated artwork |
+| `assets/decorations/sticker_graduation_cap.png` | `0f322c9800677b2e1d156bd9fa058f9b0dd7a8994a154be381f070eeebfbb678` | Original; built-in OpenAI image_gen, October 24, 2026 | Project-generated artwork |
+| `assets/decorations/sticker_halloween_pumpkin.png` | `fc961852129af06ab392fcc96a1bdc673784178bbd5bf0250a0a04e9cbd24ed6` | Original; built-in OpenAI image_gen, October 24, 2026 | Project-generated artwork |
+| `assets/decorations/sticker_newyear_clock.png` | `02cdae0a751c3e2e18e1f23c1f7d106e9e875bdb4c3a01db503e1eedcebf177d` | Original; built-in OpenAI image_gen, October 24, 2026 | Project-generated artwork |
+| `assets/decorations/sticker_valentine_heart.png` | `261ba91fedd02bcab075b090d1a5c80368a08d6b3ebe12f39f7662c2ab4bf3f7` | Original; built-in OpenAI image_gen, October 24, 2026 | Project-generated artwork |
+| `assets/decorations/sticker_thanksgiving_harvest.png` | `ff40c5b38303d4ef11e2f593a2435300ea0b086bb7ca35cb5ffa758b17707833` | Original; built-in OpenAI image_gen, October 24, 2026 | Project-generated artwork |
+| `assets/decorations/sticker_retirement_suitcase.png` | `2118ba62b0f303dd88d2deeb180292ad1906b39e7f3637bc14d682dcd6ee9812` | Original; built-in OpenAI image_gen, October 24, 2026 | Project-generated artwork |
+| `assets/decorations/sticker_housewarming_keys.png` | `04102caff2c3f1514dfac7a976f5f23649517cb4352a40c16939c62eace3847a` | Original; built-in OpenAI image_gen, October 24, 2026 | Project-generated artwork |
+| `assets/decorations/sticker_christening_dove.png` | `99012fc4745ed274f48953afc3c73b5327b97ec165c69395ba780c1ece690cb0` | Original; built-in OpenAI image_gen, October 24, 2026 | Project-generated artwork |
+| `assets/decorations/sticker_diwali_diya.png` | `46d9e7fdbef3b742f47f8c95dd7c88ed36e042ebf6a9193342d698e06745f2c9` | Original; built-in OpenAI image_gen, October 24, 2026 | Project-generated artwork |
+| `assets/decorations/sticker_eid_lantern.png` | `3a9324997f8f363ba6d84eb8d81b02dc747ddbda1991b40f546075990a4ce856` | Original; built-in OpenAI image_gen, October 24, 2026 | Project-generated artwork |
+| `assets/decorations/sticker_hanukkah_lights.png` | `bb03f8a8afc17437287690ff2e67785518f780b5d66860b3c72be47d46dda0f2` | Original; built-in OpenAI image_gen, October 24, 2026 | Project-generated artwork |
+| `assets/decorations/sticker_summer_citrus.png` | `7e2510ede51e9ba1e28bab6919178967f49cc733aa3de77ab760c9798c89b692` | Original; built-in OpenAI image_gen, October 24, 2026 | Project-generated artwork |
+| `assets/decorations/sticker_birthday_dinosaur.png` | `618a6df3a7689cdf7fab0bd03a6c16148630acd004e102641bbfba804552bcad` | Original; built-in OpenAI image_gen, October 24, 2026 | Project-generated artwork |
+| `assets/decorations/sticker_birthday_unicorn.png` | `461218fd2bec3bc4d98223b920ace2bb4dd8e7dc3d742fcd5f9ea85c8ab503e6` | Original; built-in OpenAI image_gen, October 24, 2026 | Project-generated artwork |
+| `assets/decorations/sticker_birthday_pirate.png` | `c4353e2b8b00aaff454313c378af763175dabd5ed44708513ef260fb1c7a21cc` | Original; built-in OpenAI image_gen, October 24, 2026 | Project-generated artwork |
+| `assets/decorations/sticker_birthday_space.png` | `eb14e645387ccbef29aa67c9f64488b18747b1041eab010b9aa1b089b9edb4e1` | Original; built-in OpenAI image_gen, October 24, 2026 | Project-generated artwork |

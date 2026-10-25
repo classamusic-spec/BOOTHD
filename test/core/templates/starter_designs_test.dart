@@ -2,6 +2,7 @@
 // finished design; every design is a valid document that the store accepts
 // and that renders at its print size without warnings.
 import 'package:flutter_test/flutter_test.dart';
+import 'package:porcelain_photo_booth/core/templates/occasion_catalog.dart';
 import 'package:porcelain_photo_booth/core/templates/slot_placeholder.dart';
 import 'package:porcelain_photo_booth/core/templates/starter_designs.dart';
 import 'package:porcelain_photo_booth/domain/repositories/template_store.dart';
@@ -46,6 +47,7 @@ void main() {
         // The packs' own designs (EP04, EP05) aside.
         for (final design in starterDesigns)
           if (!design.blank &&
+              design.collection == 'Essentials' &&
               !const {'Kid Party', 'Retro Game'}.contains(design.category))
             design.name,
       ],
@@ -57,6 +59,44 @@ void main() {
         'Gold Celebration',
       ],
     );
+  });
+
+  test('Atelier paintings have editable portrait and strip companions', () {
+    expect(atelierArtworks, hasLength(20));
+    expect(atelierStarterDesigns, hasLength(40));
+    for (final art in atelierArtworks) {
+      final portrait = starterDesigns.firstWhere((d) => d.id == art.id);
+      final strip = starterDesigns.firstWhere((d) => d.id == '${art.id}-strip');
+      expect(portrait.page, PageSpec.fourBySixPortrait);
+      expect(strip.page, PageSpec.twoBySix);
+      expect(portrait.photoSlots, art.collection == 'Baby shower' ? 1 : 2);
+      expect(strip.photoSlots, 3);
+      expect(portrait.decorations, [art.id]);
+      expect(strip.decorations, [art.id]);
+    }
+  });
+
+  test('every occasion has editable portrait and strip companions', () {
+    expect(occasionThemes, hasLength(24));
+    expect(occasionStarterDesigns, hasLength(48));
+    for (final theme in occasionThemes) {
+      final companions = occasionStarterDesigns
+          .where(
+            (d) => d.id == theme.designId || d.id == '${theme.designId}-strip',
+          )
+          .toList();
+      expect(companions, hasLength(2), reason: theme.name);
+      expect(companions.map((d) => d.page), [
+        PageSpec.fourBySixPortrait,
+        PageSpec.twoBySix,
+      ]);
+      for (final design in companions) {
+        expect(design.collection, theme.collection);
+        expect(design.decorations, [theme.stickerId]);
+        expect(design.tags.occasionTags, theme.tags);
+        expect(design.tags.defaultCaptureCount, design.photoSlots);
+      }
+    }
   });
 
   for (final design in starterDesigns) {
@@ -73,6 +113,13 @@ void main() {
         final stored = await harness.templates.loadRevision(summary.revisionId);
         expect(stored.document.errors, isEmpty);
         expect(stored.category, design.category);
+        if (design.id.startsWith('occasion_')) {
+          expect(
+            stored.document.layers.whereType<TextLayer>().map((l) => l.id),
+            containsAll(['title', 'subtitle', 'personalization']),
+          );
+          expect(stored.document.layers.whereType<ImageLayer>(), isNotEmpty);
+        }
         for (final id in stored.document.assets.keys) {
           expect((await harness.assets.find(id))!.origin, AssetOrigin.bundled);
         }

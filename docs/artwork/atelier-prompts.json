@@ -1,0 +1,79 @@
+{
+  "generator": "Built-in image_gen",
+  "created": "2026-10-23",
+  "sharedPrompt": "Use case: stylized-concept. Asset type: full-bleed portrait 4:6 photo-booth print background, premium fine-art stationery. Create a single flat artwork, 1024 x 1536 portrait (2:3 aspect). Museum-quality hand-painted watercolor with delicate pigment blooms, translucent washes, detailed natural forms and fine cotton-paper grain. Sophisticated restrained composition, rich but harmonious colors. Place decorative elements along the extreme sides and especially upper and lower corners. Keep the center 70 percent very light and mostly empty so photo windows and editable typography can be placed on top; leave the bottom-center 25 percent pale and calm for readable editable captions. The artwork fills the entire image, no product mockup, no desk, no frame outside the canvas, no photoreal people, no lettering, no text, no numbers, no logos, no watermarks. ",
+  "designs": [
+    {
+      "id": "atelier_rose",
+      "name": "Rosewater Romance",
+      "collection": "Florals",
+      "subject": "Blush garden roses, apricot peonies, ivory ranunculus and elegant sage eucalyptus, a luxurious wedding garden, ivory paper, dusty pink and warm champagne palette. Lush sprays in upper-left and lower-right corners with airy individual petals."
+    },
+    {
+      "id": "atelier_meadow",
+      "name": "Meadow Poetry",
+      "collection": "Florals",
+      "subject": "An airy wildflower meadow with delicate cornflowers, cosmos, chamomile, tiny poppies and wispy grasses around the border; periwinkle, butter yellow, coral, leaf green. Organic graceful botanical illustration on warm cream paper."
+    },
+    {
+      "id": "atelier_hydrangea",
+      "name": "Something Blue",
+      "collection": "Florals",
+      "subject": "Opulent powder blue hydrangea clusters, porcelain-white roses and deep blue delphiniums with silver-green leaves, elegant wedding stationery on pale blue-white paper; soft French blue palette."
+    },
+    {
+      "id": "atelier_baby_sage",
+      "name": "Little Wonder",
+      "collection": "Baby shower",
+      "subject": "Gender-neutral heirloom baby-shower stationery, one adorable small hand-painted honey teddy bear in the bottom-left corner beside sage and cream balloons, tiny distant golden stars and eucalyptus at the upper corners. Muted sage, oatmeal, buttercream. Refined and tender, plenty of clear ivory space."
+    },
+    {
+      "id": "atelier_baby_blush",
+      "name": "Petal & Pearl",
+      "collection": "Baby shower",
+      "subject": "Exquisite baby-shower artwork with a small sweet sleeping bunny nestled in a blush peony cluster at bottom-right, tiny blush balloons in upper-left, pearl-like dots and delicate cherry blossom branches at edges. Warm ivory, petal pink, muted mauve. Tender heirloom storybook watercolor."
+    },
+    {
+      "id": "atelier_baby_blue",
+      "name": "Over the Moon",
+      "collection": "Baby shower",
+      "subject": "Dreamy baby-shower artwork with a small golden crescent moon and tiny sleepy baby elephant on soft clouds at bottom-left, delicate silver-blue hot-air balloon at upper-right, tiny soft stars along outer borders. Powder blue, warm ivory, muted antique gold. Sophisticated watercolor nursery storybook style."
+    },
+    {
+      "id": "atelier_coast",
+      "name": "Coastal Reverie",
+      "collection": "Watercolor",
+      "subject": "Elegant coastal watercolor: delicate seafoam waves wash only along the extreme bottom edge and sides, pale blue horizon washes, very fine shells and sea grasses at lower corners. Sea-glass turquoise, sand, mist blue and ivory. Light-filled sophisticated beach wedding artwork."
+    },
+    {
+      "id": "atelier_tropical",
+      "name": "Palm House",
+      "collection": "Celebrations",
+      "subject": "Luxurious tropical botanical stationery with painterly emerald palm fronds, monstera leaves and white orchids at upper-left and lower-right corners, tiny blush hibiscus accents. Rich jungle green against very pale warm ivory, airy and refined destination celebration."
+    },
+    {
+      "id": "atelier_gala",
+      "name": "Champagne Nocturne",
+      "collection": "Celebrations",
+      "subject": "Black-tie art-deco celebration stationery with deep midnight ink-blue watercolor feathering narrowly at the outside edges, fine hand-painted antique-gold palm fans and delicate champagne-gold flecks at the corners, very pale warm champagne center. Sophisticated gala, anniversary and graduation art. Keep most of canvas light."
+    },
+    {
+      "id": "atelier_lavender",
+      "name": "Provence in Bloom",
+      "collection": "Watercolor",
+      "subject": "Fine-art lavender sprigs, pale lilac wisteria trails, tiny cream roses and sage foliage around corners, luminous lavender watercolor clouds feathering into an ivory center. Romantic French garden stationery, delicate airy blossoms, organic painted details."
+    },
+    {
+      "id": "atelier_autumn",
+      "name": "Amber Gathering",
+      "collection": "Seasonal",
+      "subject": "Warm autumn celebration fine-art watercolor border with copper and terracotta dahlias, apricot roses, ochre maple leaves, soft pampas and small amber berries in upper-left and bottom-right corners. Dusty clay, cream, sage, golden honey. Elegant bohemian harvest stationery."
+    },
+    {
+      "id": "atelier_holiday",
+      "name": "Winter Evergreen",
+      "collection": "Seasonal",
+      "subject": "Refined winter celebration botanical watercolor: blue-green pine boughs, frosted eucalyptus, tiny burgundy berries, cream magnolia blossoms and a few muted antique-gold stars along upper-left and lower-right corners. Pale ivory cotton paper, forest green and champagne palette. Elegant festive holiday stationery."
+    }
+  ]
+}

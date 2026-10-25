@@ -12,6 +12,11 @@ import '../../domain/template/template_assets.dart';
 import '../../domain/template/template_document.dart';
 import '../../domain/template/template_layers.dart';
 import '../../domain/template/template_tags.dart';
+import 'bundled_decorations.dart';
+import 'occasion_catalog.dart';
+
+part 'atelier_collection.dart';
+part 'occasion_collection.dart';
 
 const _ivory = ArgbColor(0xFFFBF8F3);
 const _ink = ArgbColor(0xFF33291F);
@@ -34,6 +39,7 @@ final class StarterDesign {
     this.category,
     this.blank = false,
     this.tags = const TemplateTags(),
+    this.collection = 'Essentials',
   });
 
   final String id;
@@ -47,6 +53,7 @@ final class StarterDesign {
 
   /// What the design suits (EP08 recommendations); never a restriction.
   final TemplateTags tags;
+  final String collection;
 
   /// Bundled decorations the design uses (ids from bundledDecorations).
   final List<String> decorations;
@@ -59,26 +66,7 @@ final class StarterDesign {
 
 /// Stand-in assets so a design's slot count can be read without storage.
 final _placeholderAssets = {
-  for (final id in [
-    'blossom_corner',
-    'blossom_corner_champagne',
-    'blossom_garland',
-    'blossom_sprig',
-    'gold_frame',
-    'gold_frame_strip',
-    'film_edges',
-    'gold_confetti',
-    'party_balloons',
-    'party_confetti',
-    'party_stars',
-    'party_bunting',
-    'pixel_hearts',
-    'pixel_coins',
-    'pixel_stars',
-    'pixel_frame',
-    'pixel_frame_strip',
-    'arcade_marquee',
-  ])
+  for (final id in bundledDecorations.map((d) => d.id))
     id: StoredAsset(
       id: id.codeUnits
           .fold<int>(7, (h, c) => (h * 31 + c) & 0xFFFFFF)
@@ -205,6 +193,8 @@ StarterDesign _blank(String id, String name, PageSpec page) => StarterDesign(
 );
 
 final starterDesigns = <StarterDesign>[
+  ...atelierStarterDesigns,
+  ...occasionStarterDesigns,
   _blank('blank-2x6', 'Blank 2x6 strip', PageSpec.twoBySix),
   _blank('blank-4x6', 'Blank 4x6 portrait', PageSpec.fourBySixPortrait),
   _blank('blank-6x4', 'Blank 4x6 landscape', PageSpec.fourBySixLandscape),

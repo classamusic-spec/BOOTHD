@@ -1764,3 +1764,16 @@ Recorded with exit codes in `docs/ACCEPTANCE_EVIDENCE.md` (M00 section).
 Owner review of M00. On approval: M01 cross-platform render and camera
 feasibility spike (AC-0101..AC-0108), with camera checks BLOCKED until a
 physical iPad and Android tablet are available.
+
+## 2026-10-24 — Occasion stickers and templates
+
+Owner request: expand stickers and templates across party occasions, including weddings, birthdays, anniversaries, Easter and Christmas.
+
+- Added 24 original transparent watercolor PNGs, 20 occasion collections and 48 editable portrait/strip presets. Includes four children's birthday themes and engagement, bridal shower, hen/stag, graduation, Halloween, New Year, Valentine, Thanksgiving, retirement, housewarming, christening, Diwali, Eid, Hanukkah and summer parties. Existing collections stay available.
+- Shared occasion metadata drives asset registration and template construction. Chooser filters now derive from the catalog; both browsers search occasion aliases. Templates have native editable titles, captions, names/date, borders, mats and photo slots.
+- Recorded exact image_gen prompts, immutable source PNG hashes and provenance. Built-in image_gen was used with transparency enabled; one transient network failure succeeded on retry. Added 44.0 MiB of bundled artwork; no runtime service, dependency or schema change.
+- Visual verification caught overflowing titles in two existing baby-shower portraits. Reduced the long baby-title size while retaining the existing rendering assertions. Explicit golden regeneration now works on macOS; ordinary pixel comparison remains Linux-only.
+- Validation on macOS: 228 selected tests passed (assets, all starter designs, editor/library, packages/repositories, recommendations and review-sheet rendering); 22 affected screen snapshots regenerated successfully at the existing iPad/Android viewport sizes. Formatting and static analysis passed. No physical-device certification was performed for this artwork update.
+- Review: `build/local-verification/occasion-catalog/occasion-overview.png`, individual full-resolution prints in that folder, and `build/local-verification/atelier-catalog/sticker-overview.png`.
+
+- PASS — `flutter build web --no-pub` (exit 0); all 24 new bundled PNGs match their recorded SHA-256 hashes in `build/web/assets/`. Build log: `build/local-verification/occasion-web-build.log`.

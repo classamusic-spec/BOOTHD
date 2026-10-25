@@ -170,8 +170,12 @@ const editorTabs = [
 
 /// Every implemented screen, by name.
 final screens = <String, ScreenSpec>{
-  'dashboard': const ScreenSpec(RoutePaths.dashboard),
-  'dashboard with events': const ScreenSpec(RoutePaths.dashboard, seeded: true),
+  'dashboard': const ScreenSpec(RoutePaths.dashboard, renders: true),
+  'dashboard with events': const ScreenSpec(
+    RoutePaths.dashboard,
+    seeded: true,
+    renders: true,
+  ),
   'events': const ScreenSpec('/studio/events', seeded: true),
   'events empty': const ScreenSpec('/studio/events'),
   for (final tab in editorTabs)
@@ -219,7 +223,7 @@ final screens = <String, ScreenSpec>{
     RoutePaths.preflight(SeedIds.draft),
     seeded: true,
   ),
-  'templates': const ScreenSpec('/studio/templates'),
+  'templates': const ScreenSpec('/studio/templates', renders: true),
   'templates library': const ScreenSpec(
     '/studio/templates',
     library: true,
@@ -465,7 +469,7 @@ final screens = <String, ScreenSpec>{
     },
   ),
   'component gallery': const ScreenSpec('/dev/components'),
-  'setup welcome': const ScreenSpec('/', startAs: StartAs.setup),
+  'setup welcome': const ScreenSpec('/', startAs: StartAs.setup, renders: true),
   'setup privacy': const ScreenSpec(
     '/',
     startAs: StartAs.setup,

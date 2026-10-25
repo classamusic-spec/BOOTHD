@@ -1,0 +1,127 @@
+{
+  "generator": "Built-in image_gen",
+  "created": "2026-10-23",
+  "sharedPrompt": "Use case: stylized-concept. Asset type: premium photo-booth stationery background. Create one flat portrait artwork 1024x1536, exact 2:3 canvas. High-end original illustration with exquisite finish. Put the themed decorative elements mainly in the outer 15% borders and corners. Leave a very pale, spacious central 70% area for photo windows and editable titles to be overlaid later. No lettering, no logos, no watermark, no layout mockup, no people, no frames outside the image. ",
+  "designs": [
+    {
+      "id": "atelier_deco_gold",
+      "name": "The Gilded Age",
+      "collection": "Art Deco",
+      "title": "The Golden Hour",
+      "subtitle": "A NIGHT TO REMEMBER",
+      "ink": "0xFF5B461F",
+      "palette": [
+        "Champagne",
+        "Onyx",
+        "Gold"
+      ],
+      "style": "Art Deco",
+      "subject": "Great Gatsby feel, opulent 1920s Art Deco, ultra-fine metallic gold architectural fans, precise stepped arches, scalloped sunbursts and black lacquer geometric edge details, luxe champagne ivory paper center. Symmetric border, heirloom invitation quality, restrained craftsmanship, foil gold texture."
+    },
+    {
+      "id": "atelier_deco_emerald",
+      "name": "Emerald Soirée",
+      "collection": "Art Deco",
+      "title": "An Elegant Affair",
+      "subtitle": "LET THE EVENING BEGIN",
+      "ink": "0xFF285346",
+      "palette": [
+        "Emerald",
+        "Gold",
+        "Ivory"
+      ],
+      "style": "Art Deco",
+      "subject": "1920s jazz-age luxury Art Deco border with emerald velvet narrow sidebands, antique-gold peacock feather fans and delicate geometric stepped arches, pale champagne central paper. Rich green and antique gold, balanced geometric symmetry, luxury invitation quality."
+    },
+    {
+      "id": "atelier_arcade",
+      "name": "Neon Arcade",
+      "collection": "Retro gaming",
+      "title": "Level Up!",
+      "subtitle": "GOOD TIMES • HIGH SCORES",
+      "ink": "0xFF4D3475",
+      "palette": [
+        "Violet",
+        "Cyan",
+        "Pink"
+      ],
+      "style": "16-bit arcade",
+      "subject": "Beautiful retro 1980s arcade design with crisp 16-bit pixel-art arcade joysticks, game controllers, pixel hearts, tiny shimmering stars and neon circuit motifs along narrow edges and corners. A rich violet/cyan/hot-pink border around an almost white pale lavender center. Consistent precise pixel grid, sophisticated game party aesthetic, no words, no glyphs, no brand names."
+    },
+    {
+      "id": "atelier_platformer",
+      "name": "Mushroom Meadow",
+      "collection": "Retro gaming",
+      "title": "Let's-a Celebrate!",
+      "subtitle": "AN ADVENTURE TO REMEMBER",
+      "ink": "0xFF2E694B",
+      "palette": [
+        "Sky blue",
+        "Leaf green",
+        "Coral"
+      ],
+      "style": "retro platformer",
+      "subject": "Super Mario vibe interpreted as an original cheerful retro platformer world: dimensional illustrated spotted red mushrooms, rounded green pipes, golden star collectibles, little brick platforms and fluffy clouds along the borders, green grassy bottom edge, very pale sky blue expansive center. Polished colorful toy-like pixel-inspired adventure illustration, no characters, no brand logos or words."
+    },
+    {
+      "id": "atelier_disco_sunset",
+      "name": "Disco Daydream",
+      "collection": "Disco",
+      "title": "Stay Groovy",
+      "subtitle": "GOOD VIBES • GREAT MEMORIES",
+      "ink": "0xFF84492E",
+      "palette": [
+        "Tangerine",
+        "Pink",
+        "Butter"
+      ],
+      "style": "70s disco",
+      "subject": "1970s disco party stationery, warm tangerine and petal pink groovy flowing ribbon stripes along left/right edges, one beautiful small silver mirrored disco ball in top-right corner, sparkly four-point stars, tiny daisies and rounded flower-power motifs at bottom corners. Creamy butter ivory center, sophisticated vintage poster printing, nostalgic playful glamorous design."
+    },
+    {
+      "id": "atelier_disco_midnight",
+      "name": "Midnight on the Dancefloor",
+      "collection": "Disco",
+      "title": "Dance All Night",
+      "subtitle": "MEET ME UNDER THE MIRRORBALL",
+      "ink": "0xFF623F78",
+      "palette": [
+        "Lilac",
+        "Silver",
+        "Pink"
+      ],
+      "style": "70s disco",
+      "subject": "Glamorous disco-night print design with shimmering tiny silver mirrored balls in upper corners, violet/magenta iridescent light arcs narrowly on outside edges, silver four-point stars and flowing 1970s curves. Very pale lilac center, elegant dreamy reflective textures, high-end birthday celebration art, no dark center."
+    },
+    {
+      "id": "atelier_goose_sage",
+      "name": "Mother Goose Garden",
+      "collection": "Baby shower",
+      "title": "A Little Goose",
+      "subtitle": "A LITTLE ONE IS ON THE WAY",
+      "ink": "0xFF4A6052",
+      "palette": [
+        "Sage",
+        "Butter",
+        "Cream"
+      ],
+      "style": "watercolor",
+      "subject": "On-trend Mother Goose baby-shower fine-art watercolor stationery. A graceful white mother goose with a sage gingham neck bow and two tiny fluffy goslings together in the bottom-left, delicate daisies and butter-yellow wildflowers around edges, narrow pale sage gingham ribbons and small linen bows at upper corners. Warm cream cotton paper, vintage storybook charm, elegant refined tender painting. Keep animals fully in bottom 23%."
+    },
+    {
+      "id": "atelier_goose_blue",
+      "name": "Blue Ribbon Goose",
+      "collection": "Baby shower",
+      "title": "Hello, Little Goose",
+      "subtitle": "A SWEET NEW CHAPTER",
+      "ink": "0xFF405A79",
+      "palette": [
+        "Powder blue",
+        "Butter",
+        "Ivory"
+      ],
+      "style": "watercolor",
+      "subject": "On-trend heirloom goose baby-shower watercolor stationery. A charming white goose with powder-blue satin bow and one tiny gosling at the bottom-right, delicate blue gingham scalloped border barely at outer edges, small blue ribbon bows and chamomile daisies in top corners. Airy ivory paper, butter yellow accents, exquisite vintage storybook brushwork. Keep goose fully in bottom 23%."
+    }
+  ]
+}

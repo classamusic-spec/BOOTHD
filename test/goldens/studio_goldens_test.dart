@@ -165,7 +165,9 @@ const allSizes = [
   TabletViewport.androidLandscape,
 ];
 
-final skipOffLinux = !Platform.isLinux;
+// Explicit snapshot regeneration also works on the author's workstation;
+// pixel comparisons still run only on Linux.
+final skipOffLinux = !Platform.isLinux && !autoUpdateGoldenFiles;
 
 String fileName(String screen) => screen.replaceAll(' ', '_');
 

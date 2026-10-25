@@ -1,0 +1,142 @@
+[
+  {
+    "path": "assets/decorations/atelier_arcade.png",
+    "sha256": "07b7ff7cf24a5d6cb08c9653e95b52fc25737477f03ca4610fd75871d6ebf11b",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1820695
+  },
+  {
+    "path": "assets/decorations/atelier_autumn.png",
+    "sha256": "d58f0b6566db486ed996c376e0a10d170ddb04a3e8b191296f5b10e51abe015d",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2823096
+  },
+  {
+    "path": "assets/decorations/atelier_baby_blue.png",
+    "sha256": "25fa5b86815d19ae58a121938b6abf98134632ed45d3f39948391ab328827510",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2459864
+  },
+  {
+    "path": "assets/decorations/atelier_baby_blush.png",
+    "sha256": "f88e8a986f13dc087262a0aedd4f189a3365bb3f4dd69b8b5dee0777149dd1e0",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2656589
+  },
+  {
+    "path": "assets/decorations/atelier_baby_sage.png",
+    "sha256": "b2ea7400e72204d75e4f7ff2ccb549a67849db71b917207be1322ec24e4a4dd3",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2327860
+  },
+  {
+    "path": "assets/decorations/atelier_coast.png",
+    "sha256": "e2817b7030c64e16f36864eb79eddd9175110b82f436f0e150317a3a97a65fd1",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2574032
+  },
+  {
+    "path": "assets/decorations/atelier_deco_emerald.png",
+    "sha256": "4ad487575b83ba8a3cff22613d105d723881d580c52f4eca0fe56e0337bec0c8",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2608857
+  },
+  {
+    "path": "assets/decorations/atelier_deco_gold.png",
+    "sha256": "fd14fdd7109007881fd18c69d53c8e10a734c1979b0795bfed9ce8caf74aaad1",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2388401
+  },
+  {
+    "path": "assets/decorations/atelier_disco_midnight.png",
+    "sha256": "6cd4e69986219ef5afb6e62c4d0d65430dee6246c46c856fd02dfb3e353c0b63",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2264557
+  },
+  {
+    "path": "assets/decorations/atelier_disco_sunset.png",
+    "sha256": "c07ac311c6cc0835285ab9bf35bed8e6f580b3ae09281f964a255c1f7ccad046",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2019302
+  },
+  {
+    "path": "assets/decorations/atelier_gala.png",
+    "sha256": "cb5b9d52eb6b21cc5c807c715dc92a2105fc04e7b88ef0a95ef6ac5ad694d9ac",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2493944
+  },
+  {
+    "path": "assets/decorations/atelier_goose_blue.png",
+    "sha256": "32dd7f27fb54187ff10ebd3844e49ddae2f766daf5af57272dd0be5fff564bd0",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2147415
+  },
+  {
+    "path": "assets/decorations/atelier_goose_sage.png",
+    "sha256": "241891ab5482e03cb919aec9516206e9554a76d28053795065ae951785097961",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2565572
+  },
+  {
+    "path": "assets/decorations/atelier_holiday.png",
+    "sha256": "1fb4d3541f05738c3765c79adb43672b6ed6c271b2edb80f65eabfac01264ef0",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2733105
+  },
+  {
+    "path": "assets/decorations/atelier_hydrangea.png",
+    "sha256": "be35fac73a4a2a7808a7ef5742724453b5ddedf8ab154df9f82c88c7da71ef0b",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2819223
+  },
+  {
+    "path": "assets/decorations/atelier_lavender.png",
+    "sha256": "cd332bd0cf6ae12e3783a896d20b1aaf2c702d6e373fe14a5bb8100fa1f43efc",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2607761
+  },
+  {
+    "path": "assets/decorations/atelier_meadow.png",
+    "sha256": "df94058e59581c2e902e5259b429154e4aff2b3cb338554361fdee333720ccc3",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2849174
+  },
+  {
+    "path": "assets/decorations/atelier_platformer.png",
+    "sha256": "a313230d3aacfa3b463920f6d8593f33b3567fef64ba197189868a3b3f3529c2",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1741181
+  },
+  {
+    "path": "assets/decorations/atelier_rose.png",
+    "sha256": "96f8381b56af56acd36d62205a262b785e7f04eb304f0fec052b64bf1a7c16a3",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2565372
+  },
+  {
+    "path": "assets/decorations/atelier_tropical.png",
+    "sha256": "9f3ff5cfbb73feed85ad54276e930a64080996804eefd19f26820c1117e41f28",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2619678
+  }
+]

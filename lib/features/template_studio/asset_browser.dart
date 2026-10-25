@@ -17,6 +17,7 @@ import '../../shared/widgets/empty_state.dart';
 import '../../shared/widgets/porcelain_button.dart';
 import '../../shared/widgets/porcelain_segmented_control.dart';
 import '../../shared/widgets/porcelain_sheet.dart';
+import '../../shared/widgets/porcelain_text_field.dart';
 import '../../shared/widgets/porcelain_toast.dart';
 import '../../shared/widgets/pressable.dart';
 import '../../shared/widgets/status_badge.dart';
@@ -44,6 +45,15 @@ class _AssetBrowser extends ConsumerStatefulWidget {
 class _AssetBrowserState extends ConsumerState<_AssetBrowser> {
   var _tab = _Tab.decorations;
   var _busy = false;
+  final _search = TextEditingController();
+  var _backgrounds = false;
+  var _collection = 'All';
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
 
   Future<void> _choose(Future<StoredAsset> Function() store) async {
     if (_busy) return;
@@ -96,9 +106,8 @@ class _AssetBrowserState extends ConsumerState<_AssetBrowser> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'Transparent PNG artwork layers over photos and is never cut by '
-          'them. Images are copied into the booth, so the original file can '
-          'be moved or deleted afterwards.',
+          'Make it yours. Layer wedding, birthday, holiday and party stickers '
+          'over your photos. Move, resize and rotate every piece in the studio.',
           style: theme.text.bodyMedium.copyWith(color: theme.colors.inkMuted),
         ),
         const SizedBox(height: PorcelainSpace.md),
@@ -111,7 +120,7 @@ class _AssetBrowserState extends ConsumerState<_AssetBrowser> {
                 segments: const [
                   PorcelainSegment(
                     value: _Tab.decorations,
-                    label: 'Decorations',
+                    label: 'Stickers & art',
                     icon: PorcelainIcons.decorations,
                   ),
                   PorcelainSegment(
@@ -132,48 +141,132 @@ class _AssetBrowserState extends ConsumerState<_AssetBrowser> {
           onPressed: _import,
         ),
         const SizedBox(height: PorcelainSpace.md),
-        switch (_tab) {
-          _Tab.decorations => _DecorationGrid(
+        if (_tab == _Tab.decorations) ...[
+          PorcelainTextField(
+            key: const ValueKey('artwork-search'),
+            controller: _search,
+            label: 'Find artwork',
+            hint: 'Try wedding, birthday, Easter, Christmas…',
+            onChanged: (_) => setState(() {}),
+          ),
+          const SizedBox(height: PorcelainSpace.sm),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final background in [false, true])
+                ChoiceChip(
+                  label: Text(
+                    background ? 'Backgrounds' : 'Transparent stickers',
+                  ),
+                  selected: _backgrounds == background,
+                  onSelected: (_) => setState(() {
+                    _backgrounds = background;
+                    _collection = 'All';
+                  }),
+                ),
+            ],
+          ),
+          const SizedBox(height: PorcelainSpace.sm),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                for (final collection in {
+                  'All',
+                  for (final decoration in bundledDecorations)
+                    if (decoration.transparent != _backgrounds)
+                      decoration.collection,
+                })
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text(collection),
+                      selected: _collection == collection,
+                      onSelected: (_) =>
+                          setState(() => _collection = collection),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: PorcelainSpace.md),
+          _DecorationGrid(
+            backgrounds: _backgrounds,
+            collection: _collection,
+            query: _search.text,
             onChoose: (decoration) => _choose(
               () =>
                   ref.read(templateLibraryProvider).storeDecoration(decoration),
             ),
           ),
-          _Tab.yours => _YourImages(
-            onChoose: (asset) => _choose(() async => asset),
-          ),
-        },
+        ] else
+          _YourImages(onChoose: (asset) => _choose(() async => asset)),
       ],
     );
   }
 }
 
 class _DecorationGrid extends StatelessWidget {
-  const _DecorationGrid({required this.onChoose});
+  const _DecorationGrid({
+    required this.onChoose,
+    required this.backgrounds,
+    required this.collection,
+    required this.query,
+  });
 
   final ValueChanged<BundledDecoration> onChoose;
+  final bool backgrounds;
+  final String collection;
+  final String query;
 
   @override
-  Widget build(BuildContext context) => _TileGrid(
-    children: [
-      for (final decoration in bundledDecorations)
-        _ImageTile(
-          label: decoration.name,
-          detail: switch (decoration.kind) {
-            DecorationKind.floral => 'Florals',
-            DecorationKind.frame => 'Frame',
-            DecorationKind.accent => 'Accent',
-          },
-          transparent: true,
-          image: Image.asset(
-            decoration.assetPath,
-            cacheWidth: 320,
-            fit: BoxFit.contain,
-          ),
-          onPressed: () => onChoose(decoration),
+  Widget build(BuildContext context) {
+    final search = query.trim().toLowerCase();
+    final decorations = bundledDecorations
+        .where(
+          (d) =>
+              d.transparent != backgrounds &&
+              (collection == 'All' || d.collection == collection) &&
+              '${d.name} ${d.collection} ${d.tags.join(' ')}'
+                  .toLowerCase()
+                  .contains(search),
+        )
+        .toList();
+    if (decorations.isEmpty) {
+      return const EmptyState(
+        icon: PorcelainIcons.image,
+        title: 'No artwork found',
+        message: 'Try another word or choose All to explore the collection.',
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          '${decorations.length} ${backgrounds ? 'backgrounds' : 'stickers'} · Tap to add',
+          style: context.porcelain.text.bodySmall,
         ),
-    ],
-  );
+        const SizedBox(height: PorcelainSpace.sm),
+        _TileGrid(
+          children: [
+            for (final decoration in decorations)
+              _ImageTile(
+                label: decoration.name,
+                detail: decoration.collection,
+                transparent: decoration.transparent,
+                image: Image.asset(
+                  decoration.assetPath,
+                  cacheWidth: 320,
+                  fit: BoxFit.contain,
+                ),
+                onPressed: () => onChoose(decoration),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
 }
 
 class _YourImages extends ConsumerWidget {
@@ -401,14 +494,19 @@ class _TileGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, constraints) {
-      final columns = (constraints.maxWidth / 170).floor().clamp(2, 5);
+      final scale = MediaQuery.textScalerOf(context).scale(1);
+      final columns = (constraints.maxWidth / (170 * scale.clamp(1, 1.6)))
+          .floor()
+          .clamp(1, 5);
+      final width =
+          (constraints.maxWidth - (columns - 1) * PorcelainSpace.sm) / columns;
       return GridView.count(
         crossAxisCount: columns,
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         mainAxisSpacing: PorcelainSpace.sm,
         crossAxisSpacing: PorcelainSpace.sm,
-        childAspectRatio: 0.72,
+        mainAxisExtent: width + 100 * scale,
         children: children,
       );
     },
@@ -495,6 +593,7 @@ class _ImageTile extends StatelessWidget {
                 Text(
                   detail,
                   maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: theme.text.bodySmall.copyWith(color: colors.inkMuted),
                 ),
                 if (transparent)

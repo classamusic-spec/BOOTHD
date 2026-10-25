@@ -89,22 +89,24 @@ void main() {
 
       await tester.tap(find.text('New template').first);
       await tester.pumpAndSettle();
-      expect(find.text('CHOOSE YOUR STYLE'), findsOneWidget);
+      expect(find.text('Choose your style'), findsOneWidget);
+      await tester.enterText(
+        find.descendant(
+          of: find.byKey(const ValueKey('design-search')),
+          matching: find.byType(TextField),
+        ),
+        'Retro Film',
+      );
+      await tester.pumpAndSettle();
       final retro = find.bySemanticsLabel(RegExp('^Retro Film,'));
       await tester.ensureVisible(retro);
       await tester.tap(retro);
       await tester.pumpAndSettle();
-      // The name follows the chosen style until it is typed over; the
-      // field is at the end of the sheet.
-      final sheet = find.byType(DraggableScrollableSheet);
-      await tester.scrollUntilVisible(
-        find.text('Template name'),
-        300,
-        scrollable: find
-            .descendant(of: sheet, matching: find.byType(Scrollable))
-            .first,
+      // The name stays beside the gallery instead of below every design.
+      final name = find.descendant(
+        of: find.byKey(const ValueKey('new-template-name')),
+        matching: find.byType(TextField),
       );
-      final name = find.descendant(of: sheet, matching: find.byType(TextField));
       expect(tester.widget<TextField>(name).controller!.text, 'Retro Film');
       await tester.enterText(name, 'Film night');
       await tester.pumpAndSettle();
@@ -130,6 +132,58 @@ void main() {
       expect(find.byType(EditorCanvas), findsOneWidget);
     });
   }
+
+  testWidgets(
+    'occasion search and collection filters create an editable Christmas template',
+    (tester) async {
+      useViewport(tester, TabletViewport.ipadLandscape);
+      final booth = await pumpApp(tester, location: RoutePaths.templates);
+      await settleRendering(tester);
+      await tester.tap(find.text('New template').first);
+      await tester.pumpAndSettle();
+      final search = find.descendant(
+        of: find.byKey(const ValueKey('design-search')),
+        matching: find.byType(TextField),
+      );
+      for (final (query, title) in [
+        ('Silk & Vows', 'Silk & Vows'),
+        ('Make a Wish', 'Make a Wish'),
+        ('Golden Together', 'Golden Together'),
+        ('easter', 'Easter Garden'),
+        ('dinosaur', 'Dino Birthday'),
+        ('xmas', 'Christmas Keepsake'),
+        ('christmas', 'Christmas Keepsake'),
+      ]) {
+        await tester.enterText(search, query);
+        await tester.pumpAndSettle();
+        expect(find.text(title), findsWidgets, reason: query);
+      }
+      final christmas = find.widgetWithText(ChoiceChip, 'Christmas');
+      await tester.ensureVisible(christmas);
+      await tester.tap(christmas);
+      await tester.pumpAndSettle();
+      expect(find.text('2 designs · 300 dpi · Fully editable'), findsOneWidget);
+      final design = find.bySemanticsLabel(RegExp('^Christmas Keepsake,'));
+      await tester.ensureVisible(design);
+      await tester.tap(design);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Continue'));
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+      final saved = (await _listings(booth.templates)).single.latest;
+      expect(saved.templateName, 'Christmas Keepsake');
+      expect(saved.tags.occasionTags, contains('christmas'));
+      final document = (await booth.templates.templates.loadLatest(
+        saved.templateId,
+      )).document;
+      expect(document.photoSlotCount, 2);
+      expect(
+        document.layers.whereType<TextLayer>().map((l) => l.id),
+        containsAll(['title', 'subtitle', 'personalization']),
+      );
+      expect(document.layers.whereType<ImageLayer>(), hasLength(2));
+    },
+  );
 
   testWidgets('duplicate, rename, archive after confirming, and restore', (
     tester,
@@ -322,6 +376,42 @@ void main() {
       await tester.pumpAndSettle();
       return booth;
     }
+
+    testWidgets(
+      'search finds a transparent goose sticker and adds an editable layer',
+      (tester) async {
+        final booth = await openStudio(tester);
+        await tester.tap(find.text('Stickers & art'));
+        await tester.pumpAndSettle();
+        final search = find.descendant(
+          of: find.byKey(const ValueKey('artwork-search')),
+          matching: find.byType(TextField),
+        );
+        await tester.enterText(search, 'goose with blue');
+        await tester.pumpAndSettle();
+        final choice = find.bySemanticsLabel('Use Goose with blue bow');
+        await tester.ensureVisible(choice);
+        await tester.tap(choice);
+        await settleRendering(tester);
+        final controller = tester
+            .widget<EditorCanvas>(find.byType(EditorCanvas))
+            .controller;
+        final png = File('assets/decorations/sticker_goose_blue.png')
+            .readAsBytesSync();
+        final id = assetIdOf(png);
+        final layer = controller.document.layers
+            .whereType<ImageLayer>()
+            .singleWhere((l) => l.assetId == id);
+        expect(layer.visible, isTrue);
+        expect(layer.locked, isFalse);
+        expect(
+          layer.zIndex,
+          greaterThan(controller.document.photoSlots.last.zIndex),
+        );
+        expect(await booth.templates.assets.read(id), png);
+        expect(tester.takeException(), isNull);
+      },
+    );
 
     testWidgets('a picked PNG is copied into the booth and placed', (
       tester,

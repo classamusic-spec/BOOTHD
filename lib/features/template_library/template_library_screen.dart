@@ -11,6 +11,7 @@ import '../../core/di/service_providers.dart';
 import '../../core/routing/route_paths.dart';
 import '../../core/templates/template_thumbnails.dart';
 import '../../domain/repositories/template_store.dart';
+import '../../shared/widgets/collection_feature.dart';
 import '../../shared/widgets/empty_state.dart';
 import '../../shared/widgets/page_header.dart';
 import '../../shared/widgets/porcelain_button.dart';
@@ -126,9 +127,7 @@ class _TemplateLibraryScreenState extends ConsumerState<TemplateLibraryScreen> {
       header: StudioPageHeader(
         eyebrow: 'Studio',
         title: 'Templates',
-        subtitle:
-            'Layered designs with photo slots, transparent artwork and '
-            'text, printed at 300 dpi.',
+        subtitle: 'Beautiful by design. Personal by you.',
         actions: [
           PorcelainButton(
             label: 'Import',
@@ -146,6 +145,16 @@ class _TemplateLibraryScreenState extends ConsumerState<TemplateLibraryScreen> {
         ],
       ),
       children: [
+        CollectionFeature(
+          eyebrow: 'THE ATELIER COLLECTION',
+          title: 'Art for every celebration.',
+          description:
+              'Weddings, birthdays, anniversaries and every season of joy. '
+              'Explore occasion collections alongside florals, baby showers, '
+              'Art Deco, retro games and disco. Make every detail yours.',
+          actionLabel: 'Explore designs',
+          onPressed: () => LibraryActions.create(context, ref),
+        ),
         switch (library) {
           AsyncData(:final value) when value.isEmpty => EmptyState(
             icon: PorcelainIcons.templates,
