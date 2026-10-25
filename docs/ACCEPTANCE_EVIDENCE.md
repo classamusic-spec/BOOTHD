@@ -1267,8 +1267,8 @@ iPad: BLOCKED (no Mac, no iPad); Android: BLOCKED (no tablet); web test build: s
 | 5 | `flutter test test/widgets/polish_test.dart` | 1, then 0 | 6 passed. The first run compared every segment label with an unselected label's line height; each label is now compared with its own one-line height |
 | 6 | `flutter test --update-goldens test/goldens` | 0 | 409 passed; 47 goldens changed in this commit (event covers, the launch checks' seal and tally, segmented controls, and sub-pixel differences in miniatures and shimmer phase), each reviewed against the previous image; 8 builder goldens removed and 6 new-event goldens added in 3f4c791 |
 | 7 | `flutter test test/architecture` | 1, then 0 | 353 passed. CI had been red since W1-W2 on one rule: the entrypoint imported Flutter. The platform setup moved into `app/bootstrap.dart`; `main.dart` imports the app layer only |
-| 8 | `tool/check.sh` | PENDING | |
-| 9 | Web test build and deployment | PENDING | |
+| 8 | `tool/check.sh` | 1 | Generated code current; format: 488 files, 0 changed; analyze: no issues; `flutter test`: 23 min 57 s, 3,429 passed, 4 skipped, 0 failed (`screens_test.dart` included: every screen at every tablet size, 200% text, guidelines and dead-control audit). The last step failed: `docs/DEPENDENCY_LICENSES.md` had not marked `file`, `path` and `web` as direct dependencies since W0-W2 (no new packages). Regenerated with `dart run tool/dependency_licenses.dart`; `--check` then exits 0 |
+| 9 | `bash tool/web/vercel_build.sh build`; `node tool/web/smoke.mjs` (local and https://porcelain-booth.vercel.app); a scripted Chromium run of first-run setup, the three steps, Create and check, unlock, and the Studio at 390 x 844 | 0 | Release web build in 1 min 52 s, deployed to the `porcelain-booth` project (READY); the live `main.dart.js` matches the local build; cross-origin isolated; no page errors; every scripted step passed. Headless Chromium without a GPU took 24 s between Create and the launch checks: a profile shows 240 frame presentations of about 100 ms each while the busy button's spinner turned, and about 2 s of actual work |
 
 ### Acceptance items
 
@@ -1283,7 +1283,7 @@ iPad: BLOCKED (no Mac, no iPad); Android: BLOCKED (no tablet); web test build: s
 | AC-UXP-07 Segmented controls give up padding, then scroll; no label breaks | PASS (host) | `polish_test.dart` (segmented control) |
 | AC-UXP-08 The dashboard counts the stored sessions | PASS (host) | `polish_test.dart` (dashboard): "No sessions yet" when empty, "18 sessions" with the gallery fixture |
 | AC-UXP-09 Event cards show the event's look and designs; the launch checks show a seal and the counts of passed, warning and blocking checks | PASS (host) | Events and launch-check goldens in all three operator looks (row 6); the cover is decorative and outside the semantics tree, the seal repeats the heading's words |
-| AC-UXP-10 Every screen still passes the overflow, 200% text, tap-target, label, contrast and dead-control checks | PENDING | `screens_test.dart` in row 8 |
+| AC-UXP-10 Every screen still passes the overflow, 200% text, tap-target, label, contrast and dead-control checks | PASS (host) | `screens_test.dart` in row 8 |
 | Device runs (iPad, Android tablet) | BLOCKED | No devices in this environment; the steps are the S04 and S05 parts of the existing device procedures |
 
 The guest camera's still lens mark and fade-through plaque are visual

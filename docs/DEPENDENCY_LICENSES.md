@@ -43,7 +43,7 @@ covers this whole set.
 | fake_async | 1.3.3 | hosted |  | Apache-2.0 |
 | ffi | 2.2.0 | hosted |  | BSD-3-Clause |
 | ffi_leak_tracker | 0.1.2 | hosted |  | BSD-3-Clause |
-| file | 7.0.1 | hosted |  | BSD-3-Clause |
+| file | 7.0.1 | hosted | yes | BSD-3-Clause |
 | file_selector | 1.1.0 | hosted | yes | BSD-3-Clause |
 | file_selector_android | 0.5.2+11 | hosted |  | Apache-2.0 |
 | file_selector_ios | 0.5.3+7 | hosted |  | BSD-3-Clause |
@@ -88,7 +88,7 @@ covers this whole set.
 | native_toolchain_c | 0.19.2 | hosted |  | BSD-3-Clause |
 | objective_c | 9.5.0 | hosted |  | BSD-3-Clause |
 | package_config | 3.0.0 | hosted |  | BSD-3-Clause |
-| path | 1.9.1 | hosted |  | BSD-3-Clause |
+| path | 1.9.1 | hosted | yes | BSD-3-Clause |
 | path_provider | 2.1.6 | hosted | yes | BSD-3-Clause |
 | path_provider_android | 2.3.1 | hosted |  | BSD-3-Clause |
 | path_provider_foundation | 2.6.0 | hosted |  | BSD-3-Clause |
@@ -129,7 +129,7 @@ covers this whole set.
 | uuid | 4.6.0 | hosted |  | MIT |
 | vector_math | 2.4.0 | hosted |  | BSD-3-Clause |
 | vm_service | 15.4.0 | hosted |  | BSD-3-Clause |
-| web | 1.1.1 | hosted |  | BSD-3-Clause |
+| web | 1.1.1 | hosted | yes | BSD-3-Clause |
 | win32 | 6.4.0 | hosted |  | BSD-3-Clause |
 | xdg_directories | 1.1.0 | hosted |  | BSD-3-Clause |
 | yaml | 3.1.4 | hosted |  | MIT |
