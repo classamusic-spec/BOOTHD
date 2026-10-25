@@ -34,6 +34,11 @@ final class MemoryTemplateStore {
   late final MemoryPackages packages;
   late final MemoryDrafts drafts;
 
+  /// Told about every template created here, so a test can record it in
+  /// the database too, where events refer to it (the app keeps both in
+  /// one database).
+  Future<void> Function(TemplateRevisionSummary created)? onCreated;
+
   /// Events offering each template, as the library shows them.
   final eventCounts = <String, int>{};
 
@@ -345,7 +350,9 @@ final class MemoryTemplates implements TemplateRepository {
       tags: tags,
     );
     _templates[template.id] = template;
-    return _add(template, document, 1).summary;
+    final summary = _add(template, document, 1).summary;
+    await _store.onCreated?.call(summary);
+    return summary;
   }
 
   @override

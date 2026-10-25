@@ -228,6 +228,11 @@ Future<TestBooth> pumpApp(
   Future<void> Function(BoothDatabase db)? seed,
   MemoryTemplateStore? templates,
   Future<void> Function(MemoryTemplateStore templates)? seedTemplates,
+
+  /// Templates created in [templates] are recorded in the database too,
+  /// where events refer to them: for flows that create a template and
+  /// then use it.
+  bool recordCreatedTemplates = false,
   SimulatedCameraService? camera,
   FakeDeviceStorage? space,
   FakeExportService? exports,
@@ -260,6 +265,17 @@ Future<TestBooth> pumpApp(
 
   final library = templates ?? MemoryTemplateStore(clock: testClock);
   if (seedTemplates != null) await seedTemplates(library);
+  if (recordCreatedTemplates) {
+    library.onCreated = (created) => insertTemplate(
+      db,
+      templateId: created.templateId,
+      revisionId: created.revisionId,
+      name: created.templateName,
+      slots: created.photoSlotCount,
+      width: created.pageWidthPx,
+      height: created.pageHeightPx,
+    );
+  }
   final booth = TestBooth._(
     db: db,
     pins: store,

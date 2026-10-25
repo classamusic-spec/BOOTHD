@@ -16,6 +16,7 @@ import '../features/diagnostics/camera_test_screen.dart';
 import '../features/diagnostics/component_gallery_screen.dart';
 import '../features/diagnostics/diagnostics_screen.dart';
 import '../features/diagnostics/render_lab/render_lab_screen.dart';
+import '../features/events/create/quick_event_screen.dart';
 import '../features/events/event_editor_screen.dart';
 import '../features/events/events_screen.dart';
 import '../features/events/preflight_screen.dart';
@@ -98,7 +99,7 @@ GoRouter buildRouter({
                   GoRoute(
                     path: 'new',
                     parentNavigatorKey: root,
-                    builder: (_, _) => const EventEditorScreen.create(),
+                    builder: (_, _) => const QuickEventScreen(),
                   ),
                   GoRoute(
                     path: 'experience-preview',

@@ -124,6 +124,14 @@ Future<void> _tap(WidgetTester tester, String text) async {
   await tester.pumpAndSettle();
 }
 
+/// A named kids' party at the new event's look step.
+Future<void> _toNewEventLook(WidgetTester tester) async {
+  await tester.enterText(find.byType(EditableText).first, 'Spring fair');
+  await tester.pumpAndSettle();
+  await _tap(tester, 'Kids party');
+  await _tap(tester, 'Next: choose the look');
+}
+
 Future<void> _toPrivacyStep(WidgetTester tester) => _tap(tester, 'Begin setup');
 
 Future<void> _toPinStep(WidgetTester tester) async {
@@ -190,24 +198,26 @@ final screens = <String, ScreenSpec>{
     RoutePaths.event(SeedIds.archived),
     seeded: true,
   ),
+  // The new-event flow (UX-P1, CR-003): its three steps.
   'new event': const ScreenSpec(RoutePaths.newEvent),
-  // The Event Builder's steps (EP07) and the Full Experience Preview
-  // (EP08), opened from the Experience tab.
-  'new event templates empty': ScreenSpec(
+  'new event look': ScreenSpec(
     RoutePaths.newEvent,
-    then: (tester) => _tap(tester, '4. Templates'),
+    seeded: true,
+    renders: true,
+    then: (tester) async {
+      await _toNewEventLook(tester);
+      await settleRendering(tester, rounds: 10);
+    },
   ),
-  'new event experience': ScreenSpec(
+  'new event ready': ScreenSpec(
     RoutePaths.newEvent,
-    then: (tester) => _tap(tester, '2. Experience'),
-  ),
-  'new event customise': ScreenSpec(
-    RoutePaths.newEvent,
-    then: (tester) => _tap(tester, '3. Customise'),
-  ),
-  'new event launch': ScreenSpec(
-    RoutePaths.newEvent,
-    then: (tester) => _tap(tester, '8. Check and launch'),
+    seeded: true,
+    renders: true,
+    then: (tester) async {
+      await _toNewEventLook(tester);
+      await _tap(tester, 'Next: review');
+      await settleRendering(tester, rounds: 10);
+    },
   ),
   'experience preview': ScreenSpec(
     RoutePaths.event(SeedIds.active, tab: 'guest'),

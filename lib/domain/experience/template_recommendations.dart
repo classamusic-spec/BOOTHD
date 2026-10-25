@@ -4,6 +4,7 @@
 library;
 
 import '../models/template_revision_summary.dart';
+import '../template/template_tags.dart';
 import 'experience_configuration.dart';
 import 'experience_pack.dart';
 
@@ -18,7 +19,16 @@ abstract final class TemplateRecommendations {
     EventExperienceConfiguration config,
   ) {
     if (config.recommendedTemplateIds.contains(template.templateId)) return 3;
-    final tags = template.tags;
+    return scoreTags(template.tags, pack, config);
+  }
+
+  /// [score] for a design known only by its [tags], such as a starter
+  /// design that is not in the library yet.
+  static int scoreTags(
+    TemplateTags tags,
+    ExperiencePack pack,
+    EventExperienceConfiguration config,
+  ) {
     if (tags.recommendedExperienceIds.contains(pack.packId)) {
       final variant = config.variantId ?? pack.defaultVariantId;
       final drawnFor = tags.optionalPackVariant;
