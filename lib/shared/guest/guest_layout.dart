@@ -97,7 +97,10 @@ class GuestLayout extends StatelessWidget {
 
 /// Wordmark at the top; the preview on the left with the message and the
 /// action beside it, the action in easy reach; the guide at the bottom.
-/// Scrolls only if text is enlarged beyond what fits.
+/// On a window narrower than [narrowWidth] (a phone opening the web test
+/// build) the preview sits above the message instead, so the title and
+/// the action keep the whole width. Scrolls only if text is enlarged
+/// beyond what fits.
 class PortraitGuestLayout extends StatelessWidget {
   const PortraitGuestLayout({
     super.key,
@@ -116,10 +119,13 @@ class PortraitGuestLayout extends StatelessWidget {
   final Widget? footer;
   final BoxConstraints constraints;
 
+  static const narrowWidth = 600.0;
+
   @override
   Widget build(BuildContext context) {
     final scale = GuestScale.forSize(constraints.biggest);
     final preview = this.preview;
+    final narrow = constraints.maxWidth < narrowWidth;
     final core = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -132,7 +138,7 @@ class PortraitGuestLayout extends StatelessWidget {
       constraints: constraints,
       child: Padding(
         padding: EdgeInsets.symmetric(
-          horizontal: scale(PorcelainSpace.giant),
+          horizontal: narrow ? PorcelainSpace.xl : scale(PorcelainSpace.giant),
           vertical: scale(PorcelainSpace.xxl),
         ),
         child: Column(
@@ -141,6 +147,20 @@ class PortraitGuestLayout extends StatelessWidget {
             header ?? const SizedBox.shrink(),
             if (preview == null)
               core
+            else if (narrow)
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: constraints.maxHeight * 0.24,
+                    ),
+                    child: preview,
+                  ),
+                  SizedBox(height: scale(PorcelainSpace.xl)),
+                  core,
+                ],
+              )
             else
               Row(
                 children: [

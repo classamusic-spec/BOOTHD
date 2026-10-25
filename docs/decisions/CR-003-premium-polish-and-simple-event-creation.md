@@ -87,6 +87,24 @@ the overflow, 200% text, tap-target, label and contrast checks.
    the plaque's messages change with a fade-through, so two messages never
    show on top of each other.
 
+### 3. Owner feedback from testing on a phone (2026-10-25)
+
+The owner asked how an operator leaves an event in Booth Mode and how to
+check the booth's photos. Both now have an answer on screen:
+
+1. **Leaving Booth Mode.** The way out is unchanged (hold the top-right
+   corner for 3 seconds, then the PIN, then Exit Booth Mode), but the
+   launch checks now say so under Start Booth Mode. Guest screens still
+   show no way out.
+2. **Photo reel.** After the PIN, the operator screen offers a Photo reel:
+   the running event's finished photos, newest first, one at a time,
+   view only. It stays behind the PIN and the operator screen's idle
+   timeout, so guests never reach it. Exporting and deleting stay in the
+   Studio's Gallery.
+3. **Guest screens on a phone.** Below 600 dp wide in portrait, the guest
+   welcome and finished screens put the print above the words, so titles
+   and button labels are no longer squeezed or cut short.
+
 ## Consequences
 
 - S04 (UX_SCREEN_SPECS) gains S04-Q, the new-event flow. The editor's

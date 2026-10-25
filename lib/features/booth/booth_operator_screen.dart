@@ -19,10 +19,12 @@ import '../../shared/widgets/porcelain_button.dart';
 import '../../shared/widgets/porcelain_card.dart';
 import 'booth_copy.dart';
 import 'booth_event_theme.dart';
+import 'booth_photo_reel.dart';
 
 /// The operator's exit from Booth Mode (S28): PIN, then an explicit Exit
-/// Booth, in the event's theme ([BoothEventTheme]). Reached only through
-/// the hidden hold. Left alone for
+/// Booth, in the event's theme ([BoothEventTheme]); once unlocked, the
+/// event's photo reel can be looked through without leaving Booth Mode.
+/// Reached only through the hidden hold. Left alone for
 /// [idleTimeout], it returns to the guest welcome, so a guest who stumbles
 /// here is not left on a PIN pad.
 class BoothOperatorScreen extends ConsumerStatefulWidget {
@@ -39,6 +41,7 @@ class _BoothOperatorScreenState extends ConsumerState<BoothOperatorScreen> {
   OperatorProof? _proof;
   Timer? _idle;
   var _exiting = false;
+  var _reel = false;
 
   @override
   void initState() {
@@ -76,6 +79,7 @@ class _BoothOperatorScreenState extends ConsumerState<BoothOperatorScreen> {
     final theme = context.porcelain;
     final colors = theme.colors;
     final proof = _proof;
+    final eventId = ref.watch(accessControllerProvider).boothEventId;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -97,7 +101,9 @@ class _BoothOperatorScreenState extends ConsumerState<BoothOperatorScreen> {
                     child: Center(
                       child: ConstrainedBox(
                         constraints: BoxConstraints(
-                          maxWidth: pinCardWidth(MediaQuery.sizeOf(context)),
+                          maxWidth: _reel && proof != null
+                              ? 860
+                              : pinCardWidth(MediaQuery.sizeOf(context)),
                         ),
                         child: PorcelainCard(
                           radius: PorcelainRadius.dialog,
@@ -105,7 +111,12 @@ class _BoothOperatorScreenState extends ConsumerState<BoothOperatorScreen> {
                             horizontal: PorcelainSpace.xl,
                             vertical: PorcelainSpace.xxl,
                           ),
-                          child: proof == null
+                          child: proof != null && _reel && eventId != null
+                              ? BoothPhotoReel(
+                                  eventId: eventId,
+                                  onClose: () => setState(() => _reel = false),
+                                )
+                              : proof == null
                               ? Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
@@ -146,7 +157,8 @@ class _BoothOperatorScreenState extends ConsumerState<BoothOperatorScreen> {
                                     ),
                                     const SizedBox(height: PorcelainSpace.xs),
                                     Text(
-                                      'Exit Booth Mode to open the Studio, or '
+                                      'Look through the photo reel, exit '
+                                      'Booth Mode to open the Studio, or '
                                       'return guests to the welcome screen.',
                                       textAlign: TextAlign.center,
                                       style: theme.text.bodyLarge.copyWith(
@@ -172,6 +184,18 @@ class _BoothOperatorScreenState extends ConsumerState<BoothOperatorScreen> {
                                               : _backToGuests,
                                           disabledReason: 'Leaving Booth Mode…',
                                         ),
+                                        if (eventId != null)
+                                          PorcelainButton(
+                                            label: 'Photo reel',
+                                            icon: PorcelainIcons.gallery,
+                                            onPressed: _exiting
+                                                ? null
+                                                : () => setState(
+                                                    () => _reel = true,
+                                                  ),
+                                            disabledReason:
+                                                'Leaving Booth Mode…',
+                                          ),
                                         PorcelainButton(
                                           label: 'Exit Booth Mode',
                                           icon: PorcelainIcons.close,

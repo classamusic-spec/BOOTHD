@@ -353,6 +353,8 @@ class _Report extends StatelessWidget {
                                     ? 'One check blocks the launch.'
                                     : '$blockers checks block the launch.',
                               ),
+                              const SizedBox(height: PorcelainSpace.md),
+                              const _ExitHint(),
                             ],
                           ),
                         ),
@@ -405,6 +407,39 @@ class _Report extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// How the operator gets back out of Booth Mode: the guest screens show
+/// no way out, so it is said here, before the booth starts.
+class _ExitHint extends StatelessWidget {
+  const _ExitHint();
+
+  static const text =
+      'To leave Booth Mode, press and hold the top-right corner of the '
+      'screen for 3 seconds, then enter your PIN. From there you can also '
+      'look through the photo reel.';
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.porcelain;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          PorcelainIcons.info,
+          size: PorcelainSize.iconSmall,
+          color: theme.colors.accentIcon,
+        ),
+        const SizedBox(width: PorcelainSpace.xs),
+        Expanded(
+          child: Text(
+            text,
+            style: theme.text.bodyMedium.copyWith(color: theme.colors.inkMuted),
+          ),
+        ),
+      ],
     );
   }
 }

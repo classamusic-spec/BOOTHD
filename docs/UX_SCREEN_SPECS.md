@@ -77,7 +77,7 @@ Each item states its critical interaction and empty/loading/error states. No dea
 
 **S19 Preflight Checklist**: Each check displays PASS/WARN/BLOCK with explanation; operator can open appropriate repair control, rerun, start if no blockers. Printer unconfigured is informational in export-only mode.
 
-**S28 Operator Unlock**: Hidden guest escape entry -> PIN screen -> rate-limited verification -> explicit Exit Booth action -> Studio. On invalid PIN, don't reveal sensitive operator routes or device internals.
+**S28 Operator Unlock**: Hidden guest escape entry -> PIN screen -> rate-limited verification -> explicit Exit Booth action -> Studio. On invalid PIN, don't reveal sensitive operator routes or device internals. Once the PIN is entered, a Photo reel shows the running event's finished photos one at a time, newest first, without leaving Booth Mode (view only; the idle timeout still returns to the guest welcome). The launch checks (S05) tell the operator how to reach this screen: hold the top-right corner for 3 seconds (UX-P1).
 
 **S29 Operator Recovery**: Missing camera/template/storage/capture errors with repair guidance, session-preserving options, export logs and rollback to safe Guest Welcome when appropriate.
 

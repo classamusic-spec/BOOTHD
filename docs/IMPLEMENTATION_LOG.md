@@ -3,6 +3,35 @@
 Newest milestone first. Each entry: scope, plan, changes, commands and exit
 codes, platform results, spec issues raised, risks, next step.
 
+## UX-P1 follow-up: leaving Booth Mode, the photo reel, guest screens on phones
+
+- Date: 2026-10-25 (UTC)
+- Authorised by: the owner, testing the web build on a phone: "create a
+  way so a user can check the booth reel and/or how does the main user
+  exit the event". Recorded in CR-003 section 3.
+
+### Changes
+
+- `lib/features/events/preflight_screen.dart`: under Start Booth Mode,
+  how to leave Booth Mode (hold the top-right corner 3 s, then the PIN).
+- `lib/features/booth/booth_photo_reel.dart`, `booth_operator_screen.dart`:
+  after the PIN, a Photo reel of the event's finished photos (view only),
+  inside the operator screen and its idle timeout.
+- `GalleryThumbnail` and `PrintFrame` move to `lib/shared/gallery/` so the
+  booth can show thumbnails without importing the gallery feature.
+- `PortraitGuestLayout` and the finished screen stack the print above
+  the words below 600 dp.
+- Tests: `booth_session_flow_test.dart` (reel before and after a guest),
+  `events_flow_test.dart` (the exit instructions),
+  `narrow_studio_test.dart` (guest screens at 390 x 844: no overflow, no
+  label cut short); 10 launch-check goldens regenerated and reviewed.
+
+### Checked in a browser
+
+Scripted Chromium at 390 x 844 with touch: setup, a new event, Start
+Booth Mode, a finger held 3.5 s on the top-right corner, the PIN, the
+Photo reel, Done, Exit Booth Mode: every step passed, no page errors.
+
 ## UX-P1: premium polish and a three-step new event (CR-003)
 
 - Date: 2026-10-25 (UTC)

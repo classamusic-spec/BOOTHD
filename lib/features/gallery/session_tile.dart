@@ -7,9 +7,9 @@ import '../../domain/gallery/gallery_models.dart';
 import '../../domain/services/gallery_services.dart';
 import '../../shared/formatters/date_format.dart';
 import '../../shared/gallery/gallery_copy.dart';
+import '../../shared/gallery/gallery_thumbnail.dart';
 import '../../shared/widgets/porcelain_card.dart';
 import '../../shared/widgets/tone.dart';
-import 'gallery_thumbnail.dart';
 
 /// The tone of a session's state in the grid and its details.
 PorcelainTone galleryTone(GallerySessionState state) => switch (state) {

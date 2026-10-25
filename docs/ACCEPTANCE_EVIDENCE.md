@@ -1295,3 +1295,19 @@ reduced-motion tests run over them unchanged.
 - No new data is stored. The occasion chosen in the new-event flow only
   picks a pack and is not saved. No names or sample people ship in the
   flow (its hints are generic). Nothing new is logged.
+
+### UX-P1 follow-up (CR-003 section 3), 2026-10-25 UTC
+
+| # | Command | Exit | Result |
+| --- | --- | --- | --- |
+| 1 | `flutter test test/widgets/booth_session_flow_test.dart test/app/events_flow_test.dart test/app/access_flow_test.dart test/widgets/gallery_flow_test.dart test/architecture` | 0 | 413 passed |
+| 2 | `flutter test test/widgets/screens_test.dart --plain-name preflight`; `--plain-name "booth operator"` | 0 | 32 and 32 passed |
+| 3 | `flutter test --update-goldens test/goldens` | 0 | 409 passed; the 10 launch-check goldens changed (the exit instructions), reviewed |
+| 4 | `flutter test` on the booth, guest, pack, isolation, delivery, narrow and polish tests and the goldens | 0 | 567 passed |
+| 5 | Scripted Chromium, 390 x 844 with touch, release web build | 0 for the operator steps | Hold, PIN, Photo reel, Done and Exit passed by touch; no page errors. The guest steps of that script used labels of another look and did not run; the guest session with the reel is covered by row 1 |
+
+| AC | Status | Evidence |
+| --- | --- | --- |
+| AC-UXP-11 The launch checks say how to leave Booth Mode | PASS (host) | Row 1 (`events_flow_test.dart`), row 3 |
+| AC-UXP-12 After the PIN, the operator sees the event's photo reel without leaving Booth Mode; guests cannot reach it | PASS (host); devices BLOCKED | Row 1 (`booth_session_flow_test.dart`: no reel before the PIN, "No photos yet", then the guest's photo as "1 of 1"); row 5 |
+| AC-UXP-13 Guest screens fit a phone-width window with every label whole | PASS (host) | `narrow_studio_test.dart` (welcome, get ready, review, finished, operator at 390 x 844) |

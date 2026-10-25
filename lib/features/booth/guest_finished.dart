@@ -61,10 +61,20 @@ class GuestFinished extends StatelessWidget {
                   final scale = GuestScale.forSize(constraints.biggest);
                   final landscape =
                       constraints.maxWidth > constraints.maxHeight;
-                  final box = Size(
-                    constraints.maxWidth * (landscape ? 0.4 : 0.44),
-                    constraints.maxHeight * (landscape ? 0.78 : 0.6),
-                  );
+                  // On a phone-width window the print sits above the
+                  // words, so both keep the whole width.
+                  final stacked =
+                      !landscape &&
+                      constraints.maxWidth < PortraitGuestLayout.narrowWidth;
+                  final box = stacked
+                      ? Size(
+                          constraints.maxWidth * 0.7,
+                          constraints.maxHeight * 0.34,
+                        )
+                      : Size(
+                          constraints.maxWidth * (landscape ? 0.4 : 0.44),
+                          constraints.maxHeight * (landscape ? 0.78 : 0.6),
+                        );
                   final border = scale(12);
                   var width = box.width;
                   var height = (width - 2 * border) / aspect + 2 * border;
@@ -181,13 +191,22 @@ class GuestFinished extends StatelessWidget {
                           horizontal: scale(PorcelainSpace.xxl),
                           vertical: scale(PorcelainSpace.xl),
                         ),
-                        child: Row(
-                          children: [
-                            Expanded(child: Center(child: print)),
-                            SizedBox(width: scale(PorcelainSpace.xl)),
-                            Expanded(child: Center(child: words)),
-                          ],
-                        ),
+                        child: stacked
+                            ? Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  print,
+                                  SizedBox(height: scale(PorcelainSpace.xxl)),
+                                  words,
+                                ],
+                              )
+                            : Row(
+                                children: [
+                                  Expanded(child: Center(child: print)),
+                                  SizedBox(width: scale(PorcelainSpace.xl)),
+                                  Expanded(child: Center(child: words)),
+                                ],
+                              ),
                       ),
                     ),
                   );

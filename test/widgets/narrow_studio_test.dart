@@ -3,6 +3,9 @@
 // a top bar with the wordmark, Diagnostics and Lock Studio, and the other
 // sections in a bottom bar. Each section fits such a window, with very
 // large text too, and its controls stay labeled and large enough to tap.
+// The guest screens stack their print above the words there, so no title
+// or button label is cut short.
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:porcelain_photo_booth/features/dashboard/dashboard_screen.dart';
@@ -94,6 +97,36 @@ void main() {
     expect(find.byType(PorcelainNavigation), findsOneWidget);
     expect(find.byType(PorcelainBottomNavigation), findsNothing);
   });
+
+  // The guest screens, as a phone opening the web test build shows them:
+  // nothing overflows and no word or button label is cut short.
+  for (final name in [
+    'booth welcome',
+    'booth get ready',
+    'booth review',
+    'booth finished',
+    'booth operator',
+  ]) {
+    testWidgets('$name fits a phone-sized window, every label whole', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await show(tester, name, size: _phone);
+      expect(tester.takeException(), isNull);
+      for (final paragraph in tester.renderObjectList<RenderParagraph>(
+        find.byType(RichText),
+      )) {
+        expect(
+          paragraph.didExceedMaxLines,
+          isFalse,
+          reason: paragraph.text.toPlainText(),
+        );
+      }
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+      semantics.dispose();
+    });
+  }
 
   for (final name in _sections) {
     group(name, () {

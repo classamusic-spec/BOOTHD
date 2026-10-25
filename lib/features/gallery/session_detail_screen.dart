@@ -21,6 +21,7 @@ import '../../domain/session/session_shots.dart';
 import '../../shared/formatters/date_format.dart';
 import '../../shared/gallery/gallery_actions.dart';
 import '../../shared/gallery/gallery_copy.dart';
+import '../../shared/gallery/gallery_thumbnail.dart';
 import '../../shared/widgets/empty_state.dart';
 import '../../shared/widgets/page_header.dart';
 import '../../shared/widgets/porcelain_button.dart';
@@ -31,7 +32,6 @@ import '../../shared/widgets/studio_material.dart';
 import '../../shared/widgets/studio_page.dart';
 import '../../shared/widgets/tone.dart';
 import 'export_sheet.dart';
-import 'gallery_thumbnail.dart';
 import 'session_deliveries.dart';
 
 /// One session in full (S14, AC-0802): every camera photo and retake with

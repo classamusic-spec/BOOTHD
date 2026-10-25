@@ -391,6 +391,11 @@ void main() {
       await tapText(tester, 'Start Booth');
       expect(find.byType(PreflightScreen), findsOneWidget);
       expect(find.text('Ready to start'), findsOneWidget);
+      // The guest screens show no way out, so the way out is said here.
+      expect(
+        find.textContaining('press and hold the top-right corner'),
+        findsOneWidget,
+      );
       await tapText(tester, 'Start Booth Mode');
       expect(find.byType(BoothScreen), findsOneWidget);
       expect(booth.accessState.phase, AccessPhase.booth);
