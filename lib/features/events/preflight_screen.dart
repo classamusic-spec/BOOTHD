@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/access/access_controller.dart';
 import '../../core/design_system/porcelain_icons.dart';
 import '../../core/design_system/porcelain_metrics.dart';
+import '../../core/design_system/porcelain_motion.dart';
 import '../../core/design_system/porcelain_theme.dart';
 import '../../core/di/service_providers.dart';
 import '../../core/platform/app_environment.dart';
@@ -20,6 +21,7 @@ import '../../shared/kiosk/kiosk_guide.dart';
 import '../../shared/widgets/empty_state.dart';
 import '../../shared/widgets/porcelain_button.dart';
 import '../../shared/widgets/porcelain_card.dart';
+import '../../shared/widgets/porcelain_entrance.dart';
 import '../../shared/widgets/porcelain_sheet.dart';
 import '../../shared/widgets/skeleton.dart';
 import '../../shared/widgets/status_badge.dart';
@@ -152,36 +154,60 @@ class _PreflightScreenState extends ConsumerState<PreflightScreen> {
                   horizontal: PorcelainSpace.lg,
                   vertical: PorcelainSpace.sm,
                 ),
-                child: Row(
-                  children: [
-                    PorcelainButton(
-                      label: 'Back',
-                      icon: PorcelainIcons.back,
-                      variant: PorcelainButtonVariant.quiet,
-                      size: PorcelainButtonSize.compact,
-                      onPressed: _back,
-                    ),
-                    const SizedBox(width: PorcelainSpace.md),
-                    Expanded(
-                      child: Semantics(
-                        header: true,
-                        child: Text(
-                          'Launch checks',
-                          style: theme.text.titleLarge,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    // On a narrow window both buttons are their icons
+                    // alone, so the heading keeps the room.
+                    final narrow = constraints.maxWidth < 560;
+                    void again() =>
+                        ref.invalidate(preflightInputsProvider(widget.eventId));
+                    return Row(
+                      children: [
+                        if (narrow)
+                          PorcelainIconButton(
+                            icon: PorcelainIcons.back,
+                            semanticLabel: 'Back',
+                            onPressed: _back,
+                          )
+                        else
+                          PorcelainButton(
+                            label: 'Back',
+                            icon: PorcelainIcons.back,
+                            variant: PorcelainButtonVariant.quiet,
+                            size: PorcelainButtonSize.compact,
+                            onPressed: _back,
+                          ),
+                        const SizedBox(width: PorcelainSpace.md),
+                        Expanded(
+                          child: Semantics(
+                            header: true,
+                            child: Text(
+                              'Launch checks',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.text.titleLarge,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    PorcelainButton(
-                      label: 'Check again',
-                      icon: PorcelainIcons.retry,
-                      size: PorcelainButtonSize.compact,
-                      busy: inputs.isLoading,
-                      busyLabel: 'Checking…',
-                      onPressed: () => ref.invalidate(
-                        preflightInputsProvider(widget.eventId),
-                      ),
-                    ),
-                  ],
+                        if (narrow)
+                          PorcelainIconButton(
+                            icon: PorcelainIcons.retry,
+                            semanticLabel: 'Check again',
+                            onPressed: inputs.isLoading ? null : again,
+                            disabledReason: 'The checks are running.',
+                          )
+                        else
+                          PorcelainButton(
+                            label: 'Check again',
+                            icon: PorcelainIcons.retry,
+                            size: PorcelainButtonSize.compact,
+                            busy: inputs.isLoading,
+                            busyLabel: 'Checking…',
+                            onPressed: again,
+                          ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),
@@ -266,99 +292,303 @@ class _Report extends StatelessWidget {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 900),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  PorcelainCard(
-                    radius: PorcelainRadius.dialog,
-                    padding: const EdgeInsets.all(PorcelainSpace.xxl),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          event.title.toUpperCase(),
-                          style: theme.text.eyebrow,
-                        ),
-                        const SizedBox(height: PorcelainSpace.xs),
-                        Semantics(
-                          header: true,
-                          liveRegion: true,
-                          child: Text(
-                            ready
-                                ? 'Ready to start'
-                                : blockers == 1
-                                ? 'Not ready: 1 check blocks the launch'
-                                : 'Not ready: $blockers checks block the '
-                                      'launch',
-                            style: theme.text.headlineLarge,
+              child: PorcelainEntrance(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    EntranceItem(
+                      index: 0,
+                      child: PorcelainCard(
+                        radius: PorcelainRadius.dialog,
+                        padding: const EdgeInsets.all(PorcelainSpace.xxl),
+                        child: _SealBeside(
+                          seal: _Seal(ready: ready),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                event.title.toUpperCase(),
+                                style: theme.text.eyebrow,
+                              ),
+                              const SizedBox(height: PorcelainSpace.xs),
+                              Semantics(
+                                header: true,
+                                liveRegion: true,
+                                child: Text(
+                                  ready
+                                      ? 'Ready to start'
+                                      : blockers == 1
+                                      ? 'Not ready: 1 check blocks the launch'
+                                      : 'Not ready: $blockers checks block the '
+                                            'launch',
+                                  style: theme.text.headlineLarge,
+                                ),
+                              ),
+                              const SizedBox(height: PorcelainSpace.xs),
+                              Text(
+                                ready
+                                    ? 'Booth Mode locks the tablet to the guest '
+                                          'screens until an operator exits with the '
+                                          'PIN.'
+                                    : 'Fix the blocked checks below. Checks marked '
+                                          '“Not yet available” arrive in later '
+                                          'milestones; until then the booth cannot '
+                                          'start.',
+                                style: theme.text.bodyLarge.copyWith(
+                                  color: colors.inkMuted,
+                                ),
+                              ),
+                              const SizedBox(height: PorcelainSpace.md),
+                              _Tally(report: report),
+                              const SizedBox(height: PorcelainSpace.xl),
+                              PorcelainButton(
+                                label: 'Start Booth Mode',
+                                icon: PorcelainIcons.start,
+                                variant: PorcelainButtonVariant.primary,
+                                size: PorcelainButtonSize.large,
+                                busy: starting,
+                                busyLabel: 'Starting…',
+                                onPressed: ready ? onStart : null,
+                                disabledReason: blockers == 1
+                                    ? 'One check blocks the launch.'
+                                    : '$blockers checks block the launch.',
+                              ),
+                              const SizedBox(height: PorcelainSpace.md),
+                              const _ExitHint(),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: PorcelainSpace.xs),
-                        Text(
-                          ready
-                              ? 'Booth Mode locks the tablet to the guest '
-                                    'screens until an operator exits with the '
-                                    'PIN.'
-                              : 'Fix the blocked checks below. Checks marked '
-                                    '“Not yet available” arrive in later '
-                                    'milestones; until then the booth cannot '
-                                    'start.',
-                          style: theme.text.bodyLarge.copyWith(
-                            color: colors.inkMuted,
-                          ),
-                        ),
-                        const SizedBox(height: PorcelainSpace.xl),
-                        PorcelainButton(
-                          label: 'Start Booth Mode',
-                          icon: PorcelainIcons.start,
-                          variant: PorcelainButtonVariant.primary,
-                          size: PorcelainButtonSize.large,
-                          busy: starting,
-                          busyLabel: 'Starting…',
-                          onPressed: ready ? onStart : null,
-                          disabledReason: blockers == 1
-                              ? 'One check blocks the launch.'
-                              : '$blockers checks block the launch.',
-                        ),
-                      ],
-                    ),
-                  ),
-                  for (final group in PreflightGroup.values) ...[
-                    const SizedBox(height: PorcelainSpace.xxl),
-                    Text(
-                      EventCopy.group(group),
-                      style: theme.text.headlineSmall,
-                    ),
-                    const SizedBox(height: PorcelainSpace.md),
-                    PorcelainCard(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: PorcelainSpace.lg,
-                        vertical: PorcelainSpace.sm,
                       ),
-                      child: Column(
-                        children: [
-                          for (final (i, check)
-                              in report.checks
-                                  .where((check) => check.id.group == group)
-                                  .indexed) ...[
-                            if (i > 0) Divider(color: colors.divider),
-                            _CheckRow(
-                              check: check,
-                              event: event,
-                              viewport: viewport,
-                              library: inputs.library,
+                    ),
+                    for (final (g, group) in PreflightGroup.values.indexed) ...[
+                      const SizedBox(height: PorcelainSpace.xxl),
+                      EntranceItem(
+                        index: g + 1,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              EventCopy.group(group),
+                              style: theme.text.headlineSmall,
+                            ),
+                            const SizedBox(height: PorcelainSpace.md),
+                            PorcelainCard(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: PorcelainSpace.lg,
+                                vertical: PorcelainSpace.sm,
+                              ),
+                              child: Column(
+                                children: [
+                                  for (final (i, check)
+                                      in report.checks
+                                          .where(
+                                            (check) => check.id.group == group,
+                                          )
+                                          .indexed) ...[
+                                    if (i > 0) Divider(color: colors.divider),
+                                    _CheckRow(
+                                      check: check,
+                                      event: event,
+                                      viewport: viewport,
+                                      library: inputs.library,
+                                    ),
+                                  ],
+                                ],
+                              ),
                             ),
                           ],
-                        ],
+                        ),
                       ),
-                    ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ),
         );
       },
+    );
+  }
+}
+
+/// How the operator gets back out of Booth Mode: the guest screens show
+/// no way out, so it is said here, before the booth starts.
+class _ExitHint extends StatelessWidget {
+  const _ExitHint();
+
+  static const text =
+      'To leave Booth Mode, press and hold the top-right corner of the '
+      'screen for 3 seconds, then enter your PIN. From there you can also '
+      'look through the photo reel.';
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.porcelain;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          PorcelainIcons.info,
+          size: PorcelainSize.iconSmall,
+          color: theme.colors.accentIcon,
+        ),
+        const SizedBox(width: PorcelainSpace.xs),
+        Expanded(
+          child: Text(
+            text,
+            style: theme.text.bodyMedium.copyWith(color: theme.colors.inkMuted),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// The seal beside the report's heading, or above it on a narrow card.
+class _SealBeside extends StatelessWidget {
+  const _SealBeside({required this.seal, required this.child});
+
+  final Widget seal;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 520) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              seal,
+              const SizedBox(height: PorcelainSpace.lg),
+              child,
+            ],
+          );
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: child),
+            const SizedBox(width: PorcelainSpace.xl),
+            seal,
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// A porcelain seal: gilded, with a check mark, when nothing blocks the
+/// launch; otherwise a plain ring with a lock. The heading says the same
+/// in words.
+class _Seal extends StatelessWidget {
+  const _Seal({required this.ready});
+
+  final bool ready;
+
+  static const size = 104.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.porcelain.colors;
+    final motion = PorcelainMotion.of(context);
+    return ExcludeSemantics(
+      child: AnimatedSwitcher(
+        duration: motion.emphasized,
+        switchInCurve: PorcelainMotion.enter,
+        transitionBuilder: (child, animation) => FadeTransition(
+          opacity: animation,
+          child: ScaleTransition(
+            scale: Tween(begin: 0.85, end: 1.0).animate(animation),
+            child: child,
+          ),
+        ),
+        child: Container(
+          key: ValueKey(ready),
+          width: size,
+          height: size,
+          padding: const EdgeInsets.all(7),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: ready
+                ? SweepGradient(
+                    colors: [
+                      colors.primaryTop,
+                      colors.primaryEdge,
+                      colors.primaryBottom,
+                      colors.primaryEdge,
+                      colors.primaryTop,
+                    ],
+                  )
+                : null,
+            color: ready ? null : colors.inset,
+            border: ready ? null : Border.all(color: colors.outline),
+            boxShadow: [
+              BoxShadow(
+                color: colors.shadowKey,
+                blurRadius: 14,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(colors: [colors.raised, colors.surface]),
+              border: Border.all(
+                color: ready ? colors.primaryEdge : colors.hairline,
+              ),
+            ),
+            child: Icon(
+              ready ? PorcelainIcons.ready : PorcelainIcons.locked,
+              size: 44,
+              fill: ready ? 1 : 0,
+              color: ready ? colors.accentIcon : colors.inkMuted,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// How the checks came out, as counts: passed, to note, blocking.
+class _Tally extends StatelessWidget {
+  const _Tally({required this.report});
+
+  final PreflightReport report;
+
+  @override
+  Widget build(BuildContext context) {
+    int count(bool Function(PreflightStatus status) test) =>
+        report.checks.where((check) => test(check.status)).length;
+    final passed = count(
+      (s) => s == PreflightStatus.pass || s == PreflightStatus.info,
+    );
+    final warnings = report.warningCount;
+    final blockers = report.blockerCount;
+    return Wrap(
+      spacing: PorcelainSpace.xs,
+      runSpacing: PorcelainSpace.xs,
+      children: [
+        StatusBadge(
+          label: '$passed passed',
+          tone: PorcelainTone.success,
+          icon: EventCopy.checkStatusIcon(PreflightStatus.pass),
+        ),
+        if (warnings > 0)
+          StatusBadge(
+            label: warnings == 1 ? '1 warning' : '$warnings warnings',
+            tone: PorcelainTone.warning,
+            icon: EventCopy.checkStatusIcon(PreflightStatus.warning),
+          ),
+        if (blockers > 0)
+          StatusBadge(
+            label: '$blockers blocking',
+            tone: PorcelainTone.danger,
+            icon: EventCopy.checkStatusIcon(PreflightStatus.blocked),
+          ),
+      ],
     );
   }
 }

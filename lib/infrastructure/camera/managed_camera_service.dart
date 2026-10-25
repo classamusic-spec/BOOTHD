@@ -99,7 +99,7 @@ final class ManagedCameraService implements CameraService {
       RegExp('[^0-9]'),
       '',
     );
-    final random = Random.secure().nextInt(1 << 32).toRadixString(16);
+    final random = Random.secure().nextInt(0x100000000).toRadixString(16);
     return '$now-${random.padLeft(8, '0')}';
   }
 

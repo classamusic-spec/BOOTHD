@@ -441,6 +441,24 @@ abstract final class EventRules {
     return issues;
   }
 
+  /// The photos per session every template of [event] is made for, when
+  /// they all agree, are in [library] and the count is allowed; null
+  /// otherwise. The event's photo count can simply follow it (UX-P1).
+  static int? sharedSlotCount(
+    BoothEvent event,
+    Map<String, TemplateRevisionSummary> library,
+  ) {
+    int? count;
+    for (final id in event.templates.revisionIds) {
+      final slots = library[id]?.photoSlotCount;
+      if (slots == null || (count != null && slots != count)) return null;
+      count = slots;
+    }
+    return count != null && EventLimits.shotCount.contains(count)
+        ? count
+        : null;
+  }
+
   /// Everything that matters before activating [event].
   static List<EventIssue> activationIssues(
     BoothEvent event,

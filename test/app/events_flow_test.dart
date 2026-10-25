@@ -36,7 +36,7 @@ Future<void> tapText(WidgetTester tester, String text) async {
   await tester.pumpAndSettle();
 }
 
-Future<void> tapLabel(WidgetTester tester, String label) async {
+Future<void> tapLabel(WidgetTester tester, Pattern label) async {
   final target = find.bySemanticsLabel(label).last;
   await tester.ensureVisible(target);
   await tester.pumpAndSettle();
@@ -84,34 +84,30 @@ void main() {
     );
 
     await tapText(tester, 'New event');
-    expect(find.byType(EventEditorScreen), findsOneWidget);
-    expect(find.text('Not saved yet'), findsOneWidget);
+    // New events are made in three steps (UX-P1); the design sets the
+    // photos per guest.
     await tester.enterText(find.byType(TextField).first, 'Garden party');
     await tester.pumpAndSettle();
+    await tapText(tester, 'Next: choose the look');
+    await tapText(tester, 'Vintage Light Wood');
+    await tapLabel(tester, RegExp(r'^Two-up classic, 2 photos'));
+    await tapText(tester, 'Next: review');
+    await tapText(tester, 'Save as draft');
+    expect(find.byType(EventEditorScreen), findsOneWidget);
+    expect(find.text('“Garden party” is saved as a draft.'), findsOneWidget);
 
-    // A new event is built step by step (EP07).
-    await tapText(tester, '5. Camera');
+    // Everything else is set in the editor's sections.
+    await tapText(tester, 'Camera');
     await tapText(tester, 'Rear camera');
     await tapText(tester, 'Mirror saved photos');
     await tapText(tester, 'Landscape');
-    await tapLabel(tester, 'Fewer photos');
     await tapLabel(tester, 'Longer countdown');
     await tapLabel(tester, 'Longer countdown');
     await tapText(tester, 'Whole session');
     await tapLabel(tester, 'More retakes');
-
-    await tapText(tester, '4. Templates');
-    await tester.ensureVisible(buttonNear('Two-up classic', 'Add'));
-    await tester.tap(buttonNear('Two-up classic', 'Add'));
-    await tester.pumpAndSettle();
-    expect(find.text('Default'), findsOneWidget);
-
-    await tapText(tester, '2. Experience');
-    await tapText(tester, 'Vintage Light Wood');
     await tapText(tester, 'Save');
     expect(find.text('Saved.'), findsOneWidget);
 
-    // Once saved, the editor's sections: privacy is set there.
     await tapText(tester, 'Privacy');
     await tapText(tester, 'For a set time');
     await tapText(tester, 'Save');
@@ -266,7 +262,13 @@ void main() {
   testWidgets('invalid settings cannot be saved; a draft without a fitting '
       'template cannot be activated', (tester) async {
     useViewport(tester, TabletViewport.ipadLandscape);
-    await pumpApp(tester, location: RoutePaths.newEvent, seed: seedTemplates);
+    await pumpApp(
+      tester,
+      location: RoutePaths.event(SeedIds.draft),
+      seed: (db) => seedEvents(db),
+    );
+    await tester.enterText(find.byType(TextField).first, '');
+    await tester.pumpAndSettle();
     expect(find.text('Fix before saving'), findsOneWidget);
     expect(find.text('Give the event a title.'), findsWidgets);
     expect(button(tester, 'Save').onPressed, isNull);
@@ -285,19 +287,18 @@ void main() {
       'First fix what is listed at the top.',
     );
 
-    // Three photo slots, but the event takes three photos only after a
-    // change: until then the mismatch blocks activation.
+    // The photos per session follow the chosen design (UX-P1).
     await tapText(tester, 'Templates');
     await tester.ensureVisible(buttonNear('Three-up square', 'Add'));
     await tester.tap(buttonNear('Three-up square', 'Add'));
     await tester.pumpAndSettle();
     expect(
-      find.text(
-        '“Three-up square” has 3 photo slots but the event takes 3 photos '
-        'per session.',
-      ),
+      find.textContaining('photo slots but the event takes'),
       findsNothing,
     );
+
+    // Changed by hand, the mismatch blocks activation until fixed; one tap
+    // puts the photos back to what the design needs.
     await tapText(tester, 'Camera');
     await tapLabel(tester, 'Fewer photos');
     expect(
@@ -306,6 +307,11 @@ void main() {
         'per session.',
       ),
       findsOneWidget,
+    );
+    await tapText(tester, 'Use 3 photos');
+    expect(
+      find.textContaining('photo slots but the event takes'),
+      findsNothing,
     );
   });
 
@@ -385,6 +391,11 @@ void main() {
       await tapText(tester, 'Start Booth');
       expect(find.byType(PreflightScreen), findsOneWidget);
       expect(find.text('Ready to start'), findsOneWidget);
+      // The guest screens show no way out, so the way out is said here.
+      expect(
+        find.textContaining('press and hold the top-right corner'),
+        findsOneWidget,
+      );
       await tapText(tester, 'Start Booth Mode');
       expect(find.byType(BoothScreen), findsOneWidget);
       expect(booth.accessState.phase, AccessPhase.booth);
@@ -400,6 +411,7 @@ void main() {
       final booth = await pumpApp(
         tester,
         location: RoutePaths.settingsSection('camera'),
+        recordCreatedTemplates: true,
       );
       await tapText(tester, 'Rear camera');
       await tapText(tester, 'Mirror saved photos');
@@ -419,7 +431,11 @@ void main() {
       booth.router.go(RoutePaths.newEvent);
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField).first, 'Defaults');
-      await tapText(tester, 'Save');
+      await tester.pumpAndSettle();
+      await tapText(tester, 'Next: choose the look');
+      await tapText(tester, 'Next: review');
+      expect(find.text('Rear camera · landscape screens'), findsOneWidget);
+      await tapText(tester, 'Save as draft');
       final saved = (await storedEvents(booth)).single;
       expect(saved.capture.lens, CameraLens.back);
       expect(saved.capture.mirrorOutput, isTrue);

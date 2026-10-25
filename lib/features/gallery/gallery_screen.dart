@@ -15,6 +15,7 @@ import '../../domain/models/booth_event.dart';
 import '../../shared/formatters/date_format.dart';
 import '../../shared/gallery/gallery_actions.dart';
 import '../../shared/gallery/gallery_copy.dart';
+import '../../shared/gallery/gallery_thumbnail.dart';
 import '../../shared/widgets/empty_state.dart';
 import '../../shared/widgets/page_header.dart';
 import '../../shared/widgets/porcelain_button.dart';
@@ -26,7 +27,6 @@ import '../../shared/widgets/status_badge.dart';
 import '../../shared/widgets/studio_page.dart';
 import '../../shared/widgets/tone.dart';
 import 'export_sheet.dart';
-import 'gallery_thumbnail.dart';
 import 'session_tile.dart';
 
 /// The operator gallery (S13, P-11): an event at a time, its sessions as a

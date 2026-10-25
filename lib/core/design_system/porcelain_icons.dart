@@ -159,4 +159,15 @@ abstract final class PorcelainIcons {
   static const IconData countdown = Symbols.timer_rounded;
   static const IconData words = Symbols.chat_bubble_rounded;
   static const IconData restartPreview = Symbols.restart_alt_rounded;
+
+  // Occasions in the new-event flow (UX-P1).
+  static const IconData wedding = Symbols.favorite_rounded;
+  static const IconData birthday = Symbols.cake_rounded;
+  static const IconData kidsParty = Symbols.toys_rounded;
+  static const IconData gala = Symbols.wine_bar_rounded;
+  static const IconData garden = Symbols.local_florist_rounded;
+  static const IconData retro = Symbols.camera_roll_rounded;
+  static const IconData gameNight = Symbols.sports_esports_rounded;
+  static const IconData rustic = Symbols.forest_rounded;
+  static const IconData ready = Symbols.verified_rounded;
 }

@@ -305,6 +305,7 @@ class PorcelainIconButton extends StatelessWidget {
     required this.onPressed,
     this.disabledReason,
     this.size = PorcelainSize.minTouchTarget,
+    this.selected,
   });
 
   final IconData icon;
@@ -313,14 +314,21 @@ class PorcelainIconButton extends StatelessWidget {
   final String? disabledReason;
   final double size;
 
+  /// For a button that shows where the operator is (e.g. a section in a
+  /// top bar): when true, a gold edge and a filled gold icon. Null for an
+  /// ordinary button.
+  final bool? selected;
+
   @override
   Widget build(BuildContext context) {
     final colors = context.porcelain.colors;
     final motion = PorcelainMotion.of(context);
     final reason = disabledReason;
+    final on = selected ?? false;
     return Pressable(
       onPressed: onPressed,
       semanticLabel: semanticLabel,
+      selected: selected,
       disabledReason: reason,
       onDisabledTap: reason == null
           ? null
@@ -348,7 +356,8 @@ class PorcelainIconButton extends StatelessWidget {
             : TactileLook(
                 fillTop: colors.raised,
                 fillBottom: colors.raisedShade,
-                border: colors.outline,
+                border: on ? colors.primaryEdge : colors.outline,
+                borderWidth: on ? 1.5 : 1,
                 elevation: state.hovered || state.focused
                     ? PorcelainDepth.lifted
                     : PorcelainDepth.raised,
@@ -365,7 +374,12 @@ class PorcelainIconButton extends StatelessWidget {
               child: Icon(
                 icon,
                 size: PorcelainSize.icon,
-                color: enabled ? colors.ink : colors.inkDisabled,
+                fill: on ? 1 : 0,
+                color: !enabled
+                    ? colors.inkDisabled
+                    : on
+                    ? colors.accentIcon
+                    : colors.ink,
               ),
             ),
           ),

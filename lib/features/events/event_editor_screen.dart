@@ -72,64 +72,6 @@ enum EventEditorTab {
   };
 }
 
-/// The Event Builder's steps (EP07): a new event, guided in the order the
-/// guest experience is designed. Every step edits the same draft, which
-/// the header's Save can store at any point.
-enum EventBuilderStep {
-  details('Event details', PorcelainIcons.events, 'The name, date and status.'),
-  experience(
-    'Experience',
-    PorcelainIcons.appearance,
-    'How every guest screen looks, sounds and speaks.',
-  ),
-  customize(
-    'Customise',
-    PorcelainIcons.inspector,
-    'Words, colour, countdown, motion and sound for this event.',
-  ),
-  templates(
-    'Templates',
-    PorcelainIcons.templates,
-    'The photo designs guests get. Designs that suit the experience come '
-        'first.',
-  ),
-  camera(
-    'Camera',
-    PorcelainIcons.camera,
-    'The camera, the number of photos and the countdown.',
-  ),
-  delivery(
-    'Texting',
-    PorcelainIcons.textMessage,
-    'Whether guests may text themselves their photo.',
-  ),
-  preview(
-    'Preview',
-    PorcelainIcons.preview,
-    'The whole guest journey with a sample camera.',
-  ),
-  launch(
-    'Check and launch',
-    PorcelainIcons.preflight,
-    'Save, then run the launch checks on this tablet.',
-  );
-
-  const EventBuilderStep(this.label, this.icon, this.description);
-
-  final String label;
-  final IconData icon;
-  final String description;
-
-  /// Where the editor opens once the new event is saved.
-  EventEditorTab get tab => switch (this) {
-    details || launch || preview => EventEditorTab.general,
-    experience || customize => EventEditorTab.guest,
-    templates => EventEditorTab.templates,
-    camera => EventEditorTab.capture,
-    delivery => EventEditorTab.delivery,
-  };
-}
-
 /// The event editor (S04): seven sections, saved together and atomically.
 /// Unsaved changes are guarded; archived events are read-only until
 /// reopened. Validation is live: problems that stop saving, and those that
@@ -137,16 +79,12 @@ enum EventBuilderStep {
 class EventEditorScreen extends ConsumerStatefulWidget {
   const EventEditorScreen({
     super.key,
-    required String this.eventId,
+    required this.eventId,
     this.tab = EventEditorTab.general,
   });
 
-  /// A new event, saved for the first time with Save.
-  const EventEditorScreen.create({super.key})
-    : eventId = null,
-      tab = EventEditorTab.general;
-
-  final String? eventId;
+  /// New events are made in the new-event flow (UX-P1); this edits them.
+  final String eventId;
   final EventEditorTab tab;
 
   @override
@@ -155,17 +93,10 @@ class EventEditorScreen extends ConsumerStatefulWidget {
 
 class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
   late EventEditorTab _tab = widget.tab;
-  var _step = EventBuilderStep.details;
-
-  /// A new event is built step by step until it is first saved.
-  bool get _building => widget.eventId == null && _saved == null;
   BoothEvent? _draft;
 
-  /// What is stored; null until a new event is first saved.
+  /// What is stored; null until the event is loaded.
   BoothEvent? _saved;
-
-  /// The draft as first opened, to tell whether a new event was touched.
-  BoothEvent? _initial;
   var _library = <String, TemplateRevisionSummary>{};
   var _saving = false;
   var _loadFailed = false;
@@ -196,15 +127,9 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
 
   Future<void> _load() async {
     try {
-      final id = widget.eventId;
-      final BoothEvent? event;
-      if (id == null) {
-        // A one-off read: an unlistened stream provider would stay paused.
-        final booth = await ref.read(boothSettingsRepositoryProvider).load();
-        event = ref.read(eventServiceProvider).newDraft(booth.profile);
-      } else {
-        event = await ref.read(eventRepositoryProvider).findById(id);
-      }
+      final event = await ref
+          .read(eventRepositoryProvider)
+          .findById(widget.eventId);
       if (event == null) {
         if (mounted) setState(() => _notFound = true);
         return;
@@ -215,8 +140,7 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
       if (!mounted) return;
       setState(() {
         _draft = event;
-        _initial = event;
-        _saved = id == null ? null : event;
+        _saved = event;
         _library = {..._library, ...referenced};
       });
     } on Exception {
@@ -226,9 +150,9 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
 
   bool get _dirty {
     final draft = _draft;
-    if (draft == null) return false;
-    final base = _saved ?? _initial!;
-    return !draft.sameContentAs(base);
+    final saved = _saved;
+    if (draft == null || saved == null) return false;
+    return !draft.sameContentAs(saved);
   }
 
   List<EventIssue> get _structural => EventRules.structuralIssues(
@@ -244,28 +168,17 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
       ? EventCopy.archivedReadOnly
       : null;
 
-  Future<void> _save({bool launch = false}) async {
+  Future<void> _save() async {
     setState(() => _saving = true);
     try {
       final saved = await ref.read(eventServiceProvider).save(_draft!);
       if (!mounted) return;
-      final created = _saved == null;
       setState(() {
         _saved = saved;
         _draft = saved;
         _saving = false;
       });
       PorcelainToast.show(context, 'Saved.', tone: PorcelainTone.success);
-      if (created) {
-        final tab = widget.eventId == null ? _step.tab : _tab;
-        unawaited(
-          GoRouter.of(context).replace<void>(
-            launch
-                ? RoutePaths.preflight(saved.id)
-                : RoutePaths.event(saved.id, tab: tab.name),
-          ),
-        );
-      }
     } on EventRuleException catch (error) {
       if (!mounted) return;
       setState(() => _saving = false);
@@ -343,7 +256,7 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
         if (didPop) return;
         if (await _confirmDiscard() && mounted) {
           setState(() {
-            _draft = _saved ?? _initial;
+            _draft = _saved;
           });
           _leave();
         }
@@ -403,8 +316,6 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
                         padding: EdgeInsets.all(PorcelainSpace.xxl),
                         child: SkeletonList(semanticLabel: 'Loading the event'),
                       )
-                    : _building
-                    ? _builderBody(theme, draft)
                     : _body(theme, draft),
               ),
             ],
@@ -464,6 +375,14 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
                     issueText: _issueText,
                     current: _tab,
                     onOpen: (tab) => setState(() => _tab = tab),
+                    sharedSlots: _readOnlyReason == null
+                        ? EventRules.sharedSlotCount(draft, _library)
+                        : null,
+                    onUsePhotos: (count) => setState(
+                      () => _draft = draft.copyWith(
+                        capture: draft.capture.copyWith(shotCount: count),
+                      ),
+                    ),
                   ),
                   content,
                 ],
@@ -528,227 +447,6 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
       },
     );
   }
-
-  Widget _builderBody(PorcelainTheme theme, BoothEvent draft) {
-    final tabContext = EditorTabContext(
-      event: draft,
-      library: _library,
-      readOnlyReason: null,
-      onChanged: (event) => setState(() => _draft = event),
-    );
-    final boothTheme = ref.watch(appearanceProvider).profile;
-    final step = _step;
-    final index = step.index;
-    final steps = EventBuilderStep.values;
-    final content = KeyedSubtree(
-      key: ValueKey(step),
-      child: switch (step) {
-        EventBuilderStep.details => GeneralTab(
-          tab: tabContext,
-          status: _StatusCard(
-            saved: _saved,
-            dirty: _dirty,
-            issues: _issues,
-            issueText: _issueText,
-            onChanged: _adopt,
-          ),
-        ),
-        EventBuilderStep.experience => GuestTab(
-          tab: tabContext,
-          boothTheme: boothTheme,
-          section: GuestTabSection.choose,
-        ),
-        EventBuilderStep.customize => GuestTab(
-          tab: tabContext,
-          boothTheme: boothTheme,
-          section: GuestTabSection.customize,
-        ),
-        EventBuilderStep.templates => TemplatesTab(tab: tabContext),
-        EventBuilderStep.camera => CaptureTab(tab: tabContext),
-        EventBuilderStep.delivery => DeliveryTab(tab: tabContext),
-        EventBuilderStep.preview => EditorCard(
-          title: 'Preview the guest journey',
-          subtitle:
-              'Runs the real guest screens with a sample camera, in '
-              'portrait or landscape: welcome, camera, countdown, review, '
-              'texting and the finished photo. Nothing is saved or sent.',
-          children: [
-            Center(
-              child: PorcelainButton(
-                label: 'Preview the whole guest journey',
-                icon: PorcelainIcons.preview,
-                variant: PorcelainButtonVariant.primary,
-                onPressed: () =>
-                    context.push(RoutePaths.experiencePreview, extra: draft),
-              ),
-            ),
-          ],
-        ),
-        EventBuilderStep.launch => EditorCard(
-          title: 'Save and check',
-          subtitle:
-              'Saves the event, then the launch checklist tests the camera, '
-              'storage and templates on this tablet before you activate it. '
-              'Output and privacy start from the booth defaults; change them '
-              'in the editor at any time.',
-          children: [
-            Center(
-              child: PorcelainButton(
-                label: 'Save and check',
-                icon: PorcelainIcons.preflight,
-                variant: PorcelainButtonVariant.primary,
-                busy: _saving,
-                onPressed: hasInvalid(_structural)
-                    ? null
-                    : () => _save(launch: true),
-                disabledReason: 'First fix what is listed at the top.',
-              ),
-            ),
-          ],
-        ),
-      },
-    );
-
-    final navigation = Row(
-      children: [
-        if (index > 0)
-          PorcelainButton(
-            label: 'Back',
-            icon: PorcelainIcons.back,
-            variant: PorcelainButtonVariant.secondary,
-            onPressed: () => setState(() => _step = steps[index - 1]),
-          ),
-        const Spacer(),
-        if (index < steps.length - 1)
-          PorcelainButton(
-            label: 'Next: ${steps[index + 1].label}',
-            icon: PorcelainIcons.chevron,
-            variant: PorcelainButtonVariant.primary,
-            onPressed: () => setState(() => _step = steps[index + 1]),
-          ),
-      ],
-    );
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final wide = constraints.maxWidth >= 900;
-        final margin = wide ? PorcelainSpace.xxxl : PorcelainSpace.xl;
-        final scroll = SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(margin, margin, margin, margin * 2),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 860),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Left-aligned and only as wide as their words.
-                  Align(
-                    alignment: AlignmentDirectional.centerStart,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Step ${index + 1} of ${steps.length}',
-                          style: theme.text.labelLarge.copyWith(
-                            color: theme.colors.accentText,
-                          ),
-                        ),
-                        const SizedBox(height: PorcelainSpace.xxs),
-                        Semantics(
-                          header: true,
-                          child: Text(
-                            step.label,
-                            style: theme.text.headlineSmall,
-                          ),
-                        ),
-                        const SizedBox(height: PorcelainSpace.xxs),
-                        Text(
-                          step.description,
-                          style: theme.text.bodyLarge.copyWith(
-                            color: theme.colors.inkMuted,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: PorcelainSpace.xl),
-                  _IssueSummary(
-                    issues: _issues,
-                    status: EventStatus.draft,
-                    issueText: _issueText,
-                    current: step.tab,
-                    onOpen: (tab) => setState(
-                      () => _step = steps.firstWhere((s) => s.tab == tab),
-                    ),
-                  ),
-                  content,
-                  const SizedBox(height: PorcelainSpace.xl),
-                  navigation,
-                ],
-              ),
-            ),
-          ),
-        );
-        if (wide) {
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SizedBox(
-                width: 264,
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(PorcelainSpace.lg),
-                  child: Column(
-                    children: [
-                      for (final candidate in steps)
-                        Padding(
-                          padding: const EdgeInsets.only(
-                            bottom: PorcelainSpace.xxs,
-                          ),
-                          child: PorcelainListRow(
-                            icon: candidate.icon,
-                            title: '${candidate.index + 1}. ${candidate.label}',
-                            selected: candidate == step,
-                            showChevron: false,
-                            onPressed: () => setState(() => _step = candidate),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-              VerticalDivider(width: 1, color: theme.colors.divider),
-              Expanded(child: scroll),
-            ],
-          );
-        }
-        return Column(
-          children: [
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.fromLTRB(
-                PorcelainSpace.xl,
-                PorcelainSpace.md,
-                PorcelainSpace.xl,
-                0,
-              ),
-              child: PorcelainSegmentedControl<EventBuilderStep>(
-                selected: step,
-                onChanged: (value) => setState(() => _step = value),
-                segments: [
-                  for (final candidate in steps)
-                    PorcelainSegment(
-                      value: candidate,
-                      label: '${candidate.index + 1}. ${candidate.label}',
-                    ),
-                ],
-              ),
-            ),
-            Expanded(child: scroll),
-          ],
-        );
-      },
-    );
-  }
 }
 
 class _Header extends StatelessWidget {
@@ -789,68 +487,79 @@ class _Header extends StatelessWidget {
             horizontal: PorcelainSpace.lg,
             vertical: PorcelainSpace.sm,
           ),
-          child: Row(
-            children: [
-              PorcelainButton(
-                label: 'Events',
-                icon: PorcelainIcons.back,
-                variant: PorcelainButtonVariant.quiet,
-                size: PorcelainButtonSize.compact,
-                onPressed: onBack,
-              ),
-              const SizedBox(width: PorcelainSpace.md),
-              Expanded(
-                child: Wrap(
-                  spacing: PorcelainSpace.sm,
-                  runSpacing: PorcelainSpace.xxs,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    Semantics(
-                      header: true,
-                      child: Text(
-                        title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.text.titleLarge,
+          child: LayoutBuilder(
+            builder: (context, constraints) => Row(
+              children: [
+                // On a narrow window the way back is its arrow alone, so the
+                // event's name keeps the room.
+                if (constraints.maxWidth < 560)
+                  PorcelainIconButton(
+                    icon: PorcelainIcons.back,
+                    semanticLabel: 'Back to Events',
+                    onPressed: onBack,
+                  )
+                else
+                  PorcelainButton(
+                    label: 'Events',
+                    icon: PorcelainIcons.back,
+                    variant: PorcelainButtonVariant.quiet,
+                    size: PorcelainButtonSize.compact,
+                    onPressed: onBack,
+                  ),
+                const SizedBox(width: PorcelainSpace.md),
+                Expanded(
+                  child: Wrap(
+                    spacing: PorcelainSpace.sm,
+                    runSpacing: PorcelainSpace.xxs,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Semantics(
+                        header: true,
+                        child: Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.text.titleLarge,
+                        ),
                       ),
-                    ),
-                    StatusBadge(
-                      label: status == null
-                          ? 'Not saved yet'
-                          : EventCopy.status(status),
-                      tone: status == null
-                          ? PorcelainTone.neutral
-                          : EventCopy.statusTone(status),
-                      icon: status == null
-                          ? PorcelainIcons.draft
-                          : EventCopy.statusIcon(status),
-                    ),
-                    if (dirty && readOnlyReason == null)
-                      const StatusBadge(
-                        label: 'Unsaved changes',
-                        tone: PorcelainTone.warning,
-                        icon: PorcelainIcons.edit,
+                      StatusBadge(
+                        label: status == null
+                            ? 'Not saved yet'
+                            : EventCopy.status(status),
+                        tone: status == null
+                            ? PorcelainTone.neutral
+                            : EventCopy.statusTone(status),
+                        icon: status == null
+                            ? PorcelainIcons.draft
+                            : EventCopy.statusIcon(status),
                       ),
-                  ],
+                      if (dirty && readOnlyReason == null)
+                        const StatusBadge(
+                          label: 'Unsaved changes',
+                          tone: PorcelainTone.warning,
+                          icon: PorcelainIcons.edit,
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: PorcelainSpace.md),
-              PorcelainButton(
-                label: 'Save',
-                icon: PorcelainIcons.check,
-                variant: PorcelainButtonVariant.primary,
-                busy: saving,
-                busyLabel: 'Saving…',
-                onPressed: readOnlyReason == null && dirty && canSave
-                    ? onSave
-                    : null,
-                disabledReason:
-                    readOnlyReason ??
-                    (!dirty
-                        ? 'Nothing has changed since the last save.'
-                        : 'Fix the problems listed first.'),
-              ),
-            ],
+                const SizedBox(width: PorcelainSpace.md),
+                PorcelainButton(
+                  label: 'Save',
+                  icon: PorcelainIcons.check,
+                  variant: PorcelainButtonVariant.primary,
+                  busy: saving,
+                  busyLabel: 'Saving…',
+                  onPressed: readOnlyReason == null && dirty && canSave
+                      ? onSave
+                      : null,
+                  disabledReason:
+                      readOnlyReason ??
+                      (!dirty
+                          ? 'Nothing has changed since the last save.'
+                          : 'Fix the problems listed first.'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -867,6 +576,8 @@ class _IssueSummary extends StatelessWidget {
     required this.issueText,
     required this.current,
     required this.onOpen,
+    required this.sharedSlots,
+    required this.onUsePhotos,
   });
 
   final List<EventIssue> issues;
@@ -874,6 +585,11 @@ class _IssueSummary extends StatelessWidget {
   final String Function(EventIssue) issueText;
   final EventEditorTab current;
   final ValueChanged<EventEditorTab> onOpen;
+
+  /// The photo count every chosen design agrees on, when they do: a
+  /// mismatch is then fixed in one tap (UX-P1).
+  final int? sharedSlots;
+  final ValueChanged<int> onUsePhotos;
 
   @override
   Widget build(BuildContext context) {
@@ -935,7 +651,18 @@ class _IssueSummary extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if (EventEditorTab.forIssue(issue) != current) ...[
+                    if ((issue, sharedSlots) case (
+                      TemplateSlotsMismatch(),
+                      final slots?,
+                    )) ...[
+                      const SizedBox(width: PorcelainSpace.sm),
+                      PorcelainButton(
+                        label: 'Use ${EventCopy.photos(slots)}',
+                        icon: PorcelainIcons.check,
+                        size: PorcelainButtonSize.compact,
+                        onPressed: () => onUsePhotos(slots),
+                      ),
+                    ] else if (EventEditorTab.forIssue(issue) != current) ...[
                       const SizedBox(width: PorcelainSpace.sm),
                       PorcelainButton(
                         label: EventEditorTab.forIssue(issue).label,

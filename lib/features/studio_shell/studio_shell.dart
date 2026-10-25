@@ -31,6 +31,11 @@ const studioDestinations = [
 /// least [PorcelainBreakpoints.sidebar] wide, a compact rail otherwise,
 /// whichever way the tablet is held. Each section keeps its own navigation
 /// stack and scroll position. Lock Studio is always one tap away.
+///
+/// A window narrower than [PorcelainBreakpoints.medium] (split screen, or
+/// a phone opening the web build) keeps its width for content: a top bar
+/// with the wordmark, Diagnostics and Lock Studio, and the other sections
+/// along the bottom (UX-P1).
 class StudioShell extends ConsumerWidget {
   const StudioShell({super.key, required this.navigationShell});
 
@@ -38,11 +43,46 @@ class StudioShell extends ConsumerWidget {
 
   static const lockLabel = 'Lock Studio';
 
+  /// The sections in the bottom bar of a narrow window; the rest are in
+  /// its top bar.
+  static const barSections = 5;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     void lock() => ref.read(accessControllerProvider.notifier).lock();
-    final extended =
-        MediaQuery.sizeOf(context).width >= PorcelainBreakpoints.sidebar;
+    void select(int index) => navigationShell.goBranch(
+      index,
+      initialLocation: index == navigationShell.currentIndex,
+    );
+    final width = MediaQuery.sizeOf(context).width;
+    if (width < PorcelainBreakpoints.medium) {
+      final current = navigationShell.currentIndex;
+      const diagnostics = barSections;
+      return Scaffold(
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _TopBar(
+              diagnosticsSelected: current == diagnostics,
+              onDiagnostics: () => select(diagnostics),
+              onLock: lock,
+            ),
+            Expanded(
+              child: StudioMaterial(
+                area: StudioMaterialArea.canvas,
+                child: navigationShell,
+              ),
+            ),
+            PorcelainBottomNavigation(
+              destinations: studioDestinations.sublist(0, barSections),
+              selectedIndex: current < barSections ? current : null,
+              onSelected: select,
+            ),
+          ],
+        ),
+      );
+    }
+    final extended = width >= PorcelainBreakpoints.sidebar;
     return Scaffold(
       body: Row(
         children: [
@@ -50,16 +90,13 @@ class StudioShell extends ConsumerWidget {
             destinations: studioDestinations,
             selectedIndex: navigationShell.currentIndex,
             extended: extended,
-            onSelected: (index) => navigationShell.goBranch(
-              index,
-              initialLocation: index == navigationShell.currentIndex,
-            ),
+            onSelected: select,
             header: PorcelainWordmark(
               title: 'Porcelain',
               subtitle: 'Photo Booth Studio',
               monogram: 'P',
               semanticLabel: '${AppInfo.name} Studio',
-              compact: !extended,
+              layout: extended ? WordmarkLayout.full : WordmarkLayout.medallion,
             ),
             footer: extended
                 ? Column(
@@ -91,6 +128,72 @@ class StudioShell extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// The top of a narrow Studio window: the wordmark, Diagnostics and Lock
+/// Studio.
+class _TopBar extends StatelessWidget {
+  const _TopBar({
+    required this.diagnosticsSelected,
+    required this.onDiagnostics,
+    required this.onLock,
+  });
+
+  final bool diagnosticsSelected;
+  final VoidCallback onDiagnostics;
+  final VoidCallback onLock;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.porcelain.colors;
+    final diagnostics = studioDestinations[StudioShell.barSections];
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.rail,
+        border: Border(bottom: BorderSide(color: colors.divider)),
+      ),
+      child: StudioMaterial(
+        area: StudioMaterialArea.rail,
+        child: SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              PorcelainSpace.md,
+              PorcelainSpace.xs,
+              PorcelainSpace.sm,
+              PorcelainSpace.xs,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: PorcelainWordmark(
+                    title: 'Porcelain',
+                    subtitle: 'Photo Booth Studio',
+                    monogram: 'P',
+                    semanticLabel: '${AppInfo.name} Studio',
+                    layout: WordmarkLayout.bar,
+                  ),
+                ),
+                const SizedBox(width: PorcelainSpace.xs),
+                PorcelainIconButton(
+                  icon: diagnostics.icon,
+                  semanticLabel: diagnostics.label,
+                  selected: diagnosticsSelected,
+                  onPressed: onDiagnostics,
+                ),
+                const SizedBox(width: PorcelainSpace.xs),
+                PorcelainIconButton(
+                  icon: PorcelainIcons.lockNow,
+                  semanticLabel: StudioShell.lockLabel,
+                  onPressed: onLock,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

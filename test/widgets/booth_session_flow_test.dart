@@ -248,6 +248,45 @@ void main() {
     expect(find.byType(GuestReview), findsNothing);
   });
 
+  testWidgets("after the PIN, the operator looks through the event's photo "
+      'reel without leaving Booth Mode', (tester) async {
+    await _booth(tester);
+    Future<void> hold() async {
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byType(HiddenOperatorExit)),
+      );
+      await tester.pump(const Duration(milliseconds: 3100));
+      await gesture.up();
+      await _frames(tester);
+    }
+
+    // Before any guest, and before the PIN, there is no reel.
+    await hold();
+    expect(find.text('Photo reel'), findsNothing, reason: 'PIN first');
+    await enterPin(tester, testPin);
+    await _tap(tester, 'Photo reel');
+    expect(find.text('No photos yet'), findsOneWidget);
+    await _tap(tester, 'Done');
+    await _tap(tester, 'Back to the guest screen');
+
+    await _toReview(tester);
+    await _tap(tester, BoothCopy.keepThese);
+    expect(find.byType(GuestFinished), findsOneWidget);
+    await _tap(tester, BoothCopy.nextGuest);
+
+    await hold();
+    await enterPin(tester, testPin);
+    await _tap(tester, 'Photo reel');
+    expect(find.text('1 finished photo'), findsOneWidget);
+    expect(find.textContaining('Session 1 ·'), findsOneWidget);
+    expect(find.text('1 of 1'), findsOneWidget);
+    await _tap(tester, 'Done');
+    expect(find.text('Booth unlocked'), findsOneWidget);
+    await _tap(tester, 'Back to the guest screen');
+    expect(find.bySemanticsLabel('Start'), findsOneWidget);
+    expect(find.text('Photo reel'), findsNothing);
+  });
+
   testWidgets('the operator, not the guest, sees what went wrong; leaving '
       'Booth Mode clears it', (tester) async {
     final camera = SimulatedCameraService()

@@ -71,6 +71,11 @@ class DashboardScreen extends ConsumerWidget {
     final storage = ref.watch(_storageCheckProvider);
     final camera = ref.watch(_cameraCheckProvider);
     final free = ref.watch(freeSpaceProvider).value;
+    final sessions = ref
+        .watch(galleryEventsProvider)
+        .whenData(
+          (events) => events.fold(0, (sum, event) => sum + event.sessionCount),
+        );
 
     final eventStatus = active.isNotEmpty
         ? '${active.length} active'
@@ -234,7 +239,12 @@ class DashboardScreen extends ConsumerWidget {
                 _SectionCard(
                   icon: PorcelainIcons.gallery,
                   title: 'Gallery',
-                  status: 'No sessions yet',
+                  status: switch (sessions) {
+                    AsyncData(value: 0) => 'No sessions yet',
+                    AsyncData(value: 1) => '1 session',
+                    AsyncData(:final value) => '$value sessions',
+                    _ => 'Photos from every session',
+                  },
                   onPressed: () => context.go(RoutePaths.gallery),
                 ),
                 _SectionCard(
@@ -367,10 +377,9 @@ class _Hero extends StatelessWidget {
         ),
       ],
     );
-    final buttons = Wrap(
-      spacing: PorcelainSpace.sm,
-      runSpacing: PorcelainSpace.sm,
-      children: [
+    // Side by side; one under another, full width, on a narrow card.
+    Widget buttons({required bool stacked}) {
+      final all = [
         ...actions,
         PorcelainButton(
           label: 'Guest preview',
@@ -378,8 +387,25 @@ class _Hero extends StatelessWidget {
           size: PorcelainButtonSize.large,
           onPressed: () => context.push(RoutePaths.guestPreview),
         ),
-      ],
-    );
+      ];
+      if (stacked) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (final (i, button) in all.indexed) ...[
+              if (i > 0) const SizedBox(height: PorcelainSpace.sm),
+              button,
+            ],
+          ],
+        );
+      }
+      return Wrap(
+        spacing: PorcelainSpace.sm,
+        runSpacing: PorcelainSpace.sm,
+        children: all,
+      );
+    }
+
     final reasonLine = reason == null
         ? null
         : Row(
@@ -418,7 +444,7 @@ class _Hero extends StatelessWidget {
                       children: [
                         intro(wide: true),
                         const SizedBox(height: PorcelainSpace.xl),
-                        buttons,
+                        buttons(stacked: false),
                         if (reasonLine != null) ...[
                           const SizedBox(height: PorcelainSpace.md),
                           reasonLine,
@@ -432,23 +458,32 @@ class _Hero extends StatelessWidget {
               ),
             );
           }
+          final narrow = constraints.maxWidth < 480;
           return Padding(
-            padding: const EdgeInsets.all(PorcelainSpace.xxl),
+            padding: EdgeInsets.all(
+              narrow ? PorcelainSpace.xl : PorcelainSpace.xxl,
+            ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(child: intro(wide: false)),
-                    if (constraints.maxWidth >= 480) ...[
+                    if (!narrow) ...[
                       const SizedBox(width: PorcelainSpace.xl),
                       preview,
                     ],
                   ],
                 ),
                 const SizedBox(height: PorcelainSpace.xl),
-                buttons,
+                if (narrow)
+                  buttons(stacked: true)
+                else
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: buttons(stacked: false),
+                  ),
                 if (reasonLine != null) ...[
                   const SizedBox(height: PorcelainSpace.md),
                   reasonLine,

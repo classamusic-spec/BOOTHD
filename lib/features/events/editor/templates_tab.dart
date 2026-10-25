@@ -10,6 +10,7 @@ import '../../../core/design_system/porcelain_theme.dart';
 import '../../../core/templates/template_thumbnails.dart';
 import '../../../domain/experience/experience_registry.dart';
 import '../../../domain/experience/template_recommendations.dart';
+import '../../../domain/models/booth_event.dart';
 import '../../../domain/models/event_rules.dart';
 import '../../../domain/models/template_revision_summary.dart';
 import '../../../shared/widgets/empty_state.dart';
@@ -28,6 +29,15 @@ class TemplatesTab extends ConsumerWidget {
   const TemplatesTab({super.key, required this.tab});
 
   final EditorTabContext tab;
+
+  /// [event] with its photos per session matching its designs, when they
+  /// all agree (UX-P1): choosing a design never leaves a mismatch to fix.
+  BoothEvent _followDesigns(BoothEvent event) {
+    final slots = EventRules.sharedSlotCount(event, tab.library);
+    return slots == null || slots == event.capture.shotCount
+        ? event
+        : event.copyWith(capture: event.capture.copyWith(shotCount: slots));
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -81,7 +91,9 @@ class TemplatesTab extends ConsumerWidget {
                     ),
                   ),
                   onRemove: tab.edit<void>(
-                    (_) => event.copyWith(templates: selection.remove(id)),
+                    (_) => _followDesigns(
+                      event.copyWith(templates: selection.remove(id)),
+                    ),
                   ),
                 ),
             PorcelainSwitchRow(
@@ -140,8 +152,12 @@ class TemplatesTab extends ConsumerWidget {
                         onAdd: full || tab.readOnly
                             ? null
                             : () => tab.onChanged(
-                                event.copyWith(
-                                  templates: selection.add(template.revisionId),
+                                _followDesigns(
+                                  event.copyWith(
+                                    templates: selection.add(
+                                      template.revisionId,
+                                    ),
+                                  ),
                                 ),
                               ),
                         disabledReason:
