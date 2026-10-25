@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/widgets.dart';
 
 import '../../core/design_system/porcelain_depth.dart';
@@ -22,7 +24,10 @@ final class PorcelainSegment<T> {
 /// Mutually exclusive choice: equal-width segments in an inset track with a
 /// raised porcelain thumb that slides to the selection. The selected
 /// segment also has a gilded edge and bolder label, so it never relies on
-/// fill alone.
+/// fill alone. When room is tight the segments' side padding gives way
+/// first; where even that is not enough (a narrow window, or very large
+/// text) the track keeps its natural width and scrolls sideways, so no
+/// label breaks inside a word.
 class PorcelainSegmentedControl<T> extends StatelessWidget {
   const PorcelainSegmentedControl({
     super.key,
@@ -41,6 +46,36 @@ class PorcelainSegmentedControl<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final content = _widestContent(context);
+    // The track's own padding, and a pixel for rounding.
+    const track = 9.0;
+    double widthWith(double padding) =>
+        ((content + 2 * padding) * segments.length + track).ceilToDouble();
+    final natural = widthWith(PorcelainSpace.lg);
+    final minimum = widthWith(PorcelainSpace.xs);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (!constraints.hasBoundedWidth || constraints.maxWidth >= minimum) {
+          // When room is tight, the segments' side padding gives way first.
+          final width = math.min(constraints.maxWidth, natural);
+          final padding = ((width - track) / segments.length - content) / 2;
+          return _track(
+            context,
+            padding.clamp(PorcelainSpace.xs, PorcelainSpace.lg),
+          );
+        }
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: SizedBox(
+            width: natural,
+            child: _track(context, PorcelainSpace.lg),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _track(BuildContext context, double padding) {
     final theme = context.porcelain;
     final colors = theme.colors;
     final motion = PorcelainMotion.of(context);
@@ -128,8 +163,8 @@ class PorcelainSegmentedControl<T> extends StatelessWidget {
                                 minHeight: PorcelainSize.minTouchTarget,
                               ),
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: PorcelainSpace.lg,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: padding,
                                   vertical: PorcelainSpace.xs,
                                 ),
                                 child: Row(
@@ -173,5 +208,36 @@ class PorcelainSegmentedControl<T> extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// The widest segment's icon and label, in either weight.
+  double _widestContent(BuildContext context) {
+    final text = context.porcelain.text;
+    final scaler = MediaQuery.textScalerOf(context);
+    final direction = Directionality.of(context);
+    double measure(String label, TextStyle style) {
+      final painter = TextPainter(
+        text: TextSpan(text: label, style: style),
+        textDirection: direction,
+        textScaler: scaler,
+        maxLines: 1,
+      )..layout();
+      final width = painter.width;
+      painter.dispose();
+      return width;
+    }
+
+    var widest = 0.0;
+    for (final segment in segments) {
+      final label = math.max(
+        measure(segment.label, text.labelLarge),
+        measure(segment.label, text.labelMedium.copyWith(fontSize: 16)),
+      );
+      final icon = segment.icon == null
+          ? 0.0
+          : PorcelainSize.iconSmall + PorcelainSpace.xs;
+      widest = math.max(widest, icon + label);
+    }
+    return widest;
   }
 }

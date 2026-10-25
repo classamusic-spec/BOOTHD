@@ -487,68 +487,79 @@ class _Header extends StatelessWidget {
             horizontal: PorcelainSpace.lg,
             vertical: PorcelainSpace.sm,
           ),
-          child: Row(
-            children: [
-              PorcelainButton(
-                label: 'Events',
-                icon: PorcelainIcons.back,
-                variant: PorcelainButtonVariant.quiet,
-                size: PorcelainButtonSize.compact,
-                onPressed: onBack,
-              ),
-              const SizedBox(width: PorcelainSpace.md),
-              Expanded(
-                child: Wrap(
-                  spacing: PorcelainSpace.sm,
-                  runSpacing: PorcelainSpace.xxs,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    Semantics(
-                      header: true,
-                      child: Text(
-                        title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.text.titleLarge,
+          child: LayoutBuilder(
+            builder: (context, constraints) => Row(
+              children: [
+                // On a narrow window the way back is its arrow alone, so the
+                // event's name keeps the room.
+                if (constraints.maxWidth < 560)
+                  PorcelainIconButton(
+                    icon: PorcelainIcons.back,
+                    semanticLabel: 'Back to Events',
+                    onPressed: onBack,
+                  )
+                else
+                  PorcelainButton(
+                    label: 'Events',
+                    icon: PorcelainIcons.back,
+                    variant: PorcelainButtonVariant.quiet,
+                    size: PorcelainButtonSize.compact,
+                    onPressed: onBack,
+                  ),
+                const SizedBox(width: PorcelainSpace.md),
+                Expanded(
+                  child: Wrap(
+                    spacing: PorcelainSpace.sm,
+                    runSpacing: PorcelainSpace.xxs,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Semantics(
+                        header: true,
+                        child: Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.text.titleLarge,
+                        ),
                       ),
-                    ),
-                    StatusBadge(
-                      label: status == null
-                          ? 'Not saved yet'
-                          : EventCopy.status(status),
-                      tone: status == null
-                          ? PorcelainTone.neutral
-                          : EventCopy.statusTone(status),
-                      icon: status == null
-                          ? PorcelainIcons.draft
-                          : EventCopy.statusIcon(status),
-                    ),
-                    if (dirty && readOnlyReason == null)
-                      const StatusBadge(
-                        label: 'Unsaved changes',
-                        tone: PorcelainTone.warning,
-                        icon: PorcelainIcons.edit,
+                      StatusBadge(
+                        label: status == null
+                            ? 'Not saved yet'
+                            : EventCopy.status(status),
+                        tone: status == null
+                            ? PorcelainTone.neutral
+                            : EventCopy.statusTone(status),
+                        icon: status == null
+                            ? PorcelainIcons.draft
+                            : EventCopy.statusIcon(status),
                       ),
-                  ],
+                      if (dirty && readOnlyReason == null)
+                        const StatusBadge(
+                          label: 'Unsaved changes',
+                          tone: PorcelainTone.warning,
+                          icon: PorcelainIcons.edit,
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: PorcelainSpace.md),
-              PorcelainButton(
-                label: 'Save',
-                icon: PorcelainIcons.check,
-                variant: PorcelainButtonVariant.primary,
-                busy: saving,
-                busyLabel: 'Saving…',
-                onPressed: readOnlyReason == null && dirty && canSave
-                    ? onSave
-                    : null,
-                disabledReason:
-                    readOnlyReason ??
-                    (!dirty
-                        ? 'Nothing has changed since the last save.'
-                        : 'Fix the problems listed first.'),
-              ),
-            ],
+                const SizedBox(width: PorcelainSpace.md),
+                PorcelainButton(
+                  label: 'Save',
+                  icon: PorcelainIcons.check,
+                  variant: PorcelainButtonVariant.primary,
+                  busy: saving,
+                  busyLabel: 'Saving…',
+                  onPressed: readOnlyReason == null && dirty && canSave
+                      ? onSave
+                      : null,
+                  disabledReason:
+                      readOnlyReason ??
+                      (!dirty
+                          ? 'Nothing has changed since the last save.'
+                          : 'Fix the problems listed first.'),
+                ),
+              ],
+            ),
           ),
         ),
       ),

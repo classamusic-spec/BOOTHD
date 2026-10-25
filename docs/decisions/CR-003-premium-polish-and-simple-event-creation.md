@@ -53,8 +53,39 @@ fixed in one tap ("Use 3 photos"). The eight-step builder is removed.
 
 ### 2. Polish across the screens
 
-Recorded with their verification in `docs/ACCEPTANCE_EVIDENCE.md` (UX-P1);
-see the implementation log for the full list.
+Each item keeps CR-001's rules: nothing animates with reduced motion, no
+dead or pretend controls, no colour-only status, every screen still passes
+the overflow, 200% text, tap-target, label and contrast checks.
+
+1. **Narrow windows.** Below 600 dp (an Android tablet in split screen, or
+   a phone opening the web test build) the Studio drops its side rail: a
+   top bar holds the wordmark, Diagnostics and Lock Studio, and the other
+   five sections sit in a bottom bar. Page margins tighten on phone-sized
+   windows only, so panes side by side on a tablet keep theirs. Headers of
+   the event editor and launch checks show their side buttons as icons on
+   narrow windows, so titles keep the room.
+2. **Entrances.** Studio pages bring their header and sections in once,
+   each fading in and rising 16 dp a beat after the one before (about
+   0.44 s in all). The widget tree stays the same throughout, every
+   section is in the semantics tree and tappable from the first frame,
+   and with reduced motion nothing moves.
+3. **Event cards** open with a cover in the event's guest look (its
+   canvas, colours and decorations) with the event's designs laid on it
+   like prints, the default on top, or the start medallion when it has
+   none.
+4. **Launch checks** carry a seal (gilded check when nothing blocks the
+   launch, a lock otherwise) and the counts of passed, warning and
+   blocking checks; the check groups enter one after another.
+5. **Dashboard.** The Gallery card counts the sessions actually stored (it
+   said "No sessions yet" whatever the gallery held); on a narrow card the
+   hero's buttons stack full width.
+6. **Segmented controls** give up side padding when room is tight, then
+   keep their width and scroll sideways rather than break a label inside
+   a word.
+7. **Guest camera.** While the camera opens, the viewfinder shows a still
+   lens mark (the plaque below keeps the one moving sign of progress), and
+   the plaque's messages change with a fade-through, so two messages never
+   show on top of each other.
 
 ## Consequences
 
@@ -69,5 +100,7 @@ see the implementation log for the full list.
 
 ## Verification
 
-AC-UXP-01 to AC-UXP-04 for the new-event flow; further UX-P1 criteria are
-listed in `docs/ACCEPTANCE_EVIDENCE.md`.
+AC-UXP-01 to AC-UXP-04 for the new-event flow and AC-UXP-05 to AC-UXP-10
+for the polish, with commands and results, in
+`docs/ACCEPTANCE_EVIDENCE.md` (UX-P1). Device runs on an iPad and an
+Android tablet are owed, as for every Studio change.

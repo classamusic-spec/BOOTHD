@@ -3,6 +3,100 @@
 Newest milestone first. Each entry: scope, plan, changes, commands and exit
 codes, platform results, spec issues raised, risks, next step.
 
+## UX-P1: premium polish and a three-step new event (CR-003)
+
+- Date: 2026-10-25 (UTC)
+- Authorised by: the owner's directive "ADD AAA Premium polish to the
+  UI/UX across all screens, Simplify the event creation mode", recorded
+  as CR-003: an owner-directed track like EP and W, outside M00 to M12.
+  It changes no locked product decision. Work stops here for the owner's
+  review.
+
+### Plan (as executed)
+
+1. Survey every Studio and guest screen at the tablet sizes and in a
+   phone-sized window of the web test build.
+2. Replace the eight-step Event Builder with a three-step flow; keep the
+   editor, and let its photos per session follow the designs.
+3. Polish: narrow-window Studio, page entrances, event covers, the launch
+   checks' seal and tally, the dashboard's gallery count, segmented
+   controls, the guest camera while it opens.
+4. Tests, goldens and documents; the full checks; push; redeploy the web
+   test build.
+
+### Changes
+
+- New event (S04-Q): `lib/features/events/create/quick_event_screen.dart`
+  and `quick_event_designs.dart`; the route `/studio/events/new` opens it.
+  The builder is removed from `event_editor_screen.dart`; the editor's
+  issue summary offers "Use N photos" for a mismatch, and adding or
+  removing designs makes the photos per session follow them when they
+  agree (`EventRules.sharedSlotCount`, `templates_tab.dart`).
+  `ExperienceCard` moves to `lib/features/events/editor/experience_card.dart`;
+  `TemplateRecommendations.scoreTags` scores ready-made designs.
+- Studio shell: `PorcelainBottomNavigation`, `WordmarkLayout.bar`, a
+  selected state for `PorcelainIconButton`; `StudioShell` switches below
+  600 dp.
+- `lib/shared/widgets/porcelain_entrance.dart` (`PorcelainEntrance`,
+  `EntranceItem`, `EntranceSliver`) used by `StudioPage`,
+  `StudioSliverPage` and the launch checks; `PorcelainMotion.stagger`.
+- `lib/features/events/event_cover.dart` on every event card.
+- Launch checks: seal, tally, narrow header; event editor narrow header.
+- Dashboard: the Gallery card reads `galleryEventsProvider`; narrow hero
+  buttons stack.
+- `PorcelainSegmentedControl` measures its labels: padding gives way,
+  then the track scrolls.
+- Guest camera: still lens mark while opening; fade-through plaque.
+- Tests: `quick_event_test.dart`, `quick_event_designs_test.dart`,
+  `narrow_studio_test.dart`, `polish_test.dart`;
+  `event_builder_test.dart` becomes `experience_tab_test.dart` (the
+  builder's tests go with it); `events_flow_test.dart` creates events
+  through the new flow. The screen catalog gains the three steps and can
+  show any screen at any window size; the harness can record created
+  templates in the test database. Goldens: 8 builder goldens removed, 6
+  new-event goldens added, 47 changed (covers, launch checks, segmented
+  controls, entrance-related pixel noise), every change reviewed.
+- Documents: CR-003, S04-Q and notes on S02, S03, S05 and the shell in
+  `UX_SCREEN_SPECS.md`, evidence AC-UXP-01 to AC-UXP-10.
+
+### Problems met and how they were handled
+
+- The pixel-contrast guideline samples a text's whole paint bounds, so a
+  line half hidden under the first draft's fixed action bar measured
+  1.18:1 (the bar against the card) at Android landscape. The screen was
+  not exempted: nothing scrolls under a bar any more. The step's actions
+  sit in a side pane on wide windows and follow the content on narrow
+  ones.
+- Creating from a ready-made design failed in a widget test: the harness
+  kept templates in memory while the database enforces the event's
+  template foreign key. The harness now records created templates in the
+  test database when a test asks (`recordCreatedTemplates`).
+- The phone margin first applied to narrow panes on a tablet (the
+  settings list), moving its header out of line with the detail pane; it
+  now depends on the window's width.
+- Segmented controls first scrolled as soon as their comfortable width
+  did not fit, clipping the gallery's filter on an iPad in portrait;
+  their padding now gives way first.
+- CI had been red since W1-W2 on one architecture rule: `main.dart`
+  imported Flutter to prepare the browser's storage. That setup moved
+  into `app/bootstrap.dart`, which now prepares the platform before it
+  builds the composition root's overrides; `main.dart` imports the app
+  layer only.
+
+### Risks carried forward
+
+- Device runs on an iPad and an Android tablet are owed for the new flow
+  and the polish (BLOCKED here: no devices).
+- The phone-sized layout serves split screen and the web demonstration;
+  phones are not a release target.
+- A failure between Create's two writes leaves an unused template in the
+  library (CR-003, Consequences).
+
+### Next
+
+- The owner's review of CR-003; the remaining web items; M11 when the
+  owner says so.
+
 ## EP09: accessibility sweep, pack goldens, device procedure, series close
 
 - Date: 2026-10-22 (UTC)

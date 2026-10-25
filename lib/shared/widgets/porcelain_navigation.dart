@@ -125,6 +125,65 @@ class PorcelainNavigation extends StatelessWidget {
   }
 }
 
+/// Studio navigation along the bottom edge, for windows too narrow for a
+/// rail: the sections side by side, icon over label, the selected one on a
+/// raised porcelain key as in the rail. [selectedIndex] is null while the
+/// Studio shows a section reached another way.
+class PorcelainBottomNavigation extends StatelessWidget {
+  const PorcelainBottomNavigation({
+    super.key,
+    required this.destinations,
+    required this.selectedIndex,
+    required this.onSelected,
+  });
+
+  final List<PorcelainDestination> destinations;
+  final int? selectedIndex;
+  final ValueChanged<int> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.porcelain.colors;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.rail,
+        border: Border(top: BorderSide(color: colors.divider)),
+      ),
+      child: StudioMaterial(
+        area: StudioMaterialArea.rail,
+        child: SafeArea(
+          top: false,
+          minimum: const EdgeInsets.only(bottom: PorcelainSpace.xxs),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: PorcelainSpace.xxs,
+              vertical: PorcelainSpace.xxs,
+            ),
+            // Labels grow with the text size, but not past what a bar of
+            // equal slots can hold.
+            child: MediaQuery.withClampedTextScaling(
+              maxScaleFactor: 1.3,
+              child: Row(
+                children: [
+                  for (var i = 0; i < destinations.length; i++)
+                    Expanded(
+                      child: _RailItem(
+                        destination: destinations[i],
+                        selected: i == selectedIndex,
+                        onPressed: () => onSelected(i),
+                        dense: true,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 TactileLook _itemLook(
   PorcelainColors colors,
   PressState state, {
@@ -235,11 +294,15 @@ class _RailItem extends StatelessWidget {
     required this.destination,
     required this.selected,
     required this.onPressed,
+    this.dense = false,
   });
 
   final PorcelainDestination destination;
   final bool selected;
   final VoidCallback onPressed;
+
+  /// In a bottom bar: a shorter key, and the label on one line.
+  final bool dense;
 
   @override
   Widget build(BuildContext context) {
@@ -251,15 +314,15 @@ class _RailItem extends StatelessWidget {
       semanticLabel: destination.label,
       selected: selected,
       builder: (context, state) => ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 72),
+        constraints: BoxConstraints(minHeight: dense ? 60 : 72),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: PorcelainSpace.xxs),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               SizedBox(
-                width: 64,
-                height: 36,
+                width: dense ? 56 : 64,
+                height: dense ? 32 : 36,
                 child: TactileSurface(
                   look: _itemLook(colors, state, selected: selected),
                   shape: TactileShape.stadium,
@@ -275,10 +338,12 @@ class _RailItem extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: PorcelainSpace.xs),
+              SizedBox(height: dense ? PorcelainSpace.xxs : PorcelainSpace.xs),
               Text(
                 destination.label,
                 textAlign: TextAlign.center,
+                maxLines: dense ? 1 : null,
+                overflow: dense ? TextOverflow.ellipsis : null,
                 style: selected
                     ? theme.text.labelMedium.copyWith(
                         fontWeight: FontWeight.w600,

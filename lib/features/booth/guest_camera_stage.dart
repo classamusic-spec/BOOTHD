@@ -337,11 +337,40 @@ class _Live extends StatelessWidget {
           // Centred, so the picture keeps its own shape: never stretched.
           Center(child: preview)
         else
-          const Center(
-            child: PorcelainSpinner(color: PorcelainViewfinder.ink, size: 40),
-          ),
+          // A still lens mark while the camera opens; the plaque below
+          // says so in words, with the one moving sign of progress.
+          const Center(child: _OpeningLens()),
         if (flash) _Flash(key: ValueKey(stage.flashKey)),
       ],
+    );
+  }
+}
+
+/// A thin ring with a camera in the viewfinder's ink, softened: the place
+/// the picture will appear.
+class _OpeningLens extends StatelessWidget {
+  const _OpeningLens();
+
+  @override
+  Widget build(BuildContext context) {
+    const ink = PorcelainViewfinder.ink;
+    return ExcludeSemantics(
+      child: Container(
+        width: 112,
+        height: 112,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: ink.withValues(alpha: 0.35), width: 1.5),
+          gradient: RadialGradient(
+            colors: [ink.withValues(alpha: 0.10), ink.withValues(alpha: 0)],
+          ),
+        ),
+        child: Icon(
+          PorcelainIcons.camera,
+          size: 40,
+          color: ink.withValues(alpha: 0.7),
+        ),
+      ),
     );
   }
 }
@@ -477,7 +506,14 @@ class _PlaqueContent extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 24 * unit),
       child: FittedBox(
         fit: BoxFit.scaleDown,
-        child: AnimatedSwitcher(duration: motion.standard, child: content),
+        // A fade-through: the old words leave before the new ones come,
+        // so two messages never show on top of each other.
+        child: AnimatedSwitcher(
+          duration: motion.emphasized,
+          switchInCurve: const Interval(0.5, 1, curve: PorcelainMotion.enter),
+          switchOutCurve: const Interval(0.5, 1, curve: PorcelainMotion.exit),
+          child: content,
+        ),
       ),
     );
   }

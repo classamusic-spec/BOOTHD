@@ -1,9 +1,12 @@
 import 'package:flutter/widgets.dart';
 
 import '../../core/design_system/porcelain_metrics.dart';
+import 'porcelain_entrance.dart';
 
 /// Scrolling page body for Studio sections: margins that grow with the
 /// window, a maximum content width and even spacing between [children].
+/// The header and sections enter one after another when the page first
+/// appears ([PorcelainEntrance]).
 class StudioPage extends StatelessWidget {
   const StudioPage({
     super.key,
@@ -16,8 +19,13 @@ class StudioPage extends StatelessWidget {
   final List<Widget> children;
   final double spacing;
 
-  /// Horizontal page margin for a content area [width] wide.
-  static double marginFor(double width) => width >= 1000
+  /// Page margin for a content area [width] wide in a [window] that wide:
+  /// the narrowest on a phone-sized window, so panes side by side on a
+  /// tablet keep the same margins.
+  static double marginFor(double width, {required double window}) =>
+      window < 440
+      ? PorcelainSpace.md
+      : width >= 1000
       ? PorcelainSpace.huge
       : width >= 700
       ? PorcelainSpace.xxxl
@@ -27,7 +35,10 @@ class StudioPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final margin = marginFor(constraints.maxWidth);
+        final margin = marginFor(
+          constraints.maxWidth,
+          window: MediaQuery.sizeOf(context).width,
+        );
         return SafeArea(
           left: false,
           child: SingleChildScrollView(
@@ -42,15 +53,17 @@ class StudioPage extends StatelessWidget {
                 constraints: const BoxConstraints(
                   maxWidth: PorcelainBreakpoints.maxContentWidth,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    header,
-                    for (final child in children) ...[
-                      SizedBox(height: spacing),
-                      child,
+                child: PorcelainEntrance(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      EntranceItem(index: 0, child: header),
+                      for (final (i, child) in children.indexed) ...[
+                        SizedBox(height: spacing),
+                        EntranceItem(index: i + 1, child: child),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -82,7 +95,10 @@ class StudioSliverPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final margin = StudioPage.marginFor(constraints.maxWidth);
+        final margin = StudioPage.marginFor(
+          constraints.maxWidth,
+          window: MediaQuery.sizeOf(context).width,
+        );
         final side =
             constraints.maxWidth - 2 * margin >
                 PorcelainBreakpoints.maxContentWidth
@@ -90,22 +106,26 @@ class StudioSliverPage extends StatelessWidget {
             : margin;
         return SafeArea(
           left: false,
-          child: CustomScrollView(
-            controller: controller,
-            slivers: [
-              SliverPadding(
-                padding: EdgeInsets.fromLTRB(side, margin, side, 0),
-                sliver: SliverToBoxAdapter(child: header),
-              ),
-              for (final sliver in slivers)
+          child: PorcelainEntrance(
+            child: CustomScrollView(
+              controller: controller,
+              slivers: [
                 SliverPadding(
-                  padding: EdgeInsets.fromLTRB(side, spacing, side, 0),
-                  sliver: sliver,
+                  padding: EdgeInsets.fromLTRB(side, margin, side, 0),
+                  sliver: SliverToBoxAdapter(
+                    child: EntranceItem(index: 0, child: header),
+                  ),
                 ),
-              SliverToBoxAdapter(
-                child: SizedBox(height: margin + PorcelainSpace.md),
-              ),
-            ],
+                for (final (i, sliver) in slivers.indexed)
+                  SliverPadding(
+                    padding: EdgeInsets.fromLTRB(side, spacing, side, 0),
+                    sliver: EntranceSliver(index: i + 1, sliver: sliver),
+                  ),
+                SliverToBoxAdapter(
+                  child: SizedBox(height: margin + PorcelainSpace.md),
+                ),
+              ],
+            ),
           ),
         );
       },

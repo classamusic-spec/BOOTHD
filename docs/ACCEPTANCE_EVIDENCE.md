@@ -1247,3 +1247,51 @@ iPad: BLOCKED (no Mac, no iPad; tool/build_ios.sh exits 3 on Linux); Android: re
 - The ElevenLabs sound files; the 16 original placeholders ship until
   then (`docs/experience_packs/SOUND_SCRIPT_ELEVENLABS.md`).
 - Originality sign-off; the optional event logo (not built).
+
+## UX-P1: premium polish and a three-step new event (CR-003)
+
+```text
+Stage: UX-P1 (CR-003) | commits 3f4c791 and the one adding this entry | build 0.1.0+1
+Host: same Linux cloud VM; Flutter 3.47.7 / Dart 3.13.5; schema v8 (unchanged); no new packages
+iPad: BLOCKED (no Mac, no iPad); Android: BLOCKED (no tablet); web test build: see row 9
+```
+
+### Commands and exit codes (2026-10-25 UTC)
+
+| # | Command | Exit | Result |
+| --- | --- | --- | --- |
+| 1 | `flutter test test/widgets/quick_event_test.dart test/features/quick_event_designs_test.dart` | 1, then 0 | 9 passed. The first runs failed to create an event from a ready-made design in the harness (templates kept in memory, the database's foreign key refused the event); the harness now records created templates in the test database when asked |
+| 2 | `flutter test test/widgets/screens_test.dart --plain-name "new event"` | 1, then 0 | 48 passed. Failures fixed on the way: unlabeled trail steps, tap targets under 48 dp, an overflow at 200% text, and text half hidden under the first draft's fixed action bar, which the contrast guideline measured at 1.18:1 (bar against card) at Android landscape. The screen was not exempted: nothing scrolls under a bar now |
+| 3 | `flutter test test/app/ test/widgets/experience_tab_test.dart test/widgets/experience_preview_test.dart test/widgets/operator_polish_test.dart test/widgets/template_library_flows_test.dart test/features/` | 0 | 87 passed (events created through the new flow) |
+| 4 | `flutter test test/widgets/narrow_studio_test.dart` | 1, then 0 | 20 passed. The first run's finder also matched the Diagnostics page heading; the test now finds the top bar's button itself |
+| 5 | `flutter test test/widgets/polish_test.dart` | 1, then 0 | 6 passed. The first run compared every segment label with an unselected label's line height; each label is now compared with its own one-line height |
+| 6 | `flutter test --update-goldens test/goldens` | 0 | 409 passed; 47 goldens changed in this commit (event covers, the launch checks' seal and tally, segmented controls, and sub-pixel differences in miniatures and shimmer phase), each reviewed against the previous image; 8 builder goldens removed and 6 new-event goldens added in 3f4c791 |
+| 7 | `flutter test test/architecture` | 1, then 0 | 353 passed. CI had been red since W1-W2 on one rule: the entrypoint imported Flutter. The platform setup moved into `app/bootstrap.dart`; `main.dart` imports the app layer only |
+| 8 | `tool/check.sh` | PENDING | |
+| 9 | Web test build and deployment | PENDING | |
+
+### Acceptance items
+
+| AC | Status | Evidence |
+| --- | --- | --- |
+| AC-UXP-01 A new event is made in three steps; Create leaves it active on its launch checks | PASS (host); devices BLOCKED | `quick_event_test.dart`: name, Kids party, a ready-made design, Create; stored active with the Kid Party Arcade pack, children allowed, on the launch checks |
+| AC-UXP-02 A ready-made design joins the library when the event is created; the photos per guest follow the design; a library design adds nothing | PASS (host) | `quick_event_test.dart` (tests 1 and 2), `quick_event_designs_test.dart` (order, blank pages and duplicates left out, unsupported photo counts left out) |
+| AC-UXP-03 A missing name is asked for only when going on; leaving with details asks first; reached steps can be revisited; every step fits a phone-sized window | PASS (host) | `quick_event_test.dart` (tests 3 to 5) |
+| AC-UXP-04 In the editor the photos per session follow the designs when they agree, and a mismatch has a one-tap fix | PASS (host) | `events_flow_test.dart` (invalid settings test: Fewer photos, then "Use 3 photos") |
+| AC-UXP-05 Below 600 dp the Studio shows a top bar and a bottom bar; every section fits, with 200% text too, with labeled targets of at least 48 dp | PASS (host); a phone browser on the web build is for the owner to try | `narrow_studio_test.dart` |
+| AC-UXP-06 Page sections enter one after another, are in the semantics tree throughout, and do not move with reduced motion | PASS (host) | `polish_test.dart` (page entrance) |
+| AC-UXP-07 Segmented controls give up padding, then scroll; no label breaks | PASS (host) | `polish_test.dart` (segmented control) |
+| AC-UXP-08 The dashboard counts the stored sessions | PASS (host) | `polish_test.dart` (dashboard): "No sessions yet" when empty, "18 sessions" with the gallery fixture |
+| AC-UXP-09 Event cards show the event's look and designs; the launch checks show a seal and the counts of passed, warning and blocking checks | PASS (host) | Events and launch-check goldens in all three operator looks (row 6); the cover is decorative and outside the semantics tree, the seal repeats the heading's words |
+| AC-UXP-10 Every screen still passes the overflow, 200% text, tap-target, label, contrast and dead-control checks | PENDING | `screens_test.dart` in row 8 |
+| Device runs (iPad, Android tablet) | BLOCKED | No devices in this environment; the steps are the S04 and S05 parts of the existing device procedures |
+
+The guest camera's still lens mark and fade-through plaque are visual
+changes without a dedicated assertion; the guest session, pack and
+reduced-motion tests run over them unchanged.
+
+### Security and privacy notes (UX-P1)
+
+- No new data is stored. The occasion chosen in the new-event flow only
+  picks a pack and is not saved. No names or sample people ship in the
+  flow (its hints are generic). Nothing new is logged.

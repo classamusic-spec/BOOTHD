@@ -180,7 +180,7 @@ const editorTabs = [
 final screens = <String, ScreenSpec>{
   'dashboard': const ScreenSpec(RoutePaths.dashboard),
   'dashboard with events': const ScreenSpec(RoutePaths.dashboard, seeded: true),
-  'events': const ScreenSpec('/studio/events', seeded: true),
+  'events': const ScreenSpec('/studio/events', seeded: true, renders: true),
   'events empty': const ScreenSpec('/studio/events'),
   for (final tab in editorTabs)
     'event $tab': ScreenSpec(
@@ -406,7 +406,11 @@ final screens = <String, ScreenSpec>{
   'events archived': ScreenSpec(
     '/studio/events',
     seeded: true,
-    then: (tester) => _tap(tester, 'Archived · 1'),
+    renders: true,
+    then: (tester) async {
+      await _tap(tester, 'Archived · 1');
+      await settleRendering(tester);
+    },
   ),
   'settings': const ScreenSpec('/studio/settings'),
   'settings appearance': const ScreenSpec(
@@ -1045,9 +1049,10 @@ Future<void> show(
   TabletViewport viewport = TabletViewport.ipadLandscape,
   AppearanceSettings appearance = const AppearanceSettings(),
   double pixelRatio = 2,
+  Size? size,
 }) async {
   final spec = screens[name] ?? boothSessionScreens[name]!;
-  useViewport(tester, viewport, pixelRatio: pixelRatio);
+  useViewport(tester, viewport, pixelRatio: pixelRatio, size: size);
   final exports = FakeExportService();
   final clock = FakeClock();
   final delivery = FakeDeliveryApi();

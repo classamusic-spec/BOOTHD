@@ -26,6 +26,7 @@ import '../../shared/widgets/studio_page.dart';
 import '../../shared/widgets/tone.dart';
 import 'event_actions.dart';
 import 'event_copy.dart';
+import 'event_cover.dart';
 
 /// Event lifecycle filters (S03, CR-001 fix 2).
 enum EventFilter {
@@ -218,9 +219,9 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
   }
 }
 
-/// One event in the list: status, when and where, what it uses, and its
-/// actions. Opening it is an explicit button, so no control nests inside
-/// another.
+/// One event in the list: a cover in its guest look with its designs,
+/// then its status, when and where, what it uses, and its actions. Opening
+/// it is an explicit button, so no control nests inside another.
 class EventCard extends ConsumerWidget {
   const EventCard({super.key, required this.event});
 
@@ -229,7 +230,6 @@ class EventCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = context.porcelain;
-    final colors = theme.colors;
     final date = event.date;
     final place = [
       if (date != null) formatCalendarDateShort(date),
@@ -237,137 +237,167 @@ class EventCard extends ConsumerWidget {
     ].join(' · ');
     final archived = event.status == EventStatus.archived;
 
+    const radius = PorcelainRadius.card;
     return PorcelainCard(
-      padding: const EdgeInsets.all(PorcelainSpace.lg),
+      padding: EdgeInsets.zero,
+      radius: radius,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          MergeSemantics(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    StatusBadge(
-                      label: EventCopy.status(event.status),
-                      tone: EventCopy.statusTone(event.status),
-                      icon: EventCopy.statusIcon(event.status),
-                    ),
-                    const Spacer(),
-                    if (_ownLook(event, ref))
-                      Icon(
-                        PorcelainIcons.appearance,
-                        size: PorcelainSize.iconSmall,
-                        color: colors.accentIcon,
-                        semanticLabel: 'Own guest look',
-                      ),
-                  ],
-                ),
-                const SizedBox(height: PorcelainSpace.md),
-                Text(
-                  event.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.text.titleLarge,
-                ),
-                const SizedBox(height: PorcelainSpace.xxs),
-                Text(
-                  place.isEmpty ? 'No date or venue yet' : place,
-                  style: theme.text.bodyMedium.copyWith(color: colors.inkMuted),
-                ),
-                const SizedBox(height: PorcelainSpace.sm),
-                Text(
-                  EventCopy.summary(event),
-                  style: theme.text.bodyMedium.copyWith(color: colors.ink),
-                ),
-              ],
+          // Inside the card's edge, rounded with it.
+          Padding(
+            padding: const EdgeInsets.fromLTRB(1, 1, 1, 0),
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(radius - 1),
+              ),
+              child: EventCover(event: event),
             ),
           ),
-          const SizedBox(height: PorcelainSpace.lg),
-          Wrap(
-            spacing: PorcelainSpace.xs,
-            runSpacing: PorcelainSpace.xs,
-            children: [
-              PorcelainButton(
-                label: archived ? 'View' : 'Edit',
-                icon: archived ? PorcelainIcons.preview : PorcelainIcons.edit,
-                size: PorcelainButtonSize.compact,
-                semanticHint: event.title,
-                onPressed: () => context.go(RoutePaths.event(event.id)),
-              ),
-              if (event.status == EventStatus.active)
-                PorcelainButton(
-                  label: 'Launch checks',
-                  icon: PorcelainIcons.preflight,
-                  size: PorcelainButtonSize.compact,
-                  semanticHint: event.title,
-                  onPressed: () => context.go(RoutePaths.preflight(event.id)),
-                ),
-              if (archived)
-                PorcelainButton(
-                  label: 'Reopen',
-                  icon: PorcelainIcons.restore,
-                  size: PorcelainButtonSize.compact,
-                  semanticHint: event.title,
-                  onPressed: () => EventActions.reopen(context, ref, event),
-                ),
-              PorcelainButton(
-                label: 'Duplicate',
-                icon: PorcelainIcons.duplicate,
-                variant: PorcelainButtonVariant.quiet,
-                size: PorcelainButtonSize.compact,
-                semanticHint: event.title,
-                onPressed: () => EventActions.duplicate(context, ref, event),
-              ),
-              if (!archived)
-                PorcelainButton(
-                  label: 'Archive',
-                  icon: PorcelainIcons.archive,
-                  variant: PorcelainButtonVariant.quiet,
-                  size: PorcelainButtonSize.compact,
-                  semanticHint: event.title,
-                  onPressed: () => EventActions.archive(context, ref, event),
-                ),
-              if (archived) ...[
-                PorcelainButton(
-                  label: 'Photos',
-                  icon: PorcelainIcons.gallery,
-                  variant: PorcelainButtonVariant.quiet,
-                  size: PorcelainButtonSize.compact,
-                  semanticHint: event.title,
-                  onPressed: () =>
-                      context.go(RoutePaths.galleryEvent(event.id)),
-                ),
-                PorcelainButton(
-                  label: 'Delete',
-                  icon: PorcelainIcons.delete,
-                  variant: PorcelainButtonVariant.danger,
-                  size: PorcelainButtonSize.compact,
-                  semanticHint: event.title,
-                  onPressed: () async {
-                    final summaries = await ref.read(
-                      galleryEventsProvider.future,
-                    );
-                    if (!context.mounted) return;
-                    await GalleryActions.deleteEvent(
-                      context,
-                      ref,
-                      eventId: event.id,
-                      title: event.title,
-                      sessionCount:
-                          summaries
-                              .where((e) => e.eventId == event.id)
-                              .firstOrNull
-                              ?.sessionCount ??
-                          0,
-                    );
-                  },
-                ),
-              ],
-            ],
+          Padding(
+            padding: const EdgeInsets.all(PorcelainSpace.lg),
+            child: _details(context, ref, theme, place, archived),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _details(
+    BuildContext context,
+    WidgetRef ref,
+    PorcelainTheme theme,
+    String place,
+    bool archived,
+  ) {
+    final colors = theme.colors;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        MergeSemantics(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  StatusBadge(
+                    label: EventCopy.status(event.status),
+                    tone: EventCopy.statusTone(event.status),
+                    icon: EventCopy.statusIcon(event.status),
+                  ),
+                  const Spacer(),
+                  if (_ownLook(event, ref))
+                    Icon(
+                      PorcelainIcons.appearance,
+                      size: PorcelainSize.iconSmall,
+                      color: colors.accentIcon,
+                      semanticLabel: 'Own guest look',
+                    ),
+                ],
+              ),
+              const SizedBox(height: PorcelainSpace.md),
+              Text(
+                event.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: theme.text.titleLarge,
+              ),
+              const SizedBox(height: PorcelainSpace.xxs),
+              Text(
+                place.isEmpty ? 'No date or venue yet' : place,
+                style: theme.text.bodyMedium.copyWith(color: colors.inkMuted),
+              ),
+              const SizedBox(height: PorcelainSpace.sm),
+              Text(
+                EventCopy.summary(event),
+                style: theme.text.bodyMedium.copyWith(color: colors.ink),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: PorcelainSpace.lg),
+        Wrap(
+          spacing: PorcelainSpace.xs,
+          runSpacing: PorcelainSpace.xs,
+          children: [
+            PorcelainButton(
+              label: archived ? 'View' : 'Edit',
+              icon: archived ? PorcelainIcons.preview : PorcelainIcons.edit,
+              size: PorcelainButtonSize.compact,
+              semanticHint: event.title,
+              onPressed: () => context.go(RoutePaths.event(event.id)),
+            ),
+            if (event.status == EventStatus.active)
+              PorcelainButton(
+                label: 'Launch checks',
+                icon: PorcelainIcons.preflight,
+                size: PorcelainButtonSize.compact,
+                semanticHint: event.title,
+                onPressed: () => context.go(RoutePaths.preflight(event.id)),
+              ),
+            if (archived)
+              PorcelainButton(
+                label: 'Reopen',
+                icon: PorcelainIcons.restore,
+                size: PorcelainButtonSize.compact,
+                semanticHint: event.title,
+                onPressed: () => EventActions.reopen(context, ref, event),
+              ),
+            PorcelainButton(
+              label: 'Duplicate',
+              icon: PorcelainIcons.duplicate,
+              variant: PorcelainButtonVariant.quiet,
+              size: PorcelainButtonSize.compact,
+              semanticHint: event.title,
+              onPressed: () => EventActions.duplicate(context, ref, event),
+            ),
+            if (!archived)
+              PorcelainButton(
+                label: 'Archive',
+                icon: PorcelainIcons.archive,
+                variant: PorcelainButtonVariant.quiet,
+                size: PorcelainButtonSize.compact,
+                semanticHint: event.title,
+                onPressed: () => EventActions.archive(context, ref, event),
+              ),
+            if (archived) ...[
+              PorcelainButton(
+                label: 'Photos',
+                icon: PorcelainIcons.gallery,
+                variant: PorcelainButtonVariant.quiet,
+                size: PorcelainButtonSize.compact,
+                semanticHint: event.title,
+                onPressed: () => context.go(RoutePaths.galleryEvent(event.id)),
+              ),
+              PorcelainButton(
+                label: 'Delete',
+                icon: PorcelainIcons.delete,
+                variant: PorcelainButtonVariant.danger,
+                size: PorcelainButtonSize.compact,
+                semanticHint: event.title,
+                onPressed: () async {
+                  final summaries = await ref.read(
+                    galleryEventsProvider.future,
+                  );
+                  if (!context.mounted) return;
+                  await GalleryActions.deleteEvent(
+                    context,
+                    ref,
+                    eventId: event.id,
+                    title: event.title,
+                    sessionCount:
+                        summaries
+                            .where((e) => e.eventId == event.id)
+                            .firstOrNull
+                            ?.sessionCount ??
+                        0,
+                  );
+                },
+              ),
+            ],
+          ],
+        ),
+      ],
     );
   }
 }

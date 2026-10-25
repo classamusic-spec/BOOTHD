@@ -13,6 +13,7 @@ final class PorcelainMotion {
     required this.standard,
     required this.emphasized,
     required this.page,
+    required this.stagger,
     required this.isReduced,
   });
 
@@ -22,6 +23,7 @@ final class PorcelainMotion {
     standard: Duration(milliseconds: 240),
     emphasized: Duration(milliseconds: 320),
     page: Duration(milliseconds: 280),
+    stagger: Duration(milliseconds: 40),
     isReduced: false,
   );
 
@@ -31,6 +33,7 @@ final class PorcelainMotion {
     standard: Duration.zero,
     emphasized: Duration.zero,
     page: Duration.zero,
+    stagger: Duration.zero,
     isReduced: true,
   );
 
@@ -52,8 +55,11 @@ final class PorcelainMotion {
   /// Larger entrances: sheets, section changes.
   final Duration emphasized;
 
-  /// Route transitions.
+  /// Route transitions, and each section of a page entering.
   final Duration page;
+
+  /// Between one section of a page entering and the next.
+  final Duration stagger;
 
   final bool isReduced;
 
