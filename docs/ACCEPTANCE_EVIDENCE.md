@@ -1324,3 +1324,12 @@ reduced-motion tests run over them unchanged.
 | AC-UXP-11 The launch checks say how to leave Booth Mode | PASS (host) | Row 1 (`events_flow_test.dart`), row 3 |
 | AC-UXP-12 After the PIN, the operator sees the event's photo reel without leaving Booth Mode; guests cannot reach it | PASS (host); devices BLOCKED | Row 1 (`booth_session_flow_test.dart`: no reel before the PIN, "No photos yet", then the guest's photo as "1 of 1"); row 5 |
 | AC-UXP-13 Guest screens fit a phone-width window with every label whole | PASS (host) | `narrow_studio_test.dart` (welcome, get ready, review, finished, operator at 390 x 844) |
+
+## 2026-10-26 — App audit and sticker placement (AC-0501, AC-0503, AC-0508, AC-0510)
+
+- PASS — `app-audit-focused-tests.log`: 691 focused tests covering setup/access, events, simulated guest sessions, gallery/export, template/library editing, alpha, geometry, persistence and preview/export parity; unchanged pixel tolerances.
+- PASS — `app-audit-screens.log`: 80 chooser/library/editor checks across tablet sizes, 200% text, accessible labels/targets/contrast and dead controls. Fresh run used `caffeinate -i` and `--timeout 30m` to avoid host-sleep timeouts; no behavioral assertion was relaxed.
+- PASS — `sticker-final-placement-tests.log`: 30 final geometry/library/screenshot tests, including the full print-safe margin on 2×6 strips. Four actual editor screenshots with bundled production fonts are in `build/local-verification/sticker-builder/`.
+- PASS — `audit-occasion-render.log`: all 48 occasion presets rendered without warnings, with artwork clear of title frames. Review sheet: `build/local-verification/occasion-catalog/occasion-overview.png`.
+- PASS — analysis, formatting and web build (`app-audit-analyze.log`, `app-audit-format.log`, `app-audit-web-build.log`). Logs above are under `build/local-verification/`.
+- Limits — the broad full-suite attempt was interrupted after host timeouts; it is not a full-suite pass. Real iPad/Android camera certification and live delivery were not exercised. Details: `docs/APP_FLOW_AUDIT_2026-10-26.md`.

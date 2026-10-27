@@ -404,11 +404,37 @@ void main() {
             .singleWhere((l) => l.assetId == id);
         expect(layer.visible, isTrue);
         expect(layer.locked, isFalse);
+        expect(layer.fit, ImageFit.contain);
+        final page = controller.document.page;
+        final frame = layer.frame.toPixels(
+          pageWidthPx: page.widthPx,
+          pageHeightPx: page.heightPx,
+        );
+        expect(frame.width, lessThanOrEqualTo(page.widthPx * 0.24));
+        expect(frame.height, lessThanOrEqualTo(page.heightPx * 0.24));
+        expect(frame.left, greaterThanOrEqualTo(page.dpi / 8));
+        expect(frame.top, greaterThanOrEqualTo(page.dpi / 8));
         expect(
           layer.zIndex,
           greaterThan(controller.document.photoSlots.last.zIndex),
         );
         expect(await booth.templates.assets.read(id), png);
+        controller.undo();
+        expect(
+          controller.document.layers.where((l) => l.id == layer.id),
+          isEmpty,
+        );
+        controller.redo();
+        await controller.save();
+        final reopened = await booth.templates.templates.loadLatest(
+          controller.templateId,
+        );
+        expect(
+          reopened.document.layers.whereType<ImageLayer>().singleWhere(
+            (l) => l.id == layer.id,
+          ),
+          layer,
+        );
         expect(tester.takeException(), isNull);
       },
     );

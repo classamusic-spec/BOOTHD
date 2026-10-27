@@ -76,3 +76,24 @@ flutter test --no-pub tool/art/render_atelier_test.dart tool/art/render_occasion
 They write `build/local-verification/atelier-catalog/collection-overview.png` and `sticker-overview.png`. The sticker sheet composites each original over light and dark surfaces for edge inspection. Asset tests decode all alpha channels, check transparent space and visible content, and verify committed hashes. Starter-design tests save, reopen and render every preset without warnings. Editor parity tests compare the live canvas, preview and reduced print export without relaxing their tolerances.
 
 The occasion review sheet and individual full-resolution prints are written to `build/local-verification/occasion-catalog/`, including `occasion-overview.png`.
+
+## Adding stickers in the builder
+
+Choosing a transparent decoration from **Artwork → Stickers & art** now adds a
+manageable sticker inside the print-safe margin. The builder prefers space
+clear of text, photos and existing stickers. On a full page it minimizes
+overlap; you can still drag it wherever you want. Stickers keep their source
+proportions, remain independent layers above photos, and can be moved, resized,
+rotated, reordered, undone and saved like other artwork.
+
+Occasion presets use separated title/artwork boxes and consistent artwork sizes
+aligned to print pixels, verified against the canvas, preview and 300 dpi export.
+Generate editor screenshots at both tablet platforms' portrait and landscape
+viewport sizes with:
+
+```sh
+flutter test --no-pub tool/art/render_sticker_builder_test.dart
+```
+
+Screenshots are written to `build/local-verification/sticker-builder/`. The app
+flow audit and verification limits are in `../APP_FLOW_AUDIT_2026-10-26.md`.

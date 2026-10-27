@@ -307,10 +307,16 @@ final class TemplateEditorController extends ChangeNotifier {
       _add(NewLayers.shape(document, newLayerId('shape'), kind));
 
   /// Adds [asset] as an image layer, once its pixels are ready to draw.
-  Future<void> addImage(StoredAsset asset) async {
+  Future<void> addImage(StoredAsset asset, {bool sticker = false}) async {
     await _preload(AssetImageRef(asset.id), asset.asset);
     _add(
-      NewLayers.image(document, newLayerId('image'), asset.id, asset.asset),
+      NewLayers.image(
+        document,
+        newLayerId('image'),
+        asset.id,
+        asset.asset,
+        sticker: sticker,
+      ),
       assets: {asset.id: asset.asset},
     );
   }

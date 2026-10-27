@@ -1900,3 +1900,11 @@ Owner request: expand stickers and templates across party occasions, including w
 - Review: `build/local-verification/occasion-catalog/occasion-overview.png`, individual full-resolution prints in that folder, and `build/local-verification/atelier-catalog/sticker-overview.png`.
 
 - PASS — `flutter build web --no-pub` (exit 0); all 24 new bundled PNGs match their recorded SHA-256 hashes in `build/web/assets/`. Build log: `build/local-verification/occasion-web-build.log`.
+
+## 2026-10-26 — App flow audit and clean sticker placement
+
+- Pulled the default branch (`claude/new-session-fh2zxl`, `8563d1c`); it was already merged into the working branch. Reviewed access/setup, Studio, three-step event creation, launch checks, guest capture/review/reset, operator reel, gallery/export and template editing.
+- The artwork picker now preserves sticker intent. Stickers start at 24% of the shorter page side, within the print-safe margin, preferring clear space. Their full source image uses contain fitting so resizing cannot stretch or crop it. General-image behavior is preserved.
+- Separated occasion header title/artwork boxes and aligned uniform sticker sizes/positions to print pixels. All 48 companions render without warnings; existing parity tolerances and negative controls remain unchanged.
+- Validation: 691 focused app/domain/renderer tests; 80 chooser/library/editor screen checks including 200% text and accessibility; 30 final placement/library/screenshot tests; four production-font editor screenshots; static analysis and formatting. Web build compiled. The broad full-suite attempt encountered host timeouts and is not counted as a full-suite pass.
+- Detailed audit, source paths, evidence and scope limits: `docs/APP_FLOW_AUDIT_2026-10-26.md`. Pre-existing uncommitted startup/storage/onboarding work was preserved.

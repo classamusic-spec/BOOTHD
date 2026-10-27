@@ -16,6 +16,7 @@ import '../template_assets.dart';
 import '../template_document.dart';
 import '../template_layers.dart';
 import 'layer_copy.dart';
+import 'sticker_placement.dart';
 
 /// Why an edit was refused. The document is unchanged.
 enum EditRefusal {
@@ -437,25 +438,30 @@ abstract final class NewLayers {
     fill: fill,
   );
 
-  /// An image at its own aspect ratio, at most half the page.
+  /// General images start centred at most half-page size. Stickers start
+  /// smaller in clear space and retain their proportions if an edge is resized.
   static ImageLayer image(
     TemplateDocument document,
     String id,
     String assetId,
-    TemplateAsset asset,
-  ) {
+    TemplateAsset asset, {
+    bool sticker = false,
+  }) {
     final aspect = (asset.widthPx ?? 1) / (asset.heightPx ?? 1);
     return ImageLayer(
       id: id,
       zIndex: 0,
       name: asset.name ?? 'Image',
       assetId: assetId,
-      frame: _centred(
-        document.page,
-        aspect: aspect,
-        widthShare: 0.5,
-        heightShare: 0.5,
-      ),
+      fit: sticker ? ImageFit.contain : ImageFit.fill,
+      frame: sticker
+          ? StickerPlacement.initialFrame(document, aspect: aspect)
+          : _centred(
+              document.page,
+              aspect: aspect,
+              widthShare: 0.5,
+              heightShare: 0.5,
+            ),
     );
   }
 

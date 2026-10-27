@@ -192,10 +192,10 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen> {
   }
 
   Future<void> _addImage() async {
-    final asset = await chooseTemplateImage(context);
-    if (asset == null || !mounted) return;
+    final choice = await chooseTemplateArtwork(context);
+    if (choice == null || !mounted) return;
     try {
-      await _controller!.addImage(asset);
+      await _controller!.addImage(choice.asset, sticker: choice.sticker);
     } on Exception catch (error) {
       _refused(error);
     }

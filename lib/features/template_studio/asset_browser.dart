@@ -26,8 +26,15 @@ import 'editor_copy.dart';
 
 /// Opens the asset browser (S08) and returns the image chosen, stored in
 /// the template library; null when closed without choosing.
-Future<StoredAsset?> chooseTemplateImage(BuildContext context) =>
-    showPorcelainSheet<StoredAsset>(
+Future<StoredAsset?> chooseTemplateImage(BuildContext context) async =>
+    (await chooseTemplateArtwork(context))?.asset;
+
+/// Preserves the distinction between decorative stickers and general images.
+/// Background/inspector pickers can still ask for just the stored asset.
+typedef TemplateArtworkChoice = ({StoredAsset asset, bool sticker});
+
+Future<TemplateArtworkChoice?> chooseTemplateArtwork(BuildContext context) =>
+    showPorcelainSheet<TemplateArtworkChoice>(
       context: context,
       title: 'Add artwork',
       body: const _AssetBrowser(),
@@ -55,12 +62,15 @@ class _AssetBrowserState extends ConsumerState<_AssetBrowser> {
     super.dispose();
   }
 
-  Future<void> _choose(Future<StoredAsset> Function() store) async {
+  Future<void> _choose(
+    Future<StoredAsset> Function() store, {
+    bool sticker = false,
+  }) async {
     if (_busy) return;
     setState(() => _busy = true);
     try {
       final asset = await store();
-      if (mounted) Navigator.of(context).pop(asset);
+      if (mounted) Navigator.of(context).pop((asset: asset, sticker: sticker));
     } on TemplateStoreException catch (error) {
       if (mounted) {
         PorcelainToast.show(
@@ -198,6 +208,9 @@ class _AssetBrowserState extends ConsumerState<_AssetBrowser> {
             onChoose: (decoration) => _choose(
               () =>
                   ref.read(templateLibraryProvider).storeDecoration(decoration),
+              sticker:
+                  decoration.transparent &&
+                  decoration.kind != DecorationKind.frame,
             ),
           ),
         ] else

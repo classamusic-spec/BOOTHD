@@ -69,15 +69,17 @@ StarterDesign _occasionDesign(OccasionTheme theme, {required bool strip}) {
           ArgbColor(theme.paper),
         ),
         if (!strip) ...[
+          // Reuse one print-size decode for both stickers. Four-pixel alignment
+          // keeps half/quarter-size previews in phase with the print pixels.
           _image(
             page,
             'header-art',
             'Occasion illustration',
             artwork,
-            55,
-            90,
-            300,
-            300,
+            60,
+            104,
+            272,
+            272,
           ),
           _text(
             page,
@@ -101,9 +103,9 @@ StarterDesign _occasionDesign(OccasionTheme theme, {required bool strip}) {
             _serif,
             22,
             ink,
-            330,
+            360,
             135,
-            740,
+            710,
             220,
           ),
           paper('title-rule', 'Title underline', 370, 375, 660, 3, accent),
@@ -161,10 +163,10 @@ StarterDesign _occasionDesign(OccasionTheme theme, {required bool strip}) {
           'footer-art',
           'Occasion keepsake',
           artwork,
-          strip ? 180 : 55,
-          strip ? 1375 : 1475,
-          strip ? 240 : 260,
-          strip ? 240 : 260,
+          strip ? 180 : 48,
+          strip ? 1376 : 1472,
+          strip ? 240 : 272,
+          strip ? 240 : 272,
         ),
         _text(
           page,

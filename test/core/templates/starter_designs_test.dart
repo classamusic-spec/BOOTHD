@@ -114,6 +114,23 @@ void main() {
         expect(stored.document.errors, isEmpty);
         expect(stored.category, design.category);
         if (design.id.startsWith('occasion_')) {
+          final page = stored.document.page;
+          final title = stored.document.layers
+              .whereType<TextLayer>()
+              .singleWhere((l) => l.id == 'title');
+          final images = stored.document.layers.whereType<ImageLayer>();
+          for (final image in images) {
+            final art = LayerGeometry.of(image, page).bounds;
+            final caption = LayerGeometry.of(title, page).bounds;
+            expect(
+              art.right <= caption.left ||
+                  art.left >= caption.right ||
+                  art.bottom <= caption.top ||
+                  art.top >= caption.bottom,
+              isTrue,
+              reason: '${design.name}: artwork must clear the title box',
+            );
+          }
           expect(
             stored.document.layers.whereType<TextLayer>().map((l) => l.id),
             containsAll(['title', 'subtitle', 'personalization']),
