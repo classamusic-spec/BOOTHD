@@ -1248,6 +1248,45 @@ iPad: BLOCKED (no Mac, no iPad; tool/build_ios.sh exits 3 on Linux); Android: re
   then (`docs/experience_packs/SOUND_SCRIPT_ELEVENLABS.md`).
 - Originality sign-off; the optional event logo (not built).
 
+## Local reliability maintenance (2026-10-22, America/New_York)
+
+Authorised by the owner's request to debug and improve the code. This is a
+maintenance pass, not advancement of the M11/M12 device or release gates.
+Host: Apple Silicon, macOS 26.5.2, Xcode 26.6; Flutter 3.47.7 / Dart 3.13.5.
+Changes are on `codex/debug-startup-storage`; no package or schema changes.
+
+| Check / AC | Command or evidence | Exit / result |
+| --- | --- | --- |
+| AC-0003 | `dart format --output=none --set-exit-if-changed .`; `flutter analyze --no-pub` | 0; no formatting or analysis issues |
+| AC-0005 | `dart run build_runner build`; `dart run drift_dev make-migrations` | 0; no tracked generated-code/schema diff |
+| AC-0005 | `dart run tool/dependency_licenses.dart --check` | 0 after refreshing the stale direct-dependency flags |
+| AC-1001, AC-0006 | startup / architecture / blob / template-store targeted tests | 0; 366 passed, including preparation-before-services, safe failure, retry and disposal |
+| AC-0407 | renderer suite and the two guest golden sheets | 0; 100 passed, 5 skipped; independent text geometry and negative controls passed; platform baseline policy explained in `test_assets/README.md` |
+| AC-1004 | `flutter test --no-pub --platform chrome test/browser --reporter expanded` | 0; 3 passed against real IndexedDB, two database connections |
+| AC-1001 | `tool/web/smoke.mjs` on rebuilt localhost site | 0; setup, privacy, reload, cross-origin isolation, denied storage and successful retry; no JavaScript page errors |
+| AC-0004 (web) | `flutter build web --release --no-pub` | 0; rebuilt site served at localhost:8787 |
+| AC-0004 (iPad compile) | `flutter build ios --simulator --debug --no-pub`, with the local Xcode environment | 0; Runner.app built; simulator was shut down at the subsequent launch attempt, so no new native runtime pass is claimed |
+
+`flutter test --no-pub --reporter expanded` completed with exit 0 in 10m41s:
+**3,021 passed, 419 skipped, zero failures** (AC-0004, AC-EP15).
+The three Chrome tests are a separate passing run. UI golden skips follow the
+existing Linux-only policy; their Linux reference images were preserved. Logs: `debug-full-test.log`,
+`debug-targeted.log`, `debug-browser-tests.log`, `debug-rendering.log`,
+`debug-web-build.log`, `debug-ios-build.log`, `debug-web-smoke.log` under
+`build/local-verification/`. Screenshots: `debug-web-smoke/01-launch.png` through
+`05-storage-recovered.png`; reviewed storage error is actionable and contains
+no raw exception or sensitive value.
+
+Original-code reproductions in `original-regressions/result.log` demonstrate
+lost append bytes and an orphaned directory tree. Regression tests pass on the
+fixed implementation. IndexedDB transaction ordering follows the active-request
+callback model in [the IDBTransaction reference](https://developer.mozilla.org/en-US/docs/Web/API/IDBTransaction).
+
+Physical iPad and Android camera, performance, soak and certification checks
+remain BLOCKED (no physical tablets attached). Android compilation was not run
+(the full SDK is missing). Optional delivery backend and live texting were not
+exercised; no messaging settings or credentials were changed.
+
 ## 2026-10-24 — Occasion library expansion (AC-0501, AC-0508)
 
 Scope: 24 original transparent PNG stickers across 20 occasion collections, with 48 editable 4×6 portrait / 2×6 strip companions. Existing essential and Atelier collections remain available. Provenance and SHA-256 manifests are in `docs/artwork/` and `docs/ASSET_PROVENANCE.md`.
@@ -1333,3 +1372,21 @@ reduced-motion tests run over them unchanged.
 - PASS — `audit-occasion-render.log`: all 48 occasion presets rendered without warnings, with artwork clear of title frames. Review sheet: `build/local-verification/occasion-catalog/occasion-overview.png`.
 - PASS — analysis, formatting and web build (`app-audit-analyze.log`, `app-audit-format.log`, `app-audit-web-build.log`). Logs above are under `build/local-verification/`.
 - Limits — the broad full-suite attempt was interrupted after host timeouts; it is not a full-suite pass. Real iPad/Android camera certification and live delivery were not exercised. Details: `docs/APP_FLOW_AUDIT_2026-10-26.md`.
+
+## 2026-10-27 — Remaining local work verification
+
+Before committing the preserved startup/storage fixes and welcome/dashboard
+changes, the combined workspace passed fresh checks:
+
+- Static analysis and formatting: no issues or formatting changes.
+- 408 focused startup, access-flow, storage, template persistence, rendering
+  and architecture tests (`local-work-targeted.log`).
+- Three real Chrome IndexedDB concurrency and rollback tests
+  (`local-work-browser.log`).
+- 48 welcome/dashboard layout, 200% text, accessibility and control checks
+  (`local-work-screens.log`).
+- Release web build completed (`local-work-web-build.log`). The compiler
+  reported an optional Cupertino font warning; the build succeeded.
+
+Logs are under `build/local-verification/`. This is a focused verification
+of the combined changes; no fresh full-suite or physical-device pass is claimed.

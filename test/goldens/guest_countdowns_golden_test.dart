@@ -1,5 +1,10 @@
 // EP03 (AC-EP14): the nine countdown presets in their packs' colours,
 // mid-second and still (reduced motion), for visual review.
+@Tags(['golden'])
+library;
+
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:porcelain_photo_booth/core/experience/guest_experience.dart';
@@ -83,5 +88,5 @@ void main() {
       find.byType(Column).first,
       matchesGoldenFile('experience/guest_countdowns.png'),
     );
-  });
+  }, skip: !Platform.isLinux); // UI goldens use the Linux CI rasterizer.
 }

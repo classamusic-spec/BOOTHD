@@ -32,6 +32,71 @@ void main() {
   });
 
   group('dart:io rules', () {
+    test('overlapping appends retain every byte in call order', () async {
+      await fs.directory('/data').create();
+      final file = fs.file('/data/photo');
+      await Future.wait([
+        file.writeAsString('original'),
+        file.writeAsString('-one', mode: io.FileMode.append),
+        file.writeAsString('-two', mode: io.FileMode.append),
+      ]);
+      expect(await file.readAsString(), 'original-one-two');
+      expect(file.lengthSync(), 'original-one-two'.length);
+      final reopened = await BlobFileSystem.open(store);
+      expect(await reopened.file(file.path).readAsString(), 'original-one-two');
+    });
+
+    test('a rename waits for a pending write and keeps its metadata', () async {
+      await fs.directory('/data').create();
+      final file = fs.file('/data/staged');
+      await Future.wait([
+        file.writeAsString('complete photo'),
+        file.rename('/data/final'),
+      ]);
+      expect(file.existsSync(), isFalse);
+      expect(await fs.file('/data/final').readAsString(), 'complete photo');
+      expect(fs.file('/data/final').lengthSync(), 14);
+    });
+
+    test('a failed mutation does not poison later writes', () async {
+      await fs.directory('/data').create();
+      store.failNextWrite = 'QuotaExceededError';
+      final failed = fs.file('/data/failed').writeAsString('no space');
+      final next = fs.file('/data/next').writeAsString('saved');
+      await expectLater(failed, throwsA(isA<io.FileSystemException>()));
+      await next;
+      expect(fs.file('/data/failed').existsSync(), isFalse);
+      expect(await fs.file('/data/next').readAsString(), 'saved');
+    });
+
+    test(
+      'a directory cannot move into itself or use a file as a directory',
+      () async {
+        await fs.directory('/data/sub').create(recursive: true);
+        await fs.file('/data/sub/photo').writeAsString('saved');
+        await expectLater(
+          fs.directory('/data').rename('/data/sub/moved'),
+          throwsA(isA<io.FileSystemException>()),
+        );
+        await expectLater(
+          fs.directory('/data/sub/photo').delete(),
+          throwsA(isA<io.FileSystemException>()),
+        );
+        await expectLater(
+          fs.file('/missing').rename('/missing'),
+          throwsA(isA<io.FileSystemException>()),
+        );
+        expect(await fs.file('/data/sub/photo').readAsString(), 'saved');
+      },
+    );
+
+    test('mutating read bytes never changes stored content', () async {
+      await fs.file('/photo').writeAsBytes([1, 2, 3]);
+      final bytes = await fs.file('/photo').readAsBytes();
+      bytes[0] = 99;
+      expect(await fs.file('/photo').readAsBytes(), [1, 2, 3]);
+    });
+
     test('a file needs its folder; recursive create makes it', () async {
       final file = fs.file('/booth/a/b.bin');
       await expectLater(

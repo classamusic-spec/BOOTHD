@@ -22,8 +22,8 @@ final class IndexedDbBlobStore implements BlobStore {
   final web.IDBDatabase _db;
 
   /// Opens (or creates) the store.
-  static Future<IndexedDbBlobStore> open() async {
-    final request = web.window.indexedDB.open(_name, 1);
+  static Future<IndexedDbBlobStore> open({String name = _name}) async {
+    final request = web.window.indexedDB.open(name, 1);
     request.onupgradeneeded = ((web.Event _) {
       final db = request.result! as web.IDBDatabase;
       if (!db.objectStoreNames.contains(_entries)) {
@@ -36,6 +36,9 @@ final class IndexedDbBlobStore implements BlobStore {
     final db = await _result(request);
     return IndexedDbBlobStore._(db! as web.IDBDatabase);
   }
+
+  /// Releases the connection, including before removing an isolated test store.
+  void close() => _db.close();
 
   static Future<JSAny?> _result(web.IDBRequest request) {
     final done = Completer<JSAny?>();
@@ -80,9 +83,11 @@ final class IndexedDbBlobStore implements BlobStore {
       }).toJS;
     try {
       issue(transaction);
-    } on Object {
+    } on Object catch (error, stack) {
+      // Return the same failed future the caller awaits. Rethrowing here
+      // would leave the later abort event rejecting an orphaned future.
+      if (!done.isCompleted) done.completeError(error, stack);
       transaction.abort();
-      rethrow;
     }
     return done.future;
   }
@@ -148,33 +153,53 @@ final class IndexedDbBlobStore implements BlobStore {
   }
 
   @override
-  Future<void> move(Map<String, String> moves) async {
-    // Read first (each read is its own transaction), then write everything
-    // in one transaction.
-    final entries = <String, JSAny?>{};
-    final contents = <String, JSAny?>{};
-    for (final from in moves.keys) {
-      final transaction = _db.transaction(
-        [_entries.toJS, _contents.toJS].toJS,
-        'readonly',
-      );
-      final entry = _result(transaction.objectStore(_entries).get(from.toJS));
-      final content = _result(
-        transaction.objectStore(_contents).get(from.toJS),
-      );
-      entries[from] = await entry;
-      contents[from] = await content;
-    }
-    await _change(moves.keys.isEmpty ? '' : moves.keys.first, (transaction) {
+  Future<void> move(Map<String, String> moves) {
+    if (moves.isEmpty) return Future.value();
+    // Read and write under the SAME read-write transaction. IndexedDB
+    // serializes it against other writers, so a concurrent update cannot
+    // be replaced with bytes read before that update committed.
+    return _change(moves.keys.first, (transaction) {
       final entryStore = transaction.objectStore(_entries);
       final contentStore = transaction.objectStore(_contents);
-      for (final from in moves.keys) {
-        entryStore.delete(from.toJS);
-        contentStore.delete(from.toJS);
+      final entries = <String, JSAny?>{};
+      final contents = <String, JSAny?>{};
+      var remaining = moves.length * 2;
+
+      void readCompleted() {
+        if (--remaining != 0) return;
+        if (entries.values.any((entry) => entry == null)) {
+          transaction.abort();
+          return;
+        }
+        // Issue writes from a request callback while the transaction is
+        // still active. Snapshot all sources first, including for swaps.
+        try {
+          for (final from in moves.keys) {
+            entryStore.delete(from.toJS);
+            contentStore.delete(from.toJS);
+          }
+          for (final MapEntry(key: from, value: to) in moves.entries) {
+            entryStore.put(entries[from]!, to.toJS);
+            if (contents[from] case final bytes?) {
+              contentStore.put(bytes, to.toJS);
+            }
+          }
+        } on Object {
+          transaction.abort();
+        }
       }
-      for (final MapEntry(key: from, value: to) in moves.entries) {
-        if (entries[from] case final entry?) entryStore.put(entry, to.toJS);
-        if (contents[from] case final bytes?) contentStore.put(bytes, to.toJS);
+
+      for (final from in moves.keys) {
+        final entry = entryStore.get(from.toJS);
+        entry.onsuccess = ((web.Event _) {
+          entries[from] = entry.result;
+          readCompleted();
+        }).toJS;
+        final content = contentStore.get(from.toJS);
+        content.onsuccess = ((web.Event _) {
+          contents[from] = content.result;
+          readCompleted();
+        }).toJS;
       }
     });
   }

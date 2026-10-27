@@ -9,6 +9,7 @@ import '../../core/booth/booth_providers.dart';
 import '../../core/design_system/appearance.dart';
 import '../../core/design_system/porcelain_icons.dart';
 import '../../core/design_system/porcelain_metrics.dart';
+import '../../core/design_system/porcelain_motion.dart';
 import '../../core/design_system/porcelain_theme.dart';
 import '../../core/design_system/theme_profiles.dart';
 import '../../core/di/service_providers.dart';
@@ -29,6 +30,7 @@ import '../../shared/widgets/theme_profile_card.dart';
 import '../../shared/widgets/tone.dart';
 import '../../shared/widgets/wordmark.dart';
 import 'restore_backup_panel.dart';
+import 'welcome_atelier.dart';
 
 enum SetupStep { welcome, privacy, pin, recovery, booth }
 
@@ -139,6 +141,16 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
   Widget build(BuildContext context) {
     final theme = context.porcelain;
     final previous = _previous;
+    if (_step == SetupStep.welcome &&
+        !_restoring &&
+        ref.watch(restoreReportProvider).value == null) {
+      return Scaffold(
+        body: WelcomeAtelier(
+          onBegin: () => _go(SetupStep.privacy),
+          onRestore: kIsWeb ? null : () => setState(() => _restoring = true),
+        ),
+      );
+    }
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -201,7 +213,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                               const SizedBox(height: PorcelainSpace.xl),
                             ],
                             AnimatedSize(
-                              duration: const Duration(milliseconds: 200),
+                              duration: PorcelainMotion.of(context).standard,
                               alignment: Alignment.topCenter,
                               child: KeyedSubtree(
                                 key: ValueKey(_step),

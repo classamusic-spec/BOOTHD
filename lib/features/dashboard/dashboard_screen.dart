@@ -19,6 +19,7 @@ import '../../shared/formatters/date_format.dart';
 import '../../shared/guest/event_welcome_copy.dart';
 import '../../shared/guest/guest_welcome.dart';
 import '../../shared/guest/guest_welcome_sample.dart';
+import '../../shared/widgets/collection_feature.dart';
 import '../../shared/widgets/page_header.dart';
 import '../../shared/widgets/porcelain_button.dart';
 import '../../shared/widgets/porcelain_card.dart';
@@ -177,7 +178,7 @@ class DashboardScreen extends ConsumerWidget {
           children: [
             const SectionHeader(
               title: 'Booth readiness',
-              subtitle: 'Checked facts only. Nothing here is assumed.',
+              subtitle: 'A quick check before the first guest arrives.',
             ),
             ResponsiveGrid(
               minTileWidth: 180,
@@ -256,6 +257,15 @@ class DashboardScreen extends ConsumerWidget {
               ],
             ),
           ],
+        ),
+        CollectionFeature(
+          eyebrow: 'DESIGNED TO BE REMEMBERED',
+          title: 'Find your signature style.',
+          description:
+              'Explore the watercolor collection, from romantic '
+              'florals to little celebrations. Make a design your own.',
+          actionLabel: 'Browse templates',
+          onPressed: () => context.go(RoutePaths.templates),
         ),
       ],
     );

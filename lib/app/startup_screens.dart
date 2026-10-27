@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -48,10 +49,24 @@ class StartupProblemScreen extends ConsumerWidget {
   const StartupProblemScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context, WidgetRef ref) => StartupProblemView(
+    failure: ref.watch(accessControllerProvider).failure,
+    onRetry: () => ref.read(accessControllerProvider.notifier).retryStartup(),
+  );
+}
+
+/// Also used before the provider scope exists, when opening browser
+/// storage itself fails.
+class StartupProblemView extends StatelessWidget {
+  const StartupProblemView({super.key, this.failure, required this.onRetry});
+
+  final Object? failure;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
     final theme = context.porcelain;
     final colors = theme.colors;
-    final failure = ref.watch(accessControllerProvider).failure;
     final (code, title, body, canRetry) = switch (failure) {
       StoredDataTooNewException() => (
         'STORAGE_SCHEMA_NEWER',
@@ -86,8 +101,12 @@ class StartupProblemScreen extends ConsumerWidget {
       _ => (
         'STORAGE_OPEN_FAILED',
         "The booth couldn't start",
-        'Its storage could not be opened. Restart the tablet and try again. '
-            'If this keeps happening, contact support with the code below.',
+        kIsWeb
+            ? 'This browser could not open its storage. Check that site data '
+                  'is allowed in your browser settings, then try again. '
+                  'If this keeps happening, contact support with the code below.'
+            : 'Its storage could not be opened. Restart the tablet and try again. '
+                  'If this keeps happening, contact support with the code below.',
         true,
       ),
     };
@@ -140,9 +159,7 @@ class StartupProblemScreen extends ConsumerWidget {
                           label: 'Try again',
                           icon: PorcelainIcons.retry,
                           variant: PorcelainButtonVariant.primary,
-                          onPressed: () => ref
-                              .read(accessControllerProvider.notifier)
-                              .retryStartup(),
+                          onPressed: onRetry,
                         ),
                       ],
                     ],

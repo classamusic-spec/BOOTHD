@@ -2,7 +2,6 @@
 // manifests with checksums and linked to their assets; loading checks the
 // manifest, and a template rendered from the store matches its golden.
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:porcelain_photo_booth/core/composition/store_render_source.dart';
@@ -15,10 +14,10 @@ import 'package:porcelain_photo_booth/domain/template/template_document.dart';
 import 'package:porcelain_photo_booth/domain/template/template_json.dart';
 import 'package:porcelain_photo_booth/features/diagnostics/render_lab/render_checks.dart';
 import 'package:porcelain_photo_booth/features/diagnostics/render_lab/render_fixtures.dart';
+import 'package:porcelain_photo_booth/features/diagnostics/render_lab/render_lab_runner.dart';
 import 'package:porcelain_photo_booth/infrastructure/composition/dart_ui_composition_renderer.dart';
 import 'package:porcelain_photo_booth/infrastructure/database/drift_template_catalog.dart';
 
-import '../../rendering/support/pixels.dart';
 import '../../support/template_store_harness.dart';
 
 Matcher _refused(TemplateStoreErrorCode code) =>
@@ -212,28 +211,31 @@ void main() {
     expect(jsonDecode(original), isA<Map<String, Object?>>());
   });
 
-  test('a template rendered from the store matches its golden', () async {
-    final fixture = fix01();
-    final summary = await harness.storeFixture(fixture);
-    final revision = await harness.templates.loadRevision(summary.revisionId);
-    final export = await DartUiCompositionRenderer().renderExport(
-      TemplateRender(
-        document: revision.document,
-        photos: fixture.selections,
-        source: StoreRenderSource(
-          assets: harness.assets,
-          photos: (id) async => fixture.photos[id]!,
+  test(
+    'a template rendered from the store exactly matches the source render',
+    () async {
+      final fixture = fix01();
+      final summary = await harness.storeFixture(fixture);
+      final revision = await harness.templates.loadRevision(summary.revisionId);
+      final export = await DartUiCompositionRenderer().renderExport(
+        TemplateRender(
+          document: revision.document,
+          photos: fixture.selections,
+          source: StoreRenderSource(
+            assets: harness.assets,
+            photos: (id) async => fixture.photos[id]!,
+          ),
         ),
-      ),
-      output: const OutputProfile(format: OutputFormat.png),
-      includePixels: true,
-    );
-    final golden = await decodeRgba(
-      File('test_assets/expected_renders/fix01_export_1200x1800.png')
-          .readAsBytesSync(),
-    );
-    expect(compareRgba(export.rgba!, golden.rgba).maxDelta, 0);
-  });
+        output: const OutputProfile(format: OutputFormat.png),
+        includePixels: true,
+      );
+      // Persistence must preserve every pixel on the current renderer.
+      // Platform-to-golden comparisons belong to render_golden_test.dart;
+      // exact equality to a Linux image also measures OS rasterization.
+      final direct = await exportPixels(DartUiCompositionRenderer(), fixture);
+      expect(compareRgba(export.rgba!, direct.rgba!).maxDelta, 0);
+    },
+  );
 
   test('a store asset that changed on disk stops the render', () async {
     final fixture = fix01();

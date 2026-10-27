@@ -54,6 +54,20 @@ Update only after an intentional rendering change, and record why in the
 implementation log. Device runs save renders under the same names
 (`build/device_renders/`) for `device_render_comparison_test.dart`.
 
+`expected_renders/macos/fix05_export_1200x1800.png` is the macOS host
+reference for the text-only FIX-05 fixture (Flutter 3.47.7, macOS 26.5.2).
+CoreText and FreeType produce different glyph weight/rasterization even
+with the same bundled fonts. Both references retain the existing whole
+image tolerance; text alignment, line count, frame bounds and
+preview/export parity still run on every host. Linux CI uses the original
+reference; device-to-Linux certification comparisons remain unchanged.
+Regenerate only this host reference after an intentional change with:
+
+```sh
+flutter test --update-goldens test/rendering/render_golden_test.dart \
+  --plain-name fix05_export_1200x1800.png
+```
+
 ## `templates/v1/`
 
 `everything.json`: a schema v1 document using every layer type, fill,

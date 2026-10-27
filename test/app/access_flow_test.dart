@@ -89,7 +89,7 @@ void main() {
       useViewport(tester, TabletViewport.ipadPortrait);
       final booth = await pumpApp(tester, startAs: StartAs.setup);
       expect(find.byType(SetupScreen), findsOneWidget);
-      expect(find.text('Welcome'), findsOneWidget);
+      expect(find.text('Beautiful moments.\nMade to keep.'), findsOneWidget);
 
       await tapText(tester, 'Begin setup');
       expect(find.text('Everything stays on this tablet'), findsOneWidget);
@@ -184,7 +184,7 @@ void main() {
         alreadySetUp: true,
       );
       expect(find.byType(SetupScreen), findsOneWidget);
-      expect(find.text('Welcome'), findsOneWidget);
+      expect(find.text('Beautiful moments.\nMade to keep.'), findsOneWidget);
     });
   });
 

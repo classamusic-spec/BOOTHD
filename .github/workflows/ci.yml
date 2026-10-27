@@ -66,6 +66,21 @@ jobs:
         env:
           DELIVERY_TEST_DATABASE_URL: postgres://postgres@127.0.0.1:5432/postgres
 
+  web:
+    name: Browser storage regressions and web build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get --enforce-lockfile
+      - run: flutter test --no-pub --platform chrome test/browser
+      - run: flutter build web --release --no-pub
+
   android:
     name: Android release smoke build
     needs: checks

@@ -31,7 +31,13 @@ void main() {
   final renderer = DartUiCompositionRenderer();
 
   Future<void> expectMatchesGolden(RenderArtifact image, String name) async {
-    final file = File('$_goldens/$name');
+    // CoreText and FreeType rasterize bundled text differently. Keep a
+    // reviewed macOS text reference; Linux CI and geometry tolerances
+    // retain their existing baselines and limits.
+    final platform = Platform.isMacOS && name == labGoldens['FIX-05']
+        ? 'macos/'
+        : '';
+    final file = File('$_goldens/$platform$name');
     if (autoUpdateGoldenFiles) {
       file
         ..createSync(recursive: true)

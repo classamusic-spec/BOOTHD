@@ -1,5 +1,10 @@
 // EP02 (AC-EP03, AC-EP05): the guest button sheet, every family on its
 // pack's backdrop in every state, for visual review.
+@Tags(['golden'])
+library;
+
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:porcelain_photo_booth/core/design_system/porcelain_icons.dart';
@@ -135,5 +140,5 @@ void main() {
       find.byType(Column).first,
       matchesGoldenFile('experience/guest_buttons.png'),
     );
-  });
+  }, skip: !Platform.isLinux); // UI goldens use the Linux CI rasterizer.
 }

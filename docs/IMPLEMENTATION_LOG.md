@@ -3,6 +3,52 @@
 Newest milestone first. Each entry: scope, plan, changes, commands and exit
 codes, platform results, spec issues raised, risks, next step.
 
+## Local reliability fixes: startup, browser storage and portable checks
+
+- Date: 2026-10-22 (America/New_York).
+- Authorised by: owner request to debug the code and make fixes and improvements.
+- Scope: maintenance of the existing app; no new milestone or product feature,
+  dependencies, schema migration, messaging configuration or deployment.
+
+### Changes and reasons
+
+- The composition root now owns platform initialization. A visible loading
+  screen and sanitized, retryable error screen replace a blank page when
+  IndexedDB is unavailable. Production services are constructed only after
+  storage opens. The entrypoint again obeys the existing layer rule.
+- BlobFileSystem serializes mutations through their index update. The original
+  code lost overlapping appends (only `-two` remained from three writes) and
+  allowed a directory to be renamed inside itself, orphaning its tree. New
+  regression tests cover these cases, failed-operation recovery, pending
+  write/rename ordering, entity types and returned-byte isolation.
+- IndexedDB renames read and write within one read-write transaction, with
+  writes queued from active request callbacks. Missing sources abort the whole
+  move. Synchronous setup errors return the awaited failure instead of leaving
+  an unobserved abort future. Three real-Chrome tests cover another connection's
+  concurrent write, multi-file swaps and rollback/recovery.
+- Browser tests have their own setup: the native font-manifest loader is not
+  valid in Flutter's browser test server. CI now runs these tests and a web build.
+- Smoke tests assert setup, privacy, reload, cross-origin isolation and blocked
+  storage/retry using isolated browser contexts, rather than only taking delayed
+  screenshots. No operator browser data is changed by these tests.
+- Two UI golden sheets now follow the established Linux-only golden policy.
+  FIX-05 has a separate reviewed macOS text reference; Linux references and all
+  tolerances remain unchanged. The template-store round trip compares exactly
+  to the source rendered on the same host; whole-image references remain in
+  the dedicated renderer tests. Text geometry and mutation checks still run.
+- Refreshed the stale licence report: file, path and web are direct dependencies
+  already present in pubspec.yaml and pubspec.lock.
+
+### Validation
+
+See the local reliability section in `docs/ACCEPTANCE_EVIDENCE.md` for commands
+and outcomes. The full suite passed (3,021 passed, 419 skipped), as did the
+three Chrome storage tests and startup/recovery smoke. Both web and iPad simulator
+builds compile. Local screenshots and
+logs are under `build/local-verification/`. No tracked generated database or
+migration files changed. Physical iPad/Android certification remains untested.
+
+
 ## UX-P1 follow-up: leaving Booth Mode, the photo reel, guest screens on phones
 
 - Date: 2026-10-25 (UTC)

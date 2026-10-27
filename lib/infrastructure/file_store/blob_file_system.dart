@@ -52,7 +52,7 @@ final class MemoryBlobStore implements BlobStore {
 
   @override
   Future<Uint8List> read(String path) async =>
-      _contents[path] ??
+      _contents[path]?.sublist(0) ??
       (throw io.FileSystemException('Cannot open file', path));
 
   @override
@@ -115,6 +115,17 @@ final class BlobFileSystem extends FileSystem {
 
   final BlobStore _store;
   final Map<String, BlobEntry> _index;
+
+  // Check paths, commit the store transaction and update the index as one
+  // operation. Otherwise overlapping appends or a write racing a rename
+  // can use stale metadata and silently lose bytes.
+  Future<void> _pending = Future.value();
+
+  Future<T> _mutate<T>(Future<T> Function() operation) {
+    final result = _pending.then((_) => operation());
+    _pending = result.then<void>((_) {}, onError: (Object _, StackTrace _) {});
+    return result;
+  }
 
   static final _context = p.Context(style: p.Style.posix, current: '/');
 
@@ -251,6 +262,9 @@ final class BlobFileSystem extends FileSystem {
   }
 
   Future<void> _move(String from, String to) async {
+    if (!_isFile(from) && !_isDirectory(from)) {
+      throw _missing('Cannot rename', from);
+    }
     if (from == to) return;
     if (_isFile(from)) {
       if (_isDirectory(to)) {
@@ -261,7 +275,9 @@ final class BlobFileSystem extends FileSystem {
       _index[to] = _index.remove(from)!;
       return;
     }
-    if (!_isDirectory(from)) throw _missing('Cannot rename', from);
+    if (from == '/' || _context.isWithin(from, to)) {
+      throw io.FileSystemException('Cannot move a directory inside itself', to);
+    }
     if (_index.containsKey(to)) {
       throw io.FileSystemException('Destination exists', to);
     }
@@ -365,16 +381,17 @@ final class _BlobFile extends _BlobEntity implements File {
   bool existsSync() => fileSystem._isFile(path);
 
   @override
-  Future<File> create({bool recursive = false, bool exclusive = false}) async {
-    if (exclusive && existsSync()) {
-      throw io.FileSystemException('File exists', path);
-    }
-    if (recursive) {
-      await fileSystem._makeDirectories(dirname, recursive: true);
-    }
-    if (!existsSync()) await fileSystem._write(path, Uint8List(0));
-    return this;
-  }
+  Future<File> create({bool recursive = false, bool exclusive = false}) =>
+      fileSystem._mutate(() async {
+        if (exclusive && existsSync()) {
+          throw io.FileSystemException('File exists', path);
+        }
+        if (recursive) {
+          await fileSystem._makeDirectories(dirname, recursive: true);
+        }
+        if (!existsSync()) await fileSystem._write(path, Uint8List(0));
+        return this;
+      });
 
   @override
   Future<Uint8List> readAsBytes() => fileSystem._read(path);
@@ -388,14 +405,23 @@ final class _BlobFile extends _BlobEntity implements File {
     List<int> bytes, {
     io.FileMode mode = io.FileMode.write,
     bool flush = false,
-  }) async {
-    if (mode == io.FileMode.append || mode == io.FileMode.writeOnlyAppend) {
-      final before = existsSync() ? await readAsBytes() : Uint8List(0);
-      await fileSystem._write(path, Uint8List.fromList([...before, ...bytes]));
-    } else {
-      await fileSystem._write(path, Uint8List.fromList(bytes));
-    }
-    return this;
+  }) {
+    final contents = Uint8List.fromList(bytes);
+    return fileSystem._mutate(() async {
+      if (mode == io.FileMode.read) {
+        throw ArgumentError.value(mode, 'mode', 'File is not writable');
+      }
+      if (mode == io.FileMode.append || mode == io.FileMode.writeOnlyAppend) {
+        final before = existsSync() ? await readAsBytes() : Uint8List(0);
+        await fileSystem._write(
+          path,
+          Uint8List.fromList([...before, ...contents]),
+        );
+      } else {
+        await fileSystem._write(path, contents);
+      }
+      return this;
+    });
   }
 
   @override
@@ -431,11 +457,14 @@ final class _BlobFile extends _BlobEntity implements File {
   }
 
   @override
-  Future<File> rename(String newPath) async {
+  Future<File> rename(String newPath) => fileSystem._mutate(() async {
+    if (!existsSync()) {
+      throw BlobFileSystem._missing('Cannot rename file', path);
+    }
     final target = fileSystem._normal(newPath);
     await fileSystem._move(path, target);
     return _BlobFile(fileSystem, target);
-  }
+  });
 
   @override
   Future<File> copy(String newPath) async {
@@ -445,13 +474,13 @@ final class _BlobFile extends _BlobEntity implements File {
   }
 
   @override
-  Future<File> delete({bool recursive = false}) async {
+  Future<File> delete({bool recursive = false}) => fileSystem._mutate(() async {
     if (!existsSync()) {
       throw BlobFileSystem._missing('Cannot delete file', path);
     }
     await fileSystem._delete(path, recursive: false);
     return this;
-  }
+  });
 }
 
 final class _BlobDirectory extends _BlobEntity implements Directory {
@@ -464,10 +493,11 @@ final class _BlobDirectory extends _BlobEntity implements Directory {
   bool existsSync() => fileSystem._isDirectory(path);
 
   @override
-  Future<Directory> create({bool recursive = false}) async {
-    await fileSystem._makeDirectories(path, recursive: recursive);
-    return this;
-  }
+  Future<Directory> create({bool recursive = false}) =>
+      fileSystem._mutate(() async {
+        await fileSystem._makeDirectories(path, recursive: recursive);
+        return this;
+      });
 
   @override
   Directory childDirectory(String basename) =>
@@ -478,17 +508,24 @@ final class _BlobDirectory extends _BlobEntity implements Directory {
       _BlobFile(fileSystem, fileSystem.path.join(path, basename));
 
   @override
-  Future<Directory> rename(String newPath) async {
+  Future<Directory> rename(String newPath) => fileSystem._mutate(() async {
+    if (!existsSync()) {
+      throw BlobFileSystem._missing('Cannot rename directory', path);
+    }
     final target = fileSystem._normal(newPath);
     await fileSystem._move(path, target);
     return _BlobDirectory(fileSystem, target);
-  }
+  });
 
   @override
-  Future<Directory> delete({bool recursive = false}) async {
-    await fileSystem._delete(path, recursive: recursive);
-    return this;
-  }
+  Future<Directory> delete({bool recursive = false}) =>
+      fileSystem._mutate(() async {
+        if (!existsSync()) {
+          throw BlobFileSystem._missing('Cannot delete directory', path);
+        }
+        await fileSystem._delete(path, recursive: recursive);
+        return this;
+      });
 
   @override
   List<FileSystemEntity> listSync({
